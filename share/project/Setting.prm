@@ -1,0 +1,5 @@
+database : /home/ryo/Program/choreonoid/extplugin/teachingPlugin/share/project/teachingDB.robomech2016.sqlite3
+robotModelName : main_withHands
+application : PDF|/usr/bin/evince
+application : TXT|/usr/bin/gedit
+application : YAML|/usr/bin/gedit

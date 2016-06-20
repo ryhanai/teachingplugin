@@ -1,0 +1,15 @@
+README
+
+1. データベースの初期化
+$ ./setup.sh
+  データベースファイルが既に存在していれば削除し、SQLiteのテーブルを作成する。
+
+2. Choreonoidの起動
+$ choreonoid teaching_plugin.cnoid
+
+3. 最初のタスクモデルファイルの読込み
+  Task Model Viewで、
+   [Load Task] ボタンを押す
+   "share/data/TaskDef20160309.yaml" を選択する
+   読込まれた "Slider insertion" のレコードを選択する
+   [Run Task] ボタンを押す

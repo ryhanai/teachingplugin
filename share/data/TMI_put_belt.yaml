@@ -1,0 +1,462 @@
+- 
+  taskName: "両手でのベルト嵌め"
+  comment: "両手でベルトの形を成形して嵌める。"
+  models: 
+    - 
+      name: "板"
+      rname: "target"
+      type: Work
+      file_name: "boardHrp.wrl"
+      pos_x: 0.375
+      pos_y: -0.035
+      pos_z: 0.854944
+      rot_x: -180
+      rot_y: 90
+      rot_z: -135
+    - 
+      name: "プーリー1"
+      rname: ""
+      type: Env.
+      file_name: "MA266_x2Hrp.wrl"
+      pos_x: 0.485
+      pos_y: -0.06
+      pos_z: 0.895
+      rot_x: 0
+      rot_y: 90
+      rot_z: 0
+    - 
+      name: "プーリー２"
+      rname: ""
+      type: Env.
+      file_name: "MA266_x2Hrp.wrl"
+      pos_x: 0.35
+      pos_y: 0.075
+      pos_z: 0.895
+      rot_x: 0
+      rot_y: 90
+      rot_z: 0
+  states: 
+    - 
+      id: 50
+      type: 1
+      pos_x: 47.9402326
+      pos_y: 52.6173284
+    - 
+      id: 51
+      type: 5
+      cmd_name: "moveGripper"
+      pos_x: 53
+      pos_y: 105
+      arguments: 
+        - 
+          seq: 1
+          name: "width"
+          value: "0.03"
+        - 
+          seq: 2
+          name: "tm"
+          value: "0.2"
+        - 
+          seq: 3
+          name: "gripperID"
+          value: "0"
+    - 
+      id: 52
+      type: 5
+      cmd_name: "moveGripper"
+      pos_x: 51
+      pos_y: 157
+      arguments: 
+        - 
+          seq: 1
+          name: "width"
+          value: "0.03"
+        - 
+          seq: 2
+          name: "tm"
+          value: "0.2"
+        - 
+          seq: 3
+          name: "gripperID"
+          value: "1"
+    - 
+      id: 53
+      type: 5
+      cmd_name: "move"
+      pos_x: 52.2080825
+      pos_y: 211.053951
+      arguments: 
+        - 
+          seq: 1
+          name: "leftHandXyz"
+          value: " xyz(belt_pose) + rotFromRpy(rpy(belt_pose)) * [0.0, 0.05, 0.11] "
+        - 
+          seq: 2
+          name: "leftHandRpy"
+          value: " rpyFromRot(rotFromRpy(rpy(belt_pose)) * rotFromRpy([0.0, -90.0, 0.0])) "
+        - 
+          seq: 3
+          name: "rightHandXyz"
+          value: " xyz(belt_pose) + rotFromRpy(rpy(belt_pose)) * [0.0, -0.05, 0.11] "
+        - 
+          seq: 4
+          name: "rightHandRpy"
+          value: " rpyFromRot(rotFromRpy(rpy(belt_pose)) * rotFromRpy([0.0, -90.0, 0.0])) "
+        - 
+          seq: 5
+          name: "torsoAngle"
+          value: "torso_angle"
+        - 
+          seq: 6
+          name: "tm"
+          value: "1.0"
+    - 
+      id: 54
+      type: 5
+      cmd_name: "moveGripper"
+      pos_x: 52.2080825
+      pos_y: 271.037705
+      arguments: 
+        - 
+          seq: 1
+          name: "width"
+          value: "0.001"
+        - 
+          seq: 2
+          name: "tm"
+          value: "0.2"
+        - 
+          seq: 3
+          name: "gripperID"
+          value: "0"
+    - 
+      id: 55
+      type: 5
+      cmd_name: "moveGripper"
+      pos_x: 54.4297031
+      pos_y: 326.578218
+      arguments: 
+        - 
+          seq: 1
+          name: "width"
+          value: "0.001"
+        - 
+          seq: 2
+          name: "tm"
+          value: "0.2"
+        - 
+          seq: 3
+          name: "gripperID"
+          value: "1"
+    - 
+      id: 56
+      type: 5
+      cmd_name: "move"
+      pos_x: 303.251203
+      pos_y: 79.9783392
+      arguments: 
+        - 
+          seq: 1
+          name: "leftHandXyz"
+          value: " xyz(belt_pose) + rotFromRpy(rpy(belt_pose)) * [0.0, 0.05, 0.18] "
+        - 
+          seq: 2
+          name: "leftHandRpy"
+          value: " rpyFromRot(rotFromRpy(rpy(belt_pose)) * rotFromRpy([0.0, -90.0, 0.0])) "
+        - 
+          seq: 3
+          name: "rightHandXyz"
+          value: " xyz(belt_pose) + rotFromRpy(rpy(belt_pose)) * [0.0, -0.05, 0.18] "
+        - 
+          seq: 4
+          name: "rightHandRpy"
+          value: " rpyFromRot(rotFromRpy(rpy(belt_pose)) * rotFromRpy([0.0, -90.0, 0.0])) "
+        - 
+          seq: 5
+          name: "torsoAngle"
+          value: "torso_angle"
+        - 
+          seq: 6
+          name: "tm"
+          value: "0.5"
+    - 
+      id: 57
+      type: 5
+      cmd_name: "move"
+      pos_x: 323.245788
+      pos_y: 151.070196
+      arguments: 
+        - 
+          seq: 1
+          name: "leftHandXyz"
+          value: " xyz(target_pose) + rotFromRpy(rpy(target_pose)) * (xyz(assemble_pose) + rotFromRpy(rpy(assemble_pose)) * [0.0, 0.05, 0.17])) "
+        - 
+          seq: 2
+          name: "leftHandRpy"
+          value: " rpyFromRot(rotFromRpy(rpy(target_pose)) * rotFromRpy(rpy(assemble_pose)) * rotFromRpy([0.0, -90.0, 0.0])) "
+        - 
+          seq: 3
+          name: "rightHandXyz"
+          value: " xyz(target_pose) + rotFromRpy(rpy(target_pose)) * (xyz(assemble_pose) + rotFromRpy(rpy(assemble_pose)) * [0.0, -0.05, 0.17])) "
+        - 
+          seq: 4
+          name: "rightHandRpy"
+          value: " rpyFromRot(rotFromRpy(rpy(target_pose)) * rotFromRpy(rpy(assemble_pose)) * rotFromRpy([0.0, -90.0, 0.0])) "
+        - 
+          seq: 5
+          name: "torsoAngle"
+          value: "torso_angle"
+        - 
+          seq: 6
+          name: "tm"
+          value: "1.0"
+    - 
+      id: 58
+      type: 5
+      cmd_name: "move"
+      pos_x: 323.245788
+      pos_y: 151.070196
+      arguments: 
+        - 
+          seq: 1
+          name: "leftHandXyz"
+          value: " xyz(target_pose) + rotFromRpy(rpy(target_pose)) * (xyz(assemble_pose) + rotFromRpy(rpy(assemble_pose)) * [0.0, 0.05, 0.14])) "
+        - 
+          seq: 2
+          name: "leftHandRpy"
+          value: " rpyFromRot(rotFromRpy(rpy(target_pose)) * rotFromRpy(rpy(assemble_pose)) * rotFromRpy([0.0, -70.0, 0.0])) "
+        - 
+          seq: 3
+          name: "rightHandXyz"
+          value: " xyz(target_pose) + rotFromRpy(rpy(target_pose)) * (xyz(assemble_pose) + rotFromRpy(rpy(assemble_pose)) * [0.0, -0.05, 0.14])) "
+        - 
+          seq: 4
+          name: "rightHandRpy"
+          value: " rpyFromRot(rotFromRpy(rpy(target_pose)) * rotFromRpy(rpy(assemble_pose)) * rotFromRpy([0.0, -70.0, 0.0])) "
+        - 
+          seq: 5
+          name: "torsoAngle"
+          value: "torso_angle"
+        - 
+          seq: 6
+          name: "tm"
+          value: "1.0"
+    - 
+      id: 59
+      type: 5
+      cmd_name: "move"
+      pos_x: 323.245788
+      pos_y: 219.940433
+      arguments: 
+        - 
+          seq: 1
+          name: "leftHandXyz"
+          value: " xyz(target_pose) + rotFromRpy(rpy(target_pose)) * (xyz(assemble_pose) + rotFromRpy(rpy(assemble_pose)) * [-0.04, 0.05, 0.14])) "
+        - 
+          seq: 2
+          name: "leftHandRpy"
+          value: " rpyFromRot(rotFromRpy(rpy(target_pose)) * rotFromRpy(rpy(assemble_pose)) * rotFromRpy([0.0, -90.0, 0.0])) "
+        - 
+          seq: 3
+          name: "rightHandXyz"
+          value: " xyz(target_pose) + rotFromRpy(rpy(target_pose)) * (xyz(assemble_pose) + rotFromRpy(rpy(assemble_pose)) * [-0.04, -0.05, 0.14])) "
+        - 
+          seq: 4
+          name: "rightHandRpy"
+          value: " rpyFromRot(rotFromRpy(rpy(target_pose)) * rotFromRpy(rpy(assemble_pose)) * rotFromRpy([0.0, -90.0, 0.0])) "
+        - 
+          seq: 5
+          name: "torsoAngle"
+          value: "torso_angle"
+        - 
+          seq: 6
+          name: "tm"
+          value: "1.0"
+    - 
+      id: 60
+      type: 5
+      cmd_name: "move"
+      pos_x: 267.705274
+      pos_y: 286.589049
+      arguments: 
+        - 
+          seq: 1
+          name: "leftHandXyz"
+          value: " xyz(target_pose) + rotFromRpy(rpy(target_pose)) * (xyz(assemble_pose) + rotFromRpy(rpy(assemble_pose)) * [-0.04, 0.05, 0.10])) "
+        - 
+          seq: 2
+          name: "leftHandRpy"
+          value: " rpyFromRot(rotFromRpy(rpy(target_pose)) * rotFromRpy(rpy(assemble_pose)) * rotFromRpy([0.0, -90.0, 0.0])) "
+        - 
+          seq: 3
+          name: "rightHandXyz"
+          value: " xyz(target_pose) + rotFromRpy(rpy(target_pose)) * (xyz(assemble_pose) + rotFromRpy(rpy(assemble_pose)) * [-0.04, -0.05, 0.10])) "
+        - 
+          seq: 4
+          name: "rightHandRpy"
+          value: " rpyFromRot(rotFromRpy(rpy(target_pose)) * rotFromRpy(rpy(assemble_pose)) * rotFromRpy([0.0, -90.0, 0.0])) "
+        - 
+          seq: 5
+          name: "torsoAngle"
+          value: "torso_angle"
+        - 
+          seq: 6
+          name: "tm"
+          value: "1.0"
+    - 
+      id: 61
+      type: 5
+      cmd_name: "moveGripper"
+      pos_x: 221.051243
+      pos_y: 359.902526
+      arguments: 
+        - 
+          seq: 1
+          name: "width"
+          value: "0.03"
+        - 
+          seq: 2
+          name: "tm"
+          value: "0.2"
+        - 
+          seq: 3
+          name: "gripperID"
+          value: "0"
+    - 
+      id: 62
+      type: 5
+      cmd_name: "moveGripper"
+      pos_x: 261.040413
+      pos_y: 417.66466
+      arguments: 
+        - 
+          seq: 1
+          name: "width"
+          value: "0.03"
+        - 
+          seq: 2
+          name: "tm"
+          value: "0.2"
+        - 
+          seq: 3
+          name: "gripperID"
+          value: "1"
+    - 
+      id: 63
+      type: 5
+      cmd_name: "move"
+      pos_x: 294.364721
+      pos_y: 468.761933
+      arguments: 
+        - 
+          seq: 1
+          name: "leftHandXyz"
+          value: " xyz(target_pose) + rotFromRpy(rpy(target_pose)) * (xyz(assemble_pose) + rotFromRpy(rpy(assemble_pose)) * [-0.04, 0.05, 0.14])) "
+        - 
+          seq: 2
+          name: "leftHandRpy"
+          value: " rpyFromRot(rotFromRpy(rpy(target_pose)) * rotFromRpy(rpy(assemble_pose)) * rotFromRpy([0.0, -90.0, 0.0])) "
+        - 
+          seq: 3
+          name: "rightHandXyz"
+          value: " xyz(target_pose) + rotFromRpy(rpy(target_pose)) * (xyz(assemble_pose) + rotFromRpy(rpy(assemble_pose)) * [-0.04, -0.05, 0.14])) "
+        - 
+          seq: 4
+          name: "rightHandRpy"
+          value: " rpyFromRot(rotFromRpy(rpy(target_pose)) * rotFromRpy(rpy(assemble_pose)) * rotFromRpy([0.0, -90.0, 0.0])) "
+        - 
+          seq: 5
+          name: "torsoAngle"
+          value: "torso_angle"
+        - 
+          seq: 6
+          name: "tm"
+          value: "0.5"
+    - 
+      id: 64
+      type: 2
+      pos_x: 337
+      pos_y: 525
+  transactions: 
+    - 
+      source_id: 64
+      target_id: 64
+    - 
+      source_id: 50
+      target_id: 51
+    - 
+      source_id: 51
+      target_id: 52
+    - 
+      source_id: 52
+      target_id: 53
+    - 
+      source_id: 53
+      target_id: 54
+    - 
+      source_id: 54
+      target_id: 55
+    - 
+      source_id: 55
+      target_id: 56
+    - 
+      source_id: 56
+      target_id: 57
+    - 
+      source_id: 57
+      target_id: 58
+    - 
+      source_id: 58
+      target_id: 59
+    - 
+      source_id: 59
+      target_id: 60
+    - 
+      source_id: 60
+      target_id: 61
+    - 
+      source_id: 61
+      target_id: 62
+    - 
+      source_id: 62
+      target_id: 63
+    - 
+      source_id: 63
+      target_id: 64
+  parameters: 
+    - 
+      name: "ベルト位置:xyz[m]RPY[deg]"
+      rname: "belt_pose"
+      type: 0
+      model_name: ""
+      units: ""
+      elem_num: 6
+      elem_type: ""
+      values: "0.35, -0.20, 0.81, 0.0, 0.0, 0.0"
+    - 
+      name: "組付け対象物位置:xyz[m]RPY[deg]"
+      rname: "target_pose"
+      type: 1
+      model_name: "target"
+      units: ""
+      elem_num: 6
+      elem_type: ""
+      values: "0.3750, -0.0350, 0.8549, -180.0000, 90.0000, -135.0000"
+    - 
+      name: "組付けオフセット:xyz[m]RPY[deg]"
+      rname: "assemble_pose"
+      type: 0
+      model_name: ""
+      units: ""
+      elem_num: 6
+      elem_type: ""
+      values: "0.0, 0.0, 0.06, 90.0000, 0.0000, -90.0000"
+    - 
+      name: "腰角度[deg]"
+      rname: "torso_angle"
+      type: 0
+      model_name: ""
+      units: ""
+      elem_num: 1
+      elem_type: ""
+      values: "0.0"

@@ -1,0 +1,351 @@
+- 
+  taskName: "【タスクモデル】Pick and Screw"
+  comment: "ねじを吸い付けて、電動ドライバで締める。"
+  models: 
+    - 
+      name: "SGCB40-40-5"
+      rname: "cover"
+      type: Work
+      file_name: "SGCB40-40-5Hrp.wrl"
+      pos_x: 0.35
+      pos_y: 0
+      pos_z: 0.83
+      rot_x: 90
+      rot_y: -0
+      rot_z: 0
+    - 
+      name: "SGRB40-40-12"
+      rname: "block"
+      type: Env.
+      file_name: "SGRB40-40-12Hrp.wrl"
+      pos_x: 0.35
+      pos_y: 0
+      pos_z: 0.81
+      rot_x: 90
+      rot_y: 0
+      rot_z: 0
+    - 
+      name: "SCB4-10"
+      rname: "screw"
+      type: Work
+      file_name: "SCB4-10Hrp.wrl"
+      pos_x: 0.45
+      pos_y: -0.20
+      pos_z: 0.84
+      rot_x: 90.0
+      rot_y: 0.0
+      rot_z: 0.0
+  states: 
+    - 
+      id: 57
+      type: 1
+      pos_x: 47.9402326
+      pos_y: 52.6173284
+    - 
+      id: 58
+      type: 5
+      cmd_name: "moveArm"
+      pos_x: 75
+      pos_y: 95
+      arguments: 
+        - 
+          seq: 1
+          name: "xyz"
+          value: " xyz(screw_pose) + rotFromRpy(rpy(screw_pose)) * (xyz(tool_pose) + rotFromRpy(rpy(tool_pose)) * [0.05,0,0]) "
+        - 
+          seq: 2
+          name: "rpy"
+          value: " rpyFromRot(rotFromRpy(rpy(screw_pose)) * rotFromRpy(rpy(tool_pose))) "
+        - 
+          seq: 3
+          name: "tm"
+          value: "1.0"
+        - 
+          seq: 4
+          name: "armID"
+          value: "handID"
+    - 
+      id: 59
+      type: 5
+      cmd_name: "moveArm"
+      pos_x: 99
+      pos_y: 140
+      arguments: 
+        - 
+          seq: 1
+          name: "xyz"
+          value: " xyz(screw_pose) + rotFromRpy(rpy(screw_pose)) * xyz(tool_pose) "
+        - 
+          seq: 2
+          name: "rpy"
+          value: " rpyFromRot(rotFromRpy(rpy(screw_pose)) * rotFromRpy(rpy(tool_pose))) "
+        - 
+          seq: 3
+          name: "tm"
+          value: "0.5"
+        - 
+          seq: 4
+          name: "armID"
+          value: "handID"
+    - 
+      id: 60
+      type: 5
+      cmd_name: "moveArm"
+      pos_x: 126
+      pos_y: 180
+      model_actions: 
+        - 
+          action: "attach"
+          model: "screw"
+          target: "toolID"
+      arguments: 
+        - 
+          seq: 1
+          name: "xyz"
+          value: " xyz(screw_pose) + rotFromRpy(rpy(screw_pose)) * xyz(tool_pose) "
+        - 
+          seq: 2
+          name: "rpy"
+          value: " rpyFromRot(rotFromRpy(rpy(screw_pose)) * rotFromRpy(rpy(tool_pose))) "
+        - 
+          seq: 3
+          name: "tm"
+          value: "0.5"
+        - 
+          seq: 4
+          name: "armID"
+          value: "handID"
+    - 
+      id: 61
+      type: 5
+      cmd_name: "moveArm"
+      pos_x: 97
+      pos_y: 213
+      arguments: 
+        - 
+          seq: 1
+          name: "xyz"
+          value: " xyz(screw_pose) + rotFromRpy(rpy(screw_pose)) * (xyz(tool_pose) + rotFromRpy(rpy(tool_pose)) * [0.05,0,0]) "
+        - 
+          seq: 2
+          name: "rpy"
+          value: " rpyFromRot(rotFromRpy(rpy(screw_pose)) * rotFromRpy(rpy(tool_pose))) "
+        - 
+          seq: 3
+          name: "tm"
+          value: "0.5"
+        - 
+          seq: 4
+          name: "armID"
+          value: "handID"
+    - 
+      id: 62
+      type: 5
+      cmd_name: "moveArm"
+      pos_x: 68
+      pos_y: 247
+      arguments: 
+        - 
+          seq: 1
+          name: "xyz"
+          value: " xyz(parts_poseP) + rotFromRpy(rpy(parts_poseP)) * (xyz(hole_pose) + rotFromRpy(rpy(hole_pose)) * (xyz(tool_pose) + [0,screw_length+0.05,0]))"
+        - 
+          seq: 2
+          name: "rpy"
+          value: " rpyFromRot(rotFromRpy(rpy(parts_poseP)) * rotFromRpy(rpy(hole_pose)) * rotFromRpy(rpy(tool_pose))) "
+        - 
+          seq: 3
+          name: "tm"
+          value: "1.0"
+        - 
+          seq: 4
+          name: "armID"
+          value: "handID"
+    - 
+      id: 63
+      type: 5
+      cmd_name: "moveArm"
+      pos_x: 96
+      pos_y: 280
+      arguments: 
+        - 
+          seq: 1
+          name: "xyz"
+          value: " xyz(parts_poseP) + rotFromRpy(rpy(parts_poseP)) * (xyz(hole_pose) + rotFromRpy(rpy(hole_pose)) * (xyz(tool_pose) + [0,screw_length,0])))"
+        - 
+          seq: 2
+          name: "rpy"
+          value: " rpyFromRot(rotFromRpy(rpy(parts_poseP)) * rotFromRpy(rpy(hole_pose)) * rotFromRpy(rpy(tool_pose))) "
+        - 
+          seq: 3
+          name: "tm"
+          value: "0.5"
+        - 
+          seq: 4
+          name: "armID"
+          value: "handID"
+    - 
+      id: 64
+      type: 5
+      cmd_name: "moveArm"
+      pos_x: 129
+      pos_y: 315
+      model_actions: 
+        - 
+          action: "detach"
+          model: "screw"
+          target: "toolID"
+      arguments: 
+        - 
+          seq: 1
+          name: "xyz"
+          value: " xyz(parts_poseP) + rotFromRpy(rpy(parts_poseP)) * (xyz(hole_pose) + rotFromRpy(rpy(hole_pose)) * xyz(tool_pose))"
+        - 
+          seq: 2
+          name: "rpy"
+          value: " rpyFromRot(rotFromRpy(rpy(parts_poseP)) * rotFromRpy(rpy(hole_pose)) * rotFromRpy(rpy(tool_pose))) "
+        - 
+          seq: 3
+          name: "tm"
+          value: "1.2"
+        - 
+          seq: 4
+          name: "armID"
+          value: "handID"
+    - 
+      id: 65
+      type: 5
+      cmd_name: "moveArm"
+      pos_x: 157
+      pos_y: 352
+      arguments: 
+        - 
+          seq: 1
+          name: "xyz"
+          value: " xyz(parts_poseP) + rotFromRpy(rpy(parts_poseP)) * (xyz(hole_pose) + rotFromRpy(rpy(hole_pose)) * (xyz(tool_pose) + [0,0.05,0]))"
+        - 
+          seq: 2
+          name: "rpy"
+          value: " rpyFromRot(rotFromRpy(rpy(parts_poseP)) * rotFromRpy(rpy(hole_pose)) * rotFromRpy(rpy(tool_pose))) "
+        - 
+          seq: 3
+          name: "tm"
+          value: "0.5"
+        - 
+          seq: 4
+          name: "armID"
+          value: "handID"
+    - 
+      id: 66
+      type: 2
+      pos_x: 197.423912
+      pos_y: 394.847824
+  transactions: 
+    - 
+      source_id: 66
+      target_id: 66
+    - 
+      source_id: 57
+      target_id: 58
+    - 
+      source_id: 58
+      target_id: 59
+    - 
+      source_id: 59
+      target_id: 60
+    - 
+      source_id: 60
+      target_id: 61
+    - 
+      source_id: 61
+      target_id: 62
+    - 
+      source_id: 62
+      target_id: 63
+    - 
+      source_id: 63
+      target_id: 64
+    - 
+      source_id: 64
+      target_id: 65
+    - 
+      source_id: 65
+      target_id: 66
+  parameters: 
+    - 
+      name: "ネジ供給位置:xyz[m]RPY[deg]"
+      rname: "screw_pose"
+      type: 1
+      model_name: "screw"
+      units: ""
+      elem_num: 6
+      elem_type: ""
+      values: "0.3640, -0.0131, 0.8350, 89.9682, 0.0119, 0.0123"
+    - 
+      name: "組付け対象物位置:xyz[m]RPY[deg]"
+      rname: "parts_poseP"
+      type: 1
+      model_name: "cover"
+      units: ""
+      elem_num: 6
+      elem_type: ""
+      values: "0.3500, 0.0000, 0.8300, 90.0000, 0.0000, 0.0000"
+    - 
+      name: "ネジ穴オフセット:xyz[m]RPY[deg]"
+      rname: "hole_pose"
+      type: 0
+      model_name: ""
+      units: ""
+      elem_num: 6
+      elem_type: ""
+      values: "0.0140, 0.0050, 0.0130, 0.0000, 0.0000, 0.0000"
+    - 
+      name: "ネジ締めトルク[Nm]"
+      rname: "torque_threshold"
+      type: 0
+      model_name: ""
+      units: ""
+      elem_num: 1
+      elem_type: ""
+      values: "0.6300"
+    - 
+      name: "ネジ長[m]"
+      rname: "screw_length"
+      type: 0
+      model_name: ""
+      units: ""
+      elem_num: 1
+      elem_type: ""
+      values: "0.0100"
+    - 
+      name: "ツール選択（2のみ）"
+      rname: "toolID"
+      type: 0
+      model_name: ""
+      units: ""
+      elem_num: 1
+      elem_type: "int"
+      values: "2"
+    - 
+      name: "ハンド選択（left=0,right=1）"
+      rname: "handID"
+      type: 0
+      model_name: ""
+      units: ""
+      elem_num: 1
+      elem_type: "int"
+      values: "1"
+    - 
+      name: "ツールオフセット:xyz[m]RPY[deg]"
+      rname: "tool_pose"
+      type: 0
+      model_name: ""
+      units: ""
+      elem_num: 6
+      elem_type: ""
+      values: "0.0015, 0.1240, -0.0800, -90.0000, 0.0000, 90.0000"
+  images: 
+    - 
+      name: "角スライド_1.jpg"
+    - 
+      name: "角スライド_部品表.png"

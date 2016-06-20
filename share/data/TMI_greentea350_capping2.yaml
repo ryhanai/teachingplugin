@@ -1,0 +1,652 @@
+- 
+  taskName: "ペットボトルのキャップ締め"
+  comment: "緑茶のペットボトル[350ml]|キャップを回して締める。|締めるときに、もう一方の手で押さえる。||パラメータの説明："
+  models: 
+    - 
+      name: "キャップ"
+      rname: "object"
+      type: Work
+      file_name: "greentea350_capHrp.wrl"
+      pos_x: 0.4
+      pos_y: 0.2
+      pos_z: 0.82
+      rot_x: 0
+      rot_y: -0
+      rot_z: 0
+    - 
+      name: "ボトル"
+      rname: "target"
+      type: Work
+      file_name: "greentea350_bottleHrp.wrl"
+      pos_x: 0.415
+      pos_y: 0
+      pos_z: 0.872
+      rot_x: 0
+      rot_y: -0
+      rot_z: 0
+  states: 
+    - 
+      id: 1
+      type: 1
+      pos_x: 47.9402326
+      pos_y: 52.6173284
+    - 
+      id: 2
+      type: 5
+      cmd_name: "moveGripper"
+      pos_x: 85
+      pos_y: 101
+      arguments: 
+        - 
+          seq: 1
+          name: "width"
+          value: "finger_interval+0.04"
+        - 
+          seq: 2
+          name: "tm"
+          value: "0.2"
+        - 
+          seq: 3
+          name: "gripperID"
+          value: "handID"
+    - 
+      id: 3
+      type: 5
+      cmd_name: "moveArm"
+      pos_x: 130
+      pos_y: 140
+      arguments: 
+        - 
+          seq: 1
+          name: "xyz"
+          value: " xyz(parts_poseG) + rotFromRpy(rpy(parts_poseG)) * (xyz(grasp_pose) + rotFromRpy(rpy(grasp_pose)) * [approach_distance,0,0]) "
+        - 
+          seq: 2
+          name: "rpy"
+          value: " rpyFromRot(rotFromRpy(rpy(parts_poseG)) * rotFromRpy(rpy(grasp_pose))) "
+        - 
+          seq: 3
+          name: "tm"
+          value: "1.0"
+        - 
+          seq: 4
+          name: "armID"
+          value: "handID"
+    - 
+      id: 4
+      type: 5
+      cmd_name: "moveArm"
+      pos_x: 172
+      pos_y: 184
+      arguments: 
+        - 
+          seq: 1
+          name: "xyz"
+          value: " xyz(parts_poseG) + rotFromRpy(rpy(parts_poseG)) * xyz(grasp_pose)"
+        - 
+          seq: 2
+          name: "rpy"
+          value: " rpyFromRot(rotFromRpy(rpy(parts_poseG)) * rotFromRpy(rpy(grasp_pose))) "
+        - 
+          seq: 3
+          name: "tm"
+          value: "0.5"
+        - 
+          seq: 4
+          name: "armID"
+          value: "handID"
+    - 
+      id: 5
+      type: 5
+      cmd_name: "moveGripper"
+      pos_x: 216
+      pos_y: 230
+      model_actions: 
+        - 
+          action: "attach"
+          model: "object"
+          target: "handID"
+      arguments: 
+        - 
+          seq: 1
+          name: "width"
+          value: "finger_interval"
+        - 
+          seq: 2
+          name: "tm"
+          value: "0.2"
+        - 
+          seq: 3
+          name: "gripperID"
+          value: "handID"
+    -
+      id: 6 # 左手で持ち上げ
+      type: 5
+      cmd_name: "moveArm"
+      pos_x: 262
+      pos_y: 268
+      arguments: 
+        - 
+          seq: 1
+          name: "xyz"
+          value: " xyz(parts_poseG) + rotFromRpy(rpy(parts_poseG)) * (xyz(grasp_pose) + rotFromRpy(rpy(grasp_pose)) * [approach_distance,0,0]) "
+        - 
+          seq: 2
+          name: "rpy"
+          value: " rpyFromRot(rotFromRpy(rpy(parts_poseG)) * rotFromRpy(rpy(grasp_pose))) "
+        - 
+          seq: 3
+          name: "tm"
+          value: "0.5"
+        - 
+          seq: 4
+          name: "armID"
+          value: "handID"
+    - 
+      id: 7 # 右手を開く
+      type: 5
+      cmd_name: "moveGripper"
+      pos_x: 216
+      pos_y: 230
+      arguments: 
+        - 
+          seq: 1
+          name: "width"
+          value: "fix_finger_interval+0.04"
+        - 
+          seq: 2
+          name: "tm"
+          value: "0.2"
+        - 
+          seq: 3
+          name: "gripperID"
+          value: "1"
+    - 
+      id: 8
+      type: 5
+      cmd_name: "moveArm"
+      pos_x: 78
+      pos_y: 314
+      arguments: 
+        - 
+          seq: 1
+          name: "xyz"
+          value: " xyz(parts_poseP) + rotFromRpy(rpy(parts_poseP)) * (xyz(fix_pose) + rotFromRpy(rpy(fix_pose)) * [approach_distance,0,0]) "
+        - 
+          seq: 2
+          name: "rpy"
+          value: " rpyFromRot(rotFromRpy(rpy(parts_poseP)) * rotFromRpy(rpy(fix_pose))) "
+        - 
+          seq: 3
+          name: "tm"
+          value: "1.0"
+        - 
+          seq: 4
+          name: "armID"
+          value: "1"
+    - 
+      id: 9
+      type: 5
+      cmd_name: "moveArm"
+      pos_x: 78
+      pos_y: 314
+      arguments: 
+        - 
+          seq: 1
+          name: "xyz"
+          value: " xyz(parts_poseP) + rotFromRpy(rpy(parts_poseP)) * xyz(fix_pose) "
+        - 
+          seq: 2
+          name: "rpy"
+          value: " rpyFromRot(rotFromRpy(rpy(parts_poseP)) * rotFromRpy(rpy(fix_pose))) "
+        - 
+          seq: 3
+          name: "tm"
+          value: "1.0"
+        - 
+          seq: 4
+          name: "armID"
+          value: "1"
+    - 
+      id: 10 # 右手を閉じて押さえる
+      type: 5
+      cmd_name: "moveGripper"
+      pos_x: 216
+      pos_y: 230
+      arguments: 
+        - 
+          seq: 1
+          name: "width"
+          value: "finger_interval"
+        - 
+          seq: 2
+          name: "tm"
+          value: "0.2"
+        - 
+          seq: 3
+          name: "gripperID"
+          value: "1"
+    - 
+      id: 11
+      type: 5
+      cmd_name: "move"
+      pos_x: 78
+      pos_y: 314
+      arguments: 
+        - 
+          seq: 1
+          name: "leftHandXyz"
+          value: " xyz(parts_poseP) + rotFromRpy(rpy(parts_poseP)) * (xyz(assemble_pose) + rotFromRpy(rpy(assemble_pose)) * (xyz(grasp_pose) + rotFromRpy(rpy(grasp_pose)) * [approach_distance,0,0])) "
+        - 
+          seq: 2
+          name: "leftHandRpy"
+          value: " rpyFromRot(rotFromRpy(rpy(parts_poseP)) * rotFromRpy(rpy(assemble_pose)) * rotFromRpy(rpy(grasp_pose))) "
+        - 
+          seq: 3
+          name: "rightHandXyz"
+          value: " xyz(parts_poseP) + rotFromRpy(rpy(parts_poseP)) * xyz(fix_pose) "
+        - 
+          seq: 4
+          name: "rightHandRpy"
+          value: " rpyFromRot(rotFromRpy(rpy(parts_poseP)) * rotFromRpy(rpy(fix_pose))) "
+        - 
+          seq: 5
+          name: "torsoAngle"
+          value: "0.0"
+        - 
+          seq: 6
+          name: "tm"
+          value: "0.5"
+    - 
+      id: 12 # キャップを仮置き（右手位置拘束）
+      type: 5
+      cmd_name: "move"
+      pos_x: 130
+      pos_y: 352
+      arguments: 
+        - 
+          seq: 1
+          name: "leftHandXyz"
+          value: " xyz(parts_poseP) + rotFromRpy(rpy(parts_poseP)) * (xyz(assemble_pose) + rotFromRpy(rpy(assemble_pose)) * xyz(grasp_pose)) "
+        - 
+          seq: 2
+          name: "leftHandRpy"
+          value: " rpyFromRot(rotFromRpy(rpy(parts_poseP)) * rotFromRpy(rpy(assemble_pose)) * rotFromRpy(rpy(grasp_pose))) "
+        - 
+          seq: 3
+          name: "rightHandXyz"
+          value: " xyz(parts_poseP) + rotFromRpy(rpy(parts_poseP)) * xyz(fix_pose) "
+        - 
+          seq: 4
+          name: "rightHandRpy"
+          value: " rpyFromRot(rotFromRpy(rpy(parts_poseP)) * rotFromRpy(rpy(fix_pose))) "
+        - 
+          seq: 5
+          name: "torsoAngle"
+          value: "0.0"
+        - 
+          seq: 6
+          name: "tm"
+          value: "0.5"
+    - 
+      id: 13 # 手首を回す
+      type: 5
+      cmd_name: "move"
+      pos_x: 130
+      pos_y: 352
+      arguments: 
+        - 
+          seq: 1
+          name: "leftHandXyz"
+          value: " xyz(parts_poseP) + rotFromRpy(rpy(parts_poseP)) * (xyz(assemble_pose) + rotFromRpy(rpy(assemble_pose)) * xyz(grasp_pose)) "
+        - 
+          seq: 2
+          name: "leftHandRpy"
+          value: " rpyFromRot(rotFromRpy(rpy(parts_poseP)) * rotFromRpy([0,0,-45.0])* rotFromRpy(rpy(assemble_pose)) * rotFromRpy(rpy(grasp_pose))) "
+        - 
+          seq: 3
+          name: "rightHandXyz"
+          value: " xyz(parts_poseP) + rotFromRpy(rpy(parts_poseP)) * xyz(fix_pose) "
+        - 
+          seq: 4
+          name: "rightHandRpy"
+          value: " rpyFromRot(rotFromRpy(rpy(parts_poseP)) * rotFromRpy(rpy(fix_pose))) "
+        - 
+          seq: 5
+          name: "torsoAngle"
+          value: "0.0"
+        - 
+          seq: 6
+          name: "tm"
+          value: "0.5"
+    - 
+      id: 14 # capを離す
+      type: 5
+      cmd_name: "moveGripper"
+      pos_x: 174
+      pos_y: 390
+      model_actions: 
+        - 
+          action: "detach"
+          model: "object"
+          target: "handID"
+      arguments: 
+        - 
+          seq: 1
+          name: "width"
+          value: "finger_interval+0.04"
+        - 
+          seq: 2
+          name: "tm"
+          value: "0.2"
+        - 
+          seq: 3
+          name: "gripperID"
+          value: "handID"
+    - 
+      id: 15 # 手首を戻す
+      type: 5
+      cmd_name: "move"
+      pos_x: 130
+      pos_y: 352
+      arguments: 
+        - 
+          seq: 1
+          name: "leftHandXyz"
+          value: " xyz(parts_poseP) + rotFromRpy(rpy(parts_poseP)) * (xyz(assemble_pose) + rotFromRpy(rpy(assemble_pose)) * xyz(grasp_pose)) "
+        - 
+          seq: 2
+          name: "leftHandRpy"
+          value: " rpyFromRot(rotFromRpy(rpy(parts_poseP)) * rotFromRpy(rpy(assemble_pose)) * rotFromRpy(rpy(grasp_pose))) "
+        - 
+          seq: 3
+          name: "rightHandXyz"
+          value: " xyz(parts_poseP) + rotFromRpy(rpy(parts_poseP)) * xyz(fix_pose) "
+        - 
+          seq: 4
+          name: "rightHandRpy"
+          value: " rpyFromRot(rotFromRpy(rpy(parts_poseP)) * rotFromRpy(rpy(fix_pose))) "
+        - 
+          seq: 5
+          name: "torsoAngle"
+          value: "0.0"
+        - 
+          seq: 6
+          name: "tm"
+          value: "0.5"
+    - 
+      id: 16 # capを掴む
+      type: 5
+      cmd_name: "moveGripper"
+      pos_x: 174
+      pos_y: 390
+      model_actions: 
+        - 
+          action: "attach"
+          model: "object"
+          target: "handID"
+      arguments: 
+        - 
+          seq: 1
+          name: "width"
+          value: "finger_interval"
+        - 
+          seq: 2
+          name: "tm"
+          value: "0.2"
+        - 
+          seq: 3
+          name: "gripperID"
+          value: "handID"
+    - 
+      id: 17 # 手首を回す
+      type: 5
+      cmd_name: "move"
+      pos_x: 130
+      pos_y: 352
+      arguments: 
+        - 
+          seq: 1
+          name: "leftHandXyz"
+          value: " xyz(parts_poseP) + rotFromRpy(rpy(parts_poseP)) * (xyz(assemble_pose) + rotFromRpy(rpy(assemble_pose)) * xyz(grasp_pose)) "
+        - 
+          seq: 2
+          name: "leftHandRpy"
+          value: " rpyFromRot(rotFromRpy(rpy(parts_poseP)) * rotFromRpy([0,0,-45.0])* rotFromRpy(rpy(assemble_pose)) * rotFromRpy(rpy(grasp_pose))) "
+        - 
+          seq: 3
+          name: "rightHandXyz"
+          value: " xyz(parts_poseP) + rotFromRpy(rpy(parts_poseP)) * xyz(fix_pose) "
+        - 
+          seq: 4
+          name: "rightHandRpy"
+          value: " rpyFromRot(rotFromRpy(rpy(parts_poseP)) * rotFromRpy(rpy(fix_pose))) "
+        - 
+          seq: 5
+          name: "torsoAngle"
+          value: "0.0"
+        - 
+          seq: 6
+          name: "tm"
+          value: "0.5"
+    - 
+      id: 18 # capを離す
+      type: 5
+      cmd_name: "moveGripper"
+      pos_x: 174
+      pos_y: 390
+      model_actions: 
+        - 
+          action: "detach"
+          model: "object"
+          target: "handID"
+      arguments: 
+        - 
+          seq: 1
+          name: "width"
+          value: "finger_interval+0.04"
+        - 
+          seq: 2
+          name: "tm"
+          value: "0.2"
+        - 
+          seq: 3
+          name: "gripperID"
+          value: "handID"
+    - 
+      id: 19 # 手を離す
+      type: 5
+      cmd_name: "move"
+      pos_x: 234
+      pos_y: 434
+      arguments: 
+        - 
+          seq: 1
+          name: "leftHandXyz"
+          value: "xyz(parts_poseP) + rotFromRpy(rpy(parts_poseP)) * (xyz(assemble_pose) + rotFromRpy(rpy(assemble_pose)) * (xyz(grasp_pose) + rotFromRpy(rpy(grasp_pose)) * [approach_distance,0,0]))"
+        - 
+          seq: 2
+          name: "leftHandRpy"
+          value: "rpyFromRot(rotFromRpy(rpy(parts_poseP)) * rotFromRpy(rpy(assemble_pose)) * rotFromRpy(rpy(grasp_pose)))"
+        - 
+          seq: 3
+          name: "rightHandXyz"
+          value: " xyz(parts_poseP) + rotFromRpy(rpy(parts_poseP)) * (xyz(fix_pose) + rotFromRpy(rpy(fix_pose)) * [approach_distance,0,0]) "
+        - 
+          seq: 4
+          name: "rightHandRpy"
+          value: " rpyFromRot(rotFromRpy(rpy(parts_poseP)) * rotFromRpy(rpy(fix_pose))) "
+        - 
+          seq: 5
+          name: "torsoAngle"
+          value: "0.0"
+        - 
+          seq: 6
+          name: "tm"
+          value: "0.5"
+    - 
+      id: 20
+      type: 5
+      cmd_name: "goInitial"
+      pos_x: 84
+      pos_y: 96
+      arguments:
+        - 
+          seq: 1
+          name: "tm"
+          value: "1.0"
+    -
+      id: 21
+      type: 2
+      pos_x: 298
+      pos_y: 482
+  transactions: 
+    - 
+      source_id: 21
+      target_id: 21
+    - 
+      source_id: 1
+      target_id: 2
+    - 
+      source_id: 2
+      target_id: 3
+    - 
+      source_id: 3
+      target_id: 4
+    - 
+      source_id: 4
+      target_id: 5
+    - 
+      source_id: 5
+      target_id: 6
+    - 
+      source_id: 6
+      target_id: 7
+    - 
+      source_id: 7
+      target_id: 8
+    - 
+      source_id: 8
+      target_id: 9
+    - 
+      source_id: 9
+      target_id: 10
+    - 
+      source_id: 10
+      target_id: 11
+    - 
+      source_id: 11
+      target_id: 12
+    - 
+      source_id: 12
+      target_id: 13
+    - 
+      source_id: 13
+      target_id: 14
+    - 
+      source_id: 14
+      target_id: 15
+    - 
+      source_id: 15
+      target_id: 16
+    - 
+      source_id: 16
+      target_id: 17
+    - 
+      source_id: 17
+      target_id: 18
+    - 
+      source_id: 18
+      target_id: 19
+    - 
+      source_id: 19
+      target_id: 20
+    - 
+      source_id: 20
+      target_id: 21
+  parameters: 
+    - 
+      name: "キャップ位置:xyz[m]RPY[deg]"
+      rname: "parts_poseG"
+      type: 1
+      model_name: "object"
+      units: ""
+      elem_num: 6
+      elem_type: ""
+      values: "0.4000, 0.2000, 0.8200, 0.0000, 0.0000, 0.0000"
+    - 
+      name: "アプローチ距離[m]"
+      rname: "approach_distance"
+      type: 0
+      model_name: ""
+      units: ""
+      elem_num: 1
+      elem_type: ""
+      values: "0.0500"
+    - 
+      name: "キャップの把持姿勢:xyz[m]RPY[deg]"
+      rname: "grasp_pose"
+      type: 0
+      model_name: ""
+      units: ""
+      elem_num: 6
+      elem_type: ""
+      values: "0.0000, 0.0000, 0.1, 0.0000, -90.0000, 0.0000"
+    - 
+      name: "キャップ把持状態での指間隔[m]"
+      rname: "finger_interval"
+      type: 0
+      model_name: ""
+      units: ""
+      elem_num: 1
+      elem_type: "0"
+      values: "0.022"
+    - 
+      name: "ボトル位置:xyz[m]RPY[deg]"
+      rname: "parts_poseP"
+      type: 1
+      model_name: "target"
+      units: ""
+      elem_num: 6
+      elem_type: ""
+      values: "0.4150, 0.0000, 0.8720, 0.0000, 0.0000, 0.0000"
+    - 
+      name: "ボトルの口位置:xyz[m]RPY[deg]"
+      rname: "assemble_pose"
+      type: 0
+      model_name: ""
+      units: ""
+      elem_num: 6
+      elem_type: ""
+      values: "0.0000, 0.000, 0.09200, 0.0000, 0.0000, 0.0000"
+    - 
+      name: "ハンド選択（0=left,1=right）"
+      rname: "handID"
+      type: 0
+      model_name: ""
+      units: ""
+      elem_num: 1
+      elem_type: "int"
+      values: "0"
+    -
+      name: "押さえる位置:xyz[m]RPY[deg]"
+      rname: "fix_pose"
+      type: 0
+      model_name: ""
+      units: ""
+      elem_num: 6
+      elem_type: ""
+      values: "0.0000, -0.1000, 0.00000, 0.0000, 0.0000, -90.0000"
+    - 
+      name: "押さえるときの指間隔[m]"
+      rname: "fix_finger_interval"
+      type: 0
+      model_name: ""
+      units: ""
+      elem_num: 1
+      elem_type: "0"
+      values: "0.05"
+
+  images: 
+    - 
+      name: "greentea350.jpg"

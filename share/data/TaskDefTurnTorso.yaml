@@ -1,0 +1,50 @@
+- 
+  taskName: "腰回転"
+  comment: "IK失敗回避手段"
+  models: 
+  states: 
+    - 
+      id: 1
+      type: 1
+      pos_x: 47.9402326
+      pos_y: 52.6173284
+    - 
+      id: 2
+      type: 5
+      cmd_name: "moveTorso"
+      pos_x: 84
+      pos_y: 96
+      arguments: 
+        - 
+          seq: 1
+          name: "angle"
+          value: "torso_angle"
+        - 
+          seq: 2
+          name: "tm"
+          value: "0.5"
+    - 
+      id: 3
+      type: 2
+      pos_x: 298
+      pos_y: 482
+  transactions: 
+    - 
+      source_id: 3
+      target_id: 3
+    - 
+      source_id: 1
+      target_id: 2
+    - 
+      source_id: 2
+      target_id: 3
+  parameters: 
+    - 
+      name: "腰関節角度[deg]"
+      rname: "torso_angle"
+      type: 0
+      model_name: ""
+      units: ""
+      elem_num: 1
+      elem_type: ""
+      values: "0.0000"

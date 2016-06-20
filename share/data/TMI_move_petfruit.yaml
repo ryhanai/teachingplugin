@@ -1,0 +1,349 @@
+- 
+  taskName: "ペットボトル（フルーツ）をトレイに移動させる"
+  comment: "単純なピックアンドプレース(pick&place)|キャップ部分を掴んで持ち上げる。"
+  models: 
+    - 
+      name: "pet_greentea"
+      rname: "cover"
+      type: Work
+      file_name: "petfruitHrp.wrl"
+      pos_x: 0.45
+      pos_y: 0
+      pos_z: 0.872
+      rot_x: 0
+      rot_y: -0
+      rot_z: 0
+    - 
+      name: "トレイ"
+      rname: "block"
+      type: Work
+      file_name: "box_trayHrp.wrl"
+      pos_x: 0.4
+      pos_y: -0.2
+      pos_z: 0.81
+      rot_x: 0
+      rot_y: -0
+      rot_z: 90
+  states: 
+    - 
+      id: 147
+      type: 1
+      pos_x: 47.9402326
+      pos_y: 52.6173284
+    - 
+      id: 148
+      type: 5
+      cmd_name: "moveGripper"
+      pos_x: 84
+      pos_y: 96
+      arguments: 
+        - 
+          seq: 1
+          name: "width"
+          value: "finger_interval+0.04"
+        - 
+          seq: 2
+          name: "tm"
+          value: "0.2"
+        - 
+          seq: 3
+          name: "gripperID"
+          value: "handID"
+    - 
+      id: 149
+      type: 5
+      cmd_name: "moveArm"
+      pos_x: 130
+      pos_y: 140
+      arguments: 
+        - 
+          seq: 1
+          name: "xyz"
+          value: " xyz(parts_poseG) + rotFromRpy(rpy(parts_poseG)) * (xyz(grasp_pose) + rotFromRpy(rpy(grasp_pose)) * [approach_distance,0,0]) "
+        - 
+          seq: 2
+          name: "rpy"
+          value: " rpyFromRot(rotFromRpy(rpy(parts_poseG)) * rotFromRpy(rpy(grasp_pose))) "
+        - 
+          seq: 3
+          name: "tm"
+          value: "1.0"
+        - 
+          seq: 4
+          name: "armID"
+          value: "handID"
+    - 
+      id: 150
+      type: 5
+      cmd_name: "moveArm"
+      pos_x: 172
+      pos_y: 184
+      arguments: 
+        - 
+          seq: 1
+          name: "xyz"
+          value: " xyz(parts_poseG) + rotFromRpy(rpy(parts_poseG)) * xyz(grasp_pose)"
+        - 
+          seq: 2
+          name: "rpy"
+          value: " rpyFromRot(rotFromRpy(rpy(parts_poseG)) * rotFromRpy(rpy(grasp_pose))) "
+        - 
+          seq: 3
+          name: "tm"
+          value: "0.5"
+        - 
+          seq: 4
+          name: "armID"
+          value: "handID"
+    - 
+      id: 151
+      type: 5
+      cmd_name: "moveGripper"
+      pos_x: 216
+      pos_y: 230
+      model_actions: 
+        - 
+          action: "attach"
+          model: "cover"
+          target: "handID"
+      arguments: 
+        - 
+          seq: 1
+          name: "width"
+          value: "finger_interval"
+        - 
+          seq: 2
+          name: "tm"
+          value: "0.2"
+        - 
+          seq: 3
+          name: "gripperID"
+          value: "handID"
+    - 
+      id: 152
+      type: 5
+      cmd_name: "moveArm"
+      pos_x: 262
+      pos_y: 268
+      arguments: 
+        - 
+          seq: 1
+          name: "xyz"
+          value: " xyz(parts_poseG) + rotFromRpy(rpy(parts_poseG)) * (xyz(grasp_pose) + rotFromRpy(rpy(grasp_pose)) * [approach_distance,0,0]) "
+        - 
+          seq: 2
+          name: "rpy"
+          value: " rpyFromRot(rotFromRpy(rpy(parts_poseG)) * rotFromRpy(rpy(grasp_pose))) "
+        - 
+          seq: 3
+          name: "tm"
+          value: "0.5"
+        - 
+          seq: 4
+          name: "armID"
+          value: "handID"
+    - 
+      id: 153
+      type: 5
+      cmd_name: "moveArm"
+      pos_x: 78
+      pos_y: 314
+      arguments: 
+        - 
+          seq: 1
+          name: "xyz"
+          value: " xyz(parts_poseP) + rotFromRpy(rpy(parts_poseP)) * (xyz(assemble_pose) + rotFromRpy(rpy(assemble_pose)) * (xyz(grasp_pose) + rotFromRpy(rpy(grasp_pose)) * [release_distance,0,0])) "
+        - 
+          seq: 2
+          name: "rpy"
+          value: " rpyFromRot(rotFromRpy(rpy(parts_poseP)) * rotFromRpy(rpy(assemble_pose)) * rotFromRpy(rpy(grasp_pose))) "
+        - 
+          seq: 3
+          name: "tm"
+          value: "1.0"
+        - 
+          seq: 4
+          name: "armID"
+          value: "handID"
+    - 
+      id: 154
+      type: 5
+      cmd_name: "moveArm"
+      pos_x: 130
+      pos_y: 352
+      arguments: 
+        - 
+          seq: 1
+          name: "xyz"
+          value: " xyz(parts_poseP) + rotFromRpy(rpy(parts_poseP)) * (xyz(assemble_pose) + rotFromRpy(rpy(assemble_pose)) * xyz(grasp_pose)) "
+        - 
+          seq: 2
+          name: "rpy"
+          value: " rpyFromRot(rotFromRpy(rpy(parts_poseP)) * rotFromRpy(rpy(assemble_pose)) * rotFromRpy(rpy(grasp_pose))) "
+        - 
+          seq: 3
+          name: "tm"
+          value: "0.5"
+        - 
+          seq: 4
+          name: "armID"
+          value: "handID"
+    - 
+      id: 155
+      type: 5
+      cmd_name: "moveGripper"
+      pos_x: 174
+      pos_y: 390
+      model_actions: 
+        - 
+          action: "detach"
+          model: "cover"
+          target: "handID"
+      arguments: 
+        - 
+          seq: 1
+          name: "width"
+          value: "finger_interval+0.04"
+        - 
+          seq: 2
+          name: "tm"
+          value: "0.2"
+        - 
+          seq: 3
+          name: "gripperID"
+          value: "handID"
+    - 
+      id: 156
+      type: 5
+      cmd_name: "moveArm"
+      pos_x: 234
+      pos_y: 434
+      arguments: 
+        - 
+          seq: 1
+          name: "xyz"
+          value: "xyz(parts_poseP) + rotFromRpy(rpy(parts_poseP)) * (xyz(assemble_pose) + rotFromRpy(rpy(assemble_pose)) * (xyz(grasp_pose) + rotFromRpy(rpy(grasp_pose)) * [release_distance,0,0]))"
+        - 
+          seq: 2
+          name: "rpy"
+          value: "rpyFromRot(rotFromRpy(rpy(parts_poseP)) * rotFromRpy(rpy(assemble_pose)) * rotFromRpy(rpy(grasp_pose)))"
+        - 
+          seq: 3
+          name: "tm"
+          value: "1.0"
+        - 
+          seq: 4
+          name: "armID"
+          value: "handID"
+    - 
+      id: 157
+      type: 2
+      pos_x: 298
+      pos_y: 482
+  transactions: 
+    - 
+      source_id: 157
+      target_id: 157
+    - 
+      source_id: 147
+      target_id: 148
+    - 
+      source_id: 148
+      target_id: 149
+    - 
+      source_id: 149
+      target_id: 150
+    - 
+      source_id: 150
+      target_id: 151
+    - 
+      source_id: 151
+      target_id: 152
+    - 
+      source_id: 152
+      target_id: 153
+    - 
+      source_id: 153
+      target_id: 154
+    - 
+      source_id: 154
+      target_id: 155
+    - 
+      source_id: 155
+      target_id: 156
+    - 
+      source_id: 156
+      target_id: 157
+  parameters: 
+    - 
+      name: "把持対象物位置:xyz[m]RPY[rad]"
+      rname: "parts_poseG"
+      type: 1
+      model_name: "cover"
+      units: ""
+      elem_num: 6
+      elem_type: ""
+      values: "0.4500, 0.0000, 0.8720, 0.0000, 0.0000, 0.0000"
+    - 
+      name: "アプローチ距離[m]"
+      rname: "approach_distance"
+      type: 0
+      model_name: ""
+      units: ""
+      elem_num: 1
+      elem_type: ""
+      values: "0.0600"
+    - 
+      name: "パーツ座標系での把持姿勢:xyz[m]RPY[rad]"
+      rname: "grasp_pose"
+      type: 0
+      model_name: ""
+      units: ""
+      elem_num: 6
+      elem_type: ""
+      values: "0.0000, 0.000, 0.220, 0.0000, -90.0000, 0.0000"
+    - 
+      name: "把持状態での指間隔[m]"
+      rname: "finger_interval"
+      type: 0
+      model_name: ""
+      units: ""
+      elem_num: 1
+      elem_type: "0"
+      values: "0.013"
+    - 
+      name: "組付け対象物位置:xyz[m]RPY[rad]"
+      rname: "parts_poseP"
+      type: 1
+      model_name: "block"
+      units: ""
+      elem_num: 6
+      elem_type: ""
+      values: "0.4000, -0.2000, 0.8100, 0.0000, 0.0000, 90.0000"
+    - 
+      name: "組付けオフセット:xyz[m]RPY[rad]"
+      rname: "assemble_pose"
+      type: 0
+      model_name: ""
+      units: ""
+      elem_num: 6
+      elem_type: ""
+      values: "0.0000, 0.0800, 0.085000, 0.0000, 0.0000, -90.0000"
+    - 
+      name: "リリース距離[m]"
+      rname: "release_distance"
+      type: 0
+      model_name: ""
+      units: ""
+      elem_num: 1
+      elem_type: ""
+      values: "0.0600"
+    - 
+      name: "ハンド選択（0=left,1=right）"
+      rname: "handID"
+      type: 0
+      model_name: ""
+      units: ""
+      elem_num: 1
+      elem_type: "int"
+      values: "0"

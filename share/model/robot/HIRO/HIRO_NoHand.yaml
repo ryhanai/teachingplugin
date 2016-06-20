@@ -1,0 +1,44 @@
+modelFile: hironx-distribution-vrml/main_NoHand.wrl
+
+standardPose: [ 
+0, 0, 0,
+0, 0, -120,  15, 0, 0,
+0, 0, -120, -15, 0, 0,
+]
+
+
+linkGroup: 
+  - name: HEAD
+    links: [ HEAD_JOINT0, HEAD_JOINT1 ]
+  - name: CHEST
+    links: [ CHEST_JOINT0 ]
+  - name: ARMS
+    links:
+      - name: R-ARM
+        links: [ RARM_JOINT0, RARM_JOINT1, RARM_JOINT2, RARM_JOINT3, RARM_JOINT4, RARM_JOINT5 ]
+      - name: L-ARM
+        links: [ LARM_JOINT0, LARM_JOINT1, LARM_JOINT2, LARM_JOINT3, LARM_JOINT4, LARM_JOINT5 ]
+  - WAIST
+
+defaultIKsetup:
+  WAIST: [ R_ANKLE_R, L_ANKLE_R ]
+  RARM_JOINT5: [ CHEST_JOINT0 ]
+  LARM_JOINT5: [ CHEST_JOINT0 ]
+
+
+symmetricJoints:
+  - [ CHEST_JOINT0 ]
+  - [ HEAD_JOINT0 ]
+  - [ RARM_JOINT0, LARM_JOINT0, -1 ]
+  - [ RARM_JOINT1, LARM_JOINT1     ]
+  - [ RARM_JOINT2, LARM_JOINT2     ]
+  - [ RARM_JOINT3, LARM_JOINT3, -1 ]
+  - [ RARM_JOINT4, LARM_JOINT4     ]
+  - [ RARM_JOINT5, LARM_JOINT5, -1 ]
+
+
+divisionNumberOfPrimitiveGeometries: 16
+
+selfCollisionDetection:
+  excludeTreeDepth: 2
+

@@ -1,0 +1,46 @@
+#VRML V2.0 utf8
+
+#   Kawada HIRO(Gen 2) OpenHRP Model
+#   Copyright (c) 2011 Kawada Industries, Inc., General Robotix, Inc.
+#   All rights reserved. This data and the accompanying materials
+#   are made available under the terms of the Eclipse Public License v1.0
+#   which is available  at http://www.eclipse.org/legal/epl-v10.html
+
+Transform {
+   translation 0 0 0
+   children [
+      Transform {
+	 translation 0.0089 0.01 0.0012
+	 children [
+	    Shape {
+	       geometry Box {
+		  size 0.0178 0.06 0.0236
+	       }
+	       appearance Appearance {
+		  material Material {
+		     diffuseColor 0.5 0.7 0.5
+		  }
+	       }
+	    }
+	 ]
+      }
+      Transform {
+	 translation 0 0 0
+	 rotation 0 0 1 1.570796327
+	 children [
+	    Shape {
+	       geometry Cylinder {
+		  height 0.002
+		  radius 0.007
+	       }
+	       appearance Appearance {
+		  material Material {
+		     diffuseColor 0.5 0.7 0.5
+		  }
+	       }
+	    }
+	 ]
+      }
+   ]
+}
+

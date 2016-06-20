@@ -1,0 +1,471 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: ja\n"
+"POT-Creation-Date: 2016-06-03 00:36+0900\n"
+"PO-Revision-Date: 2016-06-03 00:36+0900\n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"Language: ja_JP\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: Poedit 1.8.8\n"
+"X-Poedit-Basepath: ../Programs/choreonoid-1.4.0_AIST/extplugin/"
+"teachingPlugin\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+"X-Poedit-SourceCharset: UTF-8\n"
+"X-Poedit-KeywordsList: tr\n"
+"X-Poedit-SearchPath-0: .\n"
+
+#: Teaching/ArgumentDialog.cpp:42
+msgid "Action Up"
+msgstr "上へ"
+
+#: Teaching/ArgumentDialog.cpp:47
+msgid "Action Down"
+msgstr ""
+
+#: Teaching/ArgumentDialog.cpp:52
+msgid "Add Action"
+msgstr ""
+
+#: Teaching/ArgumentDialog.cpp:57
+msgid "Delete Action"
+msgstr ""
+
+#: Teaching/ArgumentDialog.cpp:69
+msgid "Action:"
+msgstr ""
+
+#: Teaching/ArgumentDialog.cpp:73
+msgid "Model:"
+msgstr ""
+
+#: Teaching/ArgumentDialog.cpp:80
+msgid "Target:"
+msgstr ""
+
+#: Teaching/ArgumentDialog.cpp:122 Teaching/MetaDataView.cpp:40
+#: Teaching/MetaDataView.cpp:63 Teaching/ParameterDialog.cpp:88
+#: Teaching/SettingDialog.cpp:55
+msgid "OK"
+msgstr ""
+
+#: Teaching/ArgumentDialog.cpp:144 Teaching/StateMachineView.cpp:553
+#: Teaching/StateMachineView.cpp:575
+msgid "Command"
+msgstr ""
+
+#: Teaching/ArgumentDialog.cpp:328 Teaching/ArgumentDialog.cpp:332
+#: Teaching/ArgumentDialog.cpp:349
+msgid "Argument"
+msgstr ""
+
+#: Teaching/ArgumentDialog.cpp:328
+msgid "Error : Model Definition."
+msgstr ""
+
+#: Teaching/ArgumentDialog.cpp:332
+msgid "Error : Model and Target are SAME."
+msgstr ""
+
+#: Teaching/ArgumentDialog.cpp:349
+msgid "Error : Argument Definition."
+msgstr ""
+
+#: Teaching/ArgumentDialog.cpp:358
+msgid "Save Argument Error"
+msgstr ""
+
+#: Teaching/FlowSearchDialog.cpp:9 Teaching/TaskInstanceView.cpp:26
+msgid "Condition:"
+msgstr ""
+
+#: Teaching/FlowSearchDialog.cpp:14 Teaching/FlowView.cpp:22
+msgid "Search Flow"
+msgstr ""
+
+#: Teaching/FlowSearchDialog.cpp:25
+msgid "Select"
+msgstr ""
+
+#: Teaching/FlowSearchDialog.cpp:26
+msgid "Delete Flow"
+msgstr ""
+
+#: Teaching/FlowSearchDialog.cpp:28 Teaching/SettingDialog.cpp:56
+msgid "Cancel"
+msgstr ""
+
+#: Teaching/FlowSearchDialog.cpp:50 Teaching/FlowSearchDialog.cpp:102
+#: Teaching/FlowSearchDialog.cpp:114
+msgid "Flow List"
+msgstr ""
+
+#: Teaching/FlowSearchDialog.cpp:96 Teaching/FlowView.cpp:223
+#: Teaching/TaskInstanceView.cpp:251 Teaching/TaskInstanceView.cpp:296
+#: Teaching/TaskInstanceView.cpp:312 Teaching/TaskInstanceView.cpp:354
+msgid "Database"
+msgstr ""
+
+#: Teaching/FlowSearchDialog.cpp:98 Teaching/FlowView.cpp:225
+#: Teaching/TaskInstanceView.cpp:253 Teaching/TaskInstanceView.cpp:298
+#: Teaching/TaskInstanceView.cpp:314 Teaching/TaskInstanceView.cpp:347
+msgid "Database Error"
+msgstr ""
+
+#: Teaching/FlowView.cpp:16
+msgid "Flow Name:"
+msgstr ""
+
+#: Teaching/FlowView.cpp:27
+msgid "New Flow"
+msgstr ""
+
+#: Teaching/FlowView.cpp:32
+msgid "Regist Flow"
+msgstr ""
+
+#: Teaching/FlowView.cpp:47 Teaching/TaskInstanceView.cpp:57
+msgid "Real"
+msgstr ""
+
+#: Teaching/FlowView.cpp:51 Teaching/TaskInstanceView.cpp:81
+msgid "Delete Task"
+msgstr ""
+
+#: Teaching/FlowView.cpp:56
+msgid "Task Up"
+msgstr ""
+
+#: Teaching/FlowView.cpp:61
+msgid "Task Down"
+msgstr ""
+
+#: Teaching/FlowView.cpp:63 Teaching/FlowView.cpp:132
+msgid "Flow"
+msgstr ""
+
+#: Teaching/FlowView.cpp:65 Teaching/FlowView.cpp:266 Teaching/FlowView.cpp:278
+#: Teaching/FlowView.cpp:294
+msgid "Run Flow"
+msgstr ""
+
+#: Teaching/FlowView.cpp:67
+msgid "Task"
+msgstr ""
+
+#: Teaching/FlowView.cpp:69 Teaching/TaskExecutionView.cpp:31
+#: Teaching/TaskExecutionView.cpp:36 Teaching/TaskExecutionView.cpp:46
+#: Teaching/TaskExecutionView.cpp:78 Teaching/TaskExecutionView.cpp:129
+#: Teaching/TaskExecutionView.cpp:137 Teaching/TaskInstanceView.cpp:61
+msgid "Run Task"
+msgstr ""
+
+#: Teaching/FlowView.cpp:74 Teaching/TaskInstanceView.cpp:66
+msgid "Reset Models Position"
+msgstr ""
+
+#: Teaching/FlowView.cpp:294
+msgid "Target Flow is FINISHED."
+msgstr ""
+
+#: Teaching/MetaDataView.cpp:95
+msgid "Task Name:"
+msgstr ""
+
+#: Teaching/MetaDataView.cpp:97 Teaching/ParameterDialog.cpp:50
+msgid "Model Name:"
+msgstr ""
+
+#: Teaching/MetaDataView.cpp:99
+msgid "Model ID:"
+msgstr ""
+
+#: Teaching/MetaDataView.cpp:101
+msgid "Model File:"
+msgstr ""
+
+#: Teaching/MetaDataView.cpp:110 Teaching/SettingDialog.cpp:22
+#: Teaching/SettingDialog.cpp:40
+msgid "Ref..."
+msgstr ""
+
+#: Teaching/MetaDataView.cpp:114
+msgid "Origin X:"
+msgstr ""
+
+#: Teaching/MetaDataView.cpp:116
+msgid "Y:"
+msgstr ""
+
+#: Teaching/MetaDataView.cpp:118
+msgid "Z:"
+msgstr ""
+
+#: Teaching/MetaDataView.cpp:120
+msgid "Rx:"
+msgstr ""
+
+#: Teaching/MetaDataView.cpp:122
+msgid "Ry:"
+msgstr ""
+
+#: Teaching/MetaDataView.cpp:124
+msgid "Rz:"
+msgstr ""
+
+#: Teaching/MetaDataView.cpp:131
+msgid "Add Model"
+msgstr ""
+
+#: Teaching/MetaDataView.cpp:135
+msgid "Delete Model"
+msgstr ""
+
+#: Teaching/MetaDataView.cpp:144
+msgid "Output File"
+msgstr ""
+
+#: Teaching/MetaDataView.cpp:149
+msgid "Show File"
+msgstr ""
+
+#: Teaching/MetaDataView.cpp:153
+msgid "Delete File"
+msgstr ""
+
+#: Teaching/MetaDataView.cpp:163
+msgid "Output Image"
+msgstr ""
+
+#: Teaching/MetaDataView.cpp:167
+msgid "Show Image"
+msgstr ""
+
+#: Teaching/MetaDataView.cpp:171
+msgid "Delete Image"
+msgstr ""
+
+#: Teaching/MetaDataView.cpp:342
+msgid "Model VRML File"
+msgstr ""
+
+#: Teaching/MetaDataView.cpp:343
+msgid "wrl(*.wrl);;all(*.*)"
+msgstr ""
+
+#: Teaching/MetaDataView.cpp:626 Teaching/MetaDataView.cpp:701
+msgid "File Output"
+msgstr ""
+
+#: Teaching/ParameterDialog.cpp:27
+msgid "Add Parameter"
+msgstr ""
+
+#: Teaching/ParameterDialog.cpp:32
+msgid "Delete Parameter"
+msgstr ""
+
+#: Teaching/ParameterDialog.cpp:42
+msgid "Name:"
+msgstr ""
+
+#: Teaching/ParameterDialog.cpp:44
+msgid "Id:"
+msgstr ""
+
+#: Teaching/ParameterDialog.cpp:46
+msgid "Type:"
+msgstr ""
+
+#: Teaching/ParameterDialog.cpp:52
+msgid "Unit:"
+msgstr ""
+
+#: Teaching/ParameterDialog.cpp:54
+msgid "Num:"
+msgstr ""
+
+#: Teaching/ParameterDialog.cpp:56
+msgid "Elem Type:"
+msgstr ""
+
+#: Teaching/ParameterDialog.cpp:108
+msgid "Task Parameter"
+msgstr ""
+
+#: Teaching/ParameterDialog.cpp:331 Teaching/ParameterDialog.cpp:335
+#: Teaching/ParameterDialog.cpp:342 Teaching/ParameterDialog.cpp:348
+#: Teaching/ParameterDialog.cpp:361 Teaching/ParameterDialog.cpp:366
+msgid "Parameter"
+msgstr ""
+
+#: Teaching/ParameterDialog.cpp:331
+msgid "Please input Parameter Name."
+msgstr ""
+
+#: Teaching/ParameterDialog.cpp:335
+msgid "Please input Parameter Id."
+msgstr ""
+
+#: Teaching/ParameterDialog.cpp:342
+msgid "Please input Element Num."
+msgstr ""
+
+#: Teaching/ParameterDialog.cpp:348
+msgid "Please input Target Model."
+msgstr ""
+
+#: Teaching/ParameterDialog.cpp:361
+msgid "Target Model is NOT Exist."
+msgstr ""
+
+#: Teaching/ParameterDialog.cpp:366
+msgid "Target Model CANNOT duplicate."
+msgstr ""
+
+#: Teaching/ParameterDialog.cpp:374
+msgid "Save Task Parameter Error"
+msgstr ""
+
+#: Teaching/ParameterView.cpp:140
+msgid "Edit Parameter"
+msgstr ""
+
+#: Teaching/SettingDialog.cpp:17
+msgid "Database:"
+msgstr ""
+
+#: Teaching/SettingDialog.cpp:24
+msgid "Robot Model Name:"
+msgstr ""
+
+#: Teaching/SettingDialog.cpp:32
+msgid "Ext:"
+msgstr ""
+
+#: Teaching/SettingDialog.cpp:35
+msgid "Application:"
+msgstr ""
+
+#: Teaching/SettingDialog.cpp:81 Teaching/SettingDialog.cpp:152
+#: Teaching/SettingDialog.cpp:158 Teaching/SettingDialog.cpp:165
+#: Teaching/SettingDialog.cpp:169 Teaching/TaskInstanceView.cpp:36
+msgid "Setting"
+msgstr ""
+
+#: Teaching/SettingDialog.cpp:107
+msgid "Database File"
+msgstr ""
+
+#: Teaching/SettingDialog.cpp:108
+msgid "sqlite(*.sqlite3);;all(*.*)"
+msgstr ""
+
+#: Teaching/SettingDialog.cpp:135
+msgid "Target Application"
+msgstr ""
+
+#: Teaching/SettingDialog.cpp:136
+msgid "all(*)"
+msgstr ""
+
+#: Teaching/SettingDialog.cpp:152
+msgid "Please input Database File."
+msgstr ""
+
+#: Teaching/SettingDialog.cpp:158
+msgid "Please input Robot Model Name."
+msgstr ""
+
+#: Teaching/SettingDialog.cpp:165
+msgid "Please input Target EXT."
+msgstr ""
+
+#: Teaching/SettingDialog.cpp:169
+msgid "Please input APPLICATION Path."
+msgstr ""
+
+#: Teaching/StateMachineView.cpp:310
+msgid "Delete"
+msgstr ""
+
+#: Teaching/StateMachineView.cpp:316
+msgid "Edit"
+msgstr ""
+
+#: Teaching/StateMachineView.cpp:319 Teaching/StateMachineView.cpp:585
+#: Teaching/StateMachineView.cpp:598 Teaching/StateMachineView.cpp:631
+#: Teaching/StateMachineView.cpp:633
+msgid "Run Command"
+msgstr ""
+
+#: Teaching/StateMachineView.cpp:553 Teaching/StateMachineView.cpp:585
+msgid "Please select Command Element."
+msgstr ""
+
+#: Teaching/StateMachineView.cpp:575
+msgid "Please select Target Command."
+msgstr ""
+
+#: Teaching/StateMachineView.cpp:598 Teaching/TaskExecutionView.cpp:78
+msgid "Target Comannd is NOT EXIST."
+msgstr ""
+
+#: Teaching/StateMachineView.cpp:631
+msgid "Target Command is FINISHED."
+msgstr ""
+
+#: Teaching/StateMachineView.cpp:633
+msgid "Target Command is FAILED."
+msgstr ""
+
+#: Teaching/TaskExecutionView.cpp:46
+msgid "Target Task is FINISHED."
+msgstr ""
+
+#: Teaching/TaskExecutionView.cpp:129
+msgid "Model Attach Failed."
+msgstr ""
+
+#: Teaching/TaskExecutionView.cpp:137
+msgid "Model Detach Failed."
+msgstr ""
+
+#: Teaching/TaskInstanceView.cpp:31
+msgid "Search Task"
+msgstr ""
+
+#: Teaching/TaskInstanceView.cpp:71
+msgid "Load Task"
+msgstr ""
+
+#: Teaching/TaskInstanceView.cpp:76 Teaching/TaskInstanceView.cpp:259
+#: Teaching/TaskInstanceView.cpp:274 Teaching/TaskInstanceView.cpp:276
+msgid "Output Task"
+msgstr ""
+
+#: Teaching/TaskInstanceView.cpp:86
+msgid "Regist as New Task"
+msgstr ""
+
+#: Teaching/TaskInstanceView.cpp:91
+msgid "Update Current Task"
+msgstr ""
+
+#: Teaching/TaskInstanceView.cpp:223 Teaching/TaskInstanceView.cpp:266
+msgid "TaskModel File"
+msgstr ""
+
+#: Teaching/TaskInstanceView.cpp:224 Teaching/TaskInstanceView.cpp:267
+msgid "YAML(*.yaml);;all(*.*)"
+msgstr ""
+
+#: Teaching/TaskInstanceView.cpp:231
+msgid "Task Load Error"
+msgstr ""
+
+#: Teaching/TaskInstanceView.cpp:330 Teaching/TaskInstanceView.cpp:340
+msgid "Task DELETE"
+msgstr ""

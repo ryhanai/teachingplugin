@@ -1,0 +1,62 @@
+<!DOCTYPE RCC>
+<RCC version="1.0">
+<qresource prefix="/Teaching" >
+    <file>icons/Abort.png</file>
+    <file>icons/About.png</file>
+    <file>icons/Accept.png</file>
+    <file>icons/Add.png</file>
+    <file>icons/Application.png</file>
+    <file>icons/Apply.png</file>
+    <file>icons/Attention.png</file>
+    <file>icons/Back.png</file>
+    <file>icons/Cancel.png</file>
+    <file>icons/Circulation.png</file>
+    <file>icons/Close.png</file>
+    <file>icons/Create.png</file>
+    <file>icons/Cut.png</file>
+    <file>icons/Danger.png</file>
+    <file>icons/Delete.png</file>
+    <file>icons/Down.png</file>
+    <file>icons/Erase.png</file>
+    <file>icons/Error.png</file>
+    <file>icons/Forward.png</file>
+    <file>icons/Help.png</file>
+    <file>icons/Info.png</file>
+    <file>icons/Information.png</file>
+    <file>icons/Logout.png</file>
+    <file>icons/Minus.png</file>
+    <file>icons/Move.png</file>
+    <file>icons/Next.png</file>
+    <file>icons/No.png</file>
+    <file>icons/No entry.png</file>
+    <file>icons/OK.png</file>
+    <file>icons/Options.png</file>
+    <file>icons/Plus.png</file>
+    <file>icons/Previous.png</file>
+    <file>icons/Problem.png</file>
+    <file>icons/Question.png</file>
+    <file>icons/Redo.png</file>
+    <file>icons/Refresh.png</file>
+    <file>icons/Remove.png</file>
+    <file>icons/Renew.png</file>
+    <file>icons/Repeat.png</file>
+    <file>icons/Run.png</file>
+
+    <file>icons/Save.png</file>
+    <file>icons/Search.png</file>
+    <file>icons/Settings.png</file>
+    <file>icons/Stop.png</file>
+    <file>icons/Switch.png</file>
+    <file>icons/Sync.png</file>
+    <file>icons/System.png</file>
+    <file>icons/Turn off.png</file>
+    <file>icons/Undo.png</file>
+    <file>icons/Up.png</file>
+    <file>icons/Update.png</file>
+    <file>icons/View.png</file>
+    <file>icons/Warning.png</file>
+    <file>icons/Yes.png</file>
+
+</qresource>
+</RCC>
+
