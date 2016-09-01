@@ -3,10 +3,12 @@
 #include <cnoid/EigenUtil>
 #include <cnoid/InverseKinematics>
 #include <cnoid/ItemTreeView>
-#include <cnoid/OSGSceneView>
 #include <cnoid/SceneView>
+#include <cnoid/KinematicsBar>
+#include <cnoid/PenetrationBlocker>
 #include <QDir>
 #include <QFile>
+#include <QCoreApplication>
 #include "TeachingUtil.h"
 #include <cnoid/MessageView>  /* modified by qtconv.rb 0th rule*/  
 
@@ -81,6 +83,7 @@ bool ChoreonoidUtil::unLoadTaskModelItem(TaskModelParam* target) {
   vector<ModelParam*> modelList = target->getModelList();
   for(int index=0; index<modelList.size(); index++) {
     ModelParam* model = modelList[index];
+    if(model->getMode()==DB_MODE_DELETE || model->getMode()==DB_MODE_IGNORE) continue;
     if(unLoadModelItem(model)==false) return false;
   }
   return true;
@@ -141,7 +144,22 @@ bool ChoreonoidUtil::updateModelItemPosition(const BodyItemPtr& target, double p
   if(ik){
     target->beginKinematicStateEdit();
 
-    if(ik->calcInverseKinematics(pos, R)){
+		if (KinematicsBar::instance()->isPenetrationBlockMode()){
+			PenetrationBlockerPtr blocker = target->createPenetrationBlocker(currentLink, true);
+			if (blocker){
+				Vector3 p;
+				p.x() = posX; p.y() = posY; p.z() = posZ;
+				Position T;
+				T.translation() = p;
+				T.linear() = R;
+				if (blocker->adjust(T, Vector3(p - currentLink->p()))){
+					p = T.translation();
+					R = T.linear();
+				}
+			}
+		}
+
+		if (ik->calcInverseKinematics(pos, R)){
       target->notifyKinematicStateChange(true);
       target->acceptKinematicStateEdit();
     }
@@ -164,6 +182,10 @@ void ChoreonoidUtil::selectTreeItem(ModelParam* target) {
   if(target->getModelItem()) {
     ItemTreeView::mainInstance()->selectItem(target->getModelItem());
   }
+}
+
+void ChoreonoidUtil::deselectTreeItem() {
+  ItemTreeView::mainInstance()->clearSelection();
 }
 
 void ChoreonoidUtil::updateScene() {

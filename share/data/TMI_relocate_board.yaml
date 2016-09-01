@@ -240,10 +240,7 @@
       type: 2
       pos_x: 298
       pos_y: 482
-  transactions: 
-    - 
-      source_id: 71
-      target_id: 71
+  transitions: 
     - 
       source_id: 61
       target_id: 62

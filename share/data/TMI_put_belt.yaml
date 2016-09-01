@@ -1,6 +1,6 @@
-- 
-  taskName: "両手でのベルト嵌め"
-  comment: "両手でベルトの形を成形して嵌める。"
+-  
+  taskName: "両手でのベルト嵌め" 
+  comment: "両手でベルトの形を成形して嵌める。" 
   models: 
     - 
       name: "板"
@@ -189,7 +189,7 @@
         - 
           seq: 1
           name: "leftHandXyz"
-          value: " xyz(target_pose) + rotFromRpy(rpy(target_pose)) * (xyz(assemble_pose) + rotFromRpy(rpy(assemble_pose)) * [0.0, 0.05, 0.17])) "
+          value: " xyz(target_pose) + rotFromRpy(rpy(target_pose)) * (xyz(assemble_pose) + rotFromRpy(rpy(assemble_pose)) * [0.0, 0.05, 0.17]) "
         - 
           seq: 2
           name: "leftHandRpy"
@@ -197,7 +197,7 @@
         - 
           seq: 3
           name: "rightHandXyz"
-          value: " xyz(target_pose) + rotFromRpy(rpy(target_pose)) * (xyz(assemble_pose) + rotFromRpy(rpy(assemble_pose)) * [0.0, -0.05, 0.17])) "
+          value: " xyz(target_pose) + rotFromRpy(rpy(target_pose)) * (xyz(assemble_pose) + rotFromRpy(rpy(assemble_pose)) * [0.0, -0.05, 0.17]) "
         - 
           seq: 4
           name: "rightHandRpy"
@@ -220,7 +220,7 @@
         - 
           seq: 1
           name: "leftHandXyz"
-          value: " xyz(target_pose) + rotFromRpy(rpy(target_pose)) * (xyz(assemble_pose) + rotFromRpy(rpy(assemble_pose)) * [0.0, 0.05, 0.14])) "
+          value: " xyz(target_pose) + rotFromRpy(rpy(target_pose)) * (xyz(assemble_pose) + rotFromRpy(rpy(assemble_pose)) * [0.0, 0.05, 0.14]) "
         - 
           seq: 2
           name: "leftHandRpy"
@@ -228,7 +228,7 @@
         - 
           seq: 3
           name: "rightHandXyz"
-          value: " xyz(target_pose) + rotFromRpy(rpy(target_pose)) * (xyz(assemble_pose) + rotFromRpy(rpy(assemble_pose)) * [0.0, -0.05, 0.14])) "
+          value: " xyz(target_pose) + rotFromRpy(rpy(target_pose)) * (xyz(assemble_pose) + rotFromRpy(rpy(assemble_pose)) * [0.0, -0.05, 0.14]) "
         - 
           seq: 4
           name: "rightHandRpy"
@@ -251,7 +251,7 @@
         - 
           seq: 1
           name: "leftHandXyz"
-          value: " xyz(target_pose) + rotFromRpy(rpy(target_pose)) * (xyz(assemble_pose) + rotFromRpy(rpy(assemble_pose)) * [-0.04, 0.05, 0.14])) "
+          value: " xyz(target_pose) + rotFromRpy(rpy(target_pose)) * (xyz(assemble_pose) + rotFromRpy(rpy(assemble_pose)) * [-0.04, 0.05, 0.14]) "
         - 
           seq: 2
           name: "leftHandRpy"
@@ -259,7 +259,7 @@
         - 
           seq: 3
           name: "rightHandXyz"
-          value: " xyz(target_pose) + rotFromRpy(rpy(target_pose)) * (xyz(assemble_pose) + rotFromRpy(rpy(assemble_pose)) * [-0.04, -0.05, 0.14])) "
+          value: " xyz(target_pose) + rotFromRpy(rpy(target_pose)) * (xyz(assemble_pose) + rotFromRpy(rpy(assemble_pose)) * [-0.04, -0.05, 0.14]) "
         - 
           seq: 4
           name: "rightHandRpy"
@@ -282,7 +282,7 @@
         - 
           seq: 1
           name: "leftHandXyz"
-          value: " xyz(target_pose) + rotFromRpy(rpy(target_pose)) * (xyz(assemble_pose) + rotFromRpy(rpy(assemble_pose)) * [-0.04, 0.05, 0.10])) "
+          value: " xyz(target_pose) + rotFromRpy(rpy(target_pose)) * (xyz(assemble_pose) + rotFromRpy(rpy(assemble_pose)) * [-0.04, 0.05, 0.10]) "
         - 
           seq: 2
           name: "leftHandRpy"
@@ -290,7 +290,7 @@
         - 
           seq: 3
           name: "rightHandXyz"
-          value: " xyz(target_pose) + rotFromRpy(rpy(target_pose)) * (xyz(assemble_pose) + rotFromRpy(rpy(assemble_pose)) * [-0.04, -0.05, 0.10])) "
+          value: " xyz(target_pose) + rotFromRpy(rpy(target_pose)) * (xyz(assemble_pose) + rotFromRpy(rpy(assemble_pose)) * [-0.04, -0.05, 0.10]) "
         - 
           seq: 4
           name: "rightHandRpy"
@@ -351,7 +351,7 @@
         - 
           seq: 1
           name: "leftHandXyz"
-          value: " xyz(target_pose) + rotFromRpy(rpy(target_pose)) * (xyz(assemble_pose) + rotFromRpy(rpy(assemble_pose)) * [-0.04, 0.05, 0.14])) "
+          value: " xyz(target_pose) + rotFromRpy(rpy(target_pose)) * (xyz(assemble_pose) + rotFromRpy(rpy(assemble_pose)) * [-0.04, 0.05, 0.14]) "
         - 
           seq: 2
           name: "leftHandRpy"
@@ -359,7 +359,7 @@
         - 
           seq: 3
           name: "rightHandXyz"
-          value: " xyz(target_pose) + rotFromRpy(rpy(target_pose)) * (xyz(assemble_pose) + rotFromRpy(rpy(assemble_pose)) * [-0.04, -0.05, 0.14])) "
+          value: " xyz(target_pose) + rotFromRpy(rpy(target_pose)) * (xyz(assemble_pose) + rotFromRpy(rpy(assemble_pose)) * [-0.04, -0.05, 0.14]) "
         - 
           seq: 4
           name: "rightHandRpy"
@@ -377,10 +377,7 @@
       type: 2
       pos_x: 337
       pos_y: 525
-  transactions: 
-    - 
-      source_id: 64
-      target_id: 64
+  transitions: 
     - 
       source_id: 50
       target_id: 51

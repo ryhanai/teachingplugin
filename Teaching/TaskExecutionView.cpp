@@ -1,3 +1,5 @@
+#include <cnoid/InfoBar>
+
 #include "TaskExecutionView.h"
 #include "ChoreonoidUtil.h"
 #include "TeachingUtil.h"
@@ -21,7 +23,8 @@ void TaskExecutionView::unloadCurrentModel() {
   }
 }
 
-void TaskExecutionView::runSingleTask(bool isReal) {
+void TaskExecutionView::runSingleTask() {
+  bool isReal = SettingManager::getInstance().getIsReal();
   parameterView_->setInputValues();
   if( currParam_ ) {
     currParam_->updateActive(false);
@@ -40,14 +43,16 @@ void TaskExecutionView::runSingleTask(bool isReal) {
   currParam_ = currentTask_->getStartParam();
   currParam_->updateActive(true);
   statemachineView_->repaint();
+  InfoBar::instance()->showMessage(tr("Running Task :") + currentTask_->getName());
 
   TaskExecutor::instance()->setRootName(SettingManager::getInstance().getRobotModelName());
-  doTaskOperation(currentTask_, isReal);
-  QMessageBox::information(this, tr("Run Task"), tr("Target Task is FINISHED."));
+  doTaskOperation(currentTask_);
+  InfoBar::instance()->notify(tr("Finished Task :") + currentTask_->getName());
 }
 
-bool TaskExecutionView::doTaskOperation(TaskModelParam* targetTask, bool isReal) {
+bool TaskExecutionView::doTaskOperation(TaskModelParam* targetTask) {
   bool result = false;
+  bool isReal = SettingManager::getInstance().getIsReal();
   //ƒ‚ƒfƒ‹î•ñ‚Ìİ’è
   vector<ModelParam*> modelList = currentTask_->getModelList();
   vector<ElementStmParam*> stateList = currentTask_->getStmElementList();
@@ -65,6 +70,7 @@ bool TaskExecutionView::doTaskOperation(TaskModelParam* targetTask, bool isReal)
   ElementStmParam* nextParam;
   bool cmdRet = false;
   std::vector<CompositeParamType> parameterList;
+
   while(true) {
     if(currParam_->getType()==ELEMENT_COMMAND) {
       parameterList.clear(); // R.Hanai
@@ -75,7 +81,7 @@ bool TaskExecutionView::doTaskOperation(TaskModelParam* targetTask, bool isReal)
         //
         if(currParam_->getCommadDefParam()==0) {
           delete calculator;
-          QMessageBox::warning(this, tr("Run Task"), tr("Target Comannd is NOT EXIST."));
+          QMessageBox::warning(this, tr("Run Task"), tr("Target Command does NOT EXIST."));
           return false;
         }
         ArgumentDefParam* argDef = currParam_->getCommadDefParam()->getArgList()[idxArg];
@@ -152,6 +158,7 @@ bool TaskExecutionView::doTaskOperation(TaskModelParam* targetTask, bool isReal)
       nextParam = currParam_->getNextElem();
     }
     if(!nextParam) {
+      InfoBar::instance()->showMessage("");
       DDEBUG_V("currParam : %d, nextParam:NOT EXIST.", currParam_->getType());
       return false;
     }

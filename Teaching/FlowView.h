@@ -2,7 +2,7 @@
 #define TEACHING_FLOW_VIEW_H_INCLUDED
 
 #include <cnoid/View>
-#include <QtGui>
+#include "QtUtil.h"
 #include "DataBaseManager.h"
 #include "MetaDataView.h"
 #include "TaskInstanceView.h"
@@ -42,8 +42,8 @@ private Q_SLOTS:
 
 private:
   QLineEdit* leName;
+  QLineEdit* leComment;
   QListWidget* lstFlow;
-  QCheckBox* chkReal;
 
   QPushButton* btnRegistFlow;
   QPushButton* btnDeleteTask;

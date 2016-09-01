@@ -6,51 +6,44 @@ endif()
 
 set(libname CnoidTeachingPlugin)
 
-set(CONTROLLER_DIRS ../../SampleHiroControllerPlugin)
-
 set(sources
   ArgumentDialog.cpp
-  ArgumentDialogMock.cpp
   Calculator.cpp
   ChoreonoidUtil.cpp
+  ControllerManager.cpp
   DataBaseDetailManager.cpp
   DataBaseManager.cpp
   FlowSearchDialog.cpp
-  FlowSearchDialogMock.cpp
   FlowView.cpp
-  FlowViewMock.cpp
   LoggerUtil.cpp
   MetaDataView.cpp
-  MetaDataViewMock.cpp
+  ModelDialog.cpp
   ParameterDialog.cpp
-  ParameterDialogMock.cpp
   ParameterView.cpp
-  ParameterViewMock.cpp
   SettingDialog.cpp
-  SettingDialogMock.cpp
   StateMachineParams.cpp
   StateMachineView.cpp
-  StateMachineViewMock.cpp
   TaskExecutionView.cpp
   TaskExecutor.cpp
   TaskInstanceView.cpp
-  TaskInstanceViewMock.cpp
   TeachingPlugin.cpp
   TeachingTypes.cpp
   TeachingUtil.cpp
-  ${CONTROLLER_DIRS}/SampleHiroController.cpp
 )
 
 set(headers
   ArgumentDialog.h
   Calculator.h
   ChoreonoidUtil.h
+  ControllerBase.h
   CommandDefTypes.h
+  ControllerManager.h
   DataBaseManager.h
   FlowSearchDialog.h
   FlowView.h
   LoggerUtil.h
   MetaDataView.h
+  ModelDialog.h
   ParameterDialog.h
   ParameterView.h
   SettingDialog.h
@@ -60,24 +53,50 @@ set(headers
   TaskInstanceView.h
   TeachingTypes.h
   TeachingUtil.h
+  QtUtil.h
+  )
+
+set(qtheaders
+  ArgumentDialog.h
+  FlowSearchDialog.h
+  FlowView.h
+  ModelDialog.h
+  MetaDataView.h
+  ParameterDialog.h
+  ParameterView.h
+  SettingDialog.h
+  StateMachineView.h
+  TaskInstanceView.h
   )
 
 make_gettext_mofiles(CnoidTeachingPlugin mofiles)
 
 if(NOT QT5)
   QT4_ADD_RESOURCES(RC_SRCS TeachingPlugin.qrc)
+  QT4_WRAP_CPP(sources
+    ${qtheaders}
+    OPTIONS "-DBOOST_TT_HAS_OPERATOR_HPP_INCLUDED"
+    )
 else()
   QT5_ADD_RESOURCES(RC_SRCS TeachingPlugin.qrc)
+  QT5_WRAP_CPP(sources
+    ${qtheaders}
+    OPTIONS "-DBOOST_TT_HAS_OPERATOR_HPP_INCLUDED"
+    )
 endif()
-
-#set(CONTROLLER_INCLUDE_DIRS ../../SampleHiroControllerPlugin)
-include_directories(${CONTROLLER_DIRS})
 
 add_cnoid_plugin(${libname} SHARED ${sources} ${headers} ${mofiles} ${RC_SRCS})
 
-target_link_libraries(${libname} Qt4::QtSql)
+if(NOT QT5)
+  target_link_libraries(${libname} Qt4::QtSql)
+else()
+  qt5_use_modules(${libname} Sql)
+  target_link_libraries(${libname} ${QT_QTSQL_LIBRARY})
+endif()
+
+include_directories(${CONTROLLER_DIRS})
+
 target_link_libraries(${libname} CnoidBodyPlugin)
-#target_link_libraries(${libname} CnoidSampleHiroControllerPlugin)
 
 if(UNIX)
   add_definitions("-std=c++11")

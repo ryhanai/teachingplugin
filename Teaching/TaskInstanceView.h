@@ -2,17 +2,15 @@
 #define TEACHING_SEARCH_VIEW_H_INCLUDED
 
 #include <sstream> 
-#include <cnoid/View>
 #include <QObject>
-#include <QtGui>
-#include "DataBaseManager.h"
-
-#include "FlowView.h"
-#include "MetaDataView.h"
-
+#include "QtUtil.h"
+#include <cnoid/View>
 #include <cnoid/BodyItem>
 #include <cnoid/RootItem>
 
+#include "DataBaseManager.h"
+#include "FlowView.h"
+#include "MetaDataView.h"
 #include "SettingDialog.h"
 #include "TaskExecutionView.h"
 
@@ -31,6 +29,8 @@ public:
   inline void setFlowView(FlowView* view) { this->flowView_ = view; }
   inline void setMetadataView(MetaDataView* view) { this->metadataView_ = view; }
 
+  void loadTaskInfo();
+
 private Q_SLOTS:
   void taskSelectionChanged();
   void searchClicked();
@@ -48,8 +48,8 @@ private Q_SLOTS:
 
 private:
   QLineEdit* leCond;
+  QLineEdit* leTask;
   SearchList* lstResult;
-  QCheckBox* chkReal;
 
   int currentTaskIndex_;
 

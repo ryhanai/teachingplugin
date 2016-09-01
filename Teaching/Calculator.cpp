@@ -41,7 +41,7 @@ MemberParam::MemberParam(NodeType type, std::string source, TaskModelParam* targ
 }
 
 bool MemberParam::parseScalar() {
-  valueScalar_ = QString::fromAscii(source_.c_str()).toDouble();
+  valueScalar_ = QString::fromLatin1(source_.c_str()).toDouble();
   valMode_ = VAL_SCALAR;
   return true;
 }
@@ -135,7 +135,7 @@ bool MemberParam::parseVector(MemberParam* elem01, MemberParam* elem02, MemberPa
 
 bool MemberParam::parseVariable() {
   vector<ParameterParam*> paramList = targetModel_->getParameterList();
-  vector<ParameterParam*>::iterator targetParam = find_if( paramList.begin(), paramList.end(), ParameterParamComparatorByRName(QString::fromAscii(source_.c_str())));
+  vector<ParameterParam*>::iterator targetParam = find_if(paramList.begin(), paramList.end(), ParameterParamComparatorByRName(QString::fromLatin1(source_.c_str())));
   if(targetParam== paramList.end()) return false;
   //
   if((*targetParam)->getElemNum()==1) {

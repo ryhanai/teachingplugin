@@ -5,7 +5,7 @@
 #include <vector>
 #include <algorithm>
 #include <iterator>
-#include <QtGui>
+#include "QtUtil.h"
 #include <cnoid/BodyItem>
 #include "CommandDefTypes.h"
 
@@ -310,8 +310,8 @@ private:
 
 class ElementStmParam : public DatabaseParam {
 public:
-  ElementStmParam(int id, int type, QString cmdName, double posX, double posY)
-   : id_(id), type_(type), cmdName_(cmdName), posX_(posX), posY_(posY),
+  ElementStmParam(int id, int type, QString cmdName, QString cmdDspName, double posX, double posY)
+   : id_(id), type_(type), cmdName_(cmdName), cmdDspName_(cmdDspName), posX_(posX), posY_(posY),
      nextElem_(0), trueElem_(0), falseElem_(0), realElem_(0), commandDef_(0) {};
   ElementStmParam(const ElementStmParam* source);
   virtual ~ElementStmParam();
@@ -331,6 +331,8 @@ public:
 
   inline QString getCmdName() const { return this->cmdName_; }
   inline void setCmdName(QString value) { this->cmdName_ = value; }
+  inline QString getCmdDspName() const { return this->cmdDspName_; }
+  inline void setCmdDspName(QString value) { this->cmdDspName_ = value; }
 
   inline std::vector<ElementStmActionParam*> getActionList() const { return this->actionList_; }
   inline void addModelAction(ElementStmActionParam* target){ this->actionList_.push_back(target); }
@@ -356,6 +358,9 @@ public:
     this->trueElem_ = 0;
     this->falseElem_ = 0;
   }
+  void updateId() {
+    org_id_ = id_;
+  }
   void updateActive(bool isActive);
   void updateSelect(bool isActive);
   void clearActionList();
@@ -368,6 +373,7 @@ private:
   double posY_;
 
   QString cmdName_;
+  QString cmdDspName_;
   ElementNode* realElem_;
 
   std::vector<ElementStmActionParam*> actionList_;
@@ -405,14 +411,14 @@ private:
 
 class ParameterParam : public DatabaseParam {
 public:
-  ParameterParam(int id, int type, QString model_name, int elem_num, QString elem_types, int task_param_id, QString name, QString rname, QString unit)
+  ParameterParam(int id, int type, QString model_name, int elem_num, QString elem_types, int task_inst_id, QString name, QString rname, QString unit)
    : id_(id), type_(type), model_name_(model_name), elem_num_(elem_num), elem_types_(elem_types), 
-   task_param_id_(task_param_id), name_(name), rname_(rname), unit_(unit)
+   task_inst_id_(task_inst_id), name_(name), rname_(rname), unit_(unit)
    { buildElemTypeList(); };
   ParameterParam(ParameterParam* source)
    : id_(source->id_), type_(source->type_), model_name_(source->model_name_),
      elem_num_(source->elem_num_), elem_types_(source->elem_types_),
-     task_param_id_(source->task_param_id_), name_(source->name_), rname_(source->rname_), unit_(source->unit_)
+     task_inst_id_(source->task_inst_id_), name_(source->name_), rname_(source->rname_), unit_(source->unit_)
   {  mode_ = DatabaseMode(source->getMode());
      buildElemTypeList();};
 
@@ -432,8 +438,8 @@ public:
   inline void setElemTypes(QString value) { this->elem_types_ = value; setUpdate(); }
   inline int getElemType(int index) const { return this->elemTypeList_[index]; }
 
-  inline int getTaskParamId() const { return this->task_param_id_; }
-  inline void setTaskParamId(int value) { this->task_param_id_ = value; }
+  inline int getTaskInstId() const { return this->task_inst_id_; }
+  inline void setTaskInstId(int value) { this->task_inst_id_ = value; }
 
   inline QString getName() const { return this->name_; }
   inline void setName(QString value) { this->name_ = value; setUpdate(); }
@@ -455,7 +461,7 @@ private:
   int id_;
   int type_;
   int elem_num_;
-  int task_param_id_;
+  int task_inst_id_;
   QString model_name_;
   QString name_;
   QString rname_;
@@ -512,16 +518,14 @@ private:
 /////
 class TaskModelParam : public DatabaseParam {
 public:
-  TaskModelParam(int id, QString name, int task_id, QString comment, int flow_id, int seq )
-    : id_(id), name_(name), task_id_(task_id), comment_(comment), flow_id_(flow_id), seq_(seq), isLoaded_(false) {};
+  TaskModelParam(int id, QString name, QString comment, int flow_id, int seq, QString created_date, QString last_updated_date)
+    : id_(id), name_(name), comment_(comment), flow_id_(flow_id), seq_(seq),
+      created_date_(created_date), last_updated_date_(last_updated_date), isLoaded_(false) {};
   TaskModelParam(const TaskModelParam* source);
   virtual ~TaskModelParam();
   
   inline int getId() const { return this->id_; }
   inline void setId(int value) { this->id_ = value; }
-
-  inline int getTaskId() const { return this->task_id_; }
-  inline void setTaskId(int value) { this->task_id_ = value; }
 
   inline int getFlowId() const { return this->flow_id_; }
 
@@ -533,6 +537,11 @@ public:
 
   inline QString getComment() const { return this->comment_; }
   inline void setComment(QString value) { this->comment_ = value;  setUpdate(); }
+
+  inline QString getCreatedDate() const { return this->created_date_; }
+  inline void setCreatedDate(QString value) { this->created_date_ = value; }
+  inline QString getLastUpdatedDate() const { return this->last_updated_date_; }
+  inline void setLastUpdatedDate(QString value) { this->last_updated_date_ = value; }
 
   inline std::vector<ModelParam*> getModelList() const { return this->modeList_; }
   inline void addModel(ModelParam* target){ this->modeList_.push_back(target); }
@@ -558,6 +567,7 @@ public:
   ModelParam* getModelById(const int id);
   bool checkAndOrderStateMachine();
   void clearParameterList();
+  void clearDetailParams();
 
   inline bool IsLoaded() const { return this->isLoaded_; }
   inline void setLoaded(bool value) { this->isLoaded_ = value; }
@@ -566,9 +576,10 @@ private:
   int id_;
   QString name_;
   QString comment_;
-  int task_id_;
   int flow_id_;
   int seq_;
+  QString created_date_;
+  QString last_updated_date_;
 
   bool isLoaded_;
 
@@ -586,10 +597,13 @@ private:
 
 class FlowParam : public DatabaseParam {
 public:
-  FlowParam(int id, QString name, bool isNew) : id_(id), name_(name) {
+  FlowParam(int id, QString name, QString comment, QString created_date, QString last_updated_date, bool isNew)
+    : id_(id), name_(name), comment_(comment), created_date_(created_date), last_updated_date_(last_updated_date) {
     if( isNew ) setNew();
   };
-  FlowParam(const FlowParam* source) : id_(source->id_), name_(source->name_) {};
+  FlowParam(const FlowParam* source) :
+    id_(source->id_), name_(source->name_), comment_(source->comment_),
+    created_date_(source->created_date_), last_updated_date_(source->last_updated_date_) {};
   virtual ~FlowParam() {};
 
   inline int getId() const { return this->id_; }
@@ -598,12 +612,23 @@ public:
   inline QString getName() const { return this->name_; }
   inline void setName(QString value) { this->name_ = value;  setUpdate(); }
 
+  inline QString getComment() const { return this->comment_; }
+  inline void setComment(QString value) { this->comment_ = value;  setUpdate(); }
+
+  inline QString getCreatedDate() const { return this->created_date_; }
+  inline void setCreatedDate(QString value) { this->created_date_ = value; }
+  inline QString getLastUpdatedDate() const { return this->last_updated_date_; }
+  inline void setLastUpdatedDate(QString value) { this->last_updated_date_ = value; }
+
   inline std::vector<TaskModelParam*> getTaskList() { return this->taskList_; }
   inline void addTask(TaskModelParam* target){ this->taskList_.push_back(target); }
 
 private:
   int id_;
   QString name_;
+  QString comment_;
+  QString created_date_;
+  QString last_updated_date_;
 
   std::vector<TaskModelParam*> taskList_;
 };

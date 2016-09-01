@@ -5,6 +5,7 @@
 #include "TeachingTypes.h"
 #include "CommandDefTypes.h"
 #include <QString>
+#include <QTableWidget>
 
 namespace teaching {
 
@@ -44,7 +45,7 @@ public:
 /////
 class SettingManager {
 private:
-  SettingManager() {};
+  SettingManager() : isReal_(false) {};
 
 public:
   static SettingManager& getInstance(void) {
@@ -56,6 +57,9 @@ public:
   inline void setDatabase(std::string value) { this->dataBase_ = value; }
   inline std::string getRobotModelName() const { return this->robotModelName_; }
   inline void setRobotModelName(std::string value) { this->robotModelName_ = value; }
+
+  inline bool getIsReal() const { return this->isReal_; }
+  inline void setIsReal(bool value) { this->isReal_ = value; }
 
   void clearExtList();
   void setTargetApp(std::string strExt, std::string strApp);
@@ -70,6 +74,8 @@ private:
   std::string robotModelName_;
 
   std::map<std::string, std::string> appMap_;
+
+  bool isReal_;
 
 };
 

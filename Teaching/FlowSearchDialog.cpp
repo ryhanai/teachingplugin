@@ -1,5 +1,4 @@
 #include "FlowSearchDialog.h"
-#include <QtGui>
 
 namespace teaching {
 
@@ -8,8 +7,7 @@ FlowSearchDialog::FlowSearchDialog(QWidget* parent)
   QFrame* condFrame = new QFrame;
   QLabel* lblCond = new QLabel(tr("Condition:"));
   leCond = new QLineEdit;
-  //QPushButton* btnSearch = new QPushButton(tr("Search"));
-  QPushButton* btnSearch = new QPushButton();
+  QPushButton* btnSearch = new QPushButton(tr("Search"));
   btnSearch->setIcon(QIcon(":/Teaching/icons/Search.png"));
   btnSearch->setToolTip(tr("Search Flow"));
 
@@ -19,13 +17,31 @@ FlowSearchDialog::FlowSearchDialog(QWidget* parent)
   topLayout->addWidget(leCond);
   topLayout->addWidget(btnSearch);
   //
-  lstFlow = new QListWidget;
+  lstFlow = new QTableWidget(0,4);
+  lstFlow->setSelectionBehavior(QAbstractItemView::SelectRows);
+  lstFlow->setSelectionMode(QAbstractItemView::SingleSelection);
+  lstFlow->setEditTriggers(QAbstractItemView::NoEditTriggers);
+  lstFlow->verticalHeader()->setVisible(false);
+  lstFlow->setColumnWidth(0, 200);
+  lstFlow->setColumnWidth(1, 400);
+  lstFlow->setColumnWidth(2, 150);
+  lstFlow->setColumnWidth(3, 150);
+  lstFlow->setRowCount(0);
+  lstFlow->setHorizontalHeaderLabels(QStringList() << "Name" << "Comment" << "Created" << "Last Updated");
   //
   QFrame* frmButtons = new QFrame;
-  QPushButton* btnSelect = new QPushButton(tr("Select"));
-  QPushButton* btnDelete = new QPushButton(tr("Delete Flow"));
+  QPushButton* btnSelect = new QPushButton(tr("Open"));
+  btnSelect->setIcon(QApplication::style()->standardIcon(QStyle::SP_DialogOpenButton));
+  btnSelect->setToolTip(tr("Open selected Flow"));
+
+  QPushButton* btnDelete = new QPushButton(tr("Delete"));
+  btnDelete->setIcon(QIcon(":/Teaching/icons/Delete.png"));
+  btnDelete->setToolTip(tr("Delete selected Flow"));
 
   QPushButton* btnCancel = new QPushButton(tr("Cancel"));
+  btnCancel->setIcon(QIcon(":/Teaching/icons/Cancel.png"));
+  btnCancel->setToolTip(tr("Cancel Flow select"));
+
   QHBoxLayout* buttonLayout = new QHBoxLayout(frmButtons);
   buttonLayout->setContentsMargins(2, 2, 2, 2);
   buttonLayout->addWidget(btnSelect);
@@ -51,14 +67,9 @@ FlowSearchDialog::FlowSearchDialog(QWidget* parent)
   setFixedHeight(sizeHint().height());
   setFixedWidth(600);
   //
-  vector<FlowParam*> flowList = DatabaseManager::getInstance().getFlowList();
-  std::vector<FlowParam*>::iterator itFlow = flowList.begin();
-  while (itFlow != flowList.end() ) {
-    QListWidgetItem* item = new QListWidgetItem(lstFlow);
-    item->setData(Qt::UserRole, (*itFlow)->getId());
-    item->setText((*itFlow)->getName());
-    ++itFlow;
-  }
+  vector<string> condList;
+  flowList_ = DatabaseManager::getInstance().searchFlowList(condList, false);
+  showGrid();
 }
 
 void FlowSearchDialog::searchClicked() {
@@ -78,18 +89,12 @@ void FlowSearchDialog::searchClicked() {
     condList.push_back(targetList[index].trimmed().toStdString());
   }
 
-  vector<FlowParam*> flowList = DatabaseManager::getInstance().searchFlowList(condList, isOr);
-  std::vector<FlowParam*>::iterator itFlow = flowList.begin();
-  while (itFlow != flowList.end() ) {
-    QListWidgetItem* item = new QListWidgetItem(lstFlow);
-    item->setData(Qt::UserRole, (*itFlow)->getId());
-    item->setText((*itFlow)->getName());
-    ++itFlow;
-  }
+  flowList_ = DatabaseManager::getInstance().searchFlowList(condList, isOr);
+  showGrid();
 }
 
 void FlowSearchDialog::deleteClicked() {
-  QListWidgetItem* item = lstFlow->currentItem();
+  QTableWidgetItem* item = lstFlow->currentItem();
   if(item) {
     int targetId = item->data(Qt::UserRole).toInt();
     if(DatabaseManager::getInstance().deleteFlowModel(targetId) ) {
@@ -107,7 +112,7 @@ void FlowSearchDialog::deleteClicked() {
 }
 
 void FlowSearchDialog::oKClicked() {
-  QListWidgetItem* item = lstFlow->currentItem();
+  QTableWidgetItem* item = lstFlow->currentItem();
   if(item) {
     selected_ = item->data(Qt::UserRole).toInt();
   } else {
@@ -121,6 +126,40 @@ void FlowSearchDialog::oKClicked() {
 void FlowSearchDialog::cancelClicked() {
   isOk_ = false;
   close();
+}
+
+void FlowSearchDialog::showGrid() {
+  lstFlow->clear();
+  lstFlow->setRowCount(0);
+  lstFlow->setHorizontalHeaderLabels(QStringList() << "Name" << "Comment" << "Created" << "Last Updated");
+
+  for(int index=0; index<flowList_.size(); index++) {
+    FlowParam* param = flowList_[index];
+    if( param->getMode()==DB_MODE_DELETE || param->getMode()==DB_MODE_IGNORE) continue;
+
+    int row = lstFlow->rowCount();
+    lstFlow->insertRow(row);
+
+    QTableWidgetItem* itemName = new QTableWidgetItem;
+    lstFlow->setItem(row, 0, itemName);
+    itemName->setData(Qt::UserRole, param->getId());
+    itemName->setText(param->getName());
+
+    QTableWidgetItem* itemComment = new QTableWidgetItem;
+    lstFlow->setItem(row, 1, itemComment);
+    itemComment->setData(Qt::UserRole, 1);
+    itemComment->setText(param->getComment());
+
+    QTableWidgetItem* itemCreated = new QTableWidgetItem;
+    lstFlow->setItem(row, 2, itemCreated);
+    itemCreated->setData(Qt::UserRole, 1);
+    itemCreated->setText(param->getCreatedDate());
+
+    QTableWidgetItem* itemLastUpdated = new QTableWidgetItem;
+    lstFlow->setItem(row, 3, itemLastUpdated);
+    itemLastUpdated->setData(Qt::UserRole, 1);
+    itemLastUpdated->setText(param->getLastUpdatedDate());
+  }
 }
 
 }

@@ -123,27 +123,84 @@ namespace phx = boost::phoenix;
 template<typename Iterator>
 struct makeTree : qi::grammar<Iterator, Node(), qi::space_type>
 {
-  qi::rule<Iterator, Node(), qi::space_type> expr, term, factor, variable, literal, args, vector_const;
-  makeTree() : makeTree::base_type(expr) {
+  qi::rule<Iterator, Node(), qi::space_type> topexpr, expr, term, factor, variable, literal, args, vector_const;
+makeTree() : makeTree::base_type(topexpr) {
+    topexpr = expr > qi::eoi;
     expr = term [qi::_val = qi::_1] 
-      >> *(('+' >> term [qi::_val = phx::bind(&BinOpNode::create, "+", qi::_val, qi::_1)])
-           | ('-' >> term [qi::_val = phx::bind(&BinOpNode::create, "-", qi::_val, qi::_1)]));
+      > *(('+' > term [qi::_val = phx::bind(&BinOpNode::create, "+", qi::_val, qi::_1)])
+          | ('-' > term [qi::_val = phx::bind(&BinOpNode::create, "-", qi::_val, qi::_1)]));
     term = factor [qi::_val = qi::_1] 
-      >> *(('*' >> factor [qi::_val = phx::bind(&BinOpNode::create, "*", qi::_val, qi::_1)])
-           |('/' >> factor [qi::_val = phx::bind(&BinOpNode::create, "/", qi::_val, qi::_1)]));
+      > *(('*' > factor [qi::_val = phx::bind(&BinOpNode::create, "*", qi::_val, qi::_1)])
+          |('/' > factor [qi::_val = phx::bind(&BinOpNode::create, "/", qi::_val, qi::_1)]));
     factor = literal [qi::_val = qi::_1]
       | vector_const [qi::_val = qi::_1]
-      | ('(' >> expr >> ')') [qi::_val = qi::_1]
-      | (variable >> '(' >>  args >> ')') [qi::_val = phx::bind(&FunCallNode::create, qi::_1, qi::_2)]
+      | ('(' > expr > ')') [qi::_val = qi::_1]
+      | (variable >> '(' >  args > ')') [qi::_val = phx::bind(&FunCallNode::create, qi::_1, qi::_2)]
       | variable [qi::_val = qi::_1];
     args = expr [qi::_val = qi::_1]
-      >> *(',' >> expr [qi::_val = phx::bind(&BinOpNode::create, ",", qi::_val, qi::_1)]);
-    vector_const = ('[' >> expr >> ',' >> expr >> ',' >> expr >> ']')
+      > *(',' > expr [qi::_val = phx::bind(&BinOpNode::create, ",", qi::_val, qi::_1)]);
+    vector_const = ('[' > expr > ',' > expr > ',' > expr > ']')
       [qi::_val = phx::bind(&VectorConstNode::create, qi::_1, qi::_2, qi::_3)];
-      //[qi::_val = phx::bind(&ValueNode::create, qi::_1)];
-    variable = qi::as_string[qi::lexeme[(qi::alpha|qi::char_('_')) >> *(qi::alnum|qi::char_('_'))]]
-                             [qi::_val = phx::bind(&VariableNode::create, qi::_1)];
+    //[qi::_val = phx::bind(&ValueNode::create, qi::_1)];
+    variable = qi::as_string[qi::lexeme[(qi::alpha|qi::char_('_')) > *(qi::alnum|qi::char_('_'))]]
+      [qi::_val = phx::bind(&VariableNode::create, qi::_1)];
     literal = qi::double_ [qi::_val = phx::bind(&ValueNode::create, qi::_1)];
+    qi::on_error<qi::fail> (
+      topexpr,
+      std::cerr << phx::val("Expecting : ") << qi::_4 << phx::val(" here: \"")
+      << phx::construct<std::string>(qi::_3, qi::_2) << phx::val("\"") 
+      << phx::val(" in \"") << phx::construct<std::string>(qi::_1, qi::_2) << phx::val("\"")
+      << std::endl
+      );
+    qi::on_error<qi::fail> (
+      expr,
+      std::cerr << phx::val("Expecting : ") << qi::_4 << phx::val(" here: \"")
+      << phx::construct<std::string>(qi::_3, qi::_2) << phx::val("\"") 
+      << phx::val(" in \"") << phx::construct<std::string>(qi::_1, qi::_2) << phx::val("\"")
+      << std::endl
+      );
+    qi::on_error<qi::fail> (
+      term,
+      std::cerr << phx::val("Expecting : ") << qi::_4 << phx::val(" here: \"")
+      << phx::construct<std::string>(qi::_3, qi::_2) << phx::val("\"") 
+      << phx::val(" in \"") << phx::construct<std::string>(qi::_1, qi::_2) << phx::val("\"")
+      << std::endl
+      );
+    qi::on_error<qi::fail> (
+      factor,
+      std::cerr << phx::val("Expecting : ") << qi::_4 << phx::val(" here: \"")
+      << phx::construct<std::string>(qi::_3, qi::_2) << phx::val("\"") 
+      << phx::val(" in \"") << phx::construct<std::string>(qi::_1, qi::_2) << phx::val("\"")
+      << std::endl
+      );
+    qi::on_error<qi::fail> (
+      args,
+      std::cerr << phx::val("Expecting : ") << qi::_4 << phx::val(" here: \"")
+      << phx::construct<std::string>(qi::_3, qi::_2) << phx::val("\"") 
+      << phx::val(" in \"") << phx::construct<std::string>(qi::_1, qi::_2) << phx::val("\"")
+      << std::endl
+      );
+    qi::on_error<qi::fail> (
+      vector_const,
+      std::cerr << phx::val("Expecting : ") << qi::_4 << phx::val(" here: \"")
+      << phx::construct<std::string>(qi::_3, qi::_2) << phx::val("\"") 
+      << phx::val(" in \"") << phx::construct<std::string>(qi::_1, qi::_2) << phx::val("\"")
+      << std::endl
+      );
+    qi::on_error<qi::fail> (
+      variable,
+      std::cerr << phx::val("Expecting : ") << qi::_4 << phx::val(" here: \"")
+      << phx::construct<std::string>(qi::_3, qi::_2) << phx::val("\"") 
+      << phx::val(" in \"") << phx::construct<std::string>(qi::_1, qi::_2) << phx::val("\"")
+      << std::endl
+      );
+    qi::on_error<qi::fail> (
+      literal,
+      std::cerr << phx::val("Expecting : ") << qi::_4 << phx::val(" here: \"")
+      << phx::construct<std::string>(qi::_3, qi::_2) << phx::val("\"") 
+      << phx::val(" in \"") << phx::construct<std::string>(qi::_1, qi::_2) << phx::val("\"")
+      << std::endl
+      );
   }
 };
 

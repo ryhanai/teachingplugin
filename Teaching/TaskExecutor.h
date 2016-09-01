@@ -2,7 +2,7 @@
 #define TEACHING_TEACHING_TASKEXECUTOR_H_INCLUDED
 
 #include "TeachingTypes.h"
-#include "SampleHiroController.h"
+#include "ControllerBase.h"
 
 namespace teaching {
 
@@ -13,6 +13,7 @@ public:
 
   std::vector<CommandDefParam*> getCommandDefList();
   CommandDefParam* getCommandDef(const std::string& commandName);
+  CommandDefParam* getCommandDef(const int commandId);
 
   void setRootName(std::string value);
   bool executeCommand (const std::string& commandName, const std::vector<CompositeParamType>& params, bool simulation = true)
@@ -23,7 +24,7 @@ public:
 private:
   TaskExecutor();
   //std::vector<teaching::CompositeParamType> params_;
-  SampleHiroController* handler_;
+  ControllerBase* handler_;
 
 };
 

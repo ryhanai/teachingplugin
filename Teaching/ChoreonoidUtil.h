@@ -21,6 +21,7 @@ public:
   static void showAllModelItem();
 
   static void selectTreeItem(ModelParam* target);
+  static void deselectTreeItem();
   static void updateScene();
 
 private:

@@ -240,10 +240,7 @@
       type: 2
       pos_x: 298
       pos_y: 482
-  transactions: 
-    - 
-      source_id: 22
-      target_id: 22
+  transiions: 
     - 
       source_id: 12
       target_id: 13

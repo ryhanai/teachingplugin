@@ -34,26 +34,22 @@ ArgumentDialog::ArgumentDialog(TaskModelParam* param, ElementStmParam* stmParam,
   lstHandling->setColumnWidth(0, 100);
   lstHandling->setColumnWidth(1, 150);
   lstHandling->setColumnWidth(2, 150);
-  lstHandling->setHorizontalHeaderLabels(QStringList() << "Action" << "Model" << "Target");
+  lstHandling->setHorizontalHeaderLabels(QStringList() << "Action" << "Model" << "Parameter");
 
-  //QPushButton* btnUp = new QPushButton(tr("Up"));
-  QPushButton* btnUp = new QPushButton();
+  QPushButton* btnUp = new QPushButton(tr("Up"));
   btnUp->setIcon(QIcon(":/Teaching/icons/Up.png"));
   btnUp->setToolTip(tr("Action Up"));
 
-  //QPushButton* btnDown = new QPushButton(tr("Down"));
-  QPushButton* btnDown = new QPushButton();
+  QPushButton* btnDown = new QPushButton(tr("Down"));
   btnDown->setIcon(QIcon(":/Teaching/icons/Down.png"));
   btnDown->setToolTip(tr("Action Down"));
 
-  //QPushButton* btnAdd = new QPushButton(tr("Add"));
-  QPushButton* btnAdd = new QPushButton();
+  QPushButton* btnAdd = new QPushButton(tr("Add"));
   btnAdd->setIcon(QIcon(":/Teaching/icons/Plus.png"));
   btnAdd->setToolTip(tr("Add Action"));
 
-  //QPushButton* btnDelete = new QPushButton(tr("Delete"));
-  QPushButton* btnDelete = new QPushButton();
-  btnDelete->setIcon(QIcon(":/Teaching/icons/Erase.png"));
+  QPushButton* btnDelete = new QPushButton(tr("Delete"));
+  btnDelete->setIcon(QIcon(":/Teaching/icons/Delete.png"));
   btnDelete->setToolTip(tr("Delete Action"));
 
   QFrame* frmParamButtons = new QFrame;
@@ -77,7 +73,7 @@ ArgumentDialog::ArgumentDialog(TaskModelParam* param, ElementStmParam* stmParam,
     cmbModel->addItem(model->getRName());
   }
 
-  QLabel* lblTarget = new QLabel(tr("Target:"));
+  QLabel* lblTarget = new QLabel(tr("Parameter:"));
   cmbTarget = new QComboBox(this);
   cmbTarget->addItem("");
   for(int index=0; index<targetTask_->getParameterList().size(); index++) {
@@ -140,6 +136,7 @@ ArgumentDialog::ArgumentDialog(TaskModelParam* param, ElementStmParam* stmParam,
   connect(btnUp, SIGNAL(clicked()), this, SLOT(upClicked()));
   connect(btnDown, SIGNAL(clicked()), this, SLOT(downClicked()));
   connect(btnOK, SIGNAL(clicked()), this, SLOT(oKClicked()));
+  connect(this, SIGNAL(rejected()), this, SLOT(okClicked()));
 
   setWindowTitle(tr("Command"));
   resize(1200, 700);

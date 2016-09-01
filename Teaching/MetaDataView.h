@@ -2,11 +2,10 @@
 #define TEACHING_METADATA_VIEW_H_INCLUDED
 
 #include <cnoid/View>
-#include <cnoid/LazyCaller>
-#include <QtGui>
 #include <string>
+#include "QtUtil.h"
 #include "TeachingTypes.h"
-#include <boost/signal.hpp>
+#include "ModelDialog.h"
 
 using namespace cnoid;
 using namespace std;
@@ -26,7 +25,10 @@ private:
 
 class FigureDialog : public QDialog {
 public:
-  FigureDialog(QImage& source, QWidget* parent = 0);
+  FigureDialog(QWidget* parent = 0);
+  void setImage(QImage& source);
+private:
+  ImageView* m_ImageView_;
 };
 
 class TextDialog : public QDialog {
@@ -42,13 +44,10 @@ public:
   void setTaskParam(TaskModelParam* param);
   void updateTaskParam();
   void clearTaskParam();
+  void closeModelDialog();
 
 private Q_SLOTS:
-  void modelSelectionChanged();
-  void refClicked();
-  void addModelClicked();
-  void deleteModelClicked();
-  void modelPositionChanged();
+  void modelClicked();
   void fileOutputClicked();
   void fileShowClicked();
   void fileDeleteClicked();
@@ -64,23 +63,7 @@ protected:
 private:
   QTextEdit* textEdit;
 
-  QTableWidget* lstModel;
-  //
-  QLineEdit* leTask;
-  QLineEdit* leModel;
-  QLineEdit* leModelRName;
-  QComboBox* cmbType;
-  QLineEdit* leFile;
-  QPushButton* btnRef;
-  QLineEdit* leX;
-  QLineEdit* leY;
-  QLineEdit* leZ;
-  QLineEdit* leRx;
-  QLineEdit* leRy;
-  QLineEdit* leRz;
-  QPushButton* btnAddModel;
-  QPushButton* btnDeleteModel;
-  //
+  QPushButton* btnModel;
   QListWidget* lstFileName;
   QPushButton* btnFileOutput;
   QPushButton* btnFileShow;
@@ -90,37 +73,23 @@ private:
   QPushButton* btnImageShow;
   QPushButton* btnImageDelete;
 
-  bool isSkip_;
-  bool isWidgetSkip_;
-  int currentModelIndex_;
-  ModelParam* currentModel_;
-  ModelParam* selectedModel_;
-
   QProcess* m_proc_;
+  FigureDialog* m_FigDialog_;
+  ModelDialog* m_ModelDialog_;
   vector<QString> writtenFiles_;
 
   TaskModelParam* targetTask_;
 
-  BodyItemPtr currentBodyItem_;
-  boost::signals::connection connectionToKinematicStateChanged;
-  LazyCaller updateKinematicStateLater;
-
-  void showModelGrid(TaskModelParam* source);
   void updateTaskModelInfo();
-  void clearModelDetail();
-  QString getTypeName(int source);
 
   void setAllEnable();
   void setAllDisable();
   void setAllClear();
-
-  void onCurrentBodyItemChanged(BodyItem* bodyItem);
-  void updateKinematicState(bool blockSignals);
 };
 
 class MetaDataView : public cnoid::View {
 public:
-  MetaDataView();
+	MetaDataView();
   ~MetaDataView();
   void setTaskParam(TaskModelParam* param) { this->viewImpl->setTaskParam(param); }
   void updateTaskParam() { this->viewImpl->updateTaskParam(); }

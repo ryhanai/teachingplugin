@@ -134,10 +134,10 @@ void ParameterViewImpl::setTaskParam(TaskModelParam* param) {
   lblName->setText(param->getName());
   topLayout->addWidget(lblName);
   topLayout->addStretch();
-  //btnEdit = new QPushButton("Edit");
-  btnEdit = new QPushButton();
-  btnEdit->setIcon(QIcon(":/Teaching/icons/Options.png"));
-  btnEdit->setToolTip(tr("Edit Parameter"));
+
+  btnEdit = new QPushButton(tr("Edit"));
+  btnEdit->setIcon(QIcon(":/Teaching/icons/Settings.png"));
+  btnEdit->setToolTip(tr("Edit Parameters"));
 
   topLayout->addWidget(btnEdit);
   connect(btnEdit, SIGNAL(clicked()), this, SLOT(editClicked()));
@@ -149,6 +149,8 @@ void ParameterViewImpl::setTaskParam(TaskModelParam* param) {
   vector<ParameterParam*>::iterator itParam = paramList.begin();
   while (itParam != paramList.end() ) {
     (*itParam)->clearControlList();
+    if( (*itParam)->getMode()==DB_MODE_DELETE || (*itParam)->getMode()==DB_MODE_IGNORE ) continue;
+
     QFrame* eachFrame = new QFrame(this);
     frameList_.push_back(eachFrame);
     QHBoxLayout* eachLayout = new QHBoxLayout;
@@ -178,8 +180,8 @@ void ParameterViewImpl::setTaskParam(TaskModelParam* param) {
         textList_.push_back(txtEach);
       }
     }
-    //QLabel* lblUnit = new QLabel((*itParam)->getUnit());
-    //eachLayout->addWidget(lblUnit);
+    QLabel* lblUnit = new QLabel((*itParam)->getUnit());
+    eachLayout->addWidget(lblUnit);
     eachLayout->addStretch();
     mainLayout->addWidget(eachFrame);
     ++itParam;
@@ -249,13 +251,13 @@ void ParameterViewImpl::editClicked() {
 /////
 ParameterView::ParameterView(): viewImpl(0) {
     setName("Parameter");
-    setDefaultLayoutArea(View::BOTTOM);
     setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Ignored);
 
     viewImpl = new ParameterViewImpl(this);
     QVBoxLayout* vbox = new QVBoxLayout();
     vbox->addWidget(viewImpl);
     setLayout(vbox);
+		setDefaultLayoutArea(View::LEFT_BOTTOM);
 }
 
 ParameterView::~ParameterView() {

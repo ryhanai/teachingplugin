@@ -500,10 +500,7 @@
       type: 2
       pos_x: 366.759003
       pos_y: 331.301939
-  transactions: 
-    - 
-      source_id: 112
-      target_id: 112
+  transitions: 
     - 
       source_id: 92
       target_id: 93

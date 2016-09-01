@@ -1,5 +1,13 @@
-#ifndef TEACHING_COMMON_CONTROLLER_H_INCLUDED
-#define TEACHING_COMMON_CONTROLLER_H_INCLUDED
+#ifndef TEACHING_CONTROLLERBASE_H_INCLUDED
+#define TEACHING_CONTROLLERBASE_H_INCLUDED
+
+#include <cnoid/BodyItem>
+#include <cnoid/EigenUtil>
+#include <boost/variant.hpp>
+
+#include "CommandDefTypes.h"
+
+using namespace cnoid;
 
 namespace teaching {
 
@@ -15,7 +23,7 @@ private:
   std::string message_;
 };
 
-class CommonController {
+class ControllerBase {
 public:
     virtual bool attachModelItem(cnoid::BodyItemPtr object, int target) = 0;
     virtual bool detachModelItem(cnoid::BodyItemPtr object, int target) = 0;

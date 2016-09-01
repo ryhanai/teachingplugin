@@ -1,35 +1,37 @@
-#include <cnoid/Plugin>  /* modified by qtconv.rb 0th rule*/  
+#include <cnoid/Plugin>
+#include <cnoid/ViewManager>
+
 #include "TaskInstanceView.h"
 #include "MetaDataView.h"
 #include "FlowView.h"
 #include "ParameterView.h"
 #include "StateMachineView.h"
 
-using namespace std;
-using namespace boost;
+#include <cnoid/MessageView>
+
 using namespace cnoid;
+using namespace boost;
 using namespace teaching;
 
-
-class TeachingPlugin : public cnoid::Plugin {
-
-private:
-  bool onTimeout() {
-    return true;
-  }
+class TeachingPlugin : public Plugin {
 
 public:
   TeachingPlugin() : Plugin("Teaching") { 
-//    depend("Trajectory");
   }
   
   virtual bool initialize() {
-    MetaDataView* metadataView = new MetaDataView();
-    ParameterView* parameterView = new ParameterView();
-    StateMachineView* statemachineView = new StateMachineView();
-    FlowView* flowView = new FlowView();
-    TaskInstanceView* taskView = new TaskInstanceView();
+		viewManager().registerClass<MetaDataView>("MetaDataView", "MetaData", ViewManager::SINGLE_DEFAULT);
+		viewManager().registerClass<ParameterView>("ParameterView", "Parameter", ViewManager::SINGLE_DEFAULT);
+		viewManager().registerClass<FlowView>("FlowView", "Flow", ViewManager::SINGLE_DEFAULT);
+		viewManager().registerClass<TaskInstanceView>("TaskInstanceView", "TaskInstance", ViewManager::SINGLE_DEFAULT);
+		viewManager().registerClass<StateMachineView>("StateMachineView", "StateMachine", ViewManager::SINGLE_DEFAULT);
 
+		MetaDataView* metadataView = viewManager().findView<MetaDataView>("MetaData");
+		ParameterView* parameterView = viewManager().findView<ParameterView>("Parameter");
+		FlowView* flowView = viewManager().findView<FlowView>("Flow");
+		TaskInstanceView* taskView = viewManager().findView<TaskInstanceView>("TaskInstance");
+		StateMachineView* statemachineView = viewManager().findView<StateMachineView>("StateMachine");
+		//
     flowView->setMetadataView(metadataView);
     flowView->setParameterView(parameterView);
     flowView->setStateMachineView(statemachineView);
@@ -40,14 +42,10 @@ public:
     taskView->setParameterView(parameterView);
     taskView->setStateMachineView(statemachineView);
 
-    addView(taskView);
-    addView(metadataView);
-    addView(flowView);
-    addView(parameterView);
-    addView(statemachineView);
-    return true;
+		metadataView->bringToFront();
+
+		return true;
   }
 };
-
 
 CNOID_IMPLEMENT_PLUGIN_ENTRY(TeachingPlugin);

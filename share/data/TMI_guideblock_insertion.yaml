@@ -263,10 +263,7 @@
       type: 2
       pos_x: 274
       pos_y: 445
-  transactions: 
-    - 
-      source_id: 43
-      target_id: 43
+  transitions: 
     - 
       source_id: 32
       target_id: 33

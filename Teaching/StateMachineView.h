@@ -3,6 +3,7 @@
 
 #include <cnoid/View>
 #include <string>
+#include "QtUtil.h"
 #include "TeachingTypes.h"
 #include "CommandDefTypes.h"
 
@@ -80,6 +81,7 @@ public:
 
   void setTaskParam(TaskModelParam* param);
   void clearTaskParam();
+  void createStateCommands();
 
 private Q_SLOTS:
   void setClicked();

@@ -1,9 +1,12 @@
+#include <cnoid/InfoBar>
+
 #include "StateMachineView.h"
 #include "TeachingUtil.h"
 #include "Calculator.h"
 #include "DataBaseManager.h"
 #include "TaskExecutor.h"
 #include "ArgumentDialog.h"
+#include "ControllerManager.h"
 
 #include "LoggerUtil.h"
 
@@ -37,19 +40,25 @@ void EditorView::dragMoveEvent(QDragMoveEvent *event) {
 
 void EditorView::dropEvent(QDropEvent* event) {
   const QMimeData *mime = event->mimeData();
-  QString strTarget = event->mimeData()->text();
+  QString strDispName = event->mimeData()->text();
+  QString strName = "";
   QVariant varData = event->mimeData()->property("CommandId");
   int id = varData.toInt();
-
-  ElementNode* node = new ElementNode(strTarget);
+  CommandDefParam* cmdParam = TaskExecutor::instance()->getCommandDef(id);
+  if(cmdParam) {
+    strName = cmdParam->getName();
+  }
+  //
+  ElementNode* node = new ElementNode(strDispName);
   scene_->addItem(node);
   QPointF position = mapToScene(event->pos());
   node->setPos(position.x(), position.y());
   elementList_.push_back(node);
   newStateNum--;
-  ElementStmParam* newParam = new ElementStmParam(newStateNum, node->getElementType(), strTarget, position.x(), position.y());
+  ElementStmParam* newParam = new ElementStmParam(newStateNum, node->getElementType(), strName, strDispName, position.x(), position.y());
   newParam->setOrgId(newStateNum);
-  //newParam->setRealElem(node);
+  newParam->setCommadDefParam(cmdParam);
+  newParam->setRealElem(node);
   newParam->setNew();
   node->setElemParam(newParam);
   targetTask_->addStmElement(newParam);
@@ -65,7 +74,8 @@ void EditorView::dropEvent(QDropEvent* event) {
 void EditorView::mousePressEvent(QMouseEvent* event) {
   if(event->button() == Qt::LeftButton){
     QPointF pos = mapToScene(event->pos());
-    QGraphicsItem* gItem = scene_->itemAt(pos.x(), pos.y());
+		QTransform trans;
+		QGraphicsItem* gItem = scene_->itemAt(pos, trans);
     if(targetNode_) {
       targetNode_->updateSelect(false);
     }
@@ -119,12 +129,16 @@ void EditorView::mouseMoveEvent(QMouseEvent* event) {
 }
 
 void EditorView::mouseReleaseEvent(QMouseEvent* event) {
-  if(modeCnt_ && targetNode_) {
+	if (modeCnt_ && targetNode_) {
     QPointF pos = mapToScene(event->pos());
-    QGraphicsItem* gItem = scene_->itemAt(pos.x(), pos.y());
+		QTransform trans;
+		QGraphicsItem* gItem = scene_->itemAt(pos, trans);
     if(gItem) {
       ConnectionNode* item = targetNode_->getCurrentConnection();
       ElementNode* currNode = (ElementNode*)gItem->parentItem();
+      if(item->getSource()->getElemParam()->getId()==currNode->getElemParam()->getId()) {
+        return;
+      }
       item->setTarget(currNode);
       item->setPen(QPen(Qt::black, LINE_WIDTH));
       item->setData(Qt::UserRole, TYPE_CONNECTION);
@@ -218,7 +232,7 @@ void EditorView::removeAll() {
 }
 
 void EditorView::createStateMachine(TaskModelParam* param) {
-  DDEBUG_V("createStateMachine : %d", param->getStmConnectionList().size());
+  //DDEBUG_V("createStateMachine : %d", param->getStmConnectionList().size());
   targetNode_ = 0;
   targetConnection_ = 0;
   scene_->clear();
@@ -228,7 +242,7 @@ void EditorView::createStateMachine(TaskModelParam* param) {
     ElementStmParam* target = elemList[index];
     if(target->getMode()==DB_MODE_DELETE || target->getMode()==DB_MODE_IGNORE) continue;
 
-    QString strName = "";
+    QString strName = target->getCmdName();
     CommandDefParam* def = target->getCommadDefParam();
     if(def) {
       strName = def->getDispName();
@@ -247,6 +261,7 @@ void EditorView::createStateMachine(TaskModelParam* param) {
     ConnectionStmParam* target = connList[index];
     if(target->getMode()==DB_MODE_DELETE || target->getMode()==DB_MODE_IGNORE) continue;
 
+    //DDEBUG_V("connection : Source=%d, Target=%d", target->getSourceId(), target->getTargetId());
     vector<ElementStmParam*>::iterator sourceElem = find_if( elemList.begin(), elemList.end(), ElementStmParamComparator(target->getSourceId()));
     if(sourceElem== elemList.end()) continue;
     vector<ElementStmParam*>::iterator targetElem = find_if( elemList.begin(), elemList.end(), ElementStmParamComparator(target->getTargetId()));
@@ -308,15 +323,18 @@ StateMachineViewImpl::StateMachineViewImpl(QWidget* parent) : QWidget(parent), t
   lblTarget->setText("");
 
   btnDelete = new QPushButton(tr("Delete"));
+  btnDelete->setIcon(QIcon(":/Teaching/icons/Delete.png"));
+  btnDelete->setToolTip(tr("Delete selected element"));
   btnDelete->setEnabled(false);
 
-  //btnEdit = new QPushButton("Edit");
-  btnEdit = new QPushButton();
-  btnEdit->setIcon(QIcon(":/Teaching/icons/Options.png"));
-  btnEdit->setToolTip(tr("Edit"));
+  btnEdit = new QPushButton(tr("Edit"));
+  btnEdit->setIcon(QIcon(":/Teaching/icons/Settings.png"));
+  btnEdit->setToolTip(tr("Edit target state"));
   btnEdit->setEnabled(false);
 
-  btnRun = new QPushButton(tr("Run Command"));
+  btnRun = new QPushButton(tr("Command"));
+  btnRun->setIcon(QIcon(":/Base/icons/play.png"));
+  btnRun->setToolTip(tr("Run selected Command"));
   btnRun->setEnabled(false);
 
   QHBoxLayout* topLayout = new QHBoxLayout;
@@ -359,7 +377,11 @@ StateMachineViewImpl::StateMachineViewImpl(QWidget* parent) : QWidget(parent), t
   QLabel* lblGuard = new QLabel("Guard:");
   rdTrue = new QRadioButton("True");
   rdFalse = new QRadioButton("False");
-  btnSet = new QPushButton("Set");
+
+  btnSet = new QPushButton(tr("Set"));
+  btnSet->setIcon(QIcon(":/Teaching/icons/Logout.png"));
+  btnSet->setToolTip(tr("Set Guard condition"));
+
   rdTrue->setEnabled(false);
   rdFalse->setEnabled(false);
   btnSet->setEnabled(false);
@@ -401,12 +423,7 @@ StateMachineViewImpl::StateMachineViewImpl(QWidget* parent) : QWidget(parent), t
   //createForkNodeTarget();
   //
   SettingManager::getInstance().loadSetting();
-  commandList_ = TaskExecutor::instance()->getCommandDefList();
-  vector<CommandDefParam*>::iterator itCmd = commandList_.begin();
-  while (itCmd != commandList_.end() ) {
-    createCommandNodeTarget((*itCmd)->getId(), (*itCmd)->getDispName());
-    ++itCmd;
-  }
+  ControllerManager::instance()->setStateMachineView(this);
   //
   QVBoxLayout* mainLayout = new QVBoxLayout;
   mainLayout->addWidget(frmTop);
@@ -418,6 +435,15 @@ StateMachineViewImpl::StateMachineViewImpl(QWidget* parent) : QWidget(parent), t
   connect(btnDelete, SIGNAL(clicked()), this, SLOT(deleteClicked()));
   connect(btnEdit, SIGNAL(clicked()), this, SLOT(editClicked()));
   connect(btnRun, SIGNAL(clicked()), this, SLOT(runClicked()));
+}
+
+void StateMachineViewImpl::createStateCommands() {
+  commandList_ = TaskExecutor::instance()->getCommandDefList();
+  vector<CommandDefParam*>::iterator itCmd = commandList_.begin();
+  while (itCmd != commandList_.end() ) {
+    createCommandNodeTarget((*itCmd)->getId(), (*itCmd)->getDispName());
+    ++itCmd;
+  }
 }
 
 void StateMachineViewImpl::setTaskParam(TaskModelParam* param) {
@@ -550,21 +576,21 @@ void StateMachineViewImpl::editClicked() {
   if(target) {
     ElementStmParam* targetStm = target->getElemParam();
     if(targetStm->getType()!=ELEMENT_COMMAND) {
-      QMessageBox::warning(this, tr("Command"), tr("Please select Command Element."));
+      QMessageBox::warning(this, tr("Command"), tr("Please select Command Element. : ") + QString::number(targetStm->getType()));
       return;
     }
     if( targetStm->getArgList().size()==0 ) {
+      DDEBUG("editClicked : No Arg");
       QString strCmd = targetStm->getCmdName();
       for(int index=0; index<commandList_.size(); index++) {
         CommandDefParam* param = commandList_[index];
-        if(param->getName()==strCmd) {
-          vector<ArgumentDefParam*> argList = param->getArgList();
-          for(int idxArg=0; idxArg<argList.size(); idxArg++) {
-            ArgumentDefParam* arg = argList[idxArg];
-            ArgumentParam* argParam = new ArgumentParam(-1, targetStm->getId(), idxArg+1, QString::fromStdString(arg->getName()), "");
-            argParam->setNew();
-            targetStm->addArgument(argParam);
-          }
+        if(param->getName()!=strCmd) continue;
+        vector<ArgumentDefParam*> argList = param->getArgList();
+        for(int idxArg=0; idxArg<argList.size(); idxArg++) {
+          ArgumentDefParam* arg = argList[idxArg];
+          ArgumentParam* argParam = new ArgumentParam(-1, targetStm->getId(), idxArg+1, QString::fromStdString(arg->getName()), "");
+          argParam->setNew();
+          targetStm->addArgument(argParam);
         }
       }
     }
@@ -580,6 +606,7 @@ void StateMachineViewImpl::editClicked() {
 void StateMachineViewImpl::runClicked() {
   ElementNode* target = grhStateMachine->getCurrentNode();
   if(target) {
+    bool isReal = SettingManager::getInstance().getIsReal();
     ElementStmParam* targetStm = target->getElemParam();
     if(targetStm->getType()!=ELEMENT_COMMAND) {
       QMessageBox::warning(this, tr("Run Command"), tr("Please select Command Element."));
@@ -592,10 +619,9 @@ void StateMachineViewImpl::runClicked() {
     for(int idxArg=0; idxArg<targetStm->getArgList().size();idxArg++) {
       ArgumentParam* arg = targetStm->getArgList()[idxArg];
       QString valueDesc = arg->getValueDesc();
-      //
       if(targetStm->getCommadDefParam()==0) {
         delete calculator;
-        QMessageBox::warning(this, tr("Run Command"), tr("Target Comannd is NOT EXIST."));
+        QMessageBox::warning(this, tr("Run Command"), tr("Target Command does NOT EXIST."));
         return;
       }
       ArgumentDefParam* argDef = targetStm->getCommadDefParam()->getArgList()[idxArg];
@@ -625,25 +651,27 @@ void StateMachineViewImpl::runClicked() {
         }
       }
     }
+    InfoBar::instance()->showMessage(tr("Running Command :") + targetStm->getCmdName());
     TaskExecutor::instance()->setRootName(SettingManager::getInstance().getRobotModelName());
-    bool cmdRet = TaskExecutor::instance()->executeCommand(targetStm->getCmdName().toStdString(), parameterList, false);
+    bool cmdRet = TaskExecutor::instance()->executeCommand(targetStm->getCmdName().toStdString(), parameterList, isReal);
     if(cmdRet) {
-      QMessageBox::information(this, tr("Run Command"), tr("Target Command is FINISHED."));
+      //QMessageBox::information(this, tr("Run Command"), tr("Target Command is FINISHED."));
     } else {
-      QMessageBox::information(this, tr("Run Command"), tr("Target Command is FAILED."));
+      QMessageBox::information(this, tr("Run Command"), tr("Target Command FAILED."));
     }
+    InfoBar::instance()->showMessage(tr("Finished Command :") + targetStm->getCmdName());
   }
 }
 /////
 StateMachineView::StateMachineView(): viewImpl(0) {
     setName("State Machine");
-    setDefaultLayoutArea(View::BOTTOM);
     setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Ignored);
 
     viewImpl = new StateMachineViewImpl(this);
     QVBoxLayout* vbox = new QVBoxLayout();
     vbox->addWidget(viewImpl);
     setLayout(vbox);
+		setDefaultLayoutArea(View::RIGHT);
 }
 
 StateMachineView::~StateMachineView() {

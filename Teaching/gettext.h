@@ -8,7 +8,7 @@
 #ifdef CNOID_GETTEXT_DOMAIN_NAME
 #undef CNOID_GETTEXT_DOMAIN_NAME
 #endif
-#define CNOID_GETTEXT_DOMAIN_NAME "CnoidTeachingPlugin-1.4"
+#define CNOID_GETTEXT_DOMAIN_NAME "CnoidTeachingPlugin-1.5"
 
 #ifdef _
 #undef _

@@ -1,7 +1,7 @@
 #ifndef TEACHING_PARAMETER_DIALOG_H_INCLUDED
 #define TEACHING_PARAMETER_DIALOG_H_INCLUDED
 
-#include <QtGui>
+#include "QtUtil.h"
 #include "TeachingTypes.h"
 
 using namespace cnoid;

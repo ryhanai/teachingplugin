@@ -1,9 +1,8 @@
 #ifndef TEACHING_TASK_EXECUTION_VIEW_H_INCLUDED
 #define TEACHING_TASK_EXECUTION_VIEW_H_INCLUDED
 
-#include <QtGui>
+#include "QtUtil.h"
 #include "TeachingTypes.h"
-
 #include "StateMachineView.h"
 #include "ParameterView.h"
 
@@ -20,8 +19,8 @@ public:
   void unloadCurrentModel();
 
 protected:
-  bool doTaskOperation(TaskModelParam* targetTask, bool isReal);
-  void runSingleTask(bool isReal);
+  bool doTaskOperation(TaskModelParam* targetTask);
+  void runSingleTask();
 
   TaskModelParam* currentTask_;
   ElementStmParam* currParam_;

@@ -1,5 +1,7 @@
 #include "TeachingTypes.h"
 #include "ChoreonoidUtil.h"
+//
+#include "LoggerUtil.h"
 
 namespace teaching {
 
@@ -74,10 +76,6 @@ void ElementNode::updateSelect(bool isActive) {
   }
 }
 
-void ElementStmParam::updateSelect(bool isActive) {
-  this->realElem_->updateSelect(isActive);
-}
-
 void ElementNode::updateActive(bool isActive) {
   if(type_==ELEMENT_START) {
     if(isActive) {
@@ -116,8 +114,16 @@ void ElementNode::updateActive(bool isActive) {
   }
 }
 
+void ElementStmParam::updateSelect(bool isActive) {
+  if(this->realElem_) {
+    this->realElem_->updateSelect(isActive);
+  }
+}
+
 void ElementStmParam::updateActive(bool isActive) {
-  this->realElem_->updateActive(isActive);
+  if(this->realElem_) {
+    this->realElem_->updateActive(isActive);
+  }
 }
 
 void ElementStmParam::clearActionList() {
@@ -131,7 +137,7 @@ void ElementStmParam::clearActionList() {
 
 ElementStmParam::ElementStmParam(const ElementStmParam* source)
    : id_(source->id_), type_(source->type_),
-     cmdName_(source->cmdName_),
+     cmdName_(source->cmdName_), cmdDspName_(source->cmdDspName_),
      posX_(source->posX_), posY_(source->posY_),
      nextElem_(source->nextElem_), trueElem_(source->trueElem_), falseElem_(source->falseElem_) {
     mode_ = DatabaseMode(source->getMode());
@@ -180,7 +186,6 @@ void ParameterParam::saveValues() {
       setUpdate();
     }
   }
-  //controlList_.clear();
 }
 
 void ParameterParam::setDBValues(QString source) {
@@ -225,7 +230,9 @@ void ModelParam::deleteModelDetails() {
 }
 
 void ModelParam::setInitialPos() {
-  ChoreonoidUtil::updateModelItemPosition(item_, orgPosX_, orgPosY_, orgPosZ_, orgRotRx_, orgRotRy_, orgRotRz_);
+	if (item_) {
+		ChoreonoidUtil::updateModelItemPosition(item_, orgPosX_, orgPosY_, orgPosZ_, orgRotRx_, orgRotRy_, orgRotRz_);
+	}
   posX_ = orgPosX_;
   posY_ = orgPosY_;
   posZ_ = orgPosZ_;
@@ -300,7 +307,9 @@ void TaskModelParam::setAllNewData() {
 
 TaskModelParam::TaskModelParam(const TaskModelParam* source)
   : id_(source->id_), name_(source->name_), comment_(source->comment_),
-    flow_id_(source->flow_id_), seq_(source->seq_), isLoaded_(source->isLoaded_) {
+    flow_id_(source->flow_id_), seq_(source->seq_),
+    created_date_(source->created_date_), last_updated_date_(source->last_updated_date_),
+    isLoaded_(source->isLoaded_) {
 
   mode_ = DatabaseMode(source->getMode());
   std::copy(source->modeList_.begin(), source->modeList_.end(), back_inserter(modeList_) );
@@ -312,6 +321,10 @@ TaskModelParam::TaskModelParam(const TaskModelParam* source)
 }
 
 TaskModelParam::~TaskModelParam() {
+  clearDetailParams();
+}
+
+void TaskModelParam::clearDetailParams() {
   std::vector<ModelParam*>::iterator itModel = modeList_.begin();
   while (itModel != modeList_.end() ) {
     delete *itModel;
@@ -398,7 +411,7 @@ bool TaskModelParam::checkAndOrderStateMachine() {
     ++itElemChk;
   }
   if(startCnt==0) {
-    errContents_ = "NOT EXIST startNode.";
+    errContents_ = "StartNode does NOT EXIST.";
     return true;
   }
   //
@@ -422,10 +435,10 @@ bool TaskModelParam::checkAndOrderStateMachine() {
       errContents_ = "Flow to enter startNode exists.";
       return true;
     }
-    //if( std::find( finalNodeIds.begin(), finalNodeIds.end(), sourceId) != finalNodeIds.end() ) {
-    //  errContents_ = "Flow from out finalNode exists.";
-    //  return true;
-    //}
+    if( std::find( finalNodeIds.begin(), finalNodeIds.end(), sourceId) != finalNodeIds.end() ) {
+      errContents_ = "Flow from out finalNode exists.";
+      return true;
+    }
     if( std::find( decisionNodeIds.begin(), decisionNodeIds.end(), sourceId) != decisionNodeIds.end() ) {
       if( (*itConnChk)->getCondition().length()==0) {
         errContents_ = "Condition is not set for the flow from decisionNode.";
@@ -438,6 +451,11 @@ bool TaskModelParam::checkAndOrderStateMachine() {
   //é¿çsèáèòÇÃëgÇ›óßÇƒ
   std::vector<ElementStmParam*>::iterator itElem = stmElemList_.begin();
   while (itElem != stmElemList_.end() ) {
+    if( (*itElem)->getMode()==DB_MODE_DELETE || (*itElem)->getMode()==DB_MODE_IGNORE) {
+      ++itElem;
+      continue;
+    }
+    //
     int sourceId = (*itElem)->getId();
     std::vector<ConnectionStmParam*>::iterator itConn = stmConnectionList_.begin();
     int nextCnt = 0;
@@ -449,6 +467,7 @@ bool TaskModelParam::checkAndOrderStateMachine() {
         ++itConn;
         continue;
       }
+      DDEBUG_V("id:%d, source:%d, target:%d",(*itConn)->getId(), (*itConn)->getSourceId(), (*itConn)->getTargetId())
       if( (*itConn)->getSourceId()==sourceId ) {
         int targetId = (*itConn)->getTargetId();
         std::vector<ElementStmParam*>::iterator targetElem = std::find_if( stmElemList_.begin(), stmElemList_.end(), ElementStmParamComparator(targetId));
@@ -481,7 +500,7 @@ bool TaskModelParam::checkAndOrderStateMachine() {
         } else {
           nextCnt++;
           if( 1<nextCnt ) {
-            errContents_ = "Several flows exist from Node.";
+            errContents_ = "Several flows exist from Node. " + (*itElem)->getCmdDspName();
             return true;
           }
           (*itElem)->setNextElem(*targetElem);
@@ -490,12 +509,12 @@ bool TaskModelParam::checkAndOrderStateMachine() {
       }
       ++itConn;
     }
-    //if(isSet==false) {
-      //if( (*itElem)->getType()!=ELEMENT_FINAL ) {
-      //  errContents_ = "OUT flow NOT EXIST.";
-      //  return true;
-      //}
-    //}
+    if(isSet==false) {
+      if( (*itElem)->getType()!=ELEMENT_FINAL ) {
+        errContents_ = "OUT flow NOT EXIST.";
+        return true;
+      }
+    }
     ++itElem;
   }
   //

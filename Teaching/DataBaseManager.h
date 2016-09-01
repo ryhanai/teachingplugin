@@ -25,18 +25,18 @@ public:
   bool connectDB();
   bool reConnectDB();
   void closeDB();
-  vector<FlowParam*> getFlowList();
   vector<FlowParam*> searchFlowList(vector<string>& condList, bool isOr);
 
-  vector<TaskModelParam*> getTaskModels();
   TaskModelParam* getTaskModelById(const int taskId);
   vector<TaskModelParam*> searchTaskModels(vector<string>& condList, bool isOr);
   TaskModelParam* getTaskParamById(int id);
-  bool getFlowParamById(int id, FlowParam* result);
+	FlowParam* getFlowParamById(const int id);
 
   TaskModelParam* getTaskModel(int index);
   vector<ElementStmActionParam*> getStmActionList(int stateId);
-  vector<ParameterParam*> getParameterParams(int taskId, int instId);
+  vector<ParameterParam*> getParameterParams(int instId);
+
+  void getDetailParams(TaskModelParam* target);
 
   bool saveTaskModels(vector<TaskModelParam*> source);
   bool saveTaskModelsForLoad(vector<TaskModelParam*>& source);
@@ -59,7 +59,6 @@ private:
   vector<FlowParam*> flowList_;
   QString errorStr_;
 
-  void getDetailParams(TaskModelParam* target);
   vector<ArgumentParam*> getArgumentParams(int stateId);
   vector<ModelParam*> getModelParams(int id);
   vector<ImageDataParam*> getFigureParams(int id);
@@ -67,8 +66,7 @@ private:
   vector<ElementStmParam*> getStateParams(int instId);
   vector<ConnectionStmParam*> getTransParams(int instId);
 
-  bool insertTaskData(TaskModelParam* source);
-  bool saveTaskInstanceData(TaskModelParam* source);
+  bool saveTaskInstanceData(TaskModelParam* source, bool updateDate);
   bool saveTaskParameterData(int taskId, ParameterParam* source);
   bool saveElementStmData(int parentId, ElementStmParam* source);
   bool saveElementStmActionData(int stateId, ElementStmActionParam* source);
@@ -79,7 +77,6 @@ private:
   bool saveFlowData(FlowParam* source);
   bool saveFlowItemData(int flowId, TaskModelParam* source);
 
-  bool saveTaskInstParameterData(int parentId, ParameterParam* source);
   bool saveDetailData(TaskModelParam* source);
   bool saveModelData(int parentId, ModelParam* source);
   bool saveModelDetailData(int modelId, ModelDetailParam* source);

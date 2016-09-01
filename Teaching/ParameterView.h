@@ -1,13 +1,13 @@
 #ifndef TEACHING_PARAMETER_VIEW_H_INCLUDED
 #define TEACHING_PARAMETER_VIEW_H_INCLUDED
 
+#include <string>
 #include <cnoid/View>
 #include <cnoid/MessageView>  /* modified by qtconv.rb 0th rule*/  
 #include <cnoid/LazyCaller>
-#include <QtGui>
-#include <string>
+#include <cnoid/ConnectionSet>
+#include "QtUtil.h"
 #include "TeachingTypes.h"
-#include <boost/signal.hpp>
 
 using namespace cnoid;
 using namespace std;
@@ -35,7 +35,7 @@ private:
   ModelParam* targetModel_;
 
   BodyItemPtr currentBodyItem_;
-  boost::signals::connection connectionToKinematicStateChanged;
+	Connection connectionToKinematicStateChanged;
   LazyCaller updateKinematicStateLater;
 
   void updateKinematicState(bool blockSignals);

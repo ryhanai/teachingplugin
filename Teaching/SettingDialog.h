@@ -1,7 +1,7 @@
 #ifndef TEACHING_SETTING_DIALOG_H_INCLUDED
 #define TEACHING_SETTING_DIALOG_H_INCLUDED
 
-#include <QtGui>
+#include "QtUtil.h"
 
 namespace teaching {
 
@@ -31,6 +31,8 @@ private:
   QTableWidget* lstApp;
   QLineEdit* leExt;
   QLineEdit* leApp;
+
+  QCheckBox* chkReal;
 
   bool isDBUpdated_;
   int currentRowIndex_;

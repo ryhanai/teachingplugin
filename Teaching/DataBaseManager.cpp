@@ -1,5 +1,6 @@
 #include "DataBaseManager.h"
 #include <QVariant>
+#include <QBuffer>
 #include <qsqlerror.h>
 #include "TeachingUtil.h"
 #include "ChoreonoidUtil.h"
@@ -43,38 +44,23 @@ void DatabaseManager::closeDB() {
   }
 }
 /////
-vector<FlowParam*> DatabaseManager::getFlowList() {
-  flowList_.clear();
-
-  string strQuery = "SELECT ";
-  strQuery += "flow_id, name ";
-  strQuery += "FROM T_FLOW ORDER BY flow_id";
-
-  QSqlQuery taskQuery(db_);
-  taskQuery.exec(strQuery.c_str());
-  while (taskQuery.next()) {
-    int id = taskQuery.value(0).toInt();
-    QString name = taskQuery.value(1).toString();
-    //
-    FlowParam* param = new FlowParam(id, name, false);
-    flowList_.push_back(param);
-  }
-  return flowList_;
-}
-
 vector<FlowParam*> DatabaseManager::searchFlowList(vector<string>& condList, bool isOr) {
   flowList_.clear();
 
   string strQuery = "SELECT "; 
-  strQuery += "flow_id, name ";
+  strQuery += "flow_id, name, comment, created_date, last_updated_date ";
   strQuery += "FROM T_FLOW ";
-  strQuery += "WHERE ";
+  string strQueryCond = "WHERE ( ";
   for(unsigned int index=0; index<condList.size(); index++) {
     if(0<index) {
-      if(isOr) strQuery += " Or ";
-      else     strQuery += " And ";
+      if(isOr) strQueryCond += " Or ";
+      else     strQueryCond += " And ";
     }
-    strQuery += "name like \"%" + condList[index] + "%\"";
+    strQueryCond += "((name || ' ' || comment) like \"%" + condList[index] + "%\")";
+  }
+  if(0<condList.size()) {
+    strQueryCond += " ) ";
+    strQuery += strQueryCond;
   }
   strQuery += " ORDER BY flow_id";
 
@@ -83,18 +69,23 @@ vector<FlowParam*> DatabaseManager::searchFlowList(vector<string>& condList, boo
   while (taskQuery.next()) {
     int id = taskQuery.value(0).toInt();
     QString name = taskQuery.value(1).toString();
+    QString comment = taskQuery.value(2).toString();
+    QString createdDate = taskQuery.value(3).toString();
+    QString updatedDate = taskQuery.value(4).toString();
     //
-    FlowParam* param = new FlowParam(id, name, false);
+    FlowParam* param = new FlowParam(id, name, comment, createdDate, updatedDate, false);
     flowList_.push_back(param);
   }
   return flowList_;
 }
 
-bool DatabaseManager::getFlowParamById(int id, FlowParam* result) {
+FlowParam* DatabaseManager::getFlowParamById(const int id) {
   DDEBUG_V("getFlowParamById : %d", id);
 
+	FlowParam* result = NULL;
+
   string strQuery = "SELECT ";
-  strQuery += "name ";
+  strQuery += "name, comment, created_date, last_updated_date ";
   strQuery += "FROM T_FLOW ";
   strQuery += "WHERE flow_id = " + toStr(id);
   QSqlQuery flowQuery(db_);
@@ -102,7 +93,15 @@ bool DatabaseManager::getFlowParamById(int id, FlowParam* result) {
   if (flowQuery.next()==false) return false;
   //
   QString name = flowQuery.value(0).toString();
+  QString comment = flowQuery.value(1).toString();
+  QString createdDate = flowQuery.value(2).toString();
+  QString updatedDate = flowQuery.value(3).toString();
+	//
+	result = new FlowParam(id, name, comment, createdDate, updatedDate, false);
   result->setName(name);
+  result->setComment(comment);
+  result->setCreatedDate(createdDate);
+  result->setLastUpdatedDate(updatedDate);
   //
   string strItemQuery = "SELECT ";
   strItemQuery += "task_inst_id ";
@@ -121,72 +120,44 @@ bool DatabaseManager::getFlowParamById(int id, FlowParam* result) {
   for(int index=0; index<taskIdList.size();index++) {
     int taskId = taskIdList[index];
     string strTaskQuery = "SELECT ";
-    strTaskQuery += "name, task_id, comment, flow_id ";
+    strTaskQuery += "name, comment, flow_id, created_date, last_updated_date ";
     strTaskQuery += "FROM T_TASK_MODEL_INST ";
     strTaskQuery += "WHERE task_inst_id =" + toStr(taskId);
     QSqlQuery taskQuery(db_);
     taskQuery.exec(strTaskQuery.c_str());
     while (taskQuery.next()) {
       QString name = taskQuery.value(0).toString();
-      int task_id = taskQuery.value(1).toInt();
-      QString comment = taskQuery.value(2).toString();
-      int flow_id = taskQuery.value(3).toInt();
+      QString comment = taskQuery.value(1).toString();
+      int flow_id = taskQuery.value(2).toInt();
+      QString createdDate = taskQuery.value(3).toString();
+      QString updatedDate = taskQuery.value(4).toString();
       //
-      TaskModelParam* param = new TaskModelParam(taskId, name, task_id, comment, flow_id, -1);
+      TaskModelParam* param = new TaskModelParam(taskId, name, comment, flow_id, -1, createdDate, updatedDate);
       taskModelList_.push_back(param);
       getDetailParams(param);
       result->addTask(param);
     }
   }
-  return true;
-}
-
-vector<TaskModelParam*> DatabaseManager::getTaskModels() {
-  taskModelList_.clear();
-
-  string strQuery = "SELECT "; 
-  strQuery += "task_inst_id, name, task_id, comment, flow_id ";
-  strQuery += "FROM T_TASK_MODEL_INST ORDER BY task_inst_id";
-
-  QSqlQuery taskQuery(db_);
-  taskQuery.exec(strQuery.c_str());
-  while (taskQuery.next()) {
-    int id = taskQuery.value(0).toInt();
-    QString name = taskQuery.value(1).toString();
-    int task_id = taskQuery.value(2).toInt();
-    QString comment = taskQuery.value(3).toString();
-    int flow_id = taskQuery.value(4).toInt();
-    //
-    TaskModelParam* param = new TaskModelParam(id, name, task_id, comment, flow_id, -1);
-    taskModelList_.push_back(param);
-    getDetailParams(param);
-  }
-  return taskModelList_;
+  return result;
 }
 
 vector<TaskModelParam*> DatabaseManager::searchTaskModels(vector<string>& condList, bool isOr) {
   taskModelList_.clear();
 
   string strQuery = "SELECT ";
-  strQuery += "task_inst_id, name, task_id, comment, flow_id ";
+  strQuery += "task_inst_id, name, comment, flow_id, created_date, last_updated_date ";
   strQuery += "FROM T_TASK_MODEL_INST ";
-  strQuery += "WHERE ";
-  string strQueryName = " ( ";
-  string strQueryComment  = " ( ";
+  string strQueryCond = "WHERE ( ";
   for(unsigned int index=0; index<condList.size(); index++) {
     if(0<index) {
-      if(isOr) strQueryName += " Or ";
-      else     strQueryName += " And ";
-      if(isOr) strQueryComment += " Or ";
-      else     strQueryComment += " And ";
+      if(isOr) strQueryCond += " Or ";
+      else     strQueryCond += " And ";
     }
-    strQueryName += "name like \"%" + condList[index] + "%\"";
-    strQueryComment += "comment like \"%" + condList[index] + "%\"";
+    strQueryCond += "((name || ' ' || comment) like \"%" + condList[index] + "%\")";
   }
   if(0<condList.size()) {
-    strQueryName += " ) Or ";
-    strQueryComment += " ) ";
-    strQuery += strQueryName + strQueryComment;
+    strQueryCond += " ) ";
+    strQuery += strQueryCond;
   }
   strQuery += " ORDER BY task_inst_id";
   QSqlQuery taskQuery(db_);
@@ -195,11 +166,12 @@ vector<TaskModelParam*> DatabaseManager::searchTaskModels(vector<string>& condLi
   while (taskQuery.next()) {
     int id = taskQuery.value(0).toInt();
     QString name = taskQuery.value(1).toString();
-    int task_id = taskQuery.value(2).toInt();
-    QString comment = taskQuery.value(3).toString();
-    int flow_id = taskQuery.value(4).toInt();
+    QString comment = taskQuery.value(2).toString();
+    int flow_id = taskQuery.value(3).toInt();
+    QString createdDate = taskQuery.value(4).toString();
+    QString updatedDate = taskQuery.value(5).toString();
     //
-    TaskModelParam* param = new TaskModelParam(id, name, task_id, comment, flow_id, -1);
+    TaskModelParam* param = new TaskModelParam(id, name, comment, flow_id, -1, createdDate, updatedDate);
     taskModelList_.push_back(param);
     getDetailParams(param);
   }
@@ -210,7 +182,7 @@ TaskModelParam* DatabaseManager::getTaskModelById(const int taskId) {
   TaskModelParam* result = NULL;
 
   string strQuery = "SELECT ";
-  strQuery += "task_inst_id, name, task_id, comment, flow_id ";
+  strQuery += "task_inst_id, name, comment, flow_id, created_date, last_updated_date ";
   strQuery += "FROM T_TASK_MODEL_INST ";
   strQuery += "WHERE task_inst_id = " + toStr(taskId);
   QSqlQuery taskQuery(db_);
@@ -219,11 +191,12 @@ TaskModelParam* DatabaseManager::getTaskModelById(const int taskId) {
   if (taskQuery.next()) {
     int id = taskQuery.value(0).toInt();
     QString name = taskQuery.value(1).toString();
-    int task_id = taskQuery.value(2).toInt();
-    QString comment = taskQuery.value(3).toString();
-    int flow_id = taskQuery.value(4).toInt();
+    QString comment = taskQuery.value(2).toString();
+    int flow_id = taskQuery.value(3).toInt();
+    QString createdDate = taskQuery.value(4).toString();
+    QString updatedDate = taskQuery.value(5).toString();
     //
-    result = new TaskModelParam(id, name, task_id, comment, flow_id, -1);
+    result = new TaskModelParam(id, name, comment, flow_id, -1, createdDate, updatedDate);
     taskModelList_.push_back(result);
     getDetailParams(result);
   }
@@ -238,7 +211,7 @@ void DatabaseManager::getDetailParams(TaskModelParam* target) {
       ++itModel;
     }
     //
-    vector<ParameterParam*> paramList = getParameterParams(target->getTaskId(), target->getId());
+    vector<ParameterParam*> paramList = getParameterParams(target->getId());
     std::vector<ParameterParam*>::iterator itParam = paramList.begin();
     while (itParam != paramList.end() ) {
       target->addParameter(*itParam);
@@ -340,6 +313,7 @@ bool DatabaseManager::saveTaskParameter(TaskModelParam* source) {
     }
     ++itParam;
   }
+
   return true;
 }
 
@@ -372,11 +346,7 @@ bool DatabaseManager::saveTaskModelsForNewRegist(TaskModelParam* source) {
   errorStr_ = "";
   db_.transaction();
 
-  if(insertTaskData(source)==false) {
-    db_.rollback();
-    return false;
-  }
-  if(saveTaskInstanceData(source)==false) {
+  if(saveTaskInstanceData(source, false)==false) {
     db_.rollback();
     return false;
   }
@@ -389,7 +359,7 @@ bool DatabaseManager::saveTaskModelsForNewRegist(TaskModelParam* source) {
   vector<ParameterParam*> paramList = source->getParameterList();
   vector<ParameterParam*>::iterator itParam = paramList.begin();
   while (itParam != paramList.end() ) {
-    if( saveTaskInstParameterData(source->getId(), *itParam)==false) {
+    if( saveTaskParameterData(source->getId(), *itParam)==false) {
       db_.rollback();
       return false;
     }
@@ -446,17 +416,12 @@ bool DatabaseManager::saveTaskModelsForLoad(vector<TaskModelParam*>& source) {
   try {
     vector<TaskModelParam*>::iterator itTask = source.begin();
     while (itTask != source.end() ) {
-      if(insertTaskData(*itTask)==false) {
-          db_.rollback();
-          return false;
-      }
-      if(saveTaskInstanceData(*itTask)==false) {
+      if(saveTaskInstanceData(*itTask, true)==false) {
           db_.rollback();
           return false;
       }
       int taskInstId = (*itTask)->getId();
-      int taskId = (*itTask)->getTaskId();
-      DDEBUG_V("taskInstId : %d, taskId : %d", taskInstId, taskId);
+      DDEBUG_V("taskInstId : %d", taskInstId);
       //
       vector<ModelParam*> modelList = (*itTask)->getModelList();
       vector<ModelParam*>::iterator itModel = modelList.begin();
@@ -471,11 +436,7 @@ bool DatabaseManager::saveTaskModelsForLoad(vector<TaskModelParam*>& source) {
       vector<ParameterParam*> paramList = (*itTask)->getParameterList();
       vector<ParameterParam*>::iterator itParam = paramList.begin();
       while (itParam != paramList.end() ) {
-        if( saveTaskParameterData(taskId, *itParam)==false) {
-          db_.rollback();
-          return false;
-        }
-        if( saveTaskInstParameterData(taskInstId, *itParam)==false) {
+        if( saveTaskParameterData(taskInstId, *itParam)==false) {
           db_.rollback();
           return false;
         }
@@ -516,6 +477,7 @@ bool DatabaseManager::saveTaskModelsForLoad(vector<TaskModelParam*>& source) {
       vector<ConnectionStmParam*>::iterator itTrans = transList.begin();
       while (itTrans != transList.end() ) {
         DDEBUG_V("Trans sourceId : %d, TargetId : %d", (*itTrans)->getSourceId(), (*itTrans)->getTargetId());
+        if((*itTrans)->getSourceId()==(*itTrans)->getTargetId()) continue;
         vector<ElementStmParam*>::iterator sourceElem = find_if( stateList.begin(), stateList.end(), ElementStmParamComparator((*itTrans)->getSourceId()));
         if(sourceElem== stateList.end()) {
           ++itTrans;
@@ -556,7 +518,7 @@ bool DatabaseManager::saveTaskModels(vector<TaskModelParam*> source) {
   vector<TaskModelParam*>::iterator itTask = source.begin();
   db_.transaction();
   while (itTask != source.end() ) {
-    if(saveTaskInstanceData(*itTask)==false) {
+    if(saveTaskInstanceData(*itTask, true)==false) {
         db_.rollback();
         return false;
     }
@@ -569,7 +531,7 @@ bool DatabaseManager::saveTaskModels(vector<TaskModelParam*> source) {
     vector<ParameterParam*> paramList = (*itTask)->getParameterList();
     vector<ParameterParam*>::iterator itParam = paramList.begin();
     while (itParam != paramList.end() ) {
-      if( saveTaskInstParameterData((*itTask)->getId(), *itParam)==false) {
+      if( saveTaskParameterData((*itTask)->getId(), *itParam)==false) {
         db_.rollback();
         return false;
       }
@@ -615,9 +577,17 @@ bool DatabaseManager::saveTaskModels(vector<TaskModelParam*> source) {
       }
       ++itTrans;
     }
+    //
+    itState = stateList.begin();
+    while (itState != stateList.end() ) {
+      (*itState)->updateId();
+      ++itState;
+    }
     ++itTask;
   }
   db_.commit();
+  //
+  //
   return true;
 }
 
@@ -627,17 +597,6 @@ bool DatabaseManager::deleteTaskModel(TaskModelParam* target) {
   DDEBUG_V("deleteTaskModel : %d", id);
 
   db_.transaction();
-  {
-    string strQuery = "DELETE FROM T_TASK_MODEL "; 
-    strQuery += "WHERE task_id = ? ";
-    QSqlQuery query(QString::fromStdString(strQuery));
-    query.addBindValue(target->getTaskId());
-    if(!query.exec()) {
-      errorStr_ = "DELETE(T_TASK_MODEL) error:" + query.lastError().databaseText() + "-" + QString::fromStdString(strQuery);
-      db_.rollback();
-      return false;
-    }
-  }
   {
     string strQuery = "DELETE FROM T_TASK_MODEL_INST "; 
     strQuery += "WHERE task_inst_id = ? ";
@@ -680,17 +639,6 @@ bool DatabaseManager::deleteTaskModel(TaskModelParam* target) {
     strQuery += "WHERE task_inst_id = ? ";
     QSqlQuery query(QString::fromStdString(strQuery));
     query.addBindValue(id);
-    if(!query.exec()) {
-      errorStr_ = "DELETE(T_TASK_INST_PARAMETER) error:" + query.lastError().databaseText() + "-" + QString::fromStdString(strQuery);
-      db_.rollback();
-      return false;
-    }
-  }
-  {
-    string strQuery = "DELETE FROM T_TASK_PARAMETER "; 
-    strQuery += "WHERE task_id = ? ";
-    QSqlQuery query(QString::fromStdString(strQuery));
-    query.addBindValue(target->getTaskId());
     if(!query.exec()) {
       errorStr_ = "DELETE(T_TASK_INST_PARAMETER) error:" + query.lastError().databaseText() + "-" + QString::fromStdString(strQuery);
       db_.rollback();
@@ -771,32 +719,6 @@ bool DatabaseManager::deleteTaskModel(TaskModelParam* target) {
   return true;
 }
 
-bool DatabaseManager::insertTaskData(TaskModelParam* source) {
-  DDEBUG("updateTaskData");
-  string strMaxQuery = "SELECT max(task_id) FROM T_TASK_MODEL "; 
-  QSqlQuery maxQuery(db_);
-  maxQuery.exec(strMaxQuery.c_str());
-  int maxId = -1;
-  if (maxQuery.next()) {
-    maxId = maxQuery.value(0).toInt();
-    maxId++;
-  }
-  source->setTaskId(maxId);
-  //
-  string strQuery = "INSERT INTO T_TASK_MODEL "; 
-  strQuery += "(task_id, name) ";
-  strQuery += "VALUES ( ?, ? )";
-
-  QSqlQuery query(QString::fromStdString(strQuery));
-  query.addBindValue(QString::fromStdString(toStr(maxId)));
-  query.addBindValue(source->getName());
-  DDEBUG_V("task_id : %d, name : %s", maxId, source->getName().toStdString().c_str());
-  if(!query.exec()) {
-    errorStr_ = "INSERT(T_TASK_MODEL) error:" + query.lastError().databaseText();
-    return false;
-  }
-  return true;
-}
 /////
 bool DatabaseManager::deleteFlowModel(int id) {
   DDEBUG("deleteFlowModel");

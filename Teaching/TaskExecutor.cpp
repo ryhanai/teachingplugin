@@ -4,6 +4,8 @@
 #include <chrono>
 #include <thread>
 #endif
+
+#include "ControllerManager.h"
 #include "TaskExecutor.h"
 #include "LoggerUtil.h"
 
@@ -18,7 +20,7 @@ TaskExecutor* TaskExecutor::instance() {
 }
 
 TaskExecutor::TaskExecutor() {
-  handler_ = SampleHiroController::instance();
+  handler_ = ControllerManager::instance()->getController("SampleHiroController");
 }
 
 TaskExecutor::~TaskExecutor() {
@@ -31,6 +33,21 @@ CommandDefParam* TaskExecutor::getCommandDef(const std::string& commandName) {
   for(int index=0; index<cmdDefList.size(); index++) {
     CommandDefParam* cmd = cmdDefList[index];
     if(cmd->getName().toStdString() == commandName) {
+      result = cmd;
+      break;
+    }
+  }
+
+  return result;
+}
+
+CommandDefParam* TaskExecutor::getCommandDef(const int commandId) {
+  CommandDefParam* result = 0;
+
+  std::vector<CommandDefParam*> cmdDefList = handler_->getCommandDefList();
+  for(int index=0; index<cmdDefList.size(); index++) {
+    CommandDefParam* cmd = cmdDefList[index];
+    if(cmd->getId() == commandId) {
       result = cmd;
       break;
     }
@@ -56,11 +73,11 @@ bool TaskExecutor::executeCommand (const std::string& commandName, const std::ve
 }
 
 bool TaskExecutor::attachModelItem(cnoid::BodyItemPtr object, int target) {
-    return handler_->attachModelItem(object, target);
+  return handler_->attachModelItem(object, target);
 }
 
 bool TaskExecutor::detachModelItem(cnoid::BodyItemPtr object, int target) {
-    return handler_->detachModelItem(object, target);
+  return handler_->detachModelItem(object, target);
 }
 
 }

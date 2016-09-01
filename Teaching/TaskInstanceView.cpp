@@ -7,6 +7,7 @@
 #include <cnoid/ItemTreeView>
 #include "TaskExecutor.h"
 #include "Calculator.h"
+#include "ControllerManager.h"
 
 #include "LoggerUtil.h"
 
@@ -34,29 +35,34 @@ TaskInstanceViewImpl::TaskInstanceViewImpl(QWidget* parent)
   QPushButton* btnSetting = new QPushButton();
   btnSetting->setIcon(QIcon(":/Teaching/icons/Settings.png"));
   btnSetting->setToolTip(tr("Setting"));
+
+  QLabel* lblTaskName = new QLabel(tr("Task Name:"));
+  leTask = new QLineEdit;
   //
-  QHBoxLayout* topLayout = new QHBoxLayout;
+  QGridLayout* topLayout = new QGridLayout;
   condFrame->setLayout(topLayout);
-  topLayout->addWidget(lblCond);
-  topLayout->addWidget(leCond);
-  topLayout->addWidget(btnSearch);
-  topLayout->addWidget(btnSetting);
+  topLayout->addWidget(lblCond, 0, 0, 1, 1, Qt::AlignRight);
+  topLayout->addWidget(leCond, 0, 1, 1, 1);
+  topLayout->addWidget(btnSearch, 0, 2, 1, 1);
+  topLayout->addWidget(btnSetting, 0, 3, 1, 1);
+  topLayout->addWidget(lblTaskName, 1, 0, 1, 1, Qt::AlignRight);
+  topLayout->addWidget(leTask, 1, 1, 1, 3);
   //
-  lstResult = new SearchList(0,2);
+  lstResult = new SearchList(0,4);
   lstResult->setSelectionBehavior(QAbstractItemView::SelectRows);
   lstResult->setSelectionMode(QAbstractItemView::SingleSelection);
   lstResult->setEditTriggers(QAbstractItemView::NoEditTriggers);
   lstResult->verticalHeader()->setVisible(false);
   lstResult->setColumnWidth(0, 200);
   lstResult->setColumnWidth(1, 400);
+  lstResult->setColumnWidth(2, 150);
+  lstResult->setColumnWidth(3, 150);
   lstResult->setRowCount(0);
-  lstResult->setHorizontalHeaderLabels(QStringList() << "Name" << "Comment");
+  lstResult->setHorizontalHeaderLabels(QStringList() << "Name" << "Comment" << "Created" << "Last Updated");
   //
   //
   QFrame* frmButtons = new QFrame;
-  chkReal = new QCheckBox(tr("Real"));
-  //QPushButton* btnRunTask = new QPushButton(tr("Run Task"));
-  QPushButton* btnRunTask = new QPushButton();
+  QPushButton* btnRunTask = new QPushButton(tr("Task"));
   btnRunTask->setIcon(QIcon(":/Base/icons/play.png"));
   btnRunTask->setToolTip(tr("Run Task"));
 
@@ -77,7 +83,7 @@ TaskInstanceViewImpl::TaskInstanceViewImpl(QWidget* parent)
 
   //QPushButton* btnDeleteTask = new QPushButton(tr("Delete Task"));
   QPushButton* btnDeleteTask = new QPushButton();
-  btnDeleteTask->setIcon(QIcon(":/Teaching/icons/Erase.png"));
+  btnDeleteTask->setIcon(QIcon(":/Teaching/icons/Delete.png"));
   btnDeleteTask->setToolTip(tr("Delete Task"));
 
   //QPushButton* btnRegistNewTask = new QPushButton(tr("Regist New"));
@@ -92,7 +98,6 @@ TaskInstanceViewImpl::TaskInstanceViewImpl(QWidget* parent)
   //
   QHBoxLayout* buttonLayout = new QHBoxLayout;
   frmButtons->setLayout(buttonLayout);
-  buttonLayout->addWidget(chkReal);
   buttonLayout->addWidget(btnRunTask);
   buttonLayout->addWidget(btnInitPos);
   buttonLayout->addStretch();
@@ -124,8 +129,13 @@ TaskInstanceViewImpl::TaskInstanceViewImpl(QWidget* parent)
   connect(btnRegistNewTask, SIGNAL(clicked()), this, SLOT(registNewTaskClicked()));
   connect(btnRegistTask, SIGNAL(clicked()), this, SLOT(registTaskClicked()));
   //
+  ControllerManager::instance()->setTaskInstanceView(this);
+}
+
+void TaskInstanceViewImpl::loadTaskInfo() {
   if(DatabaseManager::getInstance().connectDB()) {
-    taskList_ = DatabaseManager::getInstance().getTaskModels();
+    vector<string> condList;
+    taskList_ = DatabaseManager::getInstance().searchTaskModels(condList, false);
     showGrid();
   }
 }
@@ -136,9 +146,16 @@ void TaskInstanceViewImpl::taskSelectionChanged() {
   this->metadataView_->updateTaskParam();
   this->flowView_->unloadCurrentModel();
   if(currentTask_) {
+    QString strTask = leTask->text();
+    if( currentTask_->getName() != strTask) {
+      currentTask_->setName(strTask);
+    }
+    ChoreonoidUtil::deselectTreeItem();
     ChoreonoidUtil::unLoadTaskModelItem(currentTask_);
     lstResult->item(currentTaskIndex_, 0)->setText(currentTask_->getName());
     lstResult->item(currentTaskIndex_, 1)->setText(currentTask_->getComment());
+    lstResult->item(currentTaskIndex_, 2)->setText(currentTask_->getCreatedDate());
+    lstResult->item(currentTaskIndex_, 3)->setText(currentTask_->getLastUpdatedDate());
   }
   if(isSkip_) return;
 
@@ -152,6 +169,7 @@ void TaskInstanceViewImpl::taskSelectionChanged() {
     isUpdateTree = ChoreonoidUtil::loadTaskModelItem(currentTask_);
   }
 
+  leTask->setText(currentTask_->getName());
   this->metadataView_->setTaskParam(currentTask_);
   this->statemachineView_->setTaskParam(currentTask_);
   this->parameterView_->setTaskParam(currentTask_);
@@ -164,11 +182,17 @@ void TaskInstanceViewImpl::taskSelectionChanged() {
 }
 
 void TaskInstanceViewImpl::searchClicked() {
+  if(ControllerManager::instance()->isExistController()==false) {
+    QMessageBox::warning(this, tr("Task Search Error"), tr("Controller does NOT EXIST."));
+    return;
+  }
+  //
   this->metadataView_->updateTaskParam();
   if(currentTask_) {
     ChoreonoidUtil::unLoadTaskModelItem(currentTask_);
   }
 
+  leTask->setText("");
   this->metadataView_->clearTaskParam();
   this->statemachineView_->clearTaskParam();
   this->parameterView_->clearTaskParam();
@@ -208,7 +232,7 @@ void TaskInstanceViewImpl::settingClicked() {
 }
 
 void TaskInstanceViewImpl::runTaskClicked() {
-  runSingleTask(chkReal->isChecked());
+  runSingleTask();
 }
 
 void TaskInstanceViewImpl::initPosClicked() {
@@ -243,6 +267,7 @@ void TaskInstanceViewImpl::loadTaskClicked() {
     for(int index=0; index<taskInstList.size(); index++) {
       TaskModelParam* task = taskInstList[index];
       TaskModelParam* newTask = DatabaseManager::getInstance().getTaskModelById(task->getId());
+      TeachingUtil::loadTaskDetailData(newTask);
       newTask->setLoaded(true);
       if(newTask) {
         taskList_.push_back(newTask);
@@ -284,12 +309,12 @@ void TaskInstanceViewImpl::outputTaskClicked() {
 void TaskInstanceViewImpl::registNewTaskClicked() {
   if(currentTask_) {
     updateCurrentInfo();
+    ChoreonoidUtil::unLoadTaskModelItem(currentTask_);
     //
     currentTask_->setAllNewData();
     //
-    DDEBUG_V("St : %d", currentTask_->getModelList()[0]->getModelDetailList()[0]->getMode());
     if(DatabaseManager::getInstance().saveTaskModelsForNewRegist(currentTask_) ) {
-      TaskModelParam* newTask = DatabaseManager::getInstance().getTaskModelById(currentTask_->getId());
+			TaskModelParam* newTask = DatabaseManager::getInstance().getTaskModelById(currentTask_->getId());
       if(newTask) {
         taskList_.push_back(newTask);
       }
@@ -307,12 +332,22 @@ void TaskInstanceViewImpl::registNewTaskClicked() {
 void TaskInstanceViewImpl::registTaskClicked() {
   if(currentTask_) {
     updateCurrentInfo();
+    ChoreonoidUtil::unLoadTaskModelItem(currentTask_);
     //
     vector<TaskModelParam*> targetTasks;
     targetTasks.push_back(currentTask_);
 
     if(DatabaseManager::getInstance().saveTaskModels(targetTasks) ) {
+      currentTask_->clearDetailParams();
+      DatabaseManager::getInstance().getDetailParams(currentTask_);
       currentTask_->setNormal();
+      currentTask_->setLoaded(false);
+			//
+			this->metadataView_->setTaskParam(currentTask_);
+			this->statemachineView_->setTaskParam(currentTask_);
+			this->parameterView_->setTaskParam(currentTask_);
+
+      lstResult->item(currentTaskIndex_, 3)->setText(currentTask_->getLastUpdatedDate());
       QMessageBox::information(this, tr("Database"), "Database updated");
     } else {
       QMessageBox::warning(this, tr("Database Error"), DatabaseManager::getInstance().getErrorStr());
@@ -346,15 +381,14 @@ void TaskInstanceViewImpl::deleteTaskClicked() {
         }
       }
     }
+    leTask->setText("");
+    ChoreonoidUtil::unLoadTaskModelItem(currentTask_);
     //
     if(DatabaseManager::getInstance().deleteTaskModel(currentTask_)==false ) {
       QMessageBox::warning(this, tr("Database Error"), DatabaseManager::getInstance().getErrorStr());
       return;
     }
     //
-    if(currentTask_) {
-      ChoreonoidUtil::unLoadTaskModelItem(currentTask_);
-    }
     QMessageBox::information(this, tr("Database"), "Database updated");
 
     currentTaskIndex_ = -1;
@@ -371,7 +405,7 @@ void TaskInstanceViewImpl::deleteTaskClicked() {
 void TaskInstanceViewImpl::showGrid() {
   lstResult->clear();
   lstResult->setRowCount(0);
-  lstResult->setHorizontalHeaderLabels(QStringList() << "Name" << "Comment");
+  lstResult->setHorizontalHeaderLabels(QStringList() << "Name" << "Comment" << "Created" << "Last Updated");
 
   for(int index=0; index<taskList_.size(); index++) {
     TaskModelParam* param = taskList_[index];
@@ -382,7 +416,6 @@ void TaskInstanceViewImpl::showGrid() {
 
     QTableWidgetItem* itemName = new QTableWidgetItem;
     lstResult->setItem(row, 0, itemName);
-    itemName->setData(Qt::UserRole, 1);
     itemName->setText(param->getName());
     itemName->setData(Qt::UserRole, param->getId());
 
@@ -390,13 +423,29 @@ void TaskInstanceViewImpl::showGrid() {
     lstResult->setItem(row, 1, itemComment);
     itemComment->setData(Qt::UserRole, 1);
     itemComment->setText(param->getComment());
+
+    QTableWidgetItem* itemCreated = new QTableWidgetItem;
+    lstResult->setItem(row, 2, itemCreated);
+    itemCreated->setData(Qt::UserRole, 1);
+    itemCreated->setText(param->getCreatedDate());
+
+    QTableWidgetItem* itemLastUpdated = new QTableWidgetItem;
+    lstResult->setItem(row, 3, itemLastUpdated);
+    itemLastUpdated->setData(Qt::UserRole, 1);
+    itemLastUpdated->setText(param->getLastUpdatedDate());
   }
 }
 
 void TaskInstanceViewImpl::updateCurrentInfo() {
+  QString strTask = leTask->text();
+  if( currentTask_->getName() != strTask) {
+    currentTask_->setName(strTask);
+  }
   this->metadataView_->updateTaskParam();
-  lstResult->item(currentTaskIndex_, 0)->setText(currentTask_->getName());
-  lstResult->item(currentTaskIndex_, 1)->setText(currentTask_->getComment());
+	lstResult->item(currentTaskIndex_, 0)->setText(currentTask_->getName());
+	lstResult->item(currentTaskIndex_, 1)->setText(currentTask_->getComment());
+	lstResult->item(currentTaskIndex_, 2)->setText(currentTask_->getCreatedDate());
+	lstResult->item(currentTaskIndex_, 3)->setText(currentTask_->getLastUpdatedDate());
   parameterView_->setInputValues();
 }
 
@@ -406,13 +455,13 @@ void TaskInstanceViewImpl::widgetClose() {
 /////
 TaskInstanceView::TaskInstanceView(): viewImpl(0) {
     setName("Task Model");
-    setDefaultLayoutArea(View::BOTTOM);
     setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Ignored);
 
     viewImpl = new TaskInstanceViewImpl(this);
     QVBoxLayout* vbox = new QVBoxLayout();
     vbox->addWidget(viewImpl);
     setLayout(vbox);
+		setDefaultLayoutArea(View::BOTTOM);
 }
 
 TaskInstanceView::~TaskInstanceView() {

@@ -2,6 +2,8 @@
 #include "DataBaseManager.h"
 #include "TeachingUtil.h"
 
+#include "LoggerUtil.h"
+
 namespace teaching {
 
 ParameterDialog::ParameterDialog(TaskModelParam* param, QWidget* parent) 
@@ -21,15 +23,15 @@ ParameterDialog::ParameterDialog(TaskModelParam* param, QWidget* parent)
   lstParam->setColumnWidth(4, 50);
   lstParam->setHorizontalHeaderLabels(QStringList() << "Name" << "Type" << "Model" << "Unit" << "Num");
 
-  //QPushButton* btnAddParam = new QPushButton(tr("Add"));
-  QPushButton* btnAddParam = new QPushButton();
-  btnAddParam->setIcon(QIcon(":/Base/icons/projectsave.png"));
-  btnAddParam->setToolTip(tr("Add Parameter"));
+  QPushButton* btnAddParam = new QPushButton(tr("Add"));
+  btnAddParam->setIcon(QIcon(":/Teaching/icons/Plus.png"));
+  btnAddParam->setToolTip(tr("Add New Parameter"));
+  //QShortcut *keyAdd = new QShortcut(QKeySequence("+"), this);
+  //connect(keyAdd, SIGNAL(activated()), this, SLOT(addParamClicked()));
 
-  //QPushButton* btnDeleteParam = new QPushButton(tr("Delete"));
-  QPushButton* btnDeleteParam = new QPushButton();
-  btnDeleteParam->setIcon(QApplication::style()->standardIcon(QStyle::SP_DialogDiscardButton));
-  btnDeleteParam->setToolTip(tr("Delete Parameter"));
+  QPushButton* btnDeleteParam = new QPushButton(tr("Delete"));
+  btnDeleteParam->setIcon(QIcon(":/Teaching/icons/Delete.png"));
+  btnDeleteParam->setToolTip(tr("Delete selected Parameter"));
 
   QFrame* frmParamButtons = new QFrame;
   QHBoxLayout* buttonParamLayout = new QHBoxLayout;
@@ -74,8 +76,8 @@ ParameterDialog::ParameterDialog(TaskModelParam* param, QWidget* parent)
   paramLayout->addWidget(leUnit, 6, 1, 1, 1);
   paramLayout->addWidget(lblNum, 7, 0, 1, 1, Qt::AlignRight);
   paramLayout->addWidget(leNum, 7, 1, 1, 1);
-  paramLayout->addWidget(lblElemType, 8, 0, 1, 1, Qt::AlignRight);
-  paramLayout->addWidget(leElemType, 8, 1, 1, 1);
+  //paramLayout->addWidget(lblElemType, 8, 0, 1, 1, Qt::AlignRight);
+  //paramLayout->addWidget(leElemType, 8, 1, 1, 1);
   //
   QFrame* frmMain = new QFrame;
   QHBoxLayout* formLayout = new QHBoxLayout;
@@ -111,6 +113,8 @@ ParameterDialog::ParameterDialog(TaskModelParam* param, QWidget* parent)
   //
   showModelInfo();
   showParamInfo();
+  //
+  btnOK->setFocus();
 }
 
 void ParameterDialog::addParamClicked() {
@@ -125,7 +129,7 @@ void ParameterDialog::addParamClicked() {
   int index = targetTask_->getParameterList().size() - 1;
   UIUtil::makeTableItemWithData(lstParam, row, 0, newParam->getName(), index);
   UIUtil::makeTableItemWithData(lstParam, row, 1, getTypeName(newParam->getType()), index);
-  UIUtil::makeTableItemWithData(lstParam, row, 2, QString::fromAscii(""), index);
+  UIUtil::makeTableItemWithData(lstParam, row, 2, QString::fromLatin1(""), index);
   UIUtil::makeTableItemWithData(lstParam, row, 3, newParam->getUnit(), index);
   UIUtil::makeTableItemWithData(lstParam, row, 4, QString::number(newParam->getElemNum()), index);
 }
@@ -151,6 +155,7 @@ void ParameterDialog::deleteParamClicked() {
 
 void ParameterDialog::saveCurrent() {
   if(currentParam_) {
+    DDEBUG_V("param Id:%d", currentParam_->getId());
     QString strName = leName->text();
     if( currentParam_->getName() != strName) {
       currentParam_->setName(strName);
@@ -226,6 +231,7 @@ void ParameterDialog::paramSelectionChanged() {
     currentRowIndex_ = lstParam->currentRow();
     int selected = item->data(Qt::UserRole).toInt();
     currentParam_ = targetTask_->getParameterList()[selected];
+    DDEBUG_V("Selected:Id=%d, index=%d", currentParam_->getId(), selected);
     leName->setText(currentParam_->getName());
     leId->setText(currentParam_->getRName());
     cmbType->setCurrentIndex(currentParam_->getType());
@@ -327,6 +333,8 @@ void ParameterDialog::oKClicked() {
   vector<QString> existModels;
   for(int index=0; index<targetTask_->getParameterList().size(); index++) {
     ParameterParam* param = targetTask_->getParameterList()[index];
+    if( param->getMode()==DB_MODE_DELETE || param->getMode()==DB_MODE_IGNORE ) continue;
+
     if(param->getName().size()==0) {
       QMessageBox::warning(this, tr("Parameter"), tr("Please input Parameter Name."));
       return;
@@ -375,7 +383,7 @@ void ParameterDialog::oKClicked() {
     return;
   }
   targetTask_->clearParameterList();
-  vector<ParameterParam*> paramList = DatabaseManager::getInstance().getParameterParams(targetTask_->getTaskId(), targetTask_->getId());
+  vector<ParameterParam*> paramList = DatabaseManager::getInstance().getParameterParams(targetTask_->getId());
   for(int index=0; index<paramList.size(); index++) {
     ParameterParam* param = paramList[index];
     targetTask_->addParameter(param);

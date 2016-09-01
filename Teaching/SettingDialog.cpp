@@ -38,6 +38,8 @@ SettingDialog::SettingDialog(QWidget* parent)
   QPushButton* btnRef = new QPushButton();
   btnRef->setIcon(QApplication::style()->standardIcon(QStyle::SP_DialogOpenButton));
   btnRef->setToolTip(tr("Ref..."));
+  chkReal = new QCheckBox(tr("Real"));
+  //chkReal->setEnabled(false);
 
   baseLayout->addWidget(lblDatabase, 0, 0, 1, 1, Qt::AlignRight);
   baseLayout->addWidget(leDatabase, 0, 1, 1, 1);
@@ -50,6 +52,7 @@ SettingDialog::SettingDialog(QWidget* parent)
   baseLayout->addWidget(lblApp, 4, 0, 1, 1, Qt::AlignRight);
   baseLayout->addWidget(leApp, 4, 1, 1, 1);
   baseLayout->addWidget(btnRef, 4, 2, 1, 1);
+  baseLayout->addWidget(chkReal, 5, 1, 1, 1);
   //
   QFrame* frmButtons = new QFrame;
   QPushButton* btnOK = new QPushButton(tr("OK"));
@@ -182,6 +185,8 @@ void SettingDialog::oKClicked() {
     AppExtParam param = appList_[index];
     SettingManager::getInstance().setTargetApp(param.ext_.toStdString(), param.appPath_.toStdString());
   }
+  SettingManager::getInstance().setIsReal(chkReal->isChecked());
+
   SettingManager::getInstance().saveSetting();
 
   close();

@@ -1,7 +1,7 @@
 #ifndef TEACHING_FLOW_SEARCH_DIALOG_H_INCLUDED
 #define TEACHING_FLOW_SEARCH_DIALOG_H_INCLUDED
 
-#include <QtGui>
+#include "QtUtil.h"
 #include "DataBaseManager.h"
 
 using namespace cnoid;
@@ -24,10 +24,13 @@ private Q_SLOTS:
 
 private:
   QLineEdit* leCond;
-  QListWidget* lstFlow;
+  QTableWidget* lstFlow;
 
+  std::vector<FlowParam*> flowList_;
   int selected_;
   bool isOk_;
+
+  void showGrid();
 };
 
 }
