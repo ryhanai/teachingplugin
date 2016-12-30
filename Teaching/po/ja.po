@@ -1,471 +1,631 @@
 msgid ""
 msgstr ""
-"Project-Id-Version: ja\n"
-"POT-Creation-Date: 2016-06-03 00:36+0900\n"
-"PO-Revision-Date: 2016-06-03 00:36+0900\n"
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2016-09-27 17:49+0900\n"
+"PO-Revision-Date: 2016-09-27 18:17+0900\n"
 "Last-Translator: \n"
-"Language-Team: \n"
-"Language: ja_JP\n"
+"Language-Team: Japanese\n"
+"Language: ja\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Generator: Poedit 1.8.8\n"
-"X-Poedit-Basepath: ../Programs/choreonoid-1.4.0_AIST/extplugin/"
-"teachingPlugin\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
-"X-Poedit-SourceCharset: UTF-8\n"
-"X-Poedit-KeywordsList: tr\n"
-"X-Poedit-SearchPath-0: .\n"
 
-#: Teaching/ArgumentDialog.cpp:42
-msgid "Action Up"
+#: ArgumentDialog.cpp:39
+msgid "Up"
 msgstr "上へ"
 
-#: Teaching/ArgumentDialog.cpp:47
+#: ArgumentDialog.cpp:41
+msgid "Action Up"
+msgstr "モデルアクションを上へ移動"
+
+#: ArgumentDialog.cpp:43
+msgid "Down"
+msgstr "下へ"
+
+#: ArgumentDialog.cpp:45
 msgid "Action Down"
-msgstr ""
+msgstr "モデルアクションを下へ移動"
 
-#: Teaching/ArgumentDialog.cpp:52
+#: ArgumentDialog.cpp:47 ModelDialog.cpp:60 ParameterDialog.cpp:26
+msgid "Add"
+msgstr "追加"
+
+#: ArgumentDialog.cpp:49
 msgid "Add Action"
-msgstr ""
-
-#: Teaching/ArgumentDialog.cpp:57
-msgid "Delete Action"
-msgstr ""
-
-#: Teaching/ArgumentDialog.cpp:69
-msgid "Action:"
-msgstr ""
-
-#: Teaching/ArgumentDialog.cpp:73
-msgid "Model:"
-msgstr ""
-
-#: Teaching/ArgumentDialog.cpp:80
-msgid "Target:"
-msgstr ""
-
-#: Teaching/ArgumentDialog.cpp:122 Teaching/MetaDataView.cpp:40
-#: Teaching/MetaDataView.cpp:63 Teaching/ParameterDialog.cpp:88
-#: Teaching/SettingDialog.cpp:55
-msgid "OK"
-msgstr ""
-
-#: Teaching/ArgumentDialog.cpp:144 Teaching/StateMachineView.cpp:553
-#: Teaching/StateMachineView.cpp:575
-msgid "Command"
-msgstr ""
-
-#: Teaching/ArgumentDialog.cpp:328 Teaching/ArgumentDialog.cpp:332
-#: Teaching/ArgumentDialog.cpp:349
-msgid "Argument"
-msgstr ""
-
-#: Teaching/ArgumentDialog.cpp:328
-msgid "Error : Model Definition."
-msgstr ""
-
-#: Teaching/ArgumentDialog.cpp:332
-msgid "Error : Model and Target are SAME."
-msgstr ""
-
-#: Teaching/ArgumentDialog.cpp:349
-msgid "Error : Argument Definition."
-msgstr ""
-
-#: Teaching/ArgumentDialog.cpp:358
-msgid "Save Argument Error"
-msgstr ""
-
-#: Teaching/FlowSearchDialog.cpp:9 Teaching/TaskInstanceView.cpp:26
-msgid "Condition:"
-msgstr ""
-
-#: Teaching/FlowSearchDialog.cpp:14 Teaching/FlowView.cpp:22
-msgid "Search Flow"
-msgstr ""
-
-#: Teaching/FlowSearchDialog.cpp:25
-msgid "Select"
-msgstr ""
-
-#: Teaching/FlowSearchDialog.cpp:26
-msgid "Delete Flow"
-msgstr ""
-
-#: Teaching/FlowSearchDialog.cpp:28 Teaching/SettingDialog.cpp:56
-msgid "Cancel"
-msgstr ""
-
-#: Teaching/FlowSearchDialog.cpp:50 Teaching/FlowSearchDialog.cpp:102
-#: Teaching/FlowSearchDialog.cpp:114
-msgid "Flow List"
-msgstr ""
-
-#: Teaching/FlowSearchDialog.cpp:96 Teaching/FlowView.cpp:223
-#: Teaching/TaskInstanceView.cpp:251 Teaching/TaskInstanceView.cpp:296
-#: Teaching/TaskInstanceView.cpp:312 Teaching/TaskInstanceView.cpp:354
-msgid "Database"
-msgstr ""
-
-#: Teaching/FlowSearchDialog.cpp:98 Teaching/FlowView.cpp:225
-#: Teaching/TaskInstanceView.cpp:253 Teaching/TaskInstanceView.cpp:298
-#: Teaching/TaskInstanceView.cpp:314 Teaching/TaskInstanceView.cpp:347
-msgid "Database Error"
-msgstr ""
-
-#: Teaching/FlowView.cpp:16
-msgid "Flow Name:"
-msgstr ""
-
-#: Teaching/FlowView.cpp:27
-msgid "New Flow"
-msgstr ""
-
-#: Teaching/FlowView.cpp:32
-msgid "Regist Flow"
-msgstr ""
-
-#: Teaching/FlowView.cpp:47 Teaching/TaskInstanceView.cpp:57
-msgid "Real"
-msgstr ""
-
-#: Teaching/FlowView.cpp:51 Teaching/TaskInstanceView.cpp:81
-msgid "Delete Task"
-msgstr ""
-
-#: Teaching/FlowView.cpp:56
-msgid "Task Up"
-msgstr ""
-
-#: Teaching/FlowView.cpp:61
-msgid "Task Down"
-msgstr ""
-
-#: Teaching/FlowView.cpp:63 Teaching/FlowView.cpp:132
-msgid "Flow"
-msgstr ""
-
-#: Teaching/FlowView.cpp:65 Teaching/FlowView.cpp:266 Teaching/FlowView.cpp:278
-#: Teaching/FlowView.cpp:294
-msgid "Run Flow"
-msgstr ""
-
-#: Teaching/FlowView.cpp:67
-msgid "Task"
-msgstr ""
-
-#: Teaching/FlowView.cpp:69 Teaching/TaskExecutionView.cpp:31
-#: Teaching/TaskExecutionView.cpp:36 Teaching/TaskExecutionView.cpp:46
-#: Teaching/TaskExecutionView.cpp:78 Teaching/TaskExecutionView.cpp:129
-#: Teaching/TaskExecutionView.cpp:137 Teaching/TaskInstanceView.cpp:61
-msgid "Run Task"
-msgstr ""
-
-#: Teaching/FlowView.cpp:74 Teaching/TaskInstanceView.cpp:66
-msgid "Reset Models Position"
-msgstr ""
-
-#: Teaching/FlowView.cpp:294
-msgid "Target Flow is FINISHED."
-msgstr ""
-
-#: Teaching/MetaDataView.cpp:95
-msgid "Task Name:"
-msgstr ""
-
-#: Teaching/MetaDataView.cpp:97 Teaching/ParameterDialog.cpp:50
-msgid "Model Name:"
-msgstr ""
-
-#: Teaching/MetaDataView.cpp:99
-msgid "Model ID:"
-msgstr ""
-
-#: Teaching/MetaDataView.cpp:101
-msgid "Model File:"
-msgstr ""
-
-#: Teaching/MetaDataView.cpp:110 Teaching/SettingDialog.cpp:22
-#: Teaching/SettingDialog.cpp:40
-msgid "Ref..."
-msgstr ""
-
-#: Teaching/MetaDataView.cpp:114
-msgid "Origin X:"
-msgstr ""
-
-#: Teaching/MetaDataView.cpp:116
-msgid "Y:"
-msgstr ""
-
-#: Teaching/MetaDataView.cpp:118
-msgid "Z:"
-msgstr ""
-
-#: Teaching/MetaDataView.cpp:120
-msgid "Rx:"
-msgstr ""
-
-#: Teaching/MetaDataView.cpp:122
-msgid "Ry:"
-msgstr ""
-
-#: Teaching/MetaDataView.cpp:124
-msgid "Rz:"
-msgstr ""
-
-#: Teaching/MetaDataView.cpp:131
-msgid "Add Model"
-msgstr ""
-
-#: Teaching/MetaDataView.cpp:135
-msgid "Delete Model"
-msgstr ""
-
-#: Teaching/MetaDataView.cpp:144
-msgid "Output File"
-msgstr ""
-
-#: Teaching/MetaDataView.cpp:149
-msgid "Show File"
-msgstr ""
-
-#: Teaching/MetaDataView.cpp:153
-msgid "Delete File"
-msgstr ""
-
-#: Teaching/MetaDataView.cpp:163
-msgid "Output Image"
-msgstr ""
-
-#: Teaching/MetaDataView.cpp:167
-msgid "Show Image"
-msgstr ""
-
-#: Teaching/MetaDataView.cpp:171
-msgid "Delete Image"
-msgstr ""
-
-#: Teaching/MetaDataView.cpp:342
-msgid "Model VRML File"
-msgstr ""
-
-#: Teaching/MetaDataView.cpp:343
-msgid "wrl(*.wrl);;all(*.*)"
-msgstr ""
-
-#: Teaching/MetaDataView.cpp:626 Teaching/MetaDataView.cpp:701
-msgid "File Output"
-msgstr ""
-
-#: Teaching/ParameterDialog.cpp:27
-msgid "Add Parameter"
-msgstr ""
-
-#: Teaching/ParameterDialog.cpp:32
-msgid "Delete Parameter"
-msgstr ""
-
-#: Teaching/ParameterDialog.cpp:42
-msgid "Name:"
-msgstr ""
-
-#: Teaching/ParameterDialog.cpp:44
-msgid "Id:"
-msgstr ""
-
-#: Teaching/ParameterDialog.cpp:46
-msgid "Type:"
-msgstr ""
-
-#: Teaching/ParameterDialog.cpp:52
-msgid "Unit:"
-msgstr ""
-
-#: Teaching/ParameterDialog.cpp:54
-msgid "Num:"
-msgstr ""
-
-#: Teaching/ParameterDialog.cpp:56
-msgid "Elem Type:"
-msgstr ""
-
-#: Teaching/ParameterDialog.cpp:108
-msgid "Task Parameter"
-msgstr ""
-
-#: Teaching/ParameterDialog.cpp:331 Teaching/ParameterDialog.cpp:335
-#: Teaching/ParameterDialog.cpp:342 Teaching/ParameterDialog.cpp:348
-#: Teaching/ParameterDialog.cpp:361 Teaching/ParameterDialog.cpp:366
-msgid "Parameter"
-msgstr ""
-
-#: Teaching/ParameterDialog.cpp:331
-msgid "Please input Parameter Name."
-msgstr ""
-
-#: Teaching/ParameterDialog.cpp:335
-msgid "Please input Parameter Id."
-msgstr ""
-
-#: Teaching/ParameterDialog.cpp:342
-msgid "Please input Element Num."
-msgstr ""
-
-#: Teaching/ParameterDialog.cpp:348
-msgid "Please input Target Model."
-msgstr ""
-
-#: Teaching/ParameterDialog.cpp:361
-msgid "Target Model is NOT Exist."
-msgstr ""
-
-#: Teaching/ParameterDialog.cpp:366
-msgid "Target Model CANNOT duplicate."
-msgstr ""
-
-#: Teaching/ParameterDialog.cpp:374
-msgid "Save Task Parameter Error"
-msgstr ""
-
-#: Teaching/ParameterView.cpp:140
-msgid "Edit Parameter"
-msgstr ""
-
-#: Teaching/SettingDialog.cpp:17
-msgid "Database:"
-msgstr ""
-
-#: Teaching/SettingDialog.cpp:24
-msgid "Robot Model Name:"
-msgstr ""
-
-#: Teaching/SettingDialog.cpp:32
-msgid "Ext:"
-msgstr ""
-
-#: Teaching/SettingDialog.cpp:35
-msgid "Application:"
-msgstr ""
-
-#: Teaching/SettingDialog.cpp:81 Teaching/SettingDialog.cpp:152
-#: Teaching/SettingDialog.cpp:158 Teaching/SettingDialog.cpp:165
-#: Teaching/SettingDialog.cpp:169 Teaching/TaskInstanceView.cpp:36
-msgid "Setting"
-msgstr ""
-
-#: Teaching/SettingDialog.cpp:107
-msgid "Database File"
-msgstr ""
-
-#: Teaching/SettingDialog.cpp:108
-msgid "sqlite(*.sqlite3);;all(*.*)"
-msgstr ""
-
-#: Teaching/SettingDialog.cpp:135
-msgid "Target Application"
-msgstr ""
-
-#: Teaching/SettingDialog.cpp:136
-msgid "all(*)"
-msgstr ""
-
-#: Teaching/SettingDialog.cpp:152
-msgid "Please input Database File."
-msgstr ""
-
-#: Teaching/SettingDialog.cpp:158
-msgid "Please input Robot Model Name."
-msgstr ""
-
-#: Teaching/SettingDialog.cpp:165
-msgid "Please input Target EXT."
-msgstr ""
-
-#: Teaching/SettingDialog.cpp:169
-msgid "Please input APPLICATION Path."
-msgstr ""
-
-#: Teaching/StateMachineView.cpp:310
+msgstr "モデルアクション追加"
+
+#: ArgumentDialog.cpp:51 FlowSearchDialog.cpp:37 MetaDataView.cpp:102
+#: MetaDataView.cpp:120 ModelDialog.cpp:64 ParameterDialog.cpp:32
+#: StateMachineView.cpp:333
 msgid "Delete"
-msgstr ""
+msgstr "削除"
 
-#: Teaching/StateMachineView.cpp:316
+#: ArgumentDialog.cpp:53
+msgid "Delete Action"
+msgstr "モデルアクション削除"
+
+#: ArgumentDialog.cpp:65
+msgid "Action:"
+msgstr "モデルアクション:"
+
+#: ArgumentDialog.cpp:69
+msgid "Model:"
+msgstr "対象モデル:"
+
+#: ArgumentDialog.cpp:76
+msgid "Parameter:"
+msgstr "対象パラメータ:"
+
+#: ArgumentDialog.cpp:118 MetaDataView.cpp:38 MetaDataView.cpp:64
+#: ModelDialog.cpp:100 ParameterDialog.cpp:90 SettingDialog.cpp:58
+msgid "OK"
+msgstr "OK"
+
+#: ArgumentDialog.cpp:119 FlowSearchDialog.cpp:41 SettingDialog.cpp:59
+msgid "Cancel"
+msgstr "キャンセル"
+
+#: ArgumentDialog.cpp:144 StateMachineView.cpp:343 StateMachineView.cpp:587
+#: StateMachineView.cpp:609
+msgid "Command"
+msgstr "コマンド"
+
+#: ArgumentDialog.cpp:328 ArgumentDialog.cpp:332 ArgumentDialog.cpp:349
+msgid "Argument"
+msgstr "コマンド引数"
+
+#: ArgumentDialog.cpp:328
+msgid "Error : Model Definition."
+msgstr "エラー : 対象モデルが設定されていません"
+
+#: ArgumentDialog.cpp:332
+msgid "Error : Model and Target are SAME."
+msgstr "Error : Model and Target are SAME."
+
+#: ArgumentDialog.cpp:349
+msgid "Error : Argument Definition."
+msgstr "エラー : コマンド引数の定義が不正です"
+
+#: ArgumentDialog.cpp:362
+msgid "Save Argument Error"
+msgstr "コマンド引数の保存に失敗しました"
+
+#: FlowSearchDialog.cpp:8 TaskInstanceView.cpp:27
+msgid "Condition:"
+msgstr "検索条件："
+
+#: FlowSearchDialog.cpp:10
+msgid "Search"
+msgstr "検索"
+
+#: FlowSearchDialog.cpp:12 FlowView.cpp:25
+msgid "Search Flow"
+msgstr "フロー検索"
+
+#: FlowSearchDialog.cpp:33
+msgid "Open"
+msgstr "開く"
+
+#: FlowSearchDialog.cpp:35
+msgid "Open selected Flow"
+msgstr "対象フローを読み込む"
+
+#: FlowSearchDialog.cpp:39
+msgid "Delete selected Flow"
+msgstr "対象フローを削除する"
+
+#: FlowSearchDialog.cpp:43
+msgid "Cancel Flow select"
+msgstr "フロー検索をキャンセルする"
+
+#: FlowSearchDialog.cpp:66 FlowSearchDialog.cpp:107 FlowSearchDialog.cpp:119
+msgid "Flow List"
+msgstr "フロー一覧"
+
+#: FlowSearchDialog.cpp:101 FlowView.cpp:230 TaskInstanceView.cpp:265
+#: TaskInstanceView.cpp:329 TaskInstanceView.cpp:371 TaskInstanceView.cpp:412
+msgid "Database"
+msgstr "データベース"
+
+#: FlowSearchDialog.cpp:101
+msgid "Database updated"
+msgstr "データベースを更新しました"
+
+#: FlowSearchDialog.cpp:103 FlowView.cpp:232 TaskInstanceView.cpp:267
+#: TaskInstanceView.cpp:331 TaskInstanceView.cpp:373 TaskInstanceView.cpp:408
+msgid "Database Error"
+msgstr "データベース更新失敗"
+
+#: FlowSearchDialog.cpp:111
+msgid "Select Delete Flow"
+msgstr "削除対象のフローを選択してください"
+
+#: FlowSearchDialog.cpp:121
+msgid "Select Target Flow"
+msgstr "フローを選択してください"
+
+#: FlowView.cpp:20
+msgid "Flow Name:"
+msgstr "フロー名称:"
+
+#: FlowView.cpp:29
+msgid "Create New Flow"
+msgstr "新規フローを作成する"
+
+#: FlowView.cpp:33
+msgid "Regist Current Flow"
+msgstr "現在のフローを保存する"
+
+#: FlowView.cpp:35
+msgid "Comment:"
+msgstr "コメント:"
+
+#: FlowView.cpp:55
+msgid "Delete selected Task"
+msgstr "タスクインスタンスを削除する"
+
+#: FlowView.cpp:59
+msgid "Move Up selected Task"
+msgstr "タスクインスタンスを上へ移動する"
+
+#: FlowView.cpp:63
+msgid "Move Down selected Task"
+msgstr "タスクインスタンスを下へ移動する"
+
+#: FlowView.cpp:65 FlowView.cpp:132
+msgid "Flow"
+msgstr "フロー実行"
+
+#: FlowView.cpp:67 FlowView.cpp:273 FlowView.cpp:288
+msgid "Run Flow"
+msgstr "選択したフローを実行する"
+
+#: FlowView.cpp:69 TaskInstanceView.cpp:65
+msgid "Task"
+msgstr "タスク実行"
+
+#: FlowView.cpp:71
+msgid "Run selected Task"
+msgstr "選択したタスクインスタンスを実行する"
+
+#: FlowView.cpp:75
+msgid "Reset models position"
+msgstr "モデル位置を元に戻す"
+
+#: FlowView.cpp:133
+msgid "Please select target Flow."
+msgstr "対象フローを設定してください"
+
+#: FlowView.cpp:293
+msgid "Running Flow :"
+msgstr "フロー実行中 :"
+
+#: FlowView.cpp:304
+msgid "Finished Flow :"
+msgstr "フロー実行完了 :"
+
+#: MetaDataView.cpp:85
+msgid "Model Inforamtion"
+msgstr "モデル情報"
+
+#: MetaDataView.cpp:87
+msgid "Edit Model information"
+msgstr "モデル情報を編集する"
+
+#: MetaDataView.cpp:94 MetaDataView.cpp:112
+msgid "Output"
+msgstr "ファイル出力"
+
+#: MetaDataView.cpp:96
+msgid "Output selected File"
+msgstr "対象データをファイルに出力する"
+
+#: MetaDataView.cpp:98 MetaDataView.cpp:116
+msgid "Show"
+msgstr "表示"
+
+#: MetaDataView.cpp:100
+msgid "Show selected File"
+msgstr "対象データを表示する"
+
+#: MetaDataView.cpp:104
+msgid "Delete selected File"
+msgstr "対象データを削除する"
+
+#: MetaDataView.cpp:114
+msgid "Output selected Image"
+msgstr "対象画像をファイルに出力する"
+
+#: MetaDataView.cpp:118
+msgid "Show selected Image"
+msgstr "対象画像を表示する"
+
+#: MetaDataView.cpp:122
+msgid "Delete selected Image"
+msgstr "対象画像を削除する"
+
+#: MetaDataView.cpp:318 MetaDataView.cpp:397
+msgid "File Output"
+msgstr "ファイル出力"
+
+#: MetaDataView.cpp:318
+msgid "Target FILE saved"
+msgstr "対象データをファイルに保存しました"
+
+#: MetaDataView.cpp:344
+msgid "File Show"
+msgstr "ファイル表示"
+
+#: MetaDataView.cpp:344
+msgid "APP does NOT EXIST."
+msgstr "表示用アプリケーションが設定されていません"
+
+#: MetaDataView.cpp:398
+msgid "Target IMAGE saved"
+msgstr "対象画像をファイルに保存しました"
+
+#: ModelDialog.cpp:31 ParameterDialog.cpp:52
+msgid "Model Name:"
+msgstr "モデル名称:"
+
+#: ModelDialog.cpp:33
+msgid "Model ID:"
+msgstr "モデルID:"
+
+#: ModelDialog.cpp:35
+msgid "Model File:"
+msgstr "モデルファイル:"
+
+#: ModelDialog.cpp:44 SettingDialog.cpp:22 SettingDialog.cpp:40
+msgid "Ref..."
+msgstr "参照..."
+
+#: ModelDialog.cpp:46
+msgid "Origin X:"
+msgstr "原点位置姿勢 X:"
+
+#: ModelDialog.cpp:48
+msgid "Y:"
+msgstr "Y:"
+
+#: ModelDialog.cpp:50
+msgid "Z:"
+msgstr "Z:"
+
+#: ModelDialog.cpp:52
+msgid "Rx:"
+msgstr "Rx:"
+
+#: ModelDialog.cpp:54
+msgid "Ry:"
+msgstr "Ry:"
+
+#: ModelDialog.cpp:56
+msgid "Rz:"
+msgstr "Rz:"
+
+#: ModelDialog.cpp:62
+msgid "Add new Model"
+msgstr "新規モデルを追加する"
+
+#: ModelDialog.cpp:66
+msgid "Delete selected Model"
+msgstr "選択したモデルを削除する"
+
+#: ModelDialog.cpp:131
+msgid "Models"
+msgstr "モデル情報"
+
+#: ParameterDialog.cpp:28
+msgid "Add New Parameter"
+msgstr "新規パラメータを追加する"
+
+#: ParameterDialog.cpp:34
+msgid "Delete selected Parameter"
+msgstr "選択したパラメータを削除する"
+
+#: ParameterDialog.cpp:44
+msgid "Name:"
+msgstr "名称:"
+
+#: ParameterDialog.cpp:46
+msgid "Id:"
+msgstr "Id:"
+
+#: ParameterDialog.cpp:48
+msgid "Type:"
+msgstr "種類:"
+
+#: ParameterDialog.cpp:54
+msgid "Unit:"
+msgstr "単位:"
+
+#: ParameterDialog.cpp:56
+msgid "Num:"
+msgstr "パラメータ数:"
+
+#: ParameterDialog.cpp:58
+msgid "Elem Type:"
+msgstr "要素種類:"
+
+#: ParameterDialog.cpp:110
+msgid "Task Parameter"
+msgstr "タスクパラメータ"
+
+#: ParameterDialog.cpp:339 ParameterDialog.cpp:343 ParameterDialog.cpp:350
+#: ParameterDialog.cpp:356 ParameterDialog.cpp:369 ParameterDialog.cpp:374
+msgid "Parameter"
+msgstr "タスクパラメータ"
+
+#: ParameterDialog.cpp:339
+msgid "Please input Parameter Name."
+msgstr "タスクパラメータ名を入力してください"
+
+#: ParameterDialog.cpp:343
+msgid "Please input Parameter Id."
+msgstr "タスクパラメータIdを入力してください"
+
+#: ParameterDialog.cpp:350
+msgid "Please input Element Num."
+msgstr "タスクパラメータの要素数を設定してください"
+
+#: ParameterDialog.cpp:356
+msgid "Please input Target Model."
+msgstr "対象モデルを設定してください"
+
+#: ParameterDialog.cpp:369
+msgid "Target Model is NOT Exist."
+msgstr "指定されたモデルが存在しません"
+
+#: ParameterDialog.cpp:374
+msgid "Target Model CANNOT duplicate."
+msgstr "複数のタスクパラメータに同一モデルを割り当てる事はできません"
+
+#: ParameterDialog.cpp:382
+msgid "Save Task Parameter Error"
+msgstr "タスクパラメータ保存失敗"
+
+#: ParameterView.cpp:138 StateMachineView.cpp:338
 msgid "Edit"
-msgstr ""
+msgstr "編集"
 
-#: Teaching/StateMachineView.cpp:319 Teaching/StateMachineView.cpp:585
-#: Teaching/StateMachineView.cpp:598 Teaching/StateMachineView.cpp:631
-#: Teaching/StateMachineView.cpp:633
-msgid "Run Command"
-msgstr ""
+#: ParameterView.cpp:140
+msgid "Edit Parameters"
+msgstr "タスクパラメータを編集する"
 
-#: Teaching/StateMachineView.cpp:553 Teaching/StateMachineView.cpp:585
-msgid "Please select Command Element."
-msgstr ""
+#: SettingDialog.cpp:17
+msgid "Database:"
+msgstr "データベース:"
 
-#: Teaching/StateMachineView.cpp:575
+#: SettingDialog.cpp:24
+msgid "Robot Model Name:"
+msgstr "対象ロボットモデル名:"
+
+#: SettingDialog.cpp:32
+msgid "Ext:"
+msgstr "ファイル拡張子:"
+
+#: SettingDialog.cpp:35
+msgid "Application:"
+msgstr "対象アプリケーション:"
+
+#: SettingDialog.cpp:41
+msgid "Real"
+msgstr "実機"
+
+#: SettingDialog.cpp:84 SettingDialog.cpp:155 SettingDialog.cpp:161
+#: SettingDialog.cpp:168 SettingDialog.cpp:172 TaskInstanceView.cpp:37
+msgid "Setting"
+msgstr "設定"
+
+#: SettingDialog.cpp:155
+msgid "Please input Database File."
+msgstr "データベースファイルを指定してください"
+
+#: SettingDialog.cpp:161
+msgid "Please input Robot Model Name."
+msgstr "ロボットモデル名を指定してください"
+
+#: SettingDialog.cpp:168
+msgid "Please input Target EXT."
+msgstr "拡張子を設定してください"
+
+#: SettingDialog.cpp:172
+msgid "Please input APPLICATION."
+msgstr "対象アプリケーションを設定してください"
+
+#: StateMachineView.cpp:335
+msgid "Delete selected element"
+msgstr "選択した要素を削除する"
+
+#: StateMachineView.cpp:340
+msgid "Edit target state"
+msgstr "選択した状態の情報を編集する"
+
+#: StateMachineView.cpp:345
+msgid "Run selected Command"
+msgstr "対象コマンドを実行する"
+
+#: StateMachineView.cpp:389
+msgid "Set"
+msgstr "設定"
+
+#: StateMachineView.cpp:391
+msgid "Set Guard condition"
+msgstr "ガード条件を設定する"
+
+#: StateMachineView.cpp:587
+msgid "Please select Command Element. : "
+msgstr "コマンド要素を選択してください : "
+
+#: StateMachineView.cpp:609
 msgid "Please select Target Command."
-msgstr ""
+msgstr "対象コマンドを選択してください"
 
-#: Teaching/StateMachineView.cpp:598 Teaching/TaskExecutionView.cpp:78
-msgid "Target Comannd is NOT EXIST."
-msgstr ""
+#: StateMachineView.cpp:621 StateMachineView.cpp:633 StateMachineView.cpp:669
+msgid "Run Command"
+msgstr "コマンド実行"
 
-#: Teaching/StateMachineView.cpp:631
-msgid "Target Command is FINISHED."
-msgstr ""
+#: StateMachineView.cpp:621
+msgid "Please select Command Element."
+msgstr "コマンド要素を選択してください"
 
-#: Teaching/StateMachineView.cpp:633
-msgid "Target Command is FAILED."
-msgstr ""
+#: StateMachineView.cpp:633 TaskExecutionView.cpp:84
+msgid "Target Command does NOT EXIST."
+msgstr "対象コマンドが存在しません"
 
-#: Teaching/TaskExecutionView.cpp:46
-msgid "Target Task is FINISHED."
-msgstr ""
+#: StateMachineView.cpp:663
+msgid "Running Command :"
+msgstr "コマンド実行中 :"
 
-#: Teaching/TaskExecutionView.cpp:129
+#: StateMachineView.cpp:669
+msgid "Target Command FAILED."
+msgstr "対象コマンドの実行に失敗しました"
+
+#: StateMachineView.cpp:671
+msgid "Finished Command :"
+msgstr "コマンド実行完了 :"
+
+#: TaskExecutionView.cpp:34 TaskExecutionView.cpp:39 TaskExecutionView.cpp:84
+#: TaskExecutionView.cpp:135 TaskExecutionView.cpp:143 TaskInstanceView.cpp:67
+msgid "Run Task"
+msgstr "タスク実行"
+
+#: TaskExecutionView.cpp:34
+msgid "Please select target TASK"
+msgstr "対象タスクを選択してください"
+
+#: TaskExecutionView.cpp:46
+msgid "Running Task :"
+msgstr "タスク実行中 :"
+
+#: TaskExecutionView.cpp:50
+msgid "Finished Task :"
+msgstr "タスク実行完了 :"
+
+#: TaskExecutionView.cpp:135
 msgid "Model Attach Failed."
-msgstr ""
+msgstr "Attachアクションの実行に失敗しました"
 
-#: Teaching/TaskExecutionView.cpp:137
+#: TaskExecutionView.cpp:143
 msgid "Model Detach Failed."
-msgstr ""
+msgstr "Detachアクションの実行に失敗しました"
 
-#: Teaching/TaskInstanceView.cpp:31
+#: TaskInstanceView.cpp:32
 msgid "Search Task"
-msgstr ""
+msgstr "タスクインスタンスを検索する"
 
-#: Teaching/TaskInstanceView.cpp:71
+#: TaskInstanceView.cpp:39
+msgid "Task Name:"
+msgstr "タスク名:"
+
+#: TaskInstanceView.cpp:72
+msgid "Reset Models Position"
+msgstr "モデル位置を元に戻す"
+
+#: TaskInstanceView.cpp:77
 msgid "Load Task"
-msgstr ""
+msgstr "タスクインスタンスをファイルから読み込む"
 
-#: Teaching/TaskInstanceView.cpp:76 Teaching/TaskInstanceView.cpp:259
-#: Teaching/TaskInstanceView.cpp:274 Teaching/TaskInstanceView.cpp:276
+#: TaskInstanceView.cpp:82 TaskInstanceView.cpp:273 TaskInstanceView.cpp:288
+#: TaskInstanceView.cpp:290
 msgid "Output Task"
-msgstr ""
+msgstr "タスク保存"
 
-#: Teaching/TaskInstanceView.cpp:86
+#: TaskInstanceView.cpp:87
+msgid "Delete Task"
+msgstr "選択したタスクを削除する"
+
+#: TaskInstanceView.cpp:92
 msgid "Regist as New Task"
-msgstr ""
+msgstr "新規タスクとして保存する"
 
-#: Teaching/TaskInstanceView.cpp:91
+#: TaskInstanceView.cpp:97
 msgid "Update Current Task"
-msgstr ""
+msgstr "選択したタスクを上書き保存する"
 
-#: Teaching/TaskInstanceView.cpp:223 Teaching/TaskInstanceView.cpp:266
-msgid "TaskModel File"
-msgstr ""
+#: TaskInstanceView.cpp:186
+msgid "Task Search Error"
+msgstr "タスク検索失敗"
 
-#: Teaching/TaskInstanceView.cpp:224 Teaching/TaskInstanceView.cpp:267
-msgid "YAML(*.yaml);;all(*.*)"
-msgstr ""
+#: TaskInstanceView.cpp:186
+msgid "Controller does NOT EXIST."
+msgstr "コントローラが存在しません"
 
-#: Teaching/TaskInstanceView.cpp:231
+#: TaskInstanceView.cpp:243
 msgid "Task Load Error"
-msgstr ""
+msgstr "タスク読み込み失敗"
 
-#: Teaching/TaskInstanceView.cpp:330 Teaching/TaskInstanceView.cpp:340
+#: TaskInstanceView.cpp:281
+msgid "target TASK exported"
+msgstr "対象タスクをエクスポートしました"
+
+#: TaskInstanceView.cpp:283
+msgid "target TASK export FAILED"
+msgstr "対象タスクのエクスポートに失敗しました"
+
+#: TaskInstanceView.cpp:389 TaskInstanceView.cpp:399
 msgid "Task DELETE"
-msgstr ""
+msgstr "タスク削除"
+
+#: TaskInstanceView.cpp:493
+msgid "TaskInstance"
+msgstr "タスクインスタンス"
+
+#: StateMachineView.cpp:677
+msgid "StateMachine"
+msgstr "ステートマシン"
+
+#: MetaDataView.cpp:463
+msgid "MetaData"
+msgstr "メタデータ"
+
+#: FlowView.cpp:337
+msgid "FlowModel"
+msgstr "フロー"
+
+#: TaskInstanceView.cpp:375
+msgid "Target Task is used. ["
+msgstr "選択したタスクインスタンスはフローで使用しています"
+
+#: TaskInstanceView.cpp:391
+msgid "Target Task is used in CURRENT Flow."
+msgstr "選択したタスクインスタンスは現在作成中のフローで使用しています"
+
+#: StateMachineView.cpp:29
+msgid "Add Point"
+msgstr "頂点追加"
+
+#: StateMachineView.cpp:33
+msgid "Remove Point"
+msgstr "頂点削除"
+
+#: StateMachineView.cpp:643
+msgid "B.P."
+msgstr "B.P."
+
+#: StateMachineView.cpp:644
+msgid "Set/Unset BreakPoint"
+msgstr "ブレークポイントの設定/解除"
+
+#: StateMachineView.cpp:648
+msgid "Step"
+msgstr "Step実行"
+
+#: StateMachineView.cpp:649
+msgid "Run by Step"
+msgstr "1Step実行する"
+
+#: StateMachineView.cpp:652
+msgid "Cont."
+msgstr "継続"
+
+#: StateMachineView.cpp:653
+msgid "continue processing"
+msgstr "処理を継続する"
+
+#: TaskExecutionView.cpp:60
+msgid "Cancel pausing processing?"
+msgstr "一時停止中の処理をキャンセルしてもよろしいですか？"

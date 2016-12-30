@@ -6,6 +6,16 @@
 
 namespace teaching {
 
+class AttachedModel {
+public:
+	AttachedModel() {};
+	AttachedModel(AttachedModel& source)
+		: object(source.object), target(source.target) {
+	};
+	cnoid::BodyItemPtr object;
+	int target;
+};
+
 class TaskExecutor {
 public:
   static TaskExecutor* instance();
@@ -20,10 +30,12 @@ public:
     throw (CommandParseErrorException);
   bool attachModelItem(cnoid::BodyItemPtr object, int target);
   bool detachModelItem(cnoid::BodyItemPtr object, int target);
+	bool detachAllModelItem();
 
 private:
   TaskExecutor();
-  //std::vector<teaching::CompositeParamType> params_;
+	std::vector<AttachedModel*> modelList;
+	//std::vector<teaching::CompositeParamType> params_;
   ControllerBase* handler_;
 
 };

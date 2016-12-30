@@ -7,6 +7,8 @@
 #include "DataBaseManager.h"
 #include "ParameterDialog.h"
 
+#include "gettext.h"
+
 using namespace std;
 using namespace cnoid;
 using namespace boost;
@@ -135,9 +137,9 @@ void ParameterViewImpl::setTaskParam(TaskModelParam* param) {
   topLayout->addWidget(lblName);
   topLayout->addStretch();
 
-  btnEdit = new QPushButton(tr("Edit"));
+  btnEdit = new QPushButton(_("Edit"));
   btnEdit->setIcon(QIcon(":/Teaching/icons/Settings.png"));
-  btnEdit->setToolTip(tr("Edit Parameters"));
+  btnEdit->setToolTip(_("Edit Parameters"));
 
   topLayout->addWidget(btnEdit);
   connect(btnEdit, SIGNAL(clicked()), this, SLOT(editClicked()));
@@ -250,7 +252,7 @@ void ParameterViewImpl::editClicked() {
 
 /////
 ParameterView::ParameterView(): viewImpl(0) {
-    setName("Parameter");
+    setName(_("Parameter"));
     setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Ignored);
 
     viewImpl = new ParameterViewImpl(this);

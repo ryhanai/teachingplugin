@@ -7,12 +7,15 @@ endif()
 set(libname CnoidTeachingPlugin)
 
 set(sources
+  ActivityEditor.cpp
+  ActivityEditorBase.cpp
   ArgumentDialog.cpp
   Calculator.cpp
   ChoreonoidUtil.cpp
   ControllerManager.cpp
   DataBaseDetailManager.cpp
   DataBaseManager.cpp
+  FlowActivityEditor.cpp
   FlowSearchDialog.cpp
   FlowView.cpp
   LoggerUtil.cpp
@@ -23,6 +26,7 @@ set(sources
   SettingDialog.cpp
   StateMachineParams.cpp
   StateMachineView.cpp
+  TaskExecuteManager.cpp
   TaskExecutionView.cpp
   TaskExecutor.cpp
   TaskInstanceView.cpp
@@ -32,6 +36,8 @@ set(sources
 )
 
 set(headers
+  ActivityEditorBase.h
+  ActivityEditor.h
   ArgumentDialog.h
   Calculator.h
   ChoreonoidUtil.h
@@ -39,6 +45,7 @@ set(headers
   CommandDefTypes.h
   ControllerManager.h
   DataBaseManager.h
+  FlowActivityEditor.h
   FlowSearchDialog.h
   FlowView.h
   LoggerUtil.h
@@ -48,6 +55,7 @@ set(headers
   ParameterView.h
   SettingDialog.h
   StateMachineView.h
+  TaskExecuteManager.h
   TaskExecutionView.h
   TaskExecutor.h
   TaskInstanceView.h
@@ -57,7 +65,10 @@ set(headers
   )
 
 set(qtheaders
+  ActivityEditorBase.h
+  ActivityEditor.h
   ArgumentDialog.h
+  FlowActivityEditor.h
   FlowSearchDialog.h
   FlowView.h
   ModelDialog.h
@@ -68,8 +79,6 @@ set(qtheaders
   StateMachineView.h
   TaskInstanceView.h
   )
-
-make_gettext_mofiles(CnoidTeachingPlugin mofiles)
 
 if(NOT QT5)
   QT4_ADD_RESOURCES(RC_SRCS TeachingPlugin.qrc)
@@ -85,6 +94,7 @@ else()
     )
 endif()
 
+make_gettext_mofiles(${libname} mofiles)
 add_cnoid_plugin(${libname} SHARED ${sources} ${headers} ${mofiles} ${RC_SRCS})
 
 if(NOT QT5)

@@ -42,7 +42,7 @@ items:
           plugin: Body
           class: BodyItem
           data: 
-            modelFile: "/home/ryo/Program/choreonoid-1.5.0/ext/teachingPlugin/share/model/robot/HIRO/HIRO.yaml"
+            modelFile: "${PROJECT_DIR}/../model/robot/HIRO/HIRO.yaml"
             currentBaseLink: "WAIST"
             rootPosition: [ 0, 0, 0.8 ]
             rootAttitude: [ 
@@ -72,7 +72,7 @@ items:
           plugin: Body
           class: BodyItem
           data: 
-            modelFile: "/home/ryo/Program/choreonoid-1.5.0/ext/teachingPlugin/share/model/object/tableHrp.wrl"
+            modelFile: "${PROJECT_DIR}/../model/object/tableHrp.wrl"
             currentBaseLink: "WAIST"
             rootPosition: [ 0.5, 0, 0 ]
             rootAttitude: [ 
@@ -89,52 +89,6 @@ items:
             collisionDetection: true
             selfCollisionDetection: false
             isEditable: true
-    - 
-      id: 5
-      name: "SEBZ16-270_block"
-      plugin: Body
-      class: BodyItem
-      data: 
-        modelFile: "/home/ryo/Program/choreonoid-1.5.0/ext/teachingPlugin/share/work/SEBZ16-270_blockHrp.wrl"
-        currentBaseLink: "SEBZ16-270_block-WAIST"
-        rootPosition: [ 0.28, 0.28, 0.81 ]
-        rootAttitude: [ 
-          0.999999599, -0.000546763936, 0.000709594517, 
-          0.000709772881, 0.000326093288, -0.999999695, 
-          0.000546532375, 0.999999797, 0.000326481235 ]
-        jointPositions: [  ]
-        initialRootPosition: [ 0, 0, 0.8 ]
-        initialRootAttitude: [ 
-          1, 0, 0, 
-          0, 1, 0, 
-          0, 0, 1 ]
-        zmp: [ 0, 0, 0 ]
-        collisionDetection: true
-        selfCollisionDetection: false
-        isEditable: true
-    - 
-      id: 6
-      name: "SEBZ16-150_rail"
-      plugin: Body
-      class: BodyItem
-      data: 
-        modelFile: "/home/ryo/Program/choreonoid-1.5.0/ext/teachingPlugin/share/work/SEBZ16-150_railHrp.wrl"
-        currentBaseLink: "SEBZ16-150_rail-WAIST"
-        rootPosition: [ 0.35, 0.28, 0.81 ]
-        rootAttitude: [ 
-          1, 0, 0, 
-          0, 6.123234e-17, -1, 
-          0, 1, 6.123234e-17 ]
-        jointPositions: [  ]
-        initialRootPosition: [ 0, 0, 0.8 ]
-        initialRootAttitude: [ 
-          1, 0, 0, 
-          0, 1, 0, 
-          0, 0, 1 ]
-        zmp: [ 0, 0, 0 ]
-        collisionDetection: true
-        selfCollisionDetection: false
-        isEditable: true
 views: 
   - 
     id: 0

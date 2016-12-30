@@ -3,6 +3,7 @@
 #include <cnoid/ViewManager>
 #include "TeachingUtil.h"
 //
+#include "gettext.h"
 #include "LoggerUtil.h"
 
 using namespace std;
@@ -33,7 +34,9 @@ void ImageView::setImg(QImage& img ) {
 FigureDialog::FigureDialog(QWidget* parent) : QDialog(parent) {
   m_ImageView_ = new ImageView(parent);
 
-  QPushButton* btnOK = new QPushButton(tr("OK"));
+	this->setWindowTitle("Image");
+
+  QPushButton* btnOK = new QPushButton(_("OK"));
   QFrame* frmButtons = new QFrame;
   QHBoxLayout* buttonLayout = new QHBoxLayout(frmButtons);
   buttonLayout->setContentsMargins(0, 0, 0, 0);
@@ -59,7 +62,7 @@ TextDialog::TextDialog(QString& source, QWidget* parent) : QDialog(parent) {
   txtView->setText(source);
   txtView->setReadOnly(true);
 
-  QPushButton* btnOK = new QPushButton(tr("OK"));
+  QPushButton* btnOK = new QPushButton(_("OK"));
   QFrame* frmButtons = new QFrame;
   QHBoxLayout* buttonLayout = new QHBoxLayout(frmButtons);
   buttonLayout->setContentsMargins(0, 0, 0, 0);
@@ -80,26 +83,26 @@ TextDialog::TextDialog(QString& source, QWidget* parent) : QDialog(parent) {
 MetaDataViewImpl::MetaDataViewImpl(QWidget* parent) : QWidget(parent),
  targetTask_(0), m_FigDialog_(0), m_ModelDialog_(0) {
 		//
-  btnModel = new QPushButton(tr("Model Inforamtion"));
+  btnModel = new QPushButton(_("Model Inforamtion"));
   btnModel->setIcon(QIcon(":/Teaching/icons/About.png"));
-  btnModel->setToolTip(tr("Edit Model information"));
+  btnModel->setToolTip(_("Edit Model information"));
 
   textEdit = new QTextEdit;
 
   lstFileName = new QListWidget;
   lstFileName->setSelectionMode(QListView::SingleSelection);
 
-  btnFileOutput = new QPushButton(tr("Output"));
+  btnFileOutput = new QPushButton(_("Output"));
   btnFileOutput->setIcon(QIcon(":/Teaching/icons/Save.png"));
-  btnFileOutput->setToolTip(tr("Output selected File"));
+  btnFileOutput->setToolTip(_("Output selected File"));
 
-  btnFileShow = new QPushButton(tr("Show"));
+  btnFileShow = new QPushButton(_("Show"));
   btnFileShow->setIcon(QIcon(":/Teaching/icons/View.png"));
-  btnFileShow->setToolTip(tr("Show selected File"));
+  btnFileShow->setToolTip(_("Show selected File"));
 
-  btnFileDelete = new QPushButton(tr("Delete"));
+  btnFileDelete = new QPushButton(_("Delete"));
   btnFileDelete->setIcon(QIcon(":/Teaching/icons/Delete.png"));
-  btnFileDelete->setToolTip(tr("Delete selected File"));
+  btnFileDelete->setToolTip(_("Delete selected File"));
 
   lstImage = new QListWidget;
   lstImage->setSelectionMode(QListView::SingleSelection);
@@ -107,17 +110,17 @@ MetaDataViewImpl::MetaDataViewImpl(QWidget* parent) : QWidget(parent),
   lstImage->setFlow(QListWidget::LeftToRight);
   lstImage->setWrapping(true);
 
-  btnImageOutput = new QPushButton(tr("Output"));
+  btnImageOutput = new QPushButton(_("Output"));
   btnImageOutput->setIcon(QIcon(":/Teaching/icons/Save.png"));
-  btnImageOutput->setToolTip(tr("Output selected Image"));
+  btnImageOutput->setToolTip(_("Output selected Image"));
 
-  btnImageShow = new QPushButton(tr("Show"));
+  btnImageShow = new QPushButton(_("Show"));
   btnImageShow->setIcon(QIcon(":/Teaching/icons/View.png"));
-  btnImageShow->setToolTip(tr("Show selected Image"));
+  btnImageShow->setToolTip(_("Show selected Image"));
 
-  btnImageDelete = new QPushButton(tr("Delete"));
+  btnImageDelete = new QPushButton(_("Delete"));
   btnImageDelete->setIcon(QIcon(":/Teaching/icons/Delete.png"));
-  btnImageDelete->setToolTip(tr("Delete selected Image"));
+  btnImageDelete->setToolTip(_("Delete selected Image"));
   //
   QFrame* frmButtons = new QFrame;
   QHBoxLayout* buttonLayout = new QHBoxLayout;
@@ -188,6 +191,11 @@ MetaDataViewImpl::~MetaDataViewImpl() {
 
 void MetaDataViewImpl::modelClicked() {
   if(targetTask_) {
+		if (m_ModelDialog_) {
+			m_ModelDialog_->close();
+			delete m_ModelDialog_;
+			m_ModelDialog_ = 0;
+		}
     m_ModelDialog_ = new ModelDialog(this);
     m_ModelDialog_->setAttribute(Qt::WA_DeleteOnClose);
     m_ModelDialog_->setTaskModel(targetTask_);
@@ -197,7 +205,8 @@ void MetaDataViewImpl::modelClicked() {
 
 void MetaDataViewImpl::closeModelDialog() {
   m_ModelDialog_->close();
-  m_ModelDialog_ = 0;
+	delete m_ModelDialog_;
+	m_ModelDialog_ = 0;
 }
 
 void MetaDataViewImpl::updateTaskParam() {
@@ -307,7 +316,7 @@ void MetaDataViewImpl::fileOutputClicked() {
   file.write(data);
   file.close();
 
-  QMessageBox::information(this, tr("File Output"), "Target FILE saved");
+  QMessageBox::information(this, _("File Output"), _("Target FILE saved"));
 }
 
 void MetaDataViewImpl::processFinished() {
@@ -333,7 +342,7 @@ void MetaDataViewImpl::fileShowClicked() {
     QString targetApp = QString::fromStdString(SettingManager::getInstance().getTargetApp(strExt.toUpper().toStdString()));
     DDEBUG_V("targetApp : %s", targetApp.toStdString().c_str());
     if( QFile::exists(targetApp)==false ) {
-      QMessageBox::warning(this, tr("File Show"), "APP does NOT EXIST.");
+      QMessageBox::warning(this, _("File Show"), _("APP does NOT EXIST."));
       return;
     }
 
@@ -386,7 +395,7 @@ void MetaDataViewImpl::imageOutputClicked() {
   strDir += QString("/") + targetTask_->getImageList()[selected]->getName();
   image.save(strDir);
 
-  QMessageBox::information(this, tr("File Output"), "Target IMAGE saved");
+  QMessageBox::information(this, _("File Output"), _("Target IMAGE saved"));
 }
 
 void MetaDataViewImpl::imageShowClicked() {
@@ -451,7 +460,7 @@ void MetaDataViewImpl::setAllClear() {
 }
 /////
 MetaDataView::MetaDataView() : viewImpl(0) {
-	setName("MetaData");
+	setName(_("MetaData"));
   setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Ignored);
 
   viewImpl = new MetaDataViewImpl(this);

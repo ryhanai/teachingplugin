@@ -9,6 +9,7 @@
 #include "Calculator.h"
 #include "ControllerManager.h"
 
+#include "gettext.h"
 #include "LoggerUtil.h"
 
 using namespace std;
@@ -24,19 +25,17 @@ TaskInstanceViewImpl::TaskInstanceViewImpl(QWidget* parent)
     isSkip_(false) {
 
   QFrame* condFrame = new QFrame;
-  QLabel* lblCond = new QLabel(tr("Condition:"));
+  QLabel* lblCond = new QLabel(_("Condition:"));
   leCond = new QLineEdit;
-  //QPushButton* btnSearch = new QPushButton(tr("Search"));
   QPushButton* btnSearch = new QPushButton();
   btnSearch->setIcon(QIcon(":/Teaching/icons/Search.png"));
-  btnSearch->setToolTip(tr("Search Task"));
+  btnSearch->setToolTip(_("Search Task"));
 
-  //QPushButton* btnSetting = new QPushButton(tr("Setting"));
   QPushButton* btnSetting = new QPushButton();
   btnSetting->setIcon(QIcon(":/Teaching/icons/Settings.png"));
-  btnSetting->setToolTip(tr("Setting"));
+  btnSetting->setToolTip(_("Setting"));
 
-  QLabel* lblTaskName = new QLabel(tr("Task Name:"));
+  QLabel* lblTaskName = new QLabel(_("Task Name:"));
   leTask = new QLineEdit;
   //
   QGridLayout* topLayout = new QGridLayout;
@@ -62,39 +61,33 @@ TaskInstanceViewImpl::TaskInstanceViewImpl(QWidget* parent)
   //
   //
   QFrame* frmButtons = new QFrame;
-  QPushButton* btnRunTask = new QPushButton(tr("Task"));
+  QPushButton* btnRunTask = new QPushButton(_("Task"));
   btnRunTask->setIcon(QIcon(":/Base/icons/play.png"));
-  btnRunTask->setToolTip(tr("Run Task"));
+  btnRunTask->setToolTip(_("Run Task"));
 
-  //QPushButton* btnInitPos = new QPushButton(tr("Init. Pos"));
   QPushButton* btnInitPos = new QPushButton();
   btnInitPos->setIcon(QIcon(":/Teaching/icons/Refresh.png"));
-  btnInitPos->setToolTip(tr("Reset Models Position"));
+  btnInitPos->setToolTip(_("Reset Models Position"));
 
-  //QPushButton* btnLoadTask = new QPushButton(tr("Load Task"));
   QPushButton* btnLoadTask = new QPushButton();
   btnLoadTask->setIcon(QApplication::style()->standardIcon(QStyle::SP_DialogOpenButton));
-  btnLoadTask->setToolTip(tr("Load Task"));
+  btnLoadTask->setToolTip(_("Load Task"));
 
-  //QPushButton* btnOutputTask = new QPushButton(tr("Output Task"));
   QPushButton* btnOutputTask = new QPushButton();
   btnOutputTask->setIcon(QIcon(":/Teaching/icons/Save.png"));
-  btnOutputTask->setToolTip(tr("Output Task"));
+  btnOutputTask->setToolTip(_("Output Task"));
 
-  //QPushButton* btnDeleteTask = new QPushButton(tr("Delete Task"));
   QPushButton* btnDeleteTask = new QPushButton();
   btnDeleteTask->setIcon(QIcon(":/Teaching/icons/Delete.png"));
-  btnDeleteTask->setToolTip(tr("Delete Task"));
+  btnDeleteTask->setToolTip(_("Delete Task"));
 
-  //QPushButton* btnRegistNewTask = new QPushButton(tr("Regist New"));
   QPushButton* btnRegistNewTask = new QPushButton();
   btnRegistNewTask->setIcon(QIcon(":/Teaching/icons/Create.png"));
-  btnRegistNewTask->setToolTip(tr("Regist as New Task"));
+  btnRegistNewTask->setToolTip(_("Regist as New Task"));
 
-  //QPushButton* btnRegistTask = new QPushButton(tr("Update"));
   QPushButton* btnRegistTask = new QPushButton();
   btnRegistTask->setIcon(QIcon(":/Teaching/icons/Apply.png"));
-  btnRegistTask->setToolTip(tr("Update Current Task"));
+  btnRegistTask->setToolTip(_("Update Current Task"));
   //
   QHBoxLayout* buttonLayout = new QHBoxLayout;
   frmButtons->setLayout(buttonLayout);
@@ -142,7 +135,14 @@ void TaskInstanceViewImpl::loadTaskInfo() {
 
 void TaskInstanceViewImpl::taskSelectionChanged() {
   LoggerUtil::writeLog("taskSelectionChanged");
-
+	if (checkPaused()) {
+		isSkipCheck_ = true;
+		lstResult->setCurrentCell(currentTaskIndex_, 0);
+		isSkipCheck_ = false;
+		return;
+	}
+	statemachineView_->setStepStatus(false);
+	//
   this->metadataView_->updateTaskParam();
   this->flowView_->unloadCurrentModel();
   if(currentTask_) {
@@ -182,8 +182,13 @@ void TaskInstanceViewImpl::taskSelectionChanged() {
 }
 
 void TaskInstanceViewImpl::searchClicked() {
+	if (checkPaused()) {
+		return;
+	}
+	statemachineView_->setStepStatus(false);
+	//
   if(ControllerManager::instance()->isExistController()==false) {
-    QMessageBox::warning(this, tr("Task Search Error"), tr("Controller does NOT EXIST."));
+    QMessageBox::warning(this, _("Task Search Error"), _("Controller does NOT EXIST."));
     return;
   }
   //
@@ -197,28 +202,13 @@ void TaskInstanceViewImpl::searchClicked() {
   this->statemachineView_->clearTaskParam();
   this->parameterView_->clearTaskParam();
 
-  isSkip_ = true;
   taskList_.clear();
   currentTaskIndex_ = -1;
   currentTask_ = 0;
 
-  vector<string> condList;
-  QStringList targetList;
-  bool isOr = false;
-  QString strTarget = leCond->text();
-  if( strTarget.contains("||") ) {
-    isOr = true;
-    targetList = strTarget.split("||");
-  } else {
-    targetList = strTarget.split(" ");
-  }
-  for(unsigned int index=0; index<targetList.size(); index++) {
-    QString each = targetList[index].trimmed();
-    condList.push_back(each.toStdString());
-  }
-  //
-  taskList_ = DatabaseManager::getInstance().searchTaskModels(condList, isOr);
-  showGrid();
+	searchTaskInstance();
+	isSkip_ = true;
+	showGrid();
   isSkip_ = false;
 }
 
@@ -238,24 +228,33 @@ void TaskInstanceViewImpl::runTaskClicked() {
 void TaskInstanceViewImpl::initPosClicked() {
   DDEBUG("initPosClicked");
   if(!currentTask_) return;
-  //
+	if (checkPaused()) {
+		return;
+	}
+	statemachineView_->setStepStatus(false);
+	//
   for(int index=0; index<currentTask_->getModelList().size(); index++) {
     ModelParam* model = currentTask_->getModelList()[index];
     model->setInitialPos();
   }
+	executor_->detachAllModelItem();
 }
 
 void TaskInstanceViewImpl::loadTaskClicked() {
+	if (checkPaused()) {
+		return;
+	}
+	statemachineView_->setStepStatus(false);
+	//
 	QString strFName = QFileDialog::getOpenFileName(
-			this, tr( "TaskModel File" ), ".",
-			tr( "YAML(*.yaml);;all(*.*)" ) );
+			this, "TaskModel File", ".", "YAML(*.yaml);;all(*.*)" );
 	if ( strFName.isEmpty() ) return;
   //
   DDEBUG_V("loadTaskClicked : %s", strFName.toStdString().c_str());
   //タスク定義ファイルの読み込み
   vector<TaskModelParam*> taskInstList;
   if(TeachingUtil::loadTaskDef(strFName, taskInstList)==false) {
-    QMessageBox::warning(this, tr("Task Load Error"), "Load Error (Task Def)");
+    QMessageBox::warning(this, _("Task Load Error"), "Load Error (Task Def)");
     return;
   }
   vector<CommandDefParam*> commandList;
@@ -277,15 +276,20 @@ void TaskInstanceViewImpl::loadTaskClicked() {
     showGrid();
     lstResult->setCurrentCell(currentTaskIndex_, 0);
     isSkip_ = false;
-    QMessageBox::information(this, tr("Database"), "Database updated");
+    QMessageBox::information(this, _("Database"), _("Database updated"));
   } else {
-    QMessageBox::warning(this, tr("Database Error"), DatabaseManager::getInstance().getErrorStr());
+    QMessageBox::warning(this, _("Database Error"), DatabaseManager::getInstance().getErrorStr());
   }
 }
 
 void TaskInstanceViewImpl::outputTaskClicked() {
-  if( !currentTask_ ) {
-    QMessageBox::warning(this, tr("Output Task"), "Please select target TASK");
+	if (checkPaused()) {
+		return;
+	}
+	statemachineView_->setStepStatus(false);
+	//
+	if (!currentTask_) {
+    QMessageBox::warning(this, _("Output Task"), _("Please select target TASK"));
     return;
   }
   //
@@ -300,37 +304,66 @@ void TaskInstanceViewImpl::outputTaskClicked() {
   DDEBUG_V("saveTaskClicked : %s", strFName.toStdString().c_str());
   updateCurrentInfo();
   if( TeachingUtil::outputTaskDef(strFName, currentTask_) ) {
-    QMessageBox::information(this, tr("Output Task"), "target TASK exported");
+    QMessageBox::information(this, _("Output Task"), _("target TASK exported"));
   } else {
-    QMessageBox::warning(this, tr("Output Task"), "target TASK export FAILED");
+    QMessageBox::warning(this, _("Output Task"), _("target TASK export FAILED"));
   }
 }
 
 void TaskInstanceViewImpl::registNewTaskClicked() {
-  if(currentTask_) {
+	if (checkPaused()) {
+		return;
+	}
+	statemachineView_->setStepStatus(false);
+	//
+	if (currentTask_) {
     updateCurrentInfo();
     ChoreonoidUtil::unLoadTaskModelItem(currentTask_);
     //
-    currentTask_->setAllNewData();
+		currentTask_->setAllNewData();
     //
     if(DatabaseManager::getInstance().saveTaskModelsForNewRegist(currentTask_) ) {
-			TaskModelParam* newTask = DatabaseManager::getInstance().getTaskModelById(currentTask_->getId());
-      if(newTask) {
-        taskList_.push_back(newTask);
-      }
-      isSkip_ = true;
+			searchTaskInstance();
+			isSkip_ = true;
       showGrid();
       lstResult->setCurrentCell(currentTaskIndex_, 0);
       isSkip_ = false;
-      QMessageBox::information(this, tr("Database"), "Database updated");
+			//
+			currentTaskIndex_ = lstResult->currentRow();
+			currentTask_ = DatabaseManager::getInstance().getTaskModel(currentTaskIndex_);
+			bool isUpdateTree = false;
+			if (currentTask_) {
+				if (currentTask_->IsLoaded() == false) {
+					TeachingUtil::loadTaskDetailData(currentTask_);
+				}
+				isUpdateTree = ChoreonoidUtil::loadTaskModelItem(currentTask_);
+			}
+
+			leTask->setText(currentTask_->getName());
+			this->metadataView_->setTaskParam(currentTask_);
+			this->statemachineView_->setTaskParam(currentTask_);
+			this->parameterView_->setTaskParam(currentTask_);
+			//即更新を行うとエラーになってしまうため
+			if (currentTask_) {
+				if (isUpdateTree) {
+					ChoreonoidUtil::showAllModelItem();
+				}
+			}
+			lstResult->item(currentTaskIndex_, 3)->setText(currentTask_->getLastUpdatedDate());
+      QMessageBox::information(this, _("Database"), _("Database updated"));
     } else {
-      QMessageBox::warning(this, tr("Database Error"), DatabaseManager::getInstance().getErrorStr());
+      QMessageBox::warning(this, _("Database Error"), DatabaseManager::getInstance().getErrorStr());
     }
   }
 }
 
 void TaskInstanceViewImpl::registTaskClicked() {
-  if(currentTask_) {
+	if (checkPaused()) {
+		return;
+	}
+	statemachineView_->setStepStatus(false);
+	//
+	if (currentTask_) {
     updateCurrentInfo();
     ChoreonoidUtil::unLoadTaskModelItem(currentTask_);
     //
@@ -343,40 +376,61 @@ void TaskInstanceViewImpl::registTaskClicked() {
       currentTask_->setNormal();
       currentTask_->setLoaded(false);
 			//
+			currentTaskIndex_ = lstResult->currentRow();
+			currentTask_ = DatabaseManager::getInstance().getTaskModel(currentTaskIndex_);
+			bool isUpdateTree = false;
+			if (currentTask_) {
+				if (currentTask_->IsLoaded() == false) {
+					TeachingUtil::loadTaskDetailData(currentTask_);
+				}
+				isUpdateTree = ChoreonoidUtil::loadTaskModelItem(currentTask_);
+			}
+
+			leTask->setText(currentTask_->getName());
 			this->metadataView_->setTaskParam(currentTask_);
 			this->statemachineView_->setTaskParam(currentTask_);
 			this->parameterView_->setTaskParam(currentTask_);
-
+			//即更新を行うとエラーになってしまうため
+			if (currentTask_) {
+				if (isUpdateTree) {
+					ChoreonoidUtil::showAllModelItem();
+				}
+			}
       lstResult->item(currentTaskIndex_, 3)->setText(currentTask_->getLastUpdatedDate());
-      QMessageBox::information(this, tr("Database"), "Database updated");
+      QMessageBox::information(this, _("Database"), _("Database updated"));
     } else {
-      QMessageBox::warning(this, tr("Database Error"), DatabaseManager::getInstance().getErrorStr());
+      QMessageBox::warning(this, _("Database Error"), DatabaseManager::getInstance().getErrorStr());
     }
   }
 }
 
 void TaskInstanceViewImpl::deleteTaskClicked() {
   DDEBUG("deleteTaskClicked");
-  if( currentTask_ ) {
+	if (checkPaused()) {
+		return;
+	}
+	statemachineView_->setStepStatus(false);
+	//
+	if (currentTask_) {
     vector<QString> flowList;
     if(DatabaseManager::getInstance().checkFlowItem(currentTask_->getId(), flowList) ) {
-      QString errStr = "Target Task is used. [";
+      QString errStr = _("Target Task is used. [");
       for(int index=0; index<flowList.size(); index++) {
         if(index!=0) errStr += ", " ;
         errStr += flowList[index];
       }
       errStr += "]";
-      QMessageBox::warning(this, tr("Task DELETE"), errStr);
+      QMessageBox::warning(this, _("Task DELETE"), errStr);
       return;
     }
     //
     FlowParam* flow = flowView_->getCurrentFlow();
     if(flow) {
-      for(int index=0; index<flow->getTaskList().size(); index++) {
-        TaskModelParam* task = flow->getTaskList()[index];
+      for(int index=0; index<flow->getStmElementList().size(); index++) {
+				TaskModelParam* task = flow->getStmElementList()[index]->getTaskParam();
         if(task->getMode()==DB_MODE_DELETE || task->getMode()==DB_MODE_IGNORE) continue;
         if(currentTask_->getId()==task->getId()) {
-          QMessageBox::warning(this, tr("Task DELETE"), "Target Task is used in CURRENT Flow.");
+          QMessageBox::warning(this, _("Task DELETE"), _("Target Task is used in CURRENT Flow."));
           return;
         }
       }
@@ -385,11 +439,11 @@ void TaskInstanceViewImpl::deleteTaskClicked() {
     ChoreonoidUtil::unLoadTaskModelItem(currentTask_);
     //
     if(DatabaseManager::getInstance().deleteTaskModel(currentTask_)==false ) {
-      QMessageBox::warning(this, tr("Database Error"), DatabaseManager::getInstance().getErrorStr());
+      QMessageBox::warning(this, _("Database Error"), DatabaseManager::getInstance().getErrorStr());
       return;
     }
     //
-    QMessageBox::information(this, tr("Database"), "Database updated");
+    QMessageBox::information(this, _("Database"), _("Database updated"));
 
     currentTaskIndex_ = -1;
     currentTask_ = 0;
@@ -397,9 +451,32 @@ void TaskInstanceViewImpl::deleteTaskClicked() {
     this->metadataView_->clearTaskParam();
     this->statemachineView_->clearTaskParam();
     this->parameterView_->clearTaskParam();
-    leCond->setText("");
-    searchClicked();
-  }
+    //leCond->setText("");
+    //searchClicked();
+		searchTaskInstance();
+		isSkip_ = true;
+		showGrid();
+		isSkip_ = false;
+	}
+}
+
+void TaskInstanceViewImpl::searchTaskInstance() {
+	vector<string> condList;
+	QStringList targetList;
+	bool isOr = false;
+	QString strTarget = leCond->text();
+	if (strTarget.contains("||")) {
+		isOr = true;
+		targetList = strTarget.split("||");
+	}
+	else {
+		targetList = strTarget.split(" ");
+	}
+	for (unsigned int index = 0; index<targetList.size(); index++) {
+		QString each = targetList[index].trimmed();
+		condList.push_back(each.toStdString());
+	}
+	taskList_ = DatabaseManager::getInstance().searchTaskModels(condList, isOr);
 }
 
 void TaskInstanceViewImpl::showGrid() {
@@ -454,7 +531,7 @@ void TaskInstanceViewImpl::widgetClose() {
 }
 /////
 TaskInstanceView::TaskInstanceView(): viewImpl(0) {
-    setName("Task Model");
+    setName(_("TaskInstance"));
     setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Ignored);
 
     viewImpl = new TaskInstanceViewImpl(this);

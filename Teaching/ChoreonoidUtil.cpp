@@ -76,6 +76,7 @@ bool ChoreonoidUtil::loadTaskModelItem(TaskModelParam* target) {
     if(loadModelItem(model)==false) return false;
   }
   ItemTreeView::mainInstance()->update();
+	target->setModelLoaded(true);
   return true;
 }
 
@@ -86,7 +87,8 @@ bool ChoreonoidUtil::unLoadTaskModelItem(TaskModelParam* target) {
     if(model->getMode()==DB_MODE_DELETE || model->getMode()==DB_MODE_IGNORE) continue;
     if(unLoadModelItem(model)==false) return false;
   }
-  return true;
+	target->setModelLoaded(false);
+	return true;
 }
 
 cnoid::BodyItem* ChoreonoidUtil::searchParentModel(const std::string targetName) {

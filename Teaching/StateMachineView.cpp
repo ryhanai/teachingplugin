@@ -3,11 +3,11 @@
 #include "StateMachineView.h"
 #include "TeachingUtil.h"
 #include "Calculator.h"
-#include "DataBaseManager.h"
 #include "TaskExecutor.h"
 #include "ArgumentDialog.h"
 #include "ControllerManager.h"
 
+#include "gettext.h"
 #include "LoggerUtil.h"
 
 using namespace std;
@@ -15,333 +15,47 @@ using namespace cnoid;
 
 namespace teaching {
 
-EditorView::EditorView(QWidget* parent)
-   : QGraphicsView(parent), targetTask_(0), modeCnt_(false), newStateNum(0),
-     targetNode_(0), targetConnection_(0) {
-  //scene_ = new QGraphicsScene(0, 0, this->width(), this->height());
-  scene_ = new QGraphicsScene(0, 0, 1000, 1000);
-  setScene(scene_);
-  setHorizontalScrollBarPolicy( Qt::ScrollBarAlwaysOn );
-  setVerticalScrollBarPolicy( Qt::ScrollBarAlwaysOn );
-  setAcceptDrops(true);
-}
-
-void EditorView::dragEnterEvent(QDragEnterEvent* event) {
-  if(event->mimeData()->hasFormat("application/StateMachineItem")){
-    event->acceptProposedAction();
-  }
-}
-
-void EditorView::dragMoveEvent(QDragMoveEvent *event) {
-  if(event->mimeData()->hasFormat("application/StateMachineItem")){
-    event->acceptProposedAction();
-  }
-}
-
-void EditorView::dropEvent(QDropEvent* event) {
-  const QMimeData *mime = event->mimeData();
-  QString strDispName = event->mimeData()->text();
-  QString strName = "";
-  QVariant varData = event->mimeData()->property("CommandId");
-  int id = varData.toInt();
-  CommandDefParam* cmdParam = TaskExecutor::instance()->getCommandDef(id);
-  if(cmdParam) {
-    strName = cmdParam->getName();
-  }
-  //
-  ElementNode* node = new ElementNode(strDispName);
-  scene_->addItem(node);
-  QPointF position = mapToScene(event->pos());
-  node->setPos(position.x(), position.y());
-  elementList_.push_back(node);
-  newStateNum--;
-  ElementStmParam* newParam = new ElementStmParam(newStateNum, node->getElementType(), strName, strDispName, position.x(), position.y());
-  newParam->setOrgId(newStateNum);
-  newParam->setCommadDefParam(cmdParam);
-  newParam->setRealElem(node);
-  newParam->setNew();
-  node->setElemParam(newParam);
-  targetTask_->addStmElement(newParam);
-  node->setData(Qt::UserRole, TYPE_ELEMENT);
-
-  targetNode_ = 0;
-  if(targetConnection_) {
-    targetConnection_->setPen(QPen(Qt::black, LINE_WIDTH));
-    targetConnection_ = 0;
-  }
-}
-
-void EditorView::mousePressEvent(QMouseEvent* event) {
-  if(event->button() == Qt::LeftButton){
-    QPointF pos = mapToScene(event->pos());
-		QTransform trans;
-		QGraphicsItem* gItem = scene_->itemAt(pos, trans);
-    if(targetNode_) {
-      targetNode_->updateSelect(false);
-    }
-    if(targetConnection_) {
-      targetConnection_->setPen(QPen(Qt::black, LINE_WIDTH));
-      targetConnection_ = 0;
-    }
-    targetNode_ = 0;
-
-    if(gItem) {
-      QGraphicsItem* parentItem = gItem->parentItem();
-      int type = parentItem->data(Qt::UserRole).toInt();
-      if( type==TYPE_ELEMENT) {
-        targetNode_ = (ElementNode*)gItem->parentItem();
-        targetNode_->updateSelect(true);
-        if( modeCnt_) {
-          ConnectionNode* item = new ConnectionNode(0, 0, 0, 0);
-          item->setSource(targetNode_);
-          item->setPen(QPen(Qt::gray));
-          item->setZValue(-10);
-          targetNode_->addToGroup(item);
-          targetNode_->addConnection(item);
-        }
-
-      } else if(type==TYPE_CONNECTION) {
-        ConnectionNode* targetConn = (ConnectionNode*)gItem->parentItem();
-        targetConn->setPen(QPen(Qt::red, LINE_WIDTH));
-        targetConnection_ = targetConn;
-      }
-    }
-  }
-  QWidget::mousePressEvent(event);
-}
-
-void EditorView::mouseMoveEvent(QMouseEvent* event) {
-  if(targetNode_) {
-    if( modeCnt_) {
-      QPointF position = mapToScene(event->pos());
-      ConnectionNode* item = targetNode_->getCurrentConnection();
-      item->setLine(targetNode_->pos().x(), targetNode_->pos().y(), position.x()+POS_DELTA, position.y()+POS_DELTA);
-
-    } else {
-      QPointF position = mapToScene(event->pos());
-      targetNode_->updatePosition(position.x(), position.y());
-      targetNode_->getElemParam()->setPosX(position.x());
-      targetNode_->getElemParam()->setPosY(position.y());
-      targetNode_->getElemParam()->setUpdate();
-    }
-  }
-  QWidget::mouseMoveEvent(event);
-}
-
-void EditorView::mouseReleaseEvent(QMouseEvent* event) {
-	if (modeCnt_ && targetNode_) {
-    QPointF pos = mapToScene(event->pos());
-		QTransform trans;
-		QGraphicsItem* gItem = scene_->itemAt(pos, trans);
-    if(gItem) {
-      ConnectionNode* item = targetNode_->getCurrentConnection();
-      ElementNode* currNode = (ElementNode*)gItem->parentItem();
-      if(item->getSource()->getElemParam()->getId()==currNode->getElemParam()->getId()) {
-        return;
-      }
-      item->setTarget(currNode);
-      item->setPen(QPen(Qt::black, LINE_WIDTH));
-      item->setData(Qt::UserRole, TYPE_CONNECTION);
-      item->reDrawConnection();
-      currNode->addConnection(item);
-      connectionList_.push_back(item);
-      ConnectionStmParam* newConn = new ConnectionStmParam(-1, item->getSource()->getElemParam()->getId(), item->getTarget()->getElemParam()->getId(), "");
-      newConn->setNew();
-      item->setConnParam(newConn);
-      newConn->setSourceId(item->getSource()->getElemParam()->getId());
-      newConn->setTargetId(item->getTarget()->getElemParam()->getId());
-      DDEBUG_V("mouseReleaseEvent:Sourcd=%d, Target=%d", newConn->getSourceId(), newConn->getTargetId());
-      targetTask_->addStmConnection(newConn);
-      targetNode_->removeFromGroup(item);
-      //
-      ConnectionStmParam* newParam = new ConnectionStmParam(-1, -1, -1 ,"");
-      newParam->setNew();
-      targetTask_->getStmConnectionList().push_back(newParam);
-
-      if(item->getSource()->getElementType() == ELEMENT_DECISION ) {
-        item->setText("false");
-      }
-
-    } else {
-      ConnectionNode* item = targetNode_->getCurrentConnection();
-      item->setPen(QPen(Qt::white));
-      targetNode_->removeCurrentConnection();
-    }
-  }
-  QWidget::mouseReleaseEvent(event);
-}
-
-void EditorView::wheelEvent(QWheelEvent* event ) {
-  double dSteps = (double)event->delta() / 120.0;
-  double scaleVal = 1.0;
-  scaleVal -= (dSteps / 20.0);
-  DDEBUG_V("wheelEvent View  %f : %f ", dSteps, scaleVal);
-  scale(scaleVal, scaleVal);
-}
-
-void EditorView::keyPressEvent(QKeyEvent* event) {
-  DDEBUG("keyPressEvent View ");
-
-  if (event->key() == Qt::Key_Delete) {
-    deleteCurrent();
-  }
-  QWidget::keyPressEvent(event);
-}
-
-void EditorView::deleteCurrent() {
-  if(targetConnection_) {
-    deleteConnection(targetConnection_);
-    targetConnection_ = 0;
-  }
-  if(targetNode_) {
-    deleteElement(targetNode_);
-    targetNode_ = 0;
-  }
-}
-
-void EditorView::deleteConnection(ConnectionNode* target) {
-  target->getSource()->removeTargetConnection(target);
-  target->getTarget()->removeTargetConnection(target);
-  target->getConnParam()->setDelete();
-  vector<ConnectionNode*>::iterator itRemove = std::remove(this->connectionList_.begin(), this->connectionList_.end(), target);
-  if(itRemove != this->connectionList_.end()) {
-    this->connectionList_.erase(itRemove, this->connectionList_.end());
-    target->setVisible(false);
-    //delete target;
-  }
-}
-
-void EditorView::deleteElement(ElementNode* target) {
-  vector<ConnectionNode*> conns = target->getConnectionList();
-  vector<ConnectionNode*>::iterator itConn = conns.begin();
-  while (itConn != conns.end() ) {
-    deleteConnection((*itConn));
-    ++itConn;
-  }
-  //
-  target->getElemParam()->setDelete();
-  vector<ElementNode*>::iterator itRemove = std::remove(this->elementList_.begin(), this->elementList_.end(), target);
-  if(itRemove != this->elementList_.end()) {
-    this->elementList_.erase(itRemove, this->elementList_.end());
-    target->setVisible(false);
-  }
-}
-
-void EditorView::removeAll() {
-  scene_->clear();
-}
-
-void EditorView::createStateMachine(TaskModelParam* param) {
-  //DDEBUG_V("createStateMachine : %d", param->getStmConnectionList().size());
-  targetNode_ = 0;
-  targetConnection_ = 0;
-  scene_->clear();
-  //
-  vector<ElementStmParam*> elemList = param->getStmElementList();
-  for(int index=0; index<elemList.size(); index++) {
-    ElementStmParam* target = elemList[index];
-    if(target->getMode()==DB_MODE_DELETE || target->getMode()==DB_MODE_IGNORE) continue;
-
-    QString strName = target->getCmdName();
-    CommandDefParam* def = target->getCommadDefParam();
-    if(def) {
-      strName = def->getDispName();
-    }
-    ElementNode* node = new ElementNode(target->getType(), strName);
-    scene_->addItem(node);
-    node->setPos(target->getPosX(), target->getPosY());
-    elementList_.push_back(node);
-    target->setRealElem(node);
-    node->setElemParam(target);
-    node->setData(Qt::UserRole, TYPE_ELEMENT);
-  }
-  //
-  vector<ConnectionStmParam*> connList = param->getStmConnectionList();
-  for(int index=0; index<connList.size(); index++) {
-    ConnectionStmParam* target = connList[index];
-    if(target->getMode()==DB_MODE_DELETE || target->getMode()==DB_MODE_IGNORE) continue;
-
-    //DDEBUG_V("connection : Source=%d, Target=%d", target->getSourceId(), target->getTargetId());
-    vector<ElementStmParam*>::iterator sourceElem = find_if( elemList.begin(), elemList.end(), ElementStmParamComparator(target->getSourceId()));
-    if(sourceElem== elemList.end()) continue;
-    vector<ElementStmParam*>::iterator targetElem = find_if( elemList.begin(), elemList.end(), ElementStmParamComparator(target->getTargetId()));
-    if(targetElem== elemList.end()) continue;
-    //
-    ConnectionNode* item = new ConnectionNode(0, 0, 0, 0);
-    ElementNode* sourceNode = (*sourceElem)->getRealElem();
-    ElementNode* targetNode = (*targetElem)->getRealElem();
-    item->setSource(sourceNode);
-    item->setTarget(targetNode);
-    item->setPen(QPen(Qt::black, LINE_WIDTH));
-    item->setData(Qt::UserRole, TYPE_CONNECTION);
-    item->setZValue(-10);
-    sourceNode->addToGroup(item);
-    sourceNode->addConnection(item);
-    targetNode->addConnection(item);
-    item->reDrawConnection();
-    connectionList_.push_back(item);
-    item->setConnParam(target);
-    sourceNode->removeFromGroup(item);
-    if(item->getSource()->getElementType() == ELEMENT_DECISION ) {
-      item->setText(target->getCondition());
-    }
-  }
-}
-/////
-ItemList::ItemList(QWidget* parent) : QListWidget(parent) {
-}
-void ItemList::mousePressEvent(QMouseEvent* event) {
-  if( event->button() == Qt::LeftButton) {
-    startPos = event->pos();
-  }
-  QListWidget::mousePressEvent(event);
-}
-
-void ItemList::mouseMoveEvent(QMouseEvent* event) {
-  if( event->buttons() == Qt::LeftButton) {
-    int distance = (event->pos() - startPos).manhattanLength();
-    if( QApplication::startDragDistance() <= distance ) {
-      QModelIndexList indexes = selectionModel()->selection().indexes();
-      QModelIndex selected = indexes.at(0);
-      if( 0<=selected.row() ) {
-        QByteArray itemData;
-        QMimeData* mimeData = new QMimeData;
-        mimeData->setData("application/StateMachineItem", itemData);
-        mimeData->setText(item(selected.row())->text());
-        mimeData->setProperty("CommandId", item(selected.row())->data(Qt::UserRole));
-        QDrag* drag = new QDrag(this);
-        drag->setMimeData(mimeData);
-        drag->exec(Qt::CopyAction);
-      }
-    }
-  }
-  QListWidget::mouseMoveEvent(event);
-}
-/////
-StateMachineViewImpl::StateMachineViewImpl(QWidget* parent) : QWidget(parent), targetTask_(0) {
+StateMachineViewImpl::StateMachineViewImpl(QWidget* parent)
+	: TaskExecutionView(parent), targetTask_(0) {
   lblTarget = new QLabel;
   lblTarget->setText("");
 
-  btnDelete = new QPushButton(tr("Delete"));
+  btnDelete = new QPushButton(_("Delete"));
   btnDelete->setIcon(QIcon(":/Teaching/icons/Delete.png"));
-  btnDelete->setToolTip(tr("Delete selected element"));
+  btnDelete->setToolTip(_("Delete selected element"));
   btnDelete->setEnabled(false);
 
-  btnEdit = new QPushButton(tr("Edit"));
+  btnEdit = new QPushButton(_("Edit"));
   btnEdit->setIcon(QIcon(":/Teaching/icons/Settings.png"));
-  btnEdit->setToolTip(tr("Edit target state"));
+  btnEdit->setToolTip(_("Edit target state"));
   btnEdit->setEnabled(false);
 
-  btnRun = new QPushButton(tr("Command"));
+  btnRun = new QPushButton(_("Command"));
   btnRun->setIcon(QIcon(":/Base/icons/play.png"));
-  btnRun->setToolTip(tr("Run selected Command"));
+  btnRun->setToolTip(_("Run selected Command"));
   btnRun->setEnabled(false);
 
-  QHBoxLayout* topLayout = new QHBoxLayout;
+	btnBP = new QPushButton(_("B.P."));
+	btnBP->setToolTip(_("Set/Unset BreakPoint"));
+	btnBP->setCheckable(true);
+	btnBP->setEnabled(false);
+
+	btnStep = new QPushButton(_("Step"));
+	btnStep->setToolTip(_("Run by Step"));
+	btnStep->setEnabled(false);
+
+	btnCont = new QPushButton(_("Cont."));
+	btnCont->setToolTip(_("continue processing"));
+	btnCont->setEnabled(false);
+
+	QHBoxLayout* topLayout = new QHBoxLayout;
   topLayout->setContentsMargins(0, 0, 0, 0);
   topLayout->addWidget(lblTarget);
   topLayout->addStretch();
-  topLayout->addWidget(btnRun);
+	topLayout->addWidget(btnBP);
+	topLayout->addWidget(btnStep);
+	topLayout->addWidget(btnCont);
+	topLayout->addWidget(btnRun);
   topLayout->addWidget(btnEdit);
   topLayout->addWidget(btnDelete);
   QFrame* frmTop = new QFrame;
@@ -363,11 +77,15 @@ StateMachineViewImpl::StateMachineViewImpl(QWidget* parent) : QWidget(parent), t
   btnTrans->setStyleSheet("text-align:left;");
   btnTrans->setEnabled(false);
 
-  lstItem = new ItemList();
+	lstItem = new ItemList(QString::fromStdString("application/StateMachineItem"));
   lstItem->setStyleSheet("background-color: rgb( 212, 206, 199 )};");
   lstItem->setEnabled(false);
+	lstItem->createInitialNodeTarget();
+	lstItem->createFinalNodeTarget();
+	lstItem->createDecisionNodeTarget();
+	//createForkNodeTarget();
 
-  grhStateMachine = new EditorView(this);
+	grhStateMachine = new ActivityEditor(this, this);
   grhStateMachine->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
   grhStateMachine->setStyleSheet("background-color: white;");
   grhStateMachine->setAcceptDrops(true);
@@ -378,9 +96,9 @@ StateMachineViewImpl::StateMachineViewImpl(QWidget* parent) : QWidget(parent), t
   rdTrue = new QRadioButton("True");
   rdFalse = new QRadioButton("False");
 
-  btnSet = new QPushButton(tr("Set"));
+  btnSet = new QPushButton(_("Set"));
   btnSet->setIcon(QIcon(":/Teaching/icons/Logout.png"));
-  btnSet->setToolTip(tr("Set Guard condition"));
+  btnSet->setToolTip(_("Set Guard condition"));
 
   rdTrue->setEnabled(false);
   rdFalse->setEnabled(false);
@@ -417,11 +135,6 @@ StateMachineViewImpl::StateMachineViewImpl(QWidget* parent) : QWidget(parent), t
   splBase->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
   splBase->show();
   //
-  createInitialNodeTarget();
-  createFinalNodeTarget();
-  createDecisionNodeTarget();
-  //createForkNodeTarget();
-  //
   SettingManager::getInstance().loadSetting();
   ControllerManager::instance()->setStateMachineView(this);
   //
@@ -435,6 +148,14 @@ StateMachineViewImpl::StateMachineViewImpl(QWidget* parent) : QWidget(parent), t
   connect(btnDelete, SIGNAL(clicked()), this, SLOT(deleteClicked()));
   connect(btnEdit, SIGNAL(clicked()), this, SLOT(editClicked()));
   connect(btnRun, SIGNAL(clicked()), this, SLOT(runClicked()));
+	connect(btnStep, SIGNAL(clicked()), this, SLOT(stepClicked()));
+	connect(btnCont, SIGNAL(clicked()), this, SLOT(contClicked()));
+	connect(btnBP, SIGNAL(clicked()), this, SLOT(bpToggled()));
+}
+
+void StateMachineViewImpl::setBPStatus(bool isActive, bool isSet) {
+	btnBP->setEnabled(isActive);
+	btnBP->setChecked(isSet);
 }
 
 void StateMachineViewImpl::createStateCommands() {
@@ -459,7 +180,10 @@ void StateMachineViewImpl::setTaskParam(TaskModelParam* param) {
   btnEdit->setEnabled(true);
   btnDelete->setEnabled(true);
   btnRun->setEnabled(true);
-  //
+
+	btnStep->setEnabled(false);
+	btnCont->setEnabled(false);
+	//
   grhStateMachine->setTaskParam(param);
   grhStateMachine->createStateMachine(param);
 }
@@ -476,62 +200,6 @@ void StateMachineViewImpl::clearTaskParam() {
   rdFalse->setEnabled(false);
   btnSet->setEnabled(false);
   btnRun->setEnabled(false);
-}
-
-void StateMachineViewImpl::createInitialNodeTarget() {
-  QPixmap *pix = new QPixmap(30,30);
-  pix->fill( QColor(212, 206, 199) );
-  QPainter* painter = new QPainter(pix);
-  painter->setRenderHint(QPainter::Antialiasing, true);
-  painter->setBrush(QBrush(Qt::black, Qt::SolidPattern));
-  painter->drawEllipse(5,5,20,20);
-
-  lstItem->setIconSize(QSize(30,30));
-  QListWidgetItem* item = new QListWidgetItem("Start", lstItem);
-  item->setIcon(QIcon(*pix));
-}
-
-void StateMachineViewImpl::createFinalNodeTarget() {
-  QPixmap *pix = new QPixmap(30,30);
-  pix->fill( QColor(212, 206, 199) );
-  QPainter* painter = new QPainter(pix);
-  painter->setRenderHint(QPainter::Antialiasing, true);
-  painter->setBrush(QBrush(Qt::white, Qt::SolidPattern));
-  painter->setPen(QPen(Qt::black));
-  painter->drawEllipse(5,5,20,20);
-  painter->setBrush(QBrush(Qt::black, Qt::SolidPattern));
-  painter->drawEllipse(10,10,10,10);
-
-  lstItem->setIconSize(QSize(30,30));
-  QListWidgetItem* item = new QListWidgetItem("Final", lstItem);
-  item->setIcon(QIcon(*pix));
-}
-
-void StateMachineViewImpl::createDecisionNodeTarget() {
-  QPixmap *pix = new QPixmap(30,30);
-  pix->fill( QColor(212, 206, 199) );
-  QPainter* painter = new QPainter(pix);
-  painter->setRenderHint(QPainter::Antialiasing, true);
-  painter->setBrush(QBrush(Qt::black, Qt::SolidPattern));
-  QPolygon polygon;
-  polygon << QPoint(15.0, 5.0) << QPoint(0.0, 15.0)
-            << QPoint(15.0, 25.0) << QPoint(30.0, 15.0) << QPoint(15.0, 5.0);
-  painter->drawPolygon(polygon);
-  lstItem->setIconSize(QSize(30,30));
-  QListWidgetItem* item = new QListWidgetItem("Decision/Merge", lstItem);
-  item->setIcon(QIcon(*pix));
-}
-
-void StateMachineViewImpl::createForkNodeTarget() {
-  QPixmap *pix = new QPixmap(30,30);
-  pix->fill( QColor(212, 206, 199) );
-  QPainter* painter = new QPainter(pix);
-  painter->setRenderHint(QPainter::Antialiasing, true);
-  painter->setPen(QPen(Qt::black, 3.0));
-  painter->drawLine(0, 15, 30, 15);
-  lstItem->setIconSize(QSize(30,30));
-  QListWidgetItem* item = new QListWidgetItem("Fork/Join", lstItem);
-  item->setIcon(QIcon(*pix));
 }
 
 void StateMachineViewImpl::createCommandNodeTarget(int id, QString name) {
@@ -567,6 +235,32 @@ void StateMachineViewImpl::modeChanged() {
   grhStateMachine->setCntMode(btnTrans->isChecked());
 }
 
+void StateMachineViewImpl::stepClicked() {
+	if (doOperationStep() == ExecResult::EXEC_BREAK) {
+		setStepStatus(true);
+	} else {
+		setStepStatus(false);
+	}
+}
+
+void StateMachineViewImpl::contClicked() {
+	if (doOperationCont() == ExecResult::EXEC_BREAK) {
+		setStepStatus(true);
+	} else {
+		setStepStatus(false);
+	}
+}
+
+void StateMachineViewImpl::bpToggled() {
+	grhStateMachine->setBreakPoint(btnBP->isChecked());
+}
+
+void StateMachineViewImpl::setStepStatus(bool isActive) {
+	btnBP->setChecked(false);
+	btnStep->setEnabled(isActive);
+	btnCont->setEnabled(isActive);
+	executor_->setBreak(isActive);
+}
 void StateMachineViewImpl::deleteClicked() {
   grhStateMachine->deleteCurrent();
 }
@@ -576,7 +270,7 @@ void StateMachineViewImpl::editClicked() {
   if(target) {
     ElementStmParam* targetStm = target->getElemParam();
     if(targetStm->getType()!=ELEMENT_COMMAND) {
-      QMessageBox::warning(this, tr("Command"), tr("Please select Command Element. : ") + QString::number(targetStm->getType()));
+      QMessageBox::warning(this, _("Command"), _("Please select Command Element. : ") + QString::number(targetStm->getType()));
       return;
     }
     if( targetStm->getArgList().size()==0 ) {
@@ -598,18 +292,20 @@ void StateMachineViewImpl::editClicked() {
     ArgumentDialog dialog(targetTask_, targetStm, this);
     dialog.exec();
   } else {
-    QMessageBox::warning(this, tr("Command"), tr("Please select Target Command."));
+    QMessageBox::warning(this, _("Command"), _("Please select Target Command."));
     return;
   }
 }
 
 void StateMachineViewImpl::runClicked() {
-  ElementNode* target = grhStateMachine->getCurrentNode();
+	bool isReal = SettingManager::getInstance().getIsReal();
+	ElementNode* target = grhStateMachine->getCurrentNode();
   if(target) {
-    bool isReal = SettingManager::getInstance().getIsReal();
-    ElementStmParam* targetStm = target->getElemParam();
+    //bool isReal = SettingManager::getInstance().getIsReal();
+		parameterView_->setInputValues();
+		ElementStmParam* targetStm = target->getElemParam();
     if(targetStm->getType()!=ELEMENT_COMMAND) {
-      QMessageBox::warning(this, tr("Run Command"), tr("Please select Command Element."));
+      QMessageBox::warning(this, _("Run Command"), _("Please select Command Element."));
       return;
     }
     //
@@ -621,7 +317,7 @@ void StateMachineViewImpl::runClicked() {
       QString valueDesc = arg->getValueDesc();
       if(targetStm->getCommadDefParam()==0) {
         delete calculator;
-        QMessageBox::warning(this, tr("Run Command"), tr("Target Command does NOT EXIST."));
+        QMessageBox::warning(this, _("Run Command"), _("Target Command does NOT EXIST."));
         return;
       }
       ArgumentDefParam* argDef = targetStm->getCommadDefParam()->getArgList()[idxArg];
@@ -651,20 +347,20 @@ void StateMachineViewImpl::runClicked() {
         }
       }
     }
-    InfoBar::instance()->showMessage(tr("Running Command :") + targetStm->getCmdName());
+    InfoBar::instance()->showMessage(_("Running Command :") + targetStm->getCmdName());
     TaskExecutor::instance()->setRootName(SettingManager::getInstance().getRobotModelName());
     bool cmdRet = TaskExecutor::instance()->executeCommand(targetStm->getCmdName().toStdString(), parameterList, isReal);
     if(cmdRet) {
       //QMessageBox::information(this, tr("Run Command"), tr("Target Command is FINISHED."));
     } else {
-      QMessageBox::information(this, tr("Run Command"), tr("Target Command FAILED."));
+      QMessageBox::information(this, _("Run Command"), _("Target Command FAILED."));
     }
-    InfoBar::instance()->showMessage(tr("Finished Command :") + targetStm->getCmdName());
+    InfoBar::instance()->showMessage(_("Finished Command :") + targetStm->getCmdName());
   }
 }
 /////
 StateMachineView::StateMachineView(): viewImpl(0) {
-    setName("State Machine");
+    setName(_("StateMachine"));
     setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Ignored);
 
     viewImpl = new StateMachineViewImpl(this);

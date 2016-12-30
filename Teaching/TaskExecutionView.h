@@ -3,31 +3,42 @@
 
 #include "QtUtil.h"
 #include "TeachingTypes.h"
-#include "StateMachineView.h"
 #include "ParameterView.h"
+#include "ControllerBase.h"
+#include "TaskExecuteManager.h"
 
 namespace teaching {
 
 using namespace cnoid;
 
+class StateMachineView;
+
 class TaskExecutionView : public QWidget {
 public:
   TaskExecutionView(QWidget* parent = 0);
-  inline void setStateMachineView(StateMachineView* view) { this->statemachineView_ = view; }
+	inline void setStateMachineView(StateMachineView* view) { this->statemachineView_ = view; }
   inline void setParameterView(ParameterView* view) { this->parameterView_ = view; }
+	inline void setTaskExecutor(TaskExecuteManager* executor) { this->executor_ = executor; }
 
   void unloadCurrentModel();
 
 protected:
-  bool doTaskOperation(TaskModelParam* targetTask);
-  void runSingleTask();
+	void runSingleTask();
+	void runFlow(FlowParam* targetFlow);
+
+	ExecResult doTaskOperation();
+	ExecResult doOperationStep();
+	ExecResult doOperationCont();
+
+	bool checkPaused();
+	bool isSkipCheck_;
 
   TaskModelParam* currentTask_;
-  ElementStmParam* currParam_;
+	ElementStmParam* currParam_;
 
   StateMachineView* statemachineView_;
-  ParameterView* parameterView_;
-private:
+	ParameterView* parameterView_;
+	TaskExecuteManager* executor_;
 };
 
 }

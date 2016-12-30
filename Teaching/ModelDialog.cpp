@@ -8,6 +8,7 @@
 #include <cnoid/EigenUtil>
 #include <boost/bind.hpp>
 
+#include "gettext.h"
 #include "LoggerUtil.h"
 
 using namespace std;
@@ -28,11 +29,11 @@ ModelDialog::ModelDialog(MetaDataViewImpl* view, QWidget* parent)
   lstModel->setHorizontalHeaderLabels(QStringList() << "Type" << "Name");
 
   QFrame* frmTask = new QFrame;
-  QLabel* lblModel = new QLabel(tr("Model Name:"));
+  QLabel* lblModel = new QLabel(_("Model Name:"));
   leModel = new QLineEdit;
-  QLabel* lblModelRName = new QLabel(tr("Model ID:"));
+  QLabel* lblModelRName = new QLabel(_("Model ID:"));
   leModelRName = new QLineEdit;
-  QLabel* lblFile = new QLabel(tr("Model File:"));
+  QLabel* lblFile = new QLabel(_("Model File:"));
   cmbType = new QComboBox(this);
   cmbType->addItem("Env.");
   cmbType->addItem("E.E.");
@@ -41,29 +42,29 @@ ModelDialog::ModelDialog(MetaDataViewImpl* view, QWidget* parent)
 
   btnRef = new QPushButton();
   btnRef->setIcon(QApplication::style()->standardIcon(QStyle::SP_DialogOpenButton));
-  btnRef->setToolTip(tr("Ref..."));
+  btnRef->setToolTip(_("Ref..."));
 
-  QLabel* lblX = new QLabel(tr("Origin X:"));
+  QLabel* lblX = new QLabel(_("Origin X:"));
   leX = new QLineEdit; leX->setAlignment(Qt::AlignRight);
-  QLabel* lblY = new QLabel(tr("Y:"));
+  QLabel* lblY = new QLabel(_("Y:"));
   leY = new QLineEdit; leY->setAlignment(Qt::AlignRight);
-  QLabel* lblZ = new QLabel(tr("Z:"));
+  QLabel* lblZ = new QLabel(_("Z:"));
   leZ = new QLineEdit; leZ->setAlignment(Qt::AlignRight);
-  QLabel* lblRx = new QLabel(tr("Rx:"));
+  QLabel* lblRx = new QLabel(_("Rx:"));
   leRx = new QLineEdit; leRx->setAlignment(Qt::AlignRight);
-  QLabel* lblRy = new QLabel(tr("Ry:"));
+  QLabel* lblRy = new QLabel(_("Ry:"));
   leRy = new QLineEdit; leRy->setAlignment(Qt::AlignRight);
-  QLabel* lblRz = new QLabel(tr("Rz:"));
+  QLabel* lblRz = new QLabel(_("Rz:"));
   leRz = new QLineEdit; leRz->setAlignment(Qt::AlignRight);
   //
   QFrame* frmButtons = new QFrame;
-  btnAddModel = new QPushButton(tr("Add"));
+  btnAddModel = new QPushButton(_("Add"));
   btnAddModel->setIcon(QIcon(":/Teaching/icons/Plus.png"));
-  btnAddModel->setToolTip(tr("Add new Model"));
+  btnAddModel->setToolTip(_("Add new Model"));
 
-  btnDeleteModel = new QPushButton(tr("Delete"));
+  btnDeleteModel = new QPushButton(_("Delete"));
   btnDeleteModel->setIcon(QIcon(":/Teaching/icons/Delete.png"));
-  btnDeleteModel->setToolTip(tr("Delete selected Model"));
+  btnDeleteModel->setToolTip(_("Delete selected Model"));
 
   QGridLayout* taskLayout = new QGridLayout;
   taskLayout->setContentsMargins(2, 0, 2, 0);
@@ -97,7 +98,7 @@ ModelDialog::ModelDialog(MetaDataViewImpl* view, QWidget* parent)
   buttonLayout->addWidget(btnDeleteModel);
 
   QFrame* frmBotButtons = new QFrame;
-  QPushButton* btnOK = new QPushButton(tr("OK"));
+  QPushButton* btnOK = new QPushButton(_("OK"));
   QHBoxLayout* buttonBotLayout = new QHBoxLayout(frmBotButtons);
   buttonBotLayout->setContentsMargins(2, 2, 2, 2);
   buttonBotLayout->addStretch();
@@ -128,7 +129,7 @@ ModelDialog::ModelDialog(MetaDataViewImpl* view, QWidget* parent)
 	currentBodyItemChangeConnection = BodyBar::instance()->sigCurrentBodyItemChanged().connect(
       bind(&ModelDialog::onCurrentBodyItemChanged, this, _1));
 
-  setWindowTitle(tr("Models"));
+  setWindowTitle(_("Models"));
   resize(450, 350);
 }
 
@@ -199,8 +200,7 @@ void ModelDialog::modelSelectionChanged() {
 
 void ModelDialog::refClicked() {
 	QString strFName = QFileDialog::getOpenFileName(
-			this, tr( "Model VRML File" ), ".",
-			tr( "wrl(*.wrl);;all(*.*)" ) );
+			this, "VRML File", ".", "wrl(*.wrl);;all(*.*)" );
 	if ( strFName.isEmpty() ) return;
   //
   DDEBUG("ModelDialog::refClicked")

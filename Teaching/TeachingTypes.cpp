@@ -39,6 +39,7 @@ void DatabaseParam::setNormal() {
 }
 /////
 void ElementNode::updateSelect(bool isActive) {
+	this->isActive_ = isActive;
   if(type_==ELEMENT_START) {
     if(isActive) {
       item_->setBrush(QBrush(Qt::red, Qt::SolidPattern));
@@ -68,12 +69,48 @@ void ElementNode::updateSelect(bool isActive) {
     }
 
   } else if(type_==ELEMENT_COMMAND) {
-    if(isActive) {
-      item_->setPen(QPen(Qt::red, 3.0));
-    } else {
-      item_->setPen(QPen(Qt::black, 3.0));
-    }
-  }
+		if (isBreak_) {
+			if (isActive) {
+				item_->setPen(QPen(Qt::cyan, 3.0));
+			} else {
+				item_->setPen(QPen(Qt::green, 3.0));
+			}
+		} else {
+			if (isActive) {
+				item_->setPen(QPen(Qt::red, 3.0));
+			} else {
+				item_->setPen(QPen(Qt::black, 3.0));
+			}
+		}
+	} else if (type_ == ELEMENT_POINT) {
+		if (isActive) {
+			item_->setPen(QPen(Qt::red, 3.0));
+			item_->setBrush(QBrush(Qt::red, Qt::SolidPattern));
+		} else {
+			item_->setPen(QPen(Qt::black, 3.0));
+			item_->setBrush(QBrush(Qt::black, Qt::SolidPattern));
+		}
+	}
+}
+
+void ElementNode::setBreak(bool isBreak) {
+	this->isBreak_ = isBreak;
+	//
+	if (isBreak_) {
+		if (isActive_) {
+			item_->setPen(QPen(Qt::cyan, 3.0));
+		}
+		else {
+			item_->setPen(QPen(Qt::green, 3.0));
+		}
+	} else {
+		if (isActive_) {
+			item_->setPen(QPen(Qt::red, 3.0));
+		}
+		else {
+			item_->setPen(QPen(Qt::black, 3.0));
+		}
+	}
 }
 
 void ElementNode::updateActive(bool isActive) {
@@ -107,13 +144,21 @@ void ElementNode::updateActive(bool isActive) {
 
   } else if(type_==ELEMENT_COMMAND) {
     if(isActive) {
-      item_->setPen(QPen(Qt::blue, 3.0));
+			if (isBreak_) {
+				item_->setPen(QPen(Qt::magenta, 3.0));
+			} else {
+				item_->setPen(QPen(Qt::blue, 3.0));
+			}
     } else {
-      item_->setPen(QPen(Qt::black, 3.0));
+			if (isBreak_) {
+				item_->setPen(QPen(Qt::green, 3.0));
+			} else {
+				item_->setPen(QPen(Qt::black, 3.0));
+			}
     }
   }
 }
-
+/////
 void ElementStmParam::updateSelect(bool isActive) {
   if(this->realElem_) {
     this->realElem_->updateSelect(isActive);
@@ -135,14 +180,20 @@ void ElementStmParam::clearActionList() {
   actionList_.clear();
 }
 
+ElementStmParam::ElementStmParam(int id, int type, QString cmdName, QString cmdDspName, double posX, double posY)
+	: id_(id), type_(type), cmdName_(cmdName), cmdDspName_(cmdDspName), posX_(posX), posY_(posY),
+		nextElem_(0), trueElem_(0), falseElem_(0), realElem_(0), commandDef_(0), taskParam_(0), isBreak_(false) {
+}
+
 ElementStmParam::ElementStmParam(const ElementStmParam* source)
    : id_(source->id_), type_(source->type_),
      cmdName_(source->cmdName_), cmdDspName_(source->cmdDspName_),
      posX_(source->posX_), posY_(source->posY_),
-     nextElem_(source->nextElem_), trueElem_(source->trueElem_), falseElem_(source->falseElem_) {
+     nextElem_(source->nextElem_), trueElem_(source->trueElem_), falseElem_(source->falseElem_),
+		 isBreak_(source->isBreak_) {
     mode_ = DatabaseMode(source->getMode());
     std::copy(source->actionList_.begin(), source->actionList_.end(), back_inserter(actionList_) );
-};
+}
 
 ElementStmParam::~ElementStmParam() {
   std::vector<ElementStmActionParam*>::iterator itAction = actionList_.begin();
@@ -158,7 +209,42 @@ ElementStmParam::~ElementStmParam() {
     ++itArg;
   }
   argList_.clear();
-};
+	//
+	delete realElem_;
+}
+
+void ConnectionStmParam::addChildNode(ElementStmParam* target) {
+	this->childList_.push_back(target);
+}
+
+void ConnectionStmParam::addChildNode(ElementStmParam* prev, ElementStmParam* target){
+	DDEBUG("ConnectionStmParam::addChildNode");
+	if (childList_.size() == 0) {
+		this->childList_.push_back(target);
+	} else {
+		vector<ElementStmParam*>::iterator iter = find(childList_.begin(), childList_.end(), prev);
+		if (iter != childList_.end()) {
+			DDEBUG("ConnectionStmParam::addChildNode NOT FOUND");
+			childList_.insert(iter + 1, target);
+		} else {
+			DDEBUG("ConnectionStmParam::addChildNode FOUND");
+			childList_.insert(childList_.begin(), target);
+		}
+	}
+}
+
+void ConnectionStmParam::removeChildNode(ElementStmParam* target) {
+	this->childList_.erase(std::remove(this->childList_.begin(), this->childList_.end(), target), this->childList_.end());
+}
+
+ConnectionStmParam::~ConnectionStmParam() {
+	std::vector<ElementStmParam*>::iterator itChild = childList_.begin();
+	while (itChild != childList_.end()) {
+		delete *itChild;
+		++itChild;
+	}
+	childList_.clear();
+}
 /////
 std::string ParameterParam::getValues(int index) {
   if(index<0 || valueList_.size()<= index) return "";
@@ -305,11 +391,18 @@ void TaskModelParam::setAllNewData() {
   }
 }
 
+TaskModelParam::TaskModelParam(int id, QString name, QString comment, int flow_id, int seq, QString created_date, QString last_updated_date)
+: id_(id), name_(name), comment_(comment), flow_id_(flow_id), seq_(seq),
+  created_date_(created_date), last_updated_date_(last_updated_date),
+	isLoaded_(false), isModelLoaded_(false), nextTask_(0), stateParam_(0) {
+}
+
 TaskModelParam::TaskModelParam(const TaskModelParam* source)
   : id_(source->id_), name_(source->name_), comment_(source->comment_),
     flow_id_(source->flow_id_), seq_(source->seq_),
     created_date_(source->created_date_), last_updated_date_(source->last_updated_date_),
-    isLoaded_(source->isLoaded_) {
+		isLoaded_(source->isLoaded_), isModelLoaded_(source->isModelLoaded_),
+		nextTask_(source->nextTask_), stateParam_(source->stateParam_) {
 
   mode_ = DatabaseMode(source->getMode());
   std::copy(source->modeList_.begin(), source->modeList_.end(), back_inserter(modeList_) );
@@ -377,7 +470,7 @@ void TaskModelParam::clearParameterList() {
   parameterList_.clear();
 }
 
-bool TaskModelParam::checkAndOrderStateMachine() {
+bool ActivityParam::checkAndOrderStateMachine() {
   errContents_ = "";
   //
   int startCnt = 0;

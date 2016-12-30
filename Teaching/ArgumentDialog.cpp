@@ -3,6 +3,7 @@
 #include "DataBaseManager.h"
 #include "TeachingUtil.h"
 
+#include "gettext.h"
 #include "LoggerUtil.h"
 
 namespace teaching {
@@ -36,21 +37,21 @@ ArgumentDialog::ArgumentDialog(TaskModelParam* param, ElementStmParam* stmParam,
   lstHandling->setColumnWidth(2, 150);
   lstHandling->setHorizontalHeaderLabels(QStringList() << "Action" << "Model" << "Parameter");
 
-  QPushButton* btnUp = new QPushButton(tr("Up"));
+  QPushButton* btnUp = new QPushButton(_("Up"));
   btnUp->setIcon(QIcon(":/Teaching/icons/Up.png"));
-  btnUp->setToolTip(tr("Action Up"));
+  btnUp->setToolTip(_("Action Up"));
 
-  QPushButton* btnDown = new QPushButton(tr("Down"));
+  QPushButton* btnDown = new QPushButton(_("Down"));
   btnDown->setIcon(QIcon(":/Teaching/icons/Down.png"));
-  btnDown->setToolTip(tr("Action Down"));
+  btnDown->setToolTip(_("Action Down"));
 
-  QPushButton* btnAdd = new QPushButton(tr("Add"));
+  QPushButton* btnAdd = new QPushButton(_("Add"));
   btnAdd->setIcon(QIcon(":/Teaching/icons/Plus.png"));
-  btnAdd->setToolTip(tr("Add Action"));
+  btnAdd->setToolTip(_("Add Action"));
 
-  QPushButton* btnDelete = new QPushButton(tr("Delete"));
+  QPushButton* btnDelete = new QPushButton(_("Delete"));
   btnDelete->setIcon(QIcon(":/Teaching/icons/Delete.png"));
-  btnDelete->setToolTip(tr("Delete Action"));
+  btnDelete->setToolTip(_("Delete Action"));
 
   QFrame* frmParamButtons = new QFrame;
   QHBoxLayout* buttonParamLayout = new QHBoxLayout;
@@ -62,18 +63,18 @@ ArgumentDialog::ArgumentDialog(TaskModelParam* param, ElementStmParam* stmParam,
   buttonParamLayout->addWidget(btnAdd);
   buttonParamLayout->addWidget(btnDelete);
 
-  QLabel* lblAction = new QLabel(tr("Action:"));
+  QLabel* lblAction = new QLabel(_("Action:"));
   cmbAction = new QComboBox(this);
   cmbAction->addItem("Attach");
   cmbAction->addItem("Detach");
-  QLabel* lblModel = new QLabel(tr("Model:"));
+  QLabel* lblModel = new QLabel(_("Model:"));
   cmbModel = new QComboBox(this);
   for(int index=0; index<targetTask_->getModelList().size(); index++) {
     ModelParam* model = targetTask_->getModelList()[index];
     cmbModel->addItem(model->getRName());
   }
 
-  QLabel* lblTarget = new QLabel(tr("Parameter:"));
+  QLabel* lblTarget = new QLabel(_("Parameter:"));
   cmbTarget = new QComboBox(this);
   cmbTarget->addItem("");
   for(int index=0; index<targetTask_->getParameterList().size(); index++) {
@@ -115,10 +116,12 @@ ArgumentDialog::ArgumentDialog(TaskModelParam* param, ElementStmParam* stmParam,
   splitter->setSizes(initSizes);
   //
   QFrame* frmButtons = new QFrame;
-  QPushButton* btnOK = new QPushButton(tr("OK"));
-  QHBoxLayout* buttonLayout = new QHBoxLayout(frmButtons);
+  QPushButton* btnOK = new QPushButton(_("OK"));
+	QPushButton* btnCancel = new QPushButton(_("Cancel"));
+	QHBoxLayout* buttonLayout = new QHBoxLayout(frmButtons);
   buttonLayout->setContentsMargins(2, 2, 2, 2);
-  buttonLayout->addStretch();
+	buttonLayout->addWidget(btnCancel);
+	buttonLayout->addStretch();
   buttonLayout->addWidget(btnOK);
   //
   QLabel* lblTaskName = new QLabel("Command Name: " + targetStm_->getCmdName());
@@ -136,9 +139,10 @@ ArgumentDialog::ArgumentDialog(TaskModelParam* param, ElementStmParam* stmParam,
   connect(btnUp, SIGNAL(clicked()), this, SLOT(upClicked()));
   connect(btnDown, SIGNAL(clicked()), this, SLOT(downClicked()));
   connect(btnOK, SIGNAL(clicked()), this, SLOT(oKClicked()));
-  connect(this, SIGNAL(rejected()), this, SLOT(okClicked()));
+	connect(btnCancel, SIGNAL(clicked()), this, SLOT(cancelClicked()));
+	connect(this, SIGNAL(rejected()), this, SLOT(cancelClicked()));
 
-  setWindowTitle(tr("Command"));
+  setWindowTitle(_("Command"));
   resize(1200, 700);
   //
   showModelInfo();
@@ -322,13 +326,13 @@ void ArgumentDialog::oKClicked() {
     ElementStmActionParam* param = targetStm_->getActionList()[logicalIdx];
     if( param->getMode()==DB_MODE_DELETE || param->getMode()==DB_MODE_IGNORE) continue;
     if(param->getModel().length()==0) {
-      QMessageBox::warning(this, tr("Argument"), tr("Error : Model Definition."));
+      QMessageBox::warning(this, _("Argument"), _("Error : Model Definition."));
       return;
     }
-    if(param->getModel()==param->getTarget()) {
-      QMessageBox::warning(this, tr("Argument"), tr("Error : Model and Target are SAME."));
-      return;
-    }
+    //if(param->getModel()==param->getTarget()) {
+    //  QMessageBox::warning(this, _("Argument"), _("Error : Model and Target are SAME."));
+    //  return;
+    //}
     if(param->getSeq()!=seq) {
       param->setSeq(seq);
     }
@@ -343,25 +347,34 @@ void ArgumentDialog::oKClicked() {
     if(0<param->getValueDesc().trimmed().length()) {
       if(calculator->calculate(param->getValueDesc(), targetTask_)==false) {
         DDEBUG_V("%s", param->getValueDesc().toStdString().c_str());
-        QMessageBox::warning(this, tr("Argument"), tr("Error : Argument Definition."));
+        QMessageBox::warning(this, _("Argument"), _("Error : Argument Definition."));
         delete calculator;
         return;
       }
     }
+		if (targetStm_->getMode() == DB_MODE_INSERT) {
+			param->setNew();
+		}
   }
   delete calculator;
   //
-  if(DatabaseManager::getInstance().saveStateParameter(targetStm_)==false ) {
-    QMessageBox::warning(this, tr("Save Argument Error"), DatabaseManager::getInstance().getErrorStr());
-    return;
-  }
-  targetStm_->clearActionList();
-  vector<ElementStmActionParam*> actionList = DatabaseManager::getInstance().getStmActionList(targetStm_->getId());
-  for(int index=0; index<actionList.size(); index++) {
-    targetStm_->addModelAction(actionList[index]);
-  }
+	if (targetStm_->getMode() == DB_MODE_NORMAL) {
+		if (DatabaseManager::getInstance().saveStateParameter(targetStm_) == false) {
+			QMessageBox::warning(this, _("Save Argument Error"), DatabaseManager::getInstance().getErrorStr());
+			return;
+		}
+		targetStm_->clearActionList();
+		vector<ElementStmActionParam*> actionList = DatabaseManager::getInstance().getStmActionList(targetStm_->getId());
+		for (int index = 0; index < actionList.size(); index++) {
+			targetStm_->addModelAction(actionList[index]);
+		}
+	}
   //
   close();
+}
+
+void ArgumentDialog::cancelClicked() {
+	close();
 }
 
 }

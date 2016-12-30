@@ -1,6 +1,8 @@
 #include "SettingDialog.h"
 #include "TeachingUtil.h"
 
+#include "gettext.h"
+
 using namespace std;
 using namespace cnoid;
 
@@ -14,14 +16,14 @@ SettingDialog::SettingDialog(QWidget* parent)
   baseLayout->setContentsMargins(2, 0, 2, 0);
   frmBase->setLayout(baseLayout);
 
-  QLabel* lblDatabase = new QLabel(tr("Database:"));
+  QLabel* lblDatabase = new QLabel(_("Database:"));
   leDatabase = new QLineEdit;
   //QPushButton* btnDatabase = new QPushButton(tr("Ref..."));
   QPushButton* btnDatabase = new QPushButton();
   btnDatabase->setIcon(QApplication::style()->standardIcon(QStyle::SP_DialogOpenButton));
-  btnDatabase->setToolTip(tr("Ref..."));
+  btnDatabase->setToolTip(_("Ref..."));
   //
-  QLabel* lblRobotModel = new QLabel(tr("Robot Model Name:"));
+  QLabel* lblRobotModel = new QLabel(_("Robot Model Name:"));
   leRobotModel = new QLineEdit;
   //
   lstApp = UIUtil::makeTableWidget(2, true);
@@ -29,16 +31,16 @@ SettingDialog::SettingDialog(QWidget* parent)
   lstApp->setColumnWidth(1, 400);
   lstApp->setHorizontalHeaderLabels(QStringList() << "Ext" << "Application Path");
   //
-  QLabel* lblExt = new QLabel(tr("Ext:"));
+  QLabel* lblExt = new QLabel(_("Ext:"));
   leExt = new QLineEdit;
   //
-  QLabel* lblApp = new QLabel(tr("Application:"));
+  QLabel* lblApp = new QLabel(_("Application:"));
   leApp = new QLineEdit;
   //QPushButton* btnRef = new QPushButton(tr("Ref..."));
   QPushButton* btnRef = new QPushButton();
   btnRef->setIcon(QApplication::style()->standardIcon(QStyle::SP_DialogOpenButton));
-  btnRef->setToolTip(tr("Ref..."));
-  chkReal = new QCheckBox(tr("Real"));
+  btnRef->setToolTip(_("Ref..."));
+  chkReal = new QCheckBox(_("Real"));
   //chkReal->setEnabled(false);
 
   baseLayout->addWidget(lblDatabase, 0, 0, 1, 1, Qt::AlignRight);
@@ -55,8 +57,8 @@ SettingDialog::SettingDialog(QWidget* parent)
   baseLayout->addWidget(chkReal, 5, 1, 1, 1);
   //
   QFrame* frmButtons = new QFrame;
-  QPushButton* btnOK = new QPushButton(tr("OK"));
-  QPushButton* btnCancel = new QPushButton(tr("Cancel"));
+  QPushButton* btnOK = new QPushButton(_("OK"));
+  QPushButton* btnCancel = new QPushButton(_("Cancel"));
   QHBoxLayout* buttonLayout = new QHBoxLayout(frmButtons);
   buttonLayout->setContentsMargins(2, 2, 2, 2);
   buttonLayout->addWidget(btnOK);
@@ -81,7 +83,7 @@ SettingDialog::SettingDialog(QWidget* parent)
 
   showAppList();
 
-  setWindowTitle(tr("Setting"));
+  setWindowTitle(_("Setting"));
   setFixedHeight(sizeHint().height());
   setFixedWidth(600);
 }
@@ -107,8 +109,8 @@ void SettingDialog::showAppList() {
 
 void SettingDialog::refDBClicked() {
 	QString strFName = QFileDialog::getOpenFileName(
-			this, tr( "Database File" ), ".",
-			tr( "sqlite(*.sqlite3);;all(*.*)" ));
+			this, "Database File", ".",
+			"sqlite(*.sqlite3);;all(*.*)");
 	if ( !strFName.isEmpty() ){
     leDatabase->setText(strFName);
 	}
@@ -135,8 +137,7 @@ void SettingDialog::appSelectionChanged() {
 
 void SettingDialog::refAppClicked() {
 	QString strFName = QFileDialog::getOpenFileName(
-			this, tr( "Target Application" ), leApp->text(),
-			tr( "all(*)" ) );
+			this, "Target Application", leApp->text(), "all(*)" );
 	if ( !strFName.isEmpty() ){
     leApp->setText(strFName);
 	}
@@ -152,24 +153,24 @@ void SettingDialog::oKClicked() {
 
   QString strDatabase = leDatabase->text();
   if( strDatabase.size()==0 ) {
-    QMessageBox::warning(this, tr("Setting"), tr("Please input Database File."));
+    QMessageBox::warning(this, _("Setting"), _("Please input Database File."));
     leDatabase->setFocus();
     return;
   }
   QString strRobotModelName = leRobotModel->text();
   if( strRobotModelName.size()==0 ) {
-    QMessageBox::warning(this, tr("Setting"), tr("Please input Robot Model Name."));
+    QMessageBox::warning(this, _("Setting"), _("Please input Robot Model Name."));
     leRobotModel->setFocus();
     return;
   }
   for(int index=0; index< appList_.size(); index++) {
     AppExtParam param = appList_[index];
     if( param.ext_.size()==0 ) {
-      QMessageBox::warning(this, tr("Setting"), tr("Please input Target EXT."));
+      QMessageBox::warning(this, _("Setting"), _("Please input Target EXT."));
       return;
     }
     if( param.appPath_.size()==0 ) {
-      QMessageBox::warning(this, tr("Setting"), tr("Please input APPLICATION Path."));
+      QMessageBox::warning(this, _("Setting"), _("Please input APPLICATION."));
       return;
     }
   }

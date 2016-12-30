@@ -103,41 +103,19 @@ FlowParam* DatabaseManager::getFlowParamById(const int id) {
   result->setCreatedDate(createdDate);
   result->setLastUpdatedDate(updatedDate);
   //
-  string strItemQuery = "SELECT ";
-  strItemQuery += "task_inst_id ";
-  strItemQuery += "FROM T_FLOW_ITEM ";
-  strItemQuery += "WHERE flow_id = " + toStr(id) + " ";
-  strItemQuery += "ORDER BY seq";
-  QSqlQuery itemQuery(db_);
-  itemQuery.exec(strItemQuery.c_str());
-  vector<int> taskIdList;
-  while (itemQuery.next()) {
-    int id = itemQuery.value(0).toInt();
-    taskIdList.push_back(id);
-  }
-  if(taskIdList.size()==0) return result;
-  //
-  for(int index=0; index<taskIdList.size();index++) {
-    int taskId = taskIdList[index];
-    string strTaskQuery = "SELECT ";
-    strTaskQuery += "name, comment, flow_id, created_date, last_updated_date ";
-    strTaskQuery += "FROM T_TASK_MODEL_INST ";
-    strTaskQuery += "WHERE task_inst_id =" + toStr(taskId);
-    QSqlQuery taskQuery(db_);
-    taskQuery.exec(strTaskQuery.c_str());
-    while (taskQuery.next()) {
-      QString name = taskQuery.value(0).toString();
-      QString comment = taskQuery.value(1).toString();
-      int flow_id = taskQuery.value(2).toInt();
-      QString createdDate = taskQuery.value(3).toString();
-      QString updatedDate = taskQuery.value(4).toString();
-      //
-      TaskModelParam* param = new TaskModelParam(taskId, name, comment, flow_id, -1, createdDate, updatedDate);
-      taskModelList_.push_back(param);
-      getDetailParams(param);
-      result->addTask(param);
-    }
-  }
+	vector<ElementStmParam*> stateList = getFlowStateParams(id);
+	std::vector<ElementStmParam*>::iterator itState = stateList.begin();
+	while (itState != stateList.end()) {
+		result->addStmElement(*itState);
+		++itState;
+	}
+	vector<ConnectionStmParam*> transList = getFlowTransParams(id);
+	std::vector<ConnectionStmParam*>::iterator itTrans = transList.begin();
+	while (itTrans != transList.end()) {
+		result->addStmConnection(*itTrans);
+		++itTrans;
+	}
+
   return result;
 }
 
@@ -298,9 +276,60 @@ bool DatabaseManager::checkFlowItem(const int id, vector<QString>& flowList) {
 }
 //////////
 bool DatabaseManager::saveFlowModel(FlowParam* source) {
-  //if(saveTaskModels(source->getTaskList())==false) return false;
-  if(saveFlowData(source)==false) return false;
-  return true;
+	db_.transaction();
+	if (saveFlowData(source) == false) {
+		db_.rollback();
+		return false;
+	}
+	//
+	vector<ElementStmParam*> stateList = source->getStmElementList();
+	vector<ElementStmParam*>::iterator itState = stateList.begin();
+	while (itState != stateList.end()) {
+		if (saveFlowStmData(source->getId(), *itState) == false) {
+			db_.rollback();
+			return false;
+		}
+		++itState;
+	}
+	//
+	vector<ConnectionStmParam*> transList = source->getStmConnectionList();
+	vector<ConnectionStmParam*>::iterator itTrans = transList.begin();
+	while (itTrans != transList.end()) {
+		if ((*itTrans)->getSourceId()<0) {
+			vector<ElementStmParam*>::iterator sourceElem = find_if(stateList.begin(), stateList.end(), ElementStmParamComparator((*itTrans)->getSourceId()));
+			if (sourceElem == stateList.end()) {
+				++itTrans;
+				DDEBUG("NOT Found SourceId");
+				continue;
+			}
+			(*itTrans)->setSourceId((*sourceElem)->getId());
+		}
+
+		if ((*itTrans)->getTargetId()<0) {
+			vector<ElementStmParam*>::iterator targetElem = find_if(stateList.begin(), stateList.end(), ElementStmParamComparator((*itTrans)->getTargetId()));
+			if (targetElem == stateList.end()) {
+				++itTrans;
+				DDEBUG("NOT Found TargetId");
+				continue;
+			}
+			(*itTrans)->setTargetId((*targetElem)->getId());
+			DDEBUG_V("New Trans sourceId : %d, TargetId : %d", (*itTrans)->getSourceId(), (*itTrans)->getTargetId());
+		}
+		if (saveFlowTransactionStmData(source->getId(), *itTrans) == false) {
+			db_.rollback();
+			return false;
+		}
+		++itTrans;
+	}
+	//
+	itState = stateList.begin();
+	while (itState != stateList.end()) {
+		(*itState)->updateId();
+		++itState;
+	}
+	//
+	db_.commit();
+	return true;
 }
 
 bool DatabaseManager::saveTaskParameter(TaskModelParam* source) {
@@ -722,27 +751,64 @@ bool DatabaseManager::deleteTaskModel(TaskModelParam* target) {
 /////
 bool DatabaseManager::deleteFlowModel(int id) {
   DDEBUG("deleteFlowModel");
+	db_.transaction();
+	{
+		string strQuery = "DELETE FROM T_FLOW ";
+		strQuery += "WHERE flow_id = ? ";
 
-  string strQuery = "DELETE FROM T_FLOW "; 
-  strQuery += "WHERE flow_id = ? ";
+		QSqlQuery query(QString::fromStdString(strQuery));
+		query.addBindValue(id);
 
-  QSqlQuery query(QString::fromStdString(strQuery));
-  query.addBindValue(id);
-
-  if(!query.exec()) {
-    errorStr_ = "DELETE(T_FLOW) error:" + query.lastError().databaseText() + "-" + QString::fromStdString(strQuery);
-    return false;
-  }
+		if (!query.exec()) {
+			errorStr_ = "DELETE(T_FLOW) error:" + query.lastError().databaseText() + "-" + QString::fromStdString(strQuery);
+			db_.rollback();
+			return false;
+		}
+	}
   //
-  string strItemQuery = "DELETE FROM T_FLOW_ITEM "; 
-  strItemQuery += "WHERE flow_id = ? ";
-  QSqlQuery itemQuery(QString::fromStdString(strItemQuery));
-  itemQuery.addBindValue(id);
-  if(!itemQuery.exec()) {
-    errorStr_ = "DELETE(T_FLOW_ITEM) error:" + query.lastError().databaseText() + "-" + QString::fromStdString(strQuery);
-    return false;
-  }
-  return true;
+	{
+		string strQuery = "DELETE FROM T_FLOW_STATE ";
+		strQuery += "WHERE flow_id = ? ";
+		QSqlQuery query(QString::fromStdString(strQuery));
+		query.addBindValue(id);
+		if (!query.exec()) {
+			errorStr_ = "DELETE(T_FLOW_STATE) error:" + query.lastError().databaseText() + "-" + QString::fromStdString(strQuery);
+			db_.rollback();
+			return false;
+		}
+	}
+	//
+	vector<ConnectionStmParam*> transList = getFlowTransParams(id);
+	{
+		string strQuery = "DELETE FROM T_FLOW_TRANSITION ";
+		strQuery += "WHERE flow_id = ? ";
+
+		QSqlQuery query(QString::fromStdString(strQuery));
+		query.addBindValue(id);
+
+		if (!query.exec()) {
+			errorStr_ = "DELETE(T_FLOW_TRANSITION) error:" + query.lastError().databaseText() + "-" + QString::fromStdString(strQuery);
+			db_.rollback();
+			return false;
+		}
+	}
+	//
+	vector<ConnectionStmParam*>::iterator itTrans = transList.begin();
+	while (itTrans != transList.end()) {
+		string strQuery = "DELETE FROM T_FLOW_VIA_POINT ";
+		strQuery += "WHERE trans_id = ? ";
+		QSqlQuery query(QString::fromStdString(strQuery));
+		query.addBindValue((*itTrans)->getId());
+		if (!query.exec()) {
+			errorStr_ = "DELETE(T_FLOW_VIA_POINT) error:" + query.lastError().databaseText() + "-" + QString::fromStdString(strQuery);
+			db_.rollback();
+			return false;
+		}
+		++itTrans;
+	}
+
+	db_.commit();
+	return true;
 }
 /////
 bool DatabaseManager::saveDetailData(TaskModelParam* source) {

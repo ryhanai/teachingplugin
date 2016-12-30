@@ -14,8 +14,10 @@ namespace teaching {
 class ElementNode;
 class ElementStmParam;
 class ConnectionStmParam;
+class TaskModelParam;
 
 static const double PI = 3.14159265358979323846;
+static const int NULL_ID = -1;
 
 enum ModelType {
   MODEL_ENV = 0,
@@ -38,7 +40,8 @@ enum ElementType {
   ELEMENT_FINAL,
   ELEMENT_DECISION,
   ELEMENT_FORK,
-  ELEMENT_COMMAND
+	ELEMENT_COMMAND,
+	ELEMENT_POINT
 };
 
 enum ParameterType {
@@ -57,6 +60,12 @@ enum DatabaseMode {
   DB_MODE_DELETE,
   DB_MODE_INSERT,
   DB_MODE_IGNORE
+};
+
+enum ExecResult {
+	EXEC_FINISHED = 0,
+	EXEC_ERROR,
+	EXEC_BREAK
 };
 
 class DatabaseParam {
@@ -221,7 +230,10 @@ public:
   inline void setElemParam(ElementStmParam* elem) { this->parentElem_ = elem; }
   inline ElementStmParam* getElemParam() { return this->parentElem_; }
 
-  void updatePosition(double x, double y);
+	void setBreak(bool isBreak);
+	inline bool isBreak() { return this->isBreak_; }
+
+	void updatePosition(double x, double y);
   void updateActive(bool isActive);
   void updateSelect(bool isActive);
 
@@ -230,12 +242,15 @@ private:
   std::vector<ConnectionNode*> lineList_;
   ElementStmParam* parentElem_;
   QAbstractGraphicsShapeItem* item_;
+	bool isBreak_;
+	bool isActive_;
 
   void createStartNode();
   void createFinalNode();
   void createDecisionNode();
   void createForkNode();
-  void createCommandNode(QString name);
+	void createPoint();
+	void createCommandNode(QString name);
 };
 /////
 class ArgumentParam : public DatabaseParam {
@@ -310,9 +325,7 @@ private:
 
 class ElementStmParam : public DatabaseParam {
 public:
-  ElementStmParam(int id, int type, QString cmdName, QString cmdDspName, double posX, double posY)
-   : id_(id), type_(type), cmdName_(cmdName), cmdDspName_(cmdDspName), posX_(posX), posY_(posY),
-     nextElem_(0), trueElem_(0), falseElem_(0), realElem_(0), commandDef_(0) {};
+	ElementStmParam(int id, int type, QString cmdName, QString cmdDspName, double posX, double posY);
   ElementStmParam(const ElementStmParam* source);
   virtual ~ElementStmParam();
 
@@ -353,7 +366,16 @@ public:
   inline CommandDefParam* getCommadDefParam() const { return this->commandDef_; }
   inline void setCommadDefParam(CommandDefParam* value) { this->commandDef_ = value; }
 
-  void clearNextElems() {
+	inline TaskModelParam* getTaskParam() const { return this->taskParam_; }
+	inline void setTaskParam(TaskModelParam* value) {	this->taskParam_ = value;	}
+
+	inline void setBreak(bool isBreak) { this->isBreak_ = isBreak; }
+	inline bool isBreak() { return this->isBreak_; }
+
+	inline ConnectionStmParam* getParentConn() const { return this->parentConn_; }
+	inline void setParentConn(ConnectionStmParam* value) { this->parentConn_ = value; }
+
+	void clearNextElems() {
     this->nextElem_ = 0;
     this->trueElem_ = 0;
     this->falseElem_ = 0;
@@ -383,7 +405,12 @@ private:
   ElementStmParam* trueElem_;
   ElementStmParam* falseElem_;
 
+	ConnectionStmParam* parentConn_;
+
   CommandDefParam* commandDef_;
+	TaskModelParam* taskParam_;
+
+	bool isBreak_;
 };
 
 class ConnectionStmParam : public DatabaseParam {
@@ -393,20 +420,31 @@ public:
   ConnectionStmParam(const ConnectionStmParam* source)
    : id_(source->id_), sourceId_(source->sourceId_), targetId_(source->targetId_),condition_(source->condition_)
   {  mode_ = DatabaseMode(source->getMode()); };
+	virtual ~ConnectionStmParam();
 
   inline int getId() const { return this->id_; }
-  inline int getSourceId() const { return this->sourceId_; }
+	inline void setId(int value) { this->id_ = value; }
+
+	inline int getSourceId() const { return this->sourceId_; }
   inline void setSourceId(int value) { this->sourceId_ = value; }
+
   inline int getTargetId() const { return this->targetId_; }
   inline void setTargetId(int value) { this->targetId_ = value; }
+
   inline QString getCondition() const { return this->condition_; }
   inline void setCondition(QString value) { this->condition_ = value; }
+
+	void addChildNode(ElementStmParam* prev, ElementStmParam* target);
+	void addChildNode(ElementStmParam* target);
+	void removeChildNode(ElementStmParam* target);
+	inline std::vector<ElementStmParam*> getChildList() const { return this->childList_; }
 
 private:
   int id_;
   int sourceId_;
   int targetId_;
   QString condition_;
+	std::vector<ElementStmParam*> childList_;
 };
 
 class ParameterParam : public DatabaseParam {
@@ -516,11 +554,31 @@ private:
   QByteArray rawData_;
 };
 /////
-class TaskModelParam : public DatabaseParam {
+class ActivityParam : public DatabaseParam {
 public:
-  TaskModelParam(int id, QString name, QString comment, int flow_id, int seq, QString created_date, QString last_updated_date)
-    : id_(id), name_(name), comment_(comment), flow_id_(flow_id), seq_(seq),
-      created_date_(created_date), last_updated_date_(last_updated_date), isLoaded_(false) {};
+	inline std::vector<ElementStmParam*> getStmElementList() const { return this->stmElemList_; }
+	inline void addStmElement(ElementStmParam* target){ this->stmElemList_.push_back(target); }
+	inline std::vector<ConnectionStmParam*> getStmConnectionList() const { return this->stmConnectionList_; }
+	inline void addStmConnection(ConnectionStmParam* target){ this->stmConnectionList_.push_back(target); }
+
+	inline QString getErrStr() const { return this->errContents_; }
+	inline ElementStmParam* getStartParam() const { return this->startParam_; }
+
+
+	bool checkAndOrderStateMachine();
+
+protected:
+	std::vector<ElementStmParam*> stmElemList_;
+	std::vector<ConnectionStmParam*> stmConnectionList_;
+
+	ElementStmParam* startParam_;
+
+	QString errContents_;
+};
+/////
+class TaskModelParam : public ActivityParam {
+public:
+  TaskModelParam(int id, QString name, QString comment, int flow_id, int seq, QString created_date, QString last_updated_date);
   TaskModelParam(const TaskModelParam* source);
   virtual ~TaskModelParam();
   
@@ -546,11 +604,6 @@ public:
   inline std::vector<ModelParam*> getModelList() const { return this->modeList_; }
   inline void addModel(ModelParam* target){ this->modeList_.push_back(target); }
 
-  inline std::vector<ElementStmParam*> getStmElementList() const { return this->stmElemList_; }
-  inline void addStmElement(ElementStmParam* target){ this->stmElemList_.push_back(target); }
-  inline std::vector<ConnectionStmParam*> getStmConnectionList() const { return this->stmConnectionList_; }
-  inline void addStmConnection(ConnectionStmParam* target){ this->stmConnectionList_.push_back(target); }
-
   inline std::vector<ParameterParam*> getParameterList() const { return this->parameterList_; }
   inline void addParameter(ParameterParam* target){ this->parameterList_.push_back(target); }
 
@@ -559,18 +612,23 @@ public:
   inline std::vector<ImageDataParam*> getImageList() const { return this->imageList_; }
   inline void addImage(ImageDataParam* target){ this->imageList_.push_back(target); }
 
-  inline QString getErrStr() const { return this->errContents_; }
-  inline ElementStmParam* getStartParam() const { return this->startParam_; }
+	inline TaskModelParam* getNextTask() const { return this->nextTask_; }
+	inline void setNextTask(TaskModelParam* value) { this->nextTask_ = value; }
 
-  void setAllNewData();
+	inline ElementStmParam* getStateParam() const { return this->stateParam_; }
+	inline void setStateParam(ElementStmParam* value) { this->stateParam_ = value; }
+
+	void setAllNewData();
   void deleteModelById(const int id);
   ModelParam* getModelById(const int id);
-  bool checkAndOrderStateMachine();
   void clearParameterList();
   void clearDetailParams();
 
   inline bool IsLoaded() const { return this->isLoaded_; }
   inline void setLoaded(bool value) { this->isLoaded_ = value; }
+
+	inline bool IsModelLoaded() const { return this->isModelLoaded_; }
+	inline void setModelLoaded(bool value) { this->isModelLoaded_ = value; }
 
 private:
   int id_;
@@ -582,20 +640,18 @@ private:
   QString last_updated_date_;
 
   bool isLoaded_;
+	bool isModelLoaded_;
 
   std::vector<ModelParam*> modeList_;
-  std::vector<ElementStmParam*> stmElemList_;
-  std::vector<ConnectionStmParam*> stmConnectionList_;
   std::vector<ParameterParam*> parameterList_;
   std::vector<FileDataParam*> fileList_;
   std::vector<ImageDataParam*> imageList_;
 
-  ElementStmParam* startParam_;
-
-  QString errContents_;
+	TaskModelParam* nextTask_;
+	ElementStmParam* stateParam_;
 };
 
-class FlowParam : public DatabaseParam {
+class FlowParam : public ActivityParam {
 public:
   FlowParam(int id, QString name, QString comment, QString created_date, QString last_updated_date, bool isNew)
     : id_(id), name_(name), comment_(comment), created_date_(created_date), last_updated_date_(last_updated_date) {
@@ -620,17 +676,12 @@ public:
   inline QString getLastUpdatedDate() const { return this->last_updated_date_; }
   inline void setLastUpdatedDate(QString value) { this->last_updated_date_ = value; }
 
-  inline std::vector<TaskModelParam*> getTaskList() { return this->taskList_; }
-  inline void addTask(TaskModelParam* target){ this->taskList_.push_back(target); }
-
 private:
   int id_;
   QString name_;
   QString comment_;
   QString created_date_;
   QString last_updated_date_;
-
-  std::vector<TaskModelParam*> taskList_;
 };
 /////
 struct ModelParamComparator {
@@ -639,7 +690,8 @@ struct ModelParamComparator {
     id_ = value;
   }
   bool operator()(const ModelParam* elem) const {
-    return elem->getId()==id_;
+    return (elem->getId()==id_ 
+			&& (elem->getMode() != DB_MODE_DELETE && elem->getMode() != DB_MODE_IGNORE));
   }
 };
 

@@ -6,6 +6,7 @@
 #include "TaskExecutor.h"
 #include "FlowSearchDialog.h"
 
+#include "gettext.h"
 #include "LoggerUtil.h"
 
 using namespace std;
@@ -17,22 +18,22 @@ namespace teaching {
 FlowViewImpl::FlowViewImpl(QWidget* parent) 
 			: TaskExecutionView(parent), currentFlow_(0) {
   QFrame* flowFrame = new QFrame;
-  QLabel* lblName = new QLabel(tr("Flow Name:"));
+  QLabel* lblName = new QLabel(_("Flow Name:"));
   leName = new QLineEdit;
   leName->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
   QPushButton* btnSearch = new QPushButton();
   btnSearch->setIcon(QIcon(":/Teaching/icons/Search.png"));
-  btnSearch->setToolTip(tr("Search Flow"));
+  btnSearch->setToolTip(_("Search Flow"));
 
   QPushButton* btnNewFlow = new QPushButton();
   btnNewFlow->setIcon(QIcon(":/Teaching/icons/Create.png"));
-  btnNewFlow->setToolTip(tr("Create New Flow"));
+  btnNewFlow->setToolTip(_("Create New Flow"));
 
   btnRegistFlow = new QPushButton();
   btnRegistFlow->setIcon(QIcon(":/Teaching/icons/Apply.png"));
-  btnRegistFlow->setToolTip(tr("Regist Current Flow"));
+  btnRegistFlow->setToolTip(_("Regist Current Flow"));
 
-  QLabel* lblComment = new QLabel(tr("Comment:"));
+  QLabel* lblComment = new QLabel(_("Comment:"));
   leComment = new QLineEdit;
 
   QGridLayout* flowLayout = new QGridLayout;
@@ -45,41 +46,100 @@ FlowViewImpl::FlowViewImpl(QWidget* parent)
   flowLayout->addWidget(lblComment, 1, 0, 1, 1, Qt::AlignRight);
   flowLayout->addWidget(leComment, 1, 1, 1, 5);
   //
-  lstFlow = new QListWidget;
-  lstFlow->setAcceptDrops(false);
-  setAcceptDrops(true);
-  //
+	btnTrans = new QPushButton();
+	btnTrans->setText("Transition");
+	btnTrans->setCheckable(true);
+	QPixmap *pix = new QPixmap(30, 30);
+	pix->fill(QColor(212, 206, 199));
+	QPainter* painter = new QPainter(pix);
+	painter->setRenderHint(QPainter::Antialiasing, true);
+	painter->setPen(QPen(Qt::black, 3.0));
+	painter->drawLine(0, 15, 30, 15);
+	painter->drawLine(29, 15, 20, 5);
+	painter->drawLine(29, 15, 20, 25);
+	btnTrans->setIconSize(QSize(30, 30));
+	btnTrans->setIcon(QIcon(*pix));
+	btnTrans->setStyleSheet("text-align:left;");
+	btnTrans->setEnabled(false);
+
+	lstItem = new ItemList(QString::fromStdString("application/TaskInstanceItem"));
+	lstItem->setStyleSheet("background-color: rgb( 212, 206, 199 )};");
+	lstItem->setEnabled(false);
+	lstItem->createInitialNodeTarget();
+	lstItem->createFinalNodeTarget();
+	//lstItem->createDecisionNodeTarget();
+	//createForkNodeTarget();
+
+	grhStateMachine = new FlowActivityEditor(this, this);
+	grhStateMachine->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+	grhStateMachine->setStyleSheet("background-color: white;");
+	grhStateMachine->setAcceptDrops(true);
+	grhStateMachine->setEnabled(false);
+	setAcceptDrops(true);
+
+	//QLabel* lblGuard = new QLabel("Guard:");
+	//rdTrue = new QRadioButton("True");
+	//rdFalse = new QRadioButton("False");
+
+	//btnSet = new QPushButton(_("Set"));
+	//btnSet->setIcon(QIcon(":/Teaching/icons/Logout.png"));
+	//btnSet->setToolTip(_("Set Guard condition"));
+
+	//rdTrue->setEnabled(false);
+	//rdFalse->setEnabled(false);
+	//btnSet->setEnabled(false);
+
+	QVBoxLayout* itemLayout = new QVBoxLayout;
+	itemLayout->setContentsMargins(0, 0, 0, 0);
+	itemLayout->addWidget(btnTrans);
+	itemLayout->addWidget(lstItem);
+	QFrame* frmItem = new QFrame;
+	frmItem->setLayout(itemLayout);
+
+	//QHBoxLayout* guardLayout = new QHBoxLayout;
+	//guardLayout->addStretch();
+	//guardLayout->addWidget(lblGuard);
+	//guardLayout->addWidget(rdTrue);
+	//guardLayout->addWidget(rdFalse);
+	//guardLayout->addWidget(btnSet);
+	//frmGuard = new QFrame;
+	//frmGuard->setLayout(guardLayout);
+
+	QVBoxLayout* editorLayout = new QVBoxLayout;
+	editorLayout->setContentsMargins(0, 0, 0, 0);
+	editorLayout->addWidget(grhStateMachine);
+//	editorLayout->addWidget(frmGuard);
+	QFrame* editorFrame = new QFrame;
+	editorFrame->setLayout(editorLayout);
+
+	QSplitter* splBase = new QSplitter(Qt::Horizontal);
+	splBase->addWidget(frmItem);
+	splBase->addWidget(editorFrame);
+	splBase->setStretchFactor(0, 0);
+	splBase->setStretchFactor(1, 1);
+	splBase->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+	splBase->show();
+	//
   QFrame* frmTask = new QFrame;
-  btnDeleteTask = new QPushButton();
+	btnDeleteTask = new QPushButton(_("Delete"));
   btnDeleteTask->setIcon(QIcon(":/Teaching/icons/Delete.png"));
-  btnDeleteTask->setToolTip(tr("Delete selected Task"));
+  btnDeleteTask->setToolTip(_("Delete selected Task"));
 
-  btnUpTask = new QPushButton();
-  btnUpTask->setIcon(QIcon(":/Teaching/icons/Up.png"));
-  btnUpTask->setToolTip(tr("Move Up selected Task"));
-
-  btnDownTask = new QPushButton();
-  btnDownTask->setIcon(QIcon(":/Teaching/icons/Down.png"));
-  btnDownTask->setToolTip(tr("Move Down selected Task"));
-
-  btnRunFlow = new QPushButton(tr("Flow"));
+  btnRunFlow = new QPushButton(_("Flow"));
   btnRunFlow->setIcon(QIcon(":/Base/icons/play.png"));
-  btnRunFlow->setToolTip(tr("Run Flow"));
+  btnRunFlow->setToolTip(_("Run Flow"));
 
-  btnRunTask = new QPushButton(tr("Task"));
+  btnRunTask = new QPushButton(_("Task"));
   btnRunTask->setIcon(QIcon(":/Base/icons/play.png"));
-  btnRunTask->setToolTip(tr("Run selected Task"));
+  btnRunTask->setToolTip(_("Run selected Task"));
 
   btnInitPos = new QPushButton();
   btnInitPos->setIcon(QIcon(":/Teaching/icons/Refresh.png"));
-  btnInitPos->setToolTip(tr("Reset models position"));
+  btnInitPos->setToolTip(_("Reset models position"));
 
   QHBoxLayout* taskLayout = new QHBoxLayout;
   frmTask->setLayout(taskLayout);
   taskLayout->addWidget(btnDeleteTask);
-  taskLayout->addStretch();
-  taskLayout->addWidget(btnUpTask);
-  taskLayout->addWidget(btnDownTask);
   taskLayout->addStretch();
   taskLayout->addWidget(btnRunFlow);
   taskLayout->addWidget(btnRunTask);
@@ -87,84 +147,29 @@ FlowViewImpl::FlowViewImpl(QWidget* parent)
   //
   QVBoxLayout* mainLayout = new QVBoxLayout;
   mainLayout->addWidget(flowFrame);
-  mainLayout->addWidget(lstFlow);
+	mainLayout->addWidget(splBase);
   mainLayout->addWidget(frmTask);
 
   setLayout(mainLayout);
   //
   changeEnables(false);
   //
-  connect(lstFlow, SIGNAL(currentRowChanged(int)), this, SLOT(flowSelectionChanged()));
-  connect(btnSearch, SIGNAL(clicked()), this, SLOT(searchClicked()));
+	connect(btnTrans, SIGNAL(toggled(bool)), this, SLOT(modeChanged()));
+	connect(btnSearch, SIGNAL(clicked()), this, SLOT(searchClicked()));
   connect(btnNewFlow, SIGNAL(clicked()), this, SLOT(newFlowClicked()));
   connect(btnRegistFlow, SIGNAL(clicked()), this, SLOT(registFlowClicked()));
   connect(btnDeleteTask, SIGNAL(clicked()), this, SLOT(deleteTaskClicked()));
-  connect(btnUpTask, SIGNAL(clicked()), this, SLOT(upTaskClicked()));
-  connect(btnDownTask, SIGNAL(clicked()), this, SLOT(downTaskClicked()));
   connect(btnRunFlow, SIGNAL(clicked()), this, SLOT(runFlowClicked()));
   connect(btnRunTask, SIGNAL(clicked()), this, SLOT(runTaskClicked()));
   connect(btnInitPos, SIGNAL(clicked()), this, SLOT(initPosClicked()));
 }
-
-void FlowViewImpl::dragEnterEvent(QDragEnterEvent* event) {
-    if(event->mimeData()->hasFormat("application/TaskInstanceItem")){
-      event->acceptProposedAction();
-    }
-}
-
-void FlowViewImpl::dropEvent(QDropEvent* event) {
-  if(event->mimeData()->hasFormat("application/TaskInstanceItem")){
-    if(currentFlow_) {
-      const QMimeData* mimeData = event->mimeData();
-      QVariant varData = event->mimeData()->property("TaskInstanceItemId");
-      int id = varData.toInt();
-      //
-      TaskModelParam* param = DatabaseManager::getInstance().getTaskParamById(id);
-      TaskModelParam* newParam = new TaskModelParam(param);
-      currentFlow_->addTask(newParam);
-      //
-      QListWidgetItem* item = new QListWidgetItem(lstFlow);
-      item->setData(Qt::UserRole, (unsigned int)(currentFlow_->getTaskList().size()-1));
-      item->setText(event->mimeData()->text());
-      //
-      currentFlow_->setUpdate();
-    } else {
-      QMessageBox::warning(this, tr("Flow"), "Please select target Flow.");
-    }
-  }
-}
-
-void FlowViewImpl::flowSelectionChanged() {
-  this->taskInstView->unloadCurrentModel();
-  if(currentTask_) {
-    ChoreonoidUtil::unLoadTaskModelItem(currentTask_);
-  }
-
-  QListWidgetItem* item = lstFlow->currentItem();
-  if( item ) {
-    int itemIndex = item->data(Qt::UserRole).toInt();
-    currentTask_ = currentFlow_->getTaskList()[itemIndex];
-    if(currentTask_->IsLoaded()==false) {
-      TeachingUtil::loadTaskDetailData(currentTask_);
-    }
-    bool isUpdateTree = ChoreonoidUtil::loadTaskModelItem(currentTask_);
-
-    this->metadataView->setTaskParam(currentTask_);
-    this->statemachineView_->setTaskParam(currentTask_);
-    this->parameterView_->setTaskParam(currentTask_);
-    //即更新を行うとエラーになってしまうため
-    if( isUpdateTree ) {
-      ChoreonoidUtil::showAllModelItem();
-    }
-
-  } else {
-    this->metadataView->clearTaskParam();
-    this->statemachineView_->clearTaskParam();
-    this->parameterView_->clearTaskParam();
-  }
-}
-
+//
 void FlowViewImpl::searchClicked() {
+	if (checkPaused()) {
+		return;
+	}
+	statemachineView_->setStepStatus(false);
+	//
   FlowSearchDialog dialog(this);
   dialog.exec();
   if(dialog.IsOK()==false) return;
@@ -175,7 +180,7 @@ void FlowViewImpl::searchClicked() {
     if(currentTask_) {
       ChoreonoidUtil::unLoadTaskModelItem(currentTask_);
     }
-		lstFlow->clear();
+		//lstFlow->clear();
 		currentTask_ = 0;
     currParam_ = 0;
   }
@@ -183,39 +188,35 @@ void FlowViewImpl::searchClicked() {
   changeEnables(true);
   leName->setText(currentFlow_->getName());
   leComment->setText(currentFlow_->getComment());
-  //
-  vector<TaskModelParam*> taskList = currentFlow_->getTaskList();
-  for(int index=0; index<taskList.size(); index++) {
-    TaskModelParam* target = taskList[index];
-    QListWidgetItem* item = new QListWidgetItem(lstFlow);
-    item->setData(Qt::UserRole, index);
-    item->setText(target->getName());
-  }
+	grhStateMachine->setFlowParam(currentFlow_);
+	grhStateMachine->createStateMachine(currentFlow_);
 }
 
 void FlowViewImpl::newFlowClicked() {
+	if (checkPaused()) {
+		return;
+	}
+	statemachineView_->setStepStatus(false);
+	//
   if(!currentFlow_) delete currentFlow_;
   currentFlow_ = new FlowParam(-1, "", "", "", "", true);
 
   leName->setText("");
   leComment->setText("");
-  changeEnables(true);
-  lstFlow->clear();
+
+	grhStateMachine->setFlowParam(currentFlow_);
+	grhStateMachine->createStateMachine(currentFlow_);
+
+	changeEnables(true);
 }
 
 void FlowViewImpl::registFlowClicked() {
-  if(currentFlow_) {
-    int idxSeq = 1;
-    for(int index=0; index<lstFlow->count(); index++) {
-      QListWidgetItem *item = lstFlow->item(index);
-      int idxTask = item->data(Qt::UserRole).toInt();
-			TaskModelParam* targetTask = currentFlow_->getTaskList()[idxTask];
-      if(targetTask->getMode()!=DB_MODE_DELETE && targetTask->getMode()!=DB_MODE_IGNORE) {
-        targetTask->setSeq(idxSeq);
-        idxSeq++;
-      }
-    }
-    
+	if (checkPaused()) {
+		return;
+	}
+	statemachineView_->setStepStatus(false);
+	//
+	if (currentFlow_) {
     QString strName = leName->text();
     if( currentFlow_->getName() != strName) {
       currentFlow_->setName(strName);
@@ -226,81 +227,29 @@ void FlowViewImpl::registFlowClicked() {
     }
     
     if(DatabaseManager::getInstance().saveFlowModel(currentFlow_) ) {
-      QMessageBox::information(this, tr("Database"), "Database updated");
+			currentFlow_ = DatabaseManager::getInstance().getFlowParamById(currentFlow_->getId());
+      QMessageBox::information(this, _("Database"), _("Database updated"));
     } else {
-      QMessageBox::warning(this, tr("Database Error"), DatabaseManager::getInstance().getErrorStr());
+      QMessageBox::warning(this, _("Database Error"), DatabaseManager::getInstance().getErrorStr());
     }
   }
 }
 
 void FlowViewImpl::deleteTaskClicked() {
-  QListWidgetItem* item = lstFlow->currentItem();
-  if(item) {
-    int itemIndex = item->data(Qt::UserRole).toInt();
-    currentFlow_->getTaskList()[itemIndex]->setDelete();
-    delete item;
-    currentFlow_->setUpdate();
-  }
-}
-
-void FlowViewImpl::upTaskClicked() {
-  int selectedIndex = lstFlow->currentRow();
-  if(selectedIndex==0) return;
-  QListWidgetItem* item = this->lstFlow->takeItem(selectedIndex);
-  lstFlow->insertItem(selectedIndex-1, item);
-  lstFlow->setCurrentRow(selectedIndex-1);
+	if (checkPaused()) {
+		return;
+	}
+	statemachineView_->setStepStatus(false);
+	grhStateMachine->deleteCurrent();
   currentFlow_->setUpdate();
 }
 
-void FlowViewImpl::downTaskClicked() {
-  int selectedIndex = lstFlow->currentRow();
-  int count = 0;
-  for(int index=0; index<lstFlow->model()->rowCount(); index++) {
-    QListWidgetItem* item = lstFlow->item(index);
-    if(item->isHidden()==false) count++;
-  }
-  if(count-1<=selectedIndex) return;
-
-  QListWidgetItem* item = this->lstFlow->takeItem(selectedIndex);
-  lstFlow->insertItem(selectedIndex+1, item);
-  lstFlow->setCurrentRow(selectedIndex+1);
-  currentFlow_->setUpdate();
+void FlowViewImpl::modeChanged() {
+	grhStateMachine->setCntMode(btnTrans->isChecked());
 }
 
 void FlowViewImpl::runFlowClicked() {
-  if( !currentFlow_ ) {
-    QMessageBox::warning(this, tr("Run Flow"), "Please select target FLOW");
-    return;
-  }
-  //
-  parameterView_->setInputValues();
-  vector<TaskModelParam*> taskList = currentFlow_->getTaskList();
-  for(int index=0; index<taskList.size(); index++) {
-    TaskModelParam* targetTask = taskList[index];
-    if( targetTask->getMode()==DB_MODE_DELETE || targetTask->getMode()==DB_MODE_IGNORE) {
-      continue;
-    }
-    if( targetTask->IsLoaded()==false ) {
-      TeachingUtil::loadTaskDetailData(targetTask);
-    }
-    if( targetTask->checkAndOrderStateMachine()) {
-      QMessageBox::warning(this, tr("Run Flow"), currentTask_->getErrStr());
-      return;
-    }
-  }
-  //
-  InfoBar::instance()->showMessage(tr("Running Flow :") + currentFlow_->getName());
-  TaskExecutor::instance()->setRootName(SettingManager::getInstance().getRobotModelName());
-  for(int index=0; index<taskList.size(); index++) {
-    lstFlow->setCurrentRow(index);
-    TaskModelParam* targetTask = taskList[index];
-    currParam_ = targetTask->getStartParam();
-    currParam_->updateActive(true);
-    statemachineView_->repaint();
-    ChoreonoidUtil::updateScene();
-    if( doTaskOperation(targetTask)==false ) break;
-  }
-  InfoBar::instance()->showMessage(tr("Finished Flow :") + currentFlow_->getName());
+	runFlow(currentFlow_);
 }
 
 void FlowViewImpl::runTaskClicked() {
@@ -309,31 +258,77 @@ void FlowViewImpl::runTaskClicked() {
 
 void FlowViewImpl::initPosClicked() {
   if( !currentFlow_ ) return;
-  if( currentFlow_->getTaskList().size()==0 ) return;
-
-  for(int idxTask=0; idxTask<currentFlow_->getTaskList().size(); idxTask++) {
-    TaskModelParam* targetTask = currentFlow_->getTaskList()[idxTask];
-    for(int index=0; index<targetTask->getModelList().size(); index++) {
-      targetTask->getModelList()[index]->setInitialPos();
-    }
+	if (checkPaused()) {
+		return;
+	}
+	statemachineView_->setStepStatus(false);
+	//
+	for (int idxState = 0; idxState<currentFlow_->getStmElementList().size(); idxState++) {
+		ElementStmParam* targetState = currentFlow_->getStmElementList()[idxState];
+		if (targetState->getType() == ELEMENT_COMMAND) {
+			TaskModelParam* task = targetState->getTaskParam();
+			for (int index = 0; index < task->getModelList().size(); index++) {
+				task->getModelList()[index]->setInitialPos();
+			}
+		}
   }
+	executor_->detachAllModelItem();
 }
 
 void FlowViewImpl::changeEnables(bool value) {
   leName->setEnabled(value);
   leComment->setEnabled(value);
-  btnRegistFlow->setEnabled(value);
-  lstFlow->setEnabled(value);
-  btnDeleteTask->setEnabled(value);
-  btnUpTask->setEnabled(value);
-  btnDownTask->setEnabled(value);
+	btnRegistFlow->setEnabled(value);
+	//
+	btnTrans->setEnabled(value);
+	lstItem->setEnabled(value);
+	grhStateMachine->removeAll();
+	grhStateMachine->setEnabled(value);
+	//rdTrue->setEnabled(false);
+	//rdFalse->setEnabled(false);
+	//btnSet->setEnabled(false);
+	//
+	btnDeleteTask->setEnabled(value);
   btnRunFlow->setEnabled(value);
   btnRunTask->setEnabled(value);
   btnInitPos->setEnabled(value);
 }
-/////
+
+void FlowViewImpl::flowSelectionChanged(TaskModelParam* target) {
+		if (checkPaused()) {
+			return;
+		}
+		statemachineView_->setStepStatus(false);
+		//
+		this->taskInstView->unloadCurrentModel();
+	  if(currentTask_) {
+	    ChoreonoidUtil::unLoadTaskModelItem(currentTask_);
+	  }
+		//
+		currentTask_ = target;
+		if (currentTask_) {
+			if(currentTask_->IsLoaded()==false) {
+				TeachingUtil::loadTaskDetailData(currentTask_);
+			}
+				bool isUpdateTree = ChoreonoidUtil::loadTaskModelItem(currentTask_);
+	
+				this->metadataView->setTaskParam(currentTask_);
+				this->statemachineView_->setTaskParam(currentTask_);
+				this->parameterView_->setTaskParam(currentTask_);
+				//即更新を行うとエラーになってしまうため
+				if( isUpdateTree ) {
+					ChoreonoidUtil::showAllModelItem();
+				}
+	
+	  } else {
+	    this->metadataView->clearTaskParam();
+	    this->statemachineView_->clearTaskParam();
+	    this->parameterView_->clearTaskParam();
+	  }
+	}
+	/////
 FlowView::FlowView(): viewImpl(0) {
-    setName("Flow");
+    setName(_("FlowModel"));
     setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Ignored);
 
     viewImpl = new FlowViewImpl(this);

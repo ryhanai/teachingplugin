@@ -6,7 +6,10 @@
 #include "DataBaseManager.h"
 #include "MetaDataView.h"
 #include "TaskInstanceView.h"
+#include "StateMachineView.h"
+
 #include "TaskExecutionView.h"
+#include "FlowActivityEditor.h"
 
 using namespace cnoid;
 
@@ -24,18 +27,15 @@ public:
 
   inline FlowParam* getCurrentFlow() { return this->currentFlow_; }
 
-protected:
-  void dragEnterEvent(QDragEnterEvent* event);
-  void dropEvent(QDropEvent* event);
+	void flowSelectionChanged(TaskModelParam* target);
 
-private Q_SLOTS:
-  void flowSelectionChanged();
-  void searchClicked();
+	private Q_SLOTS:
+	void modeChanged();
+
+	void searchClicked();
   void newFlowClicked();
   void registFlowClicked();
   void deleteTaskClicked();
-  void upTaskClicked();
-  void downTaskClicked();
   void runFlowClicked();
   void runTaskClicked();
   void initPosClicked();
@@ -43,17 +43,23 @@ private Q_SLOTS:
 private:
   QLineEdit* leName;
   QLineEdit* leComment;
-  QListWidget* lstFlow;
 
   QPushButton* btnRegistFlow;
   QPushButton* btnDeleteTask;
-  QPushButton* btnUpTask;
-  QPushButton* btnDownTask;
   QPushButton* btnRunFlow;
   QPushButton* btnRunTask;
   QPushButton* btnInitPos;
 
-  MetaDataView* metadataView;
+	QPushButton* btnTrans;
+	ItemList* lstItem;
+	//QFrame* frmGuard;
+	//QRadioButton* rdTrue;
+	//QRadioButton* rdFalse;
+	//QPushButton* btnSet;
+
+	FlowActivityEditor* grhStateMachine;
+
+	MetaDataView* metadataView;
   TaskInstanceView* taskInstView;
 
   FlowParam* currentFlow_;
@@ -70,7 +76,9 @@ public:
   inline void setParameterView(ParameterView* view ) { viewImpl->setParameterView(view); }
   inline void setStateMachineView(StateMachineView* view ) { viewImpl->setStateMachineView(view); }
   inline void setTaskInstanceView(TaskInstanceView* view ) { viewImpl->setTaskInstanceView(view); }
-  inline void unloadCurrentModel() { viewImpl->unloadCurrentModel(); }
+
+	inline void setTaskExecutor(TaskExecuteManager* executor) { viewImpl->setTaskExecutor(executor); }
+	inline void unloadCurrentModel() { viewImpl->unloadCurrentModel(); }
 
   inline FlowParam* getCurrentFlow() { return viewImpl->getCurrentFlow(); }
 

@@ -17,7 +17,6 @@ namespace teaching {
 /////T_FLOW/////
 bool DatabaseManager::saveFlowData(FlowParam* source) {
   DDEBUG("updateFlowData");
-  db_.transaction();
   if(source->getMode()==DB_MODE_INSERT) {
     string strMaxQuery = "SELECT max(flow_id) FROM T_FLOW "; 
     QSqlQuery maxQuery(db_);
@@ -95,57 +94,263 @@ bool DatabaseManager::saveFlowData(FlowParam* source) {
     }
     source->setNormal();
   }
-  //
-  string strQuery = "DELETE FROM T_FLOW_ITEM "; 
-  strQuery += "WHERE flow_id = ? ";
-  QSqlQuery query(QString::fromStdString(strQuery));
-  query.addBindValue(source->getId());
-  if(!query.exec()) {
-    errorStr_ = "DELETE(T_FLOW_ITEM) error:" + query.lastError().databaseText() + "-" + QString::fromStdString(strQuery);
-    return false;
-  }
-  //
-  vector<TaskModelParam*> taskList = source->getTaskList();
-  vector<TaskModelParam*>::iterator itTask = taskList.begin();
-  while (itTask != taskList.end() ) {
-    if( saveFlowItemData(source->getId(), *itTask)==false) {
-      db_.rollback();
-      return false;
-    }
-    ++itTask;
-  }
-  db_.commit();
   return true;
 }
-/////T_FLOW_ITEM/////
-bool DatabaseManager::saveFlowItemData(int flowId, TaskModelParam* source) {
-  DDEBUG("saveFlowItemData");
-  if(source->getMode()==DB_MODE_DELETE || source->getMode()==DB_MODE_IGNORE) return true;
+/////T_FLOW_STATE/////
+vector<ElementStmParam*> DatabaseManager::getFlowStateParams(int instId) {
+	vector<ElementStmParam*> result;
 
-  string strMaxQuery = "SELECT max(flow_item_id) FROM T_FLOW_ITEM "; 
-  QSqlQuery maxQuery(db_);
-  maxQuery.exec(strMaxQuery.c_str());
-  int maxId = -1;
-  if (maxQuery.next()) {
-    maxId = maxQuery.value(0).toInt();
-    maxId++;
-  }
-  //
-  string strQuery = "INSERT INTO T_FLOW_ITEM "; 
-  strQuery += "(flow_item_id, flow_id, seq, task_inst_id) ";
-  strQuery += "VALUES ( ?, ?, ?, ? )";
+	string strStmId = toStr(instId);
+	string strStmQuery = "SELECT ";
+	strStmQuery += "state_id, flow_id, type, task_inst_id, pos_x, pos_y ";
+	strStmQuery += "FROM T_FLOW_STATE ";
+	strStmQuery += "WHERE flow_id = " + strStmId + " ORDER BY state_id";
+	QSqlQuery stmQuery(db_);
+	stmQuery.exec(strStmQuery.c_str());
+	while (stmQuery.next()) {
+		int state_id = stmQuery.value(0).toInt();
+		int type = stmQuery.value(2).toInt();
+		int task_inst_id = stmQuery.value(3).toInt();
+		double posX = stmQuery.value(4).toDouble();
+		double posY = stmQuery.value(5).toDouble();
+		//
+		ElementStmParam* param = new ElementStmParam(state_id, type, "", "", posX, posY);
+		param->setOrgId(state_id);
+		if (0<=task_inst_id) {
+			TaskModelParam* taskParam = getTaskModelById(task_inst_id);
+			param->setCmdDspName(taskParam->getName());
+			param->setTaskParam(taskParam);
+			taskParam->setStateParam(param);
+		}
+		result.push_back(param);
+	}
+	return result;
+}
 
-  QSqlQuery query(QString::fromStdString(strQuery));
-  query.addBindValue(QString::fromStdString(toStr(maxId)));
-  query.addBindValue(flowId);
-  query.addBindValue(source->getSeq());
-  query.addBindValue(source->getId());
-  if(!query.exec()) {
-    errorStr_ = "INSERT(T_FLOW_ITEM) error:" + query.lastError().databaseText();
-    return false;
-  }
-  source->setNormal();
-  return true;
+bool DatabaseManager::saveFlowStmData(int parentId, ElementStmParam* source) {
+	if (source->getMode() == DB_MODE_INSERT) {
+		DDEBUG("saveFlowStmData : INSERT");
+		string strMaxQuery = "SELECT max(state_id) FROM T_FLOW_STATE ";
+		QSqlQuery maxQuery(db_);
+		maxQuery.exec(strMaxQuery.c_str());
+		int maxId = -1;
+		if (maxQuery.next()) {
+			maxId = maxQuery.value(0).toInt();
+			maxId++;
+		}
+		source->setId(maxId);
+		//
+		string strQuery = "INSERT INTO T_FLOW_STATE ";
+		strQuery += "(state_id, flow_id, type, task_inst_id, pos_x, pos_y) ";
+		strQuery += "VALUES ( ?, ?, ?, ?, ?, ? )";
+
+		QSqlQuery query(QString::fromStdString(strQuery));
+		query.addBindValue(maxId);
+		query.addBindValue(parentId);
+		query.addBindValue(source->getType());
+		if (source->getTaskParam()) {
+			query.addBindValue(source->getTaskParam()->getId());
+		} else {
+			query.addBindValue(-1);
+		}
+		query.addBindValue(source->getPosX());
+		query.addBindValue(source->getPosY());
+		if (!query.exec()) {
+			errorStr_ = "INSERT(T_FLOW_STATE) error:" + query.lastError().databaseText();
+			return false;
+		}
+		source->setNormal();
+
+	} else if (source->getMode() == DB_MODE_UPDATE) {
+		DDEBUG("saveFlowStmData : UPDATE");
+		string strQuery = "UPDATE T_FLOW_STATE ";
+		strQuery += "SET type = ?, task_inst_id = ?, pos_x = ?, pos_y = ? ";
+		strQuery += "WHERE state_id = ? ";
+
+		QSqlQuery query(QString::fromStdString(strQuery));
+		query.addBindValue(source->getType());
+		if (source->getTaskParam()) {
+			query.addBindValue(source->getTaskParam()->getId());
+		} else {
+			query.addBindValue(-1);
+		}
+		query.addBindValue(source->getPosX());
+		query.addBindValue(source->getPosY());
+		query.addBindValue(source->getId());
+
+		if (!query.exec()) {
+			errorStr_ = "UPDATE(T_FLOW_STATE) error:" + query.lastError().databaseText() + "-" + QString::fromStdString(strQuery);
+			return false;
+		}
+		source->setNormal();
+
+	} else if (source->getMode() == DB_MODE_DELETE) {
+		DDEBUG("saveFlowStmData : DELETE");
+		string strQuery = "DELETE FROM T_FLOW_STATE ";
+		strQuery += "WHERE state_id = ? ";
+
+		QSqlQuery query(QString::fromStdString(strQuery));
+		query.addBindValue(source->getId());
+
+		if (!query.exec()) {
+			errorStr_ = "DELETE(T_FLOW_STATE) error:" + query.lastError().databaseText() + "-" + QString::fromStdString(strQuery);
+			return false;
+		}
+		source->setNormal();
+	}
+	return true;
+}
+/////T_FLOW_TRANSITION/////
+vector<ConnectionStmParam*> DatabaseManager::getFlowTransParams(int instId) {
+	vector<ConnectionStmParam*> result;
+
+	string strStmId = toStr(instId);
+	string strStmQuery = "SELECT ";
+	strStmQuery += "trans_id, flow_id, source_id, target_id, condition ";
+	strStmQuery += "FROM T_FLOW_TRANSITION ";
+	strStmQuery += "WHERE flow_id = " + strStmId + " ORDER BY trans_id";
+	QSqlQuery stmQuery(db_);
+	stmQuery.exec(strStmQuery.c_str());
+	while (stmQuery.next()) {
+		int trans_id = stmQuery.value(0).toInt();
+		int source_id = stmQuery.value(2).toInt();
+		int target_id = stmQuery.value(3).toInt();
+		QString condition = stmQuery.value(4).toString();
+		//
+		ConnectionStmParam* param = new ConnectionStmParam(trans_id, source_id, target_id, condition);
+		vector<ElementStmParam*> points = getFlowViaPointParams(trans_id);
+		for (unsigned int index = 0; index < points.size(); index++) {
+			ElementStmParam* point = points[index];
+			point->setParentConn(param);
+			param->addChildNode(point);
+		}
+		result.push_back(param);
+	}
+	return result;
+}
+
+bool DatabaseManager::saveFlowTransactionStmData(int parentId, ConnectionStmParam* source) {
+	bool isNew = false;
+
+	if (source->getSourceId() == source->getTargetId()) {
+		source->setDelete();
+	}
+
+	if (source->getMode() == DB_MODE_INSERT) {
+		string strMaxQuery = "SELECT max(trans_id) FROM T_FLOW_TRANSITION ";
+		QSqlQuery maxQuery(db_);
+		maxQuery.exec(strMaxQuery.c_str());
+		int maxId = -1;
+		if (maxQuery.next()) {
+			maxId = maxQuery.value(0).toInt();
+			maxId++;
+			source->setId(maxId);
+		}
+		//
+		DDEBUG_V("saveFlowTransactionStmData : trans_id=%d, task_inst_id=%d, source_id=%d, target_id=%d", maxId, parentId, source->getSourceId(), source->getTargetId());
+		string strQuery = "INSERT INTO T_FLOW_TRANSITION ";
+		strQuery += "(trans_id, flow_id, source_id, target_id, condition) ";
+		strQuery += "VALUES ( ?, ?, ?, ?, ? )";
+
+		QSqlQuery queryTra(QString::fromStdString(strQuery));
+		queryTra.addBindValue(maxId);
+		queryTra.addBindValue(parentId);
+		queryTra.addBindValue(source->getSourceId());
+		queryTra.addBindValue(source->getTargetId());
+		queryTra.addBindValue(source->getCondition());
+
+		if (!queryTra.exec()) {
+			errorStr_ = "INSERT(T_FLOW_TRANSITION) error:" + queryTra.lastError().databaseText();
+			return false;
+		}
+		source->setNormal();
+
+	} else if (source->getMode() == DB_MODE_UPDATE) {
+		string strQuery = "UPDATE T_FLOW_TRANSITION ";
+		strQuery += "SET condition = ? ";
+		strQuery += "WHERE trans_id = ? ";
+
+		QSqlQuery query(QString::fromStdString(strQuery));
+		query.addBindValue(source->getCondition());
+		query.addBindValue(source->getId());
+
+		if (!query.exec()) {
+			errorStr_ = "UPDATE(T_FLOW_TRANSITION) error:" + query.lastError().databaseText() + "-" + QString::fromStdString(strQuery);
+			return false;
+		}
+		source->setNormal();
+
+	} else if (source->getMode() == DB_MODE_DELETE) {
+		string strQuery = "DELETE FROM T_FLOW_TRANSITION ";
+		strQuery += "WHERE trans_id = ? ";
+
+		QSqlQuery query(QString::fromStdString(strQuery));
+		query.addBindValue(source->getId());
+
+		if (!query.exec()) {
+			errorStr_ = "DELETE(T_FLOW_TRANSITION) error:" + query.lastError().databaseText() + "-" + QString::fromStdString(strQuery);
+			return false;
+		}
+		source->setNormal();
+	}
+	//
+	if (saveFlowViaPointData(source) == false) return false;
+	//
+	return true;
+}
+/////T_FLOW_VIA_POINT/////
+vector<ElementStmParam*> DatabaseManager::getFlowViaPointParams(int connId) {
+	vector<ElementStmParam*> result;
+
+	string strStmId = toStr(connId);
+	string strStmQuery = "SELECT ";
+	strStmQuery += "pos_x, pos_y ";
+	strStmQuery += "FROM T_FLOW_VIA_POINT ";
+	strStmQuery += "WHERE trans_id = " + strStmId + " ORDER BY seq";
+	QSqlQuery stmQuery(db_);
+	stmQuery.exec(strStmQuery.c_str());
+	while (stmQuery.next()) {
+		double posX = stmQuery.value(0).toDouble();
+		double posY = stmQuery.value(1).toDouble();
+		//
+		ElementStmParam* param = new ElementStmParam(NULL_ID, ELEMENT_POINT, "", "", posX, posY);
+		result.push_back(param);
+	}
+	return result;
+}
+
+bool DatabaseManager::saveFlowViaPointData(ConnectionStmParam* source) {
+	string strQuery = "DELETE FROM T_FLOW_VIA_POINT ";
+	strQuery += "WHERE trans_id = ? ";
+	QSqlQuery query(QString::fromStdString(strQuery));
+	query.addBindValue(source->getId());
+	if (!query.exec()) {
+		errorStr_ = "DELETE(T_FLOW_VIA_POINT) error:" + query.lastError().databaseText() + "-" + QString::fromStdString(strQuery);
+		return false;
+	}
+	if (source->getMode() == DB_MODE_DELETE || source->getMode() == DB_MODE_IGNORE) return true;
+	//
+	vector<ElementStmParam*> pointList = source->getChildList();
+	for (unsigned int index = 0; index < pointList.size(); index++) {
+		ElementStmParam* point = pointList[index];
+		if (point->getMode() == DB_MODE_DELETE || point->getMode() == DB_MODE_IGNORE) continue;
+		//
+		string strQuery = "INSERT INTO T_FLOW_VIA_POINT ";
+		strQuery += "(trans_id, seq, pos_x, pos_y) ";
+		strQuery += "VALUES ( ?, ?, ?, ? )";
+
+		QSqlQuery queryTra(QString::fromStdString(strQuery));
+		queryTra.addBindValue(source->getId());
+		queryTra.addBindValue(index + 1);
+		queryTra.addBindValue(point->getPosX());
+		queryTra.addBindValue(point->getPosY());
+
+		if (!queryTra.exec()) {
+			errorStr_ = "INSERT(T_FLOW_VIA_POINT) error:" + queryTra.lastError().databaseText();
+			return false;
+		}
+	}
+	return true;
 }
 /////T_TASK_MODEL_INST/////
 bool DatabaseManager::saveTaskInstanceData(TaskModelParam* source, bool updateDate) {
@@ -554,6 +759,12 @@ vector<ConnectionStmParam*> DatabaseManager::getTransParams(int instId) {
     QString condition = stmQuery.value(4).toString();
     //
     ConnectionStmParam* param = new ConnectionStmParam(trans_id, source_id, target_id, condition);
+		vector<ElementStmParam*> points = getViaPointParams(trans_id);
+		for (unsigned int index = 0; index < points.size(); index++) {
+			ElementStmParam* point = points[index];
+			point->setParentConn(param);
+			param->addChildNode(point);
+		}
     result.push_back(param);
   }
   return result;
@@ -574,6 +785,7 @@ bool DatabaseManager::saveTransactionStmData(int parentId, ConnectionStmParam* s
     if (maxQuery.next()) {
       maxId = maxQuery.value(0).toInt();
       maxId++;
+			source->setId(maxId);
     }
     //
 		DDEBUG_V("saveTransactionStmData : trans_id=%d, task_inst_id=%d, source_id=%d, target_id=%d", maxId, parentId, source->getSourceId(), source->getTargetId());
@@ -622,8 +834,66 @@ bool DatabaseManager::saveTransactionStmData(int parentId, ConnectionStmParam* s
     }
     source->setNormal();
   }
+	//
+	if (saveViaPointData(source) == false) return false;
+	//
   return true;
 }
+/////T_VIA_POINT/////
+vector<ElementStmParam*> DatabaseManager::getViaPointParams(int connId) {
+	vector<ElementStmParam*> result;
+
+	string strStmId = toStr(connId);
+	string strStmQuery = "SELECT ";
+	strStmQuery += "pos_x, pos_y ";
+	strStmQuery += "FROM T_VIA_POINT ";
+	strStmQuery += "WHERE trans_id = " + strStmId + " ORDER BY seq";
+	QSqlQuery stmQuery(db_);
+	stmQuery.exec(strStmQuery.c_str());
+	while (stmQuery.next()) {
+		double posX = stmQuery.value(0).toDouble();
+		double posY = stmQuery.value(1).toDouble();
+		//
+		ElementStmParam* param = new ElementStmParam(NULL_ID, ELEMENT_POINT, "", "", posX, posY);
+		result.push_back(param);
+	}
+	return result;
+}
+
+bool DatabaseManager::saveViaPointData(ConnectionStmParam* source) {
+	string strQuery = "DELETE FROM T_VIA_POINT ";
+	strQuery += "WHERE trans_id = ? ";
+	QSqlQuery query(QString::fromStdString(strQuery));
+	query.addBindValue(source->getId());
+	if (!query.exec()) {
+		errorStr_ = "DELETE(T_VIA_POINT) error:" + query.lastError().databaseText() + "-" + QString::fromStdString(strQuery);
+		return false;
+	}
+	if (source->getMode() == DB_MODE_DELETE || source->getMode() == DB_MODE_IGNORE) return true;
+	//
+	vector<ElementStmParam*> pointList = source->getChildList();
+	for (unsigned int index = 0; index < pointList.size(); index++) {
+		ElementStmParam* point = pointList[index];
+		if (point->getMode() == DB_MODE_DELETE || point->getMode() == DB_MODE_IGNORE) continue;
+		//
+		string strQuery = "INSERT INTO T_VIA_POINT ";
+		strQuery += "(trans_id, seq, pos_x, pos_y) ";
+		strQuery += "VALUES ( ?, ?, ?, ? )";
+
+		QSqlQuery queryTra(QString::fromStdString(strQuery));
+		queryTra.addBindValue(source->getId());
+		queryTra.addBindValue(index+1);
+		queryTra.addBindValue(point->getPosX());
+		queryTra.addBindValue(point->getPosY());
+
+		if (!queryTra.exec()) {
+			errorStr_ = "INSERT(T_TRANSITION) error:" + queryTra.lastError().databaseText();
+			return false;
+		}
+	}
+	return true;
+}
+
 /////T_TASK_INST_PARAMETER/////
 vector<ParameterParam*> DatabaseManager::getParameterParams(int instId) {
   vector<ParameterParam*> result;
@@ -780,7 +1050,7 @@ vector<ModelParam*> DatabaseManager::getModelParams(int id) {
 }
 
 bool DatabaseManager::saveModelData(int parentId, ModelParam* source) {
-  DDEBUG_V("updateModelData : %d", parentId);
+	DDEBUG_V("updateModelData : %d, Mode=%d", parentId, source->getMode());
   if(source->getMode()==DB_MODE_INSERT) {
     string strMaxQuery = "SELECT max(model_id) FROM T_MODEL_INFO "; 
     QSqlQuery maxQuery(db_);
@@ -845,7 +1115,8 @@ bool DatabaseManager::saveModelData(int parentId, ModelParam* source) {
     source->setNormal();
 
   } else if(source->getMode()==DB_MODE_DELETE) {
-    string strQuery = "DELETE FROM T_MODEL_INFO "; 
+		DDEBUG_V("deleteModelData : %d", source->getId());
+		string strQuery = "DELETE FROM T_MODEL_INFO ";
     strQuery += "WHERE model_id = ? ";
 
     QSqlQuery query(QString::fromStdString(strQuery));

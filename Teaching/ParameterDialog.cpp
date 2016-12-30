@@ -2,6 +2,7 @@
 #include "DataBaseManager.h"
 #include "TeachingUtil.h"
 
+#include "gettext.h"
 #include "LoggerUtil.h"
 
 namespace teaching {
@@ -23,15 +24,15 @@ ParameterDialog::ParameterDialog(TaskModelParam* param, QWidget* parent)
   lstParam->setColumnWidth(4, 50);
   lstParam->setHorizontalHeaderLabels(QStringList() << "Name" << "Type" << "Model" << "Unit" << "Num");
 
-  QPushButton* btnAddParam = new QPushButton(tr("Add"));
+  QPushButton* btnAddParam = new QPushButton(_("Add"));
   btnAddParam->setIcon(QIcon(":/Teaching/icons/Plus.png"));
-  btnAddParam->setToolTip(tr("Add New Parameter"));
+  btnAddParam->setToolTip(_("Add New Parameter"));
   //QShortcut *keyAdd = new QShortcut(QKeySequence("+"), this);
   //connect(keyAdd, SIGNAL(activated()), this, SLOT(addParamClicked()));
 
-  QPushButton* btnDeleteParam = new QPushButton(tr("Delete"));
+  QPushButton* btnDeleteParam = new QPushButton(_("Delete"));
   btnDeleteParam->setIcon(QIcon(":/Teaching/icons/Delete.png"));
-  btnDeleteParam->setToolTip(tr("Delete selected Parameter"));
+  btnDeleteParam->setToolTip(_("Delete selected Parameter"));
 
   QFrame* frmParamButtons = new QFrame;
   QHBoxLayout* buttonParamLayout = new QHBoxLayout;
@@ -41,21 +42,21 @@ ParameterDialog::ParameterDialog(TaskModelParam* param, QWidget* parent)
   buttonParamLayout->addStretch();
   buttonParamLayout->addWidget(btnDeleteParam);
 
-  QLabel* lblName = new QLabel(tr("Name:"));
+  QLabel* lblName = new QLabel(_("Name:"));
   leName = new QLineEdit;
-  QLabel* lblId = new QLabel(tr("Id:"));
+  QLabel* lblId = new QLabel(_("Id:"));
   leId = new QLineEdit;
-  QLabel* lblType = new QLabel(tr("Type:"));
+  QLabel* lblType = new QLabel(_("Type:"));
   cmbType = new QComboBox(this);
   cmbType->addItem("Normal");
   cmbType->addItem("Model");
-  QLabel* lblModel = new QLabel(tr("Model Name:"));
+  QLabel* lblModel = new QLabel(_("Model Name:"));
   leModelName = new QLineEdit;
-  QLabel* lblUnit = new QLabel(tr("Unit:"));
+  QLabel* lblUnit = new QLabel(_("Unit:"));
   leUnit = new QLineEdit;
-  QLabel* lblNum = new QLabel(tr("Num:"));
+  QLabel* lblNum = new QLabel(_("Num:"));
   leNum = new QLineEdit;
-  QLabel* lblElemType = new QLabel(tr("Elem Type:"));
+  QLabel* lblElemType = new QLabel(_("Elem Type:"));
   leElemType = new QLineEdit;
   //
   QFrame* frmParam = new QFrame;
@@ -87,7 +88,7 @@ ParameterDialog::ParameterDialog(TaskModelParam* param, QWidget* parent)
   formLayout->addWidget(frmParam);
   //
   QFrame* frmButtons = new QFrame;
-  QPushButton* btnOK = new QPushButton(tr("OK"));
+  QPushButton* btnOK = new QPushButton(_("OK"));
   QHBoxLayout* buttonLayout = new QHBoxLayout(frmButtons);
   buttonLayout->setContentsMargins(2, 2, 2, 2);
   buttonLayout->addStretch();
@@ -107,7 +108,7 @@ ParameterDialog::ParameterDialog(TaskModelParam* param, QWidget* parent)
   connect(btnDeleteParam, SIGNAL(clicked()), this, SLOT(deleteParamClicked()));
   connect(btnOK, SIGNAL(clicked()), this, SLOT(oKClicked()));
 
-  setWindowTitle(tr("Task Parameter"));
+  setWindowTitle(_("Task Parameter"));
   setFixedHeight(sizeHint().height());
   setFixedWidth(800);
   //
@@ -336,24 +337,24 @@ void ParameterDialog::oKClicked() {
     if( param->getMode()==DB_MODE_DELETE || param->getMode()==DB_MODE_IGNORE ) continue;
 
     if(param->getName().size()==0) {
-      QMessageBox::warning(this, tr("Parameter"), tr("Please input Parameter Name."));
+      QMessageBox::warning(this, _("Parameter"), _("Please input Parameter Name."));
       return;
     }
     if(param->getRName().size()==0) {
-      QMessageBox::warning(this, tr("Parameter"), tr("Please input Parameter Id."));
+      QMessageBox::warning(this, _("Parameter"), _("Please input Parameter Id."));
       return;
     }
     //
     int type = param->getType();
     if(type==0) {
       if(param->getElemNum()<=0) {
-        QMessageBox::warning(this, tr("Parameter"), tr("Please input Element Num."));
+        QMessageBox::warning(this, _("Parameter"), _("Please input Element Num."));
         return;
       }
 
     } else {
       if(param->getModelName().size()==0) {
-        QMessageBox::warning(this, tr("Parameter"), tr("Please input Target Model."));
+        QMessageBox::warning(this, _("Parameter"), _("Please input Target Model."));
         return;
       }
       bool isExist = false;
@@ -366,12 +367,12 @@ void ParameterDialog::oKClicked() {
         }
       }
       if(isExist==false) {
-        QMessageBox::warning(this, tr("Parameter"), tr("Target Model is NOT Exist."));
+        QMessageBox::warning(this, _("Parameter"), _("Target Model is NOT Exist."));
         return;
       }
       //
       if(std::find(existModels.begin(), existModels.end(), param->getModelName()) != existModels.end()) {
-        QMessageBox::warning(this, tr("Parameter"), tr("Target Model CANNOT duplicate."));
+        QMessageBox::warning(this, _("Parameter"), _("Target Model CANNOT duplicate."));
         return;
       }
       existModels.push_back(param->getModelName());
@@ -379,7 +380,7 @@ void ParameterDialog::oKClicked() {
   }
   //
   if(DatabaseManager::getInstance().saveTaskParameter(targetTask_)==false ) {
-    QMessageBox::warning(this, tr("Save Task Parameter Error"), DatabaseManager::getInstance().getErrorStr());
+    QMessageBox::warning(this, _("Save Task Parameter Error"), DatabaseManager::getInstance().getErrorStr());
     return;
   }
   targetTask_->clearParameterList();

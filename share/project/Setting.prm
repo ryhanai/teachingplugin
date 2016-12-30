@@ -1,4 +1,4 @@
-database : /home/ryo/Program/choreonoid/ext/teachingPlugin/share/project/teachingDB.robomech2016.sqlite3
+database : ./teachingDB.sqlite3
 robotModelName : main_withHands
 application : PDF|/usr/bin/evince
 application : TXT|/usr/bin/gedit

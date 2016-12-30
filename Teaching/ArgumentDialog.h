@@ -21,6 +21,7 @@ private Q_SLOTS:
   void upClicked();
   void downClicked();
   void oKClicked();
+	void cancelClicked();
 
 private:
   QTableWidget* lstModel;

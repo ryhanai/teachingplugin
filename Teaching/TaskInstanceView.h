@@ -59,7 +59,8 @@ private:
   FlowView* flowView_;
   MetaDataView* metadataView_;
 
-  void showGrid();
+	void searchTaskInstance();
+	void showGrid();
   void updateCurrentInfo();
 
   BodyItemPtr m_item_;
@@ -74,7 +75,9 @@ public:
   inline void setMetadataView(MetaDataView* view ) { viewImpl->setMetadataView(view); }
   inline void setParameterView(ParameterView* view ) { viewImpl->setParameterView(view); }
   inline void setStateMachineView(StateMachineView* view ) { viewImpl->setStateMachineView(view); }
-  inline void unloadCurrentModel() { viewImpl->unloadCurrentModel(); }
+
+	inline void setTaskExecutor(TaskExecuteManager* executor) { viewImpl->setTaskExecutor(executor); }
+	inline void unloadCurrentModel() { viewImpl->unloadCurrentModel(); }
 
 private:
   TaskInstanceViewImpl* viewImpl;

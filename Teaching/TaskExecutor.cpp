@@ -68,16 +68,38 @@ bool TaskExecutor::executeCommand (const std::string& commandName, const std::ve
   try {
     return handler_->executeCommand(commandName, params, simulation);
   } catch (...) {
+		detachAllModelItem();
     return false;
   }
 }
 
 bool TaskExecutor::attachModelItem(cnoid::BodyItemPtr object, int target) {
+	AttachedModel* model = new AttachedModel();
+	model->object = object;
+	model->target = target;
+	modelList.push_back(model);
+
   return handler_->attachModelItem(object, target);
 }
 
 bool TaskExecutor::detachModelItem(cnoid::BodyItemPtr object, int target) {
+	for (unsigned int index = 0; index < modelList.size(); index++) {
+		AttachedModel* model = modelList[index];
+		if (model->object == object && model->target == target) {
+			this->modelList.erase(std::remove(this->modelList.begin(), this->modelList.end(), model), this->modelList.end());
+			delete model;
+			break;
+		}
+	}
   return handler_->detachModelItem(object, target);
+}
+
+bool TaskExecutor::detachAllModelItem() {
+	for (unsigned int index = 0; index < modelList.size(); index++) {
+		AttachedModel* model = modelList[index];
+		if (handler_->detachModelItem(model->object, model->target) == false) return false;
+	}
+	return true;
 }
 
 }

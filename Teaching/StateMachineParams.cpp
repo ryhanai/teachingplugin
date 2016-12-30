@@ -1,6 +1,8 @@
 #include "StateMachineView.h"
 #include "TeachingTypes.h"
 
+#include "LoggerUtil.h"
+
 namespace teaching {
 
 ConnectionNode::ConnectionNode(double sourceX, double sourceY, double targetX, double targetY) : condition("") {
@@ -76,7 +78,7 @@ void ConnectionNode::reDrawConnection() {
 }
 
 ///
-ElementNode::ElementNode(QString target) {
+ElementNode::ElementNode(QString target) : isBreak_(false), isActive_(false) {
   if(target == "Start") {
     createStartNode();
   } else if(target == "Final") {
@@ -90,7 +92,7 @@ ElementNode::ElementNode(QString target) {
   }
 }
 
-ElementNode::ElementNode(int type, QString cmdName) {
+ElementNode::ElementNode(int type, QString cmdName) : isBreak_(false), isActive_(false) {
   switch(type) {
     case ELEMENT_START:
       createStartNode();
@@ -104,7 +106,10 @@ ElementNode::ElementNode(int type, QString cmdName) {
     case ELEMENT_FORK:
       createForkNode();
       break;
-    default:
+		case ELEMENT_POINT:
+			createPoint();
+			break;
+		default:
       createCommandNode(cmdName);
       break;
   }
@@ -153,6 +158,16 @@ void ElementNode::createForkNode() {
   setFlags(QGraphicsItem::ItemIsMovable | QGraphicsItem::ItemIsSelectable | QGraphicsItem::ItemSendsScenePositionChanges);
 }
 
+void ElementNode::createPoint() {
+	type_ = ELEMENT_POINT;
+	item_ = new QGraphicsEllipseItem(-5, -5, 10, 10);
+	item_->setBrush(QBrush(Qt::black, Qt::SolidPattern));
+	item_->setParentItem(this);
+
+	addToGroup(item_);
+	setFlags(QGraphicsItem::ItemIsMovable | QGraphicsItem::ItemIsSelectable | QGraphicsItem::ItemSendsScenePositionChanges);
+}
+
 void ElementNode::createCommandNode(QString name) {
   type_ = ELEMENT_COMMAND;
   item_ = new QGraphicsEllipseItem(-10, -10, 20, 20);
@@ -178,9 +193,14 @@ void ElementNode::paint(QPainter* painter, const QStyleOptionGraphicsItem* optio
 void ElementNode::updatePosition(double x, double y) {
   this->setPos(x, y);
   //
-  for(int index=0; index<lineList_.size(); index++) {
+	//DDEBUG_V("updatePosition: %d", lineList_.size());
+	for(int index=0; index<lineList_.size(); index++) {
     lineList_[index]->reDrawConnection();
   }
+	//
+	parentElem_->setPosX(x);
+	parentElem_->setPosY(y);
+	parentElem_->setUpdate();
 }
 
 }

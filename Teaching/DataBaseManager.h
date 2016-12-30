@@ -65,6 +65,7 @@ private:
   vector<FileDataParam*> getFileParams(int id);
   vector<ElementStmParam*> getStateParams(int instId);
   vector<ConnectionStmParam*> getTransParams(int instId);
+	vector<ElementStmParam*> getViaPointParams(int connId);
 
   bool saveTaskInstanceData(TaskModelParam* source, bool updateDate);
   bool saveTaskParameterData(int taskId, ParameterParam* source);
@@ -73,9 +74,18 @@ private:
   bool saveTransactionStmData(int parentId, ConnectionStmParam* source);
   bool saveArgumentData(int stateId, ArgumentParam* source);
 
-  /////
+	bool saveViaPointData(ConnectionStmParam* source);
+
+	vector<ElementStmParam*> getFlowStateParams(int instId);
+	vector<ConnectionStmParam*> getFlowTransParams(int instId);
+	vector<ElementStmParam*> getFlowViaPointParams(int connId);
+
+	bool saveFlowStmData(int parentId, ElementStmParam* source);
+	bool saveFlowTransactionStmData(int parentId, ConnectionStmParam* source);
+	bool saveFlowViaPointData(ConnectionStmParam* source);
+
+	/////
   bool saveFlowData(FlowParam* source);
-  bool saveFlowItemData(int flowId, TaskModelParam* source);
 
   bool saveDetailData(TaskModelParam* source);
   bool saveModelData(int parentId, ModelParam* source);

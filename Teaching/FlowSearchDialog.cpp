@@ -1,15 +1,17 @@
 #include "FlowSearchDialog.h"
 
+#include "gettext.h"
+
 namespace teaching {
 
 FlowSearchDialog::FlowSearchDialog(QWidget* parent) 
   : QDialog(parent, Qt::CustomizeWindowHint | Qt::WindowTitleHint) {
   QFrame* condFrame = new QFrame;
-  QLabel* lblCond = new QLabel(tr("Condition:"));
+  QLabel* lblCond = new QLabel(_("Condition:"));
   leCond = new QLineEdit;
-  QPushButton* btnSearch = new QPushButton(tr("Search"));
+  QPushButton* btnSearch = new QPushButton(_("Search"));
   btnSearch->setIcon(QIcon(":/Teaching/icons/Search.png"));
-  btnSearch->setToolTip(tr("Search Flow"));
+  btnSearch->setToolTip(_("Search Flow"));
 
   QHBoxLayout* topLayout = new QHBoxLayout;
   condFrame->setLayout(topLayout);
@@ -30,17 +32,17 @@ FlowSearchDialog::FlowSearchDialog(QWidget* parent)
   lstFlow->setHorizontalHeaderLabels(QStringList() << "Name" << "Comment" << "Created" << "Last Updated");
   //
   QFrame* frmButtons = new QFrame;
-  QPushButton* btnSelect = new QPushButton(tr("Open"));
+  QPushButton* btnSelect = new QPushButton(_("Open"));
   btnSelect->setIcon(QApplication::style()->standardIcon(QStyle::SP_DialogOpenButton));
-  btnSelect->setToolTip(tr("Open selected Flow"));
+  btnSelect->setToolTip(_("Open selected Flow"));
 
-  QPushButton* btnDelete = new QPushButton(tr("Delete"));
+  QPushButton* btnDelete = new QPushButton(_("Delete"));
   btnDelete->setIcon(QIcon(":/Teaching/icons/Delete.png"));
-  btnDelete->setToolTip(tr("Delete selected Flow"));
+  btnDelete->setToolTip(_("Delete selected Flow"));
 
-  QPushButton* btnCancel = new QPushButton(tr("Cancel"));
+  QPushButton* btnCancel = new QPushButton(_("Cancel"));
   btnCancel->setIcon(QIcon(":/Teaching/icons/Cancel.png"));
-  btnCancel->setToolTip(tr("Cancel Flow select"));
+  btnCancel->setToolTip(_("Cancel Flow select"));
 
   QHBoxLayout* buttonLayout = new QHBoxLayout(frmButtons);
   buttonLayout->setContentsMargins(2, 2, 2, 2);
@@ -63,7 +65,7 @@ FlowSearchDialog::FlowSearchDialog(QWidget* parent)
   connect(btnCancel, SIGNAL(clicked()), this, SLOT(cancelClicked()));
   connect(lstFlow, SIGNAL(itemDoubleClicked(QListWidgetItem*)), this, SLOT(oKClicked()));
   //
-  setWindowTitle(tr("Flow List"));
+  setWindowTitle(_("Flow List"));
   setFixedHeight(sizeHint().height());
   setFixedWidth(600);
   //
@@ -98,13 +100,13 @@ void FlowSearchDialog::deleteClicked() {
   if(item) {
     int targetId = item->data(Qt::UserRole).toInt();
     if(DatabaseManager::getInstance().deleteFlowModel(targetId) ) {
-      QMessageBox::information(this, tr("Database"), "Database updated");
+			QMessageBox::information(this, _("Database"), _("Database updated"));
     } else {
-      QMessageBox::warning(this, tr("Database Error"), DatabaseManager::getInstance().getErrorStr());
+      QMessageBox::warning(this, _("Database Error"), DatabaseManager::getInstance().getErrorStr());
     }
 
   } else {
-    QMessageBox::warning(this, tr("Flow List"), "Select Target Flow");
+    QMessageBox::warning(this, _("Flow List"), _("Select Delete Flow"));
     return;
   }
   //
@@ -116,7 +118,7 @@ void FlowSearchDialog::oKClicked() {
   if(item) {
     selected_ = item->data(Qt::UserRole).toInt();
   } else {
-    QMessageBox::warning(this, tr("Flow List"), "Select Target Flow");
+    QMessageBox::warning(this, _("Flow List"), _("Select Target Flow"));
     return;
   }
   isOk_ = true;
