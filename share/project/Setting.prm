@@ -1,5 +1,9 @@
 database : ./teachingDB.sqlite3
 robotModelName : main_withHands
+logLevel : 2
+logDir : Log
+application : MP4|/usr/bin/totem
 application : PDF|/usr/bin/evince
+application : STL|/usr/bin/meshlab
 application : TXT|/usr/bin/gedit
 application : YAML|/usr/bin/gedit

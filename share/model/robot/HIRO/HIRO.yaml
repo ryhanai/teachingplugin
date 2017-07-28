@@ -1,13 +1,19 @@
 #modelFile: hironx-distribution-vrml/main.wrl
 modelFile: hironx-distribution-vrml/mainWithDriver.wrl
 
+#standardPose: [ 
+#0, 0, 40,
+#0, 0, -120,  15, 0, 0,
+#0, 0, -120, -15, 0, 0,
+#0, 0, 0, 0,
+#0, 0, 0, 0 ]
+
 standardPose: [ 
 0, 0, 40,
-0, 0, -120,  15, 0, 0,
-0, 0, -120, -15, 0, 0,
+-20, 0, -140,  15, 0, 0,
+20, 0, -140, -15, 0, 0,
 0, 0, 0, 0,
 0, 0, 0, 0 ]
-
 
 linkGroup: 
   - name: HEAD
