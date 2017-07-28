@@ -6,6 +6,7 @@
 #include "CommandDefTypes.h"
 #include <QString>
 #include <QTableWidget>
+#include "ArgumentEstimator.h"
 
 namespace teaching {
 
@@ -20,7 +21,7 @@ inline bool dbl_eq(double d1, double d2) {
 }
 
 template <typename T> std::string toStr(const T& t) {
-    std::ostringstream os; os<<t; return os.str();
+  std::ostringstream os; os << t; return os.str();
 }
 
 class TeachingUtil {
@@ -29,6 +30,8 @@ public:
   static bool outputTaskDef(QString& strFName, TaskModelParam* targetTask);
   static bool loadModelDetail(QString& strFName, ModelParam* targetModel);
   static void loadTaskDetailData(TaskModelParam* target);
+
+  static bool outputFlow(QString& strFName, FlowParam* targetFlow);
 
 private:
   static int getModelType(QString& source);
@@ -57,6 +60,10 @@ public:
   inline void setDatabase(std::string value) { this->dataBase_ = value; }
   inline std::string getRobotModelName() const { return this->robotModelName_; }
   inline void setRobotModelName(std::string value) { this->robotModelName_ = value; }
+  inline int getLogLevel() const { return this->logLevel_; }
+  inline void setLogLevel(int value) { this->logLevel_ = value; }
+  inline std::string getLogDir() const { return this->logDir_; }
+  inline void setLogDir(std::string value) { this->logDir_ = value; }
 
   inline bool getIsReal() const { return this->isReal_; }
   inline void setIsReal(bool value) { this->isReal_ = value; }
@@ -72,11 +79,28 @@ public:
 private:
   std::string dataBase_;
   std::string robotModelName_;
+  int logLevel_;
+  std::string logDir_;
 
   std::map<std::string, std::string> appMap_;
 
   bool isReal_;
 
+};
+
+/////
+class EstimatorFactory {
+private:
+  EstimatorFactory() {};
+
+public:
+  static EstimatorFactory& getInstance(void) {
+    static EstimatorFactory singleton;
+    return singleton;
+  }
+
+  ArgumentEstimator* createArgEstimator(TaskModelParam* targetParam);
+  void deleteArgEstimator(ArgumentEstimator* handler);
 };
 
 }

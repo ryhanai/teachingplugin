@@ -30,6 +30,7 @@ public:
   inline void setMetadataView(MetaDataView* view) { this->metadataView_ = view; }
 
   void loadTaskInfo();
+  void setButtonEnableMode(bool isEnable);
 
 private Q_SLOTS:
   void taskSelectionChanged();
@@ -42,6 +43,7 @@ private Q_SLOTS:
   void deleteTaskClicked();
   void registNewTaskClicked();
   void registTaskClicked();
+  void abortClicked();
   void initPosClicked();
 
   void widgetClose();
@@ -51,6 +53,15 @@ private:
   QLineEdit* leTask;
   SearchList* lstResult;
 
+  QPushButton* btnRunTask;
+  QPushButton* btnInitPos;
+  QPushButton* btnLoadTask;
+  QPushButton* btnOutputTask;
+  QPushButton* btnDeleteTask;
+  QPushButton* btnRegistNewTask;
+  QPushButton* btnRegistTask;
+  QPushButton* btnAbort;
+
   int currentTaskIndex_;
 
   bool isSkip_;
@@ -59,8 +70,8 @@ private:
   FlowView* flowView_;
   MetaDataView* metadataView_;
 
-	void searchTaskInstance();
-	void showGrid();
+  void searchTaskInstance();
+  void showGrid();
   void updateCurrentInfo();
 
   BodyItemPtr m_item_;
@@ -68,16 +79,18 @@ private:
 
 class TaskInstanceView : public cnoid::View {
 public:
-    TaskInstanceView();
-    ~TaskInstanceView();
+  TaskInstanceView();
+  ~TaskInstanceView();
 
   inline void setFlowView(FlowView* view) { viewImpl->setFlowView(view); }
-  inline void setMetadataView(MetaDataView* view ) { viewImpl->setMetadataView(view); }
-  inline void setParameterView(ParameterView* view ) { viewImpl->setParameterView(view); }
-  inline void setStateMachineView(StateMachineView* view ) { viewImpl->setStateMachineView(view); }
+  inline void setMetadataView(MetaDataView* view) { viewImpl->setMetadataView(view); }
+  inline void setParameterView(ParameterView* view) { viewImpl->setParameterView(view); }
+  inline void setStateMachineView(StateMachineView* view) { viewImpl->setStateMachineView(view); }
 
-	inline void setTaskExecutor(TaskExecuteManager* executor) { viewImpl->setTaskExecutor(executor); }
-	inline void unloadCurrentModel() { viewImpl->unloadCurrentModel(); }
+  inline void setTaskExecutor(TaskExecuteManager* executor) { viewImpl->setTaskExecutor(executor); }
+  inline void unloadCurrentModel() { viewImpl->unloadCurrentModel(); }
+  inline void setButtonEnableMode(bool isEnable) { viewImpl->setButtonEnableMode(isEnable); }
+
 
 private:
   TaskInstanceViewImpl* viewImpl;

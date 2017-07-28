@@ -54,9 +54,9 @@ private:
   bool isWidgetSkip_;
   MetaDataViewImpl* parentView_;
 
-	Connection connectionToKinematicStateChanged;
-	Connection currentBodyItemChangeConnection;
-	BodyItemPtr currentBodyItem_;
+  Connection connectionToKinematicStateChanged;
+  Connection currentBodyItemChangeConnection;
+  BodyItemPtr currentBodyItem_;
   LazyCaller updateKinematicStateLater;
 
   void showGrid();

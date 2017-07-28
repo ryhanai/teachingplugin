@@ -10,16 +10,20 @@ namespace teaching {
 class ArgumentDefParam {
 public:
   ArgumentDefParam(std::string name, std::string type, int length)
-    : name_(name), type_(type), length_(length) {};
+    : name_(name), type_(type), length_(length), direction_(0) {};
+  ArgumentDefParam(std::string name, std::string type, int length, int direction)
+    : name_(name), type_(type), length_(length), direction_(direction) {};
 
   inline std::string getName() const { return this->name_; }
   inline std::string getType() const { return this->type_; }
   inline int getLength() const { return this->length_; }
+  inline int getDirection() const { return this->direction_; }
 
 private:
   std::string name_;
   std::string type_;
   int length_;
+  int direction_;
 };
 
 class CommandDefParam {
@@ -29,7 +33,7 @@ public:
 
   virtual ~CommandDefParam() {
     std::vector<ArgumentDefParam*>::iterator itArg = argumentList_.begin();
-    while (itArg != argumentList_.end() ) {
+    while (itArg != argumentList_.end()) {
       delete *itArg;
       ++itArg;
     }
@@ -60,8 +64,9 @@ struct CommandDefParamComparator {
     name_ = value;
   }
   bool operator()(const CommandDefParam* elem) const {
-    return elem->getName()==name_;
+    return elem->getName() == name_;
   }
 };
+
 }
 #endif

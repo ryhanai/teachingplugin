@@ -18,23 +18,23 @@ ImageView::ImageView(QWidget *parent) : QGraphicsView(parent) {
 ImageView::~ImageView(void) {
 }
 
-void ImageView::paintEvent(QPaintEvent* event ) {
-  QPainter widgetpainter( viewport() );
+void ImageView::paintEvent(QPaintEvent* event) {
+  QPainter widgetpainter(viewport());
 
   QImage qimg = m_img.scaled(viewport()->width(), viewport()->height(),
-                              Qt::KeepAspectRatio,Qt::FastTransformation);
-  widgetpainter.drawImage( 0, 0, qimg );
+    Qt::KeepAspectRatio, Qt::FastTransformation);
+  widgetpainter.drawImage(0, 0, qimg);
 }
 
-void ImageView::setImg(QImage& img ) {
-  m_img = QImage( img );
+void ImageView::setImg(QImage& img) {
+  m_img = QImage(img);
   viewport()->update();
 }
 //
 FigureDialog::FigureDialog(QWidget* parent) : QDialog(parent) {
   m_ImageView_ = new ImageView(parent);
 
-	this->setWindowTitle("Image");
+  this->setWindowTitle("Image");
 
   QPushButton* btnOK = new QPushButton(_("OK"));
   QFrame* frmButtons = new QFrame;
@@ -81,8 +81,8 @@ TextDialog::TextDialog(QString& source, QWidget* parent) : QDialog(parent) {
 }
 ////
 MetaDataViewImpl::MetaDataViewImpl(QWidget* parent) : QWidget(parent),
- targetTask_(0), m_FigDialog_(0), m_ModelDialog_(0) {
-		//
+  targetTask_(0), m_FigDialog_(0), m_ModelDialog_(0) {
+  //
   btnModel = new QPushButton(_("Model Inforamtion"));
   btnModel->setIcon(QIcon(":/Teaching/icons/About.png"));
   btnModel->setToolTip(_("Edit Model information"));
@@ -106,7 +106,7 @@ MetaDataViewImpl::MetaDataViewImpl(QWidget* parent) : QWidget(parent),
 
   lstImage = new QListWidget;
   lstImage->setSelectionMode(QListView::SingleSelection);
-  lstImage->setIconSize(QSize(100,100));
+  lstImage->setIconSize(QSize(100, 100));
   lstImage->setFlow(QListWidget::LeftToRight);
   lstImage->setWrapping(true);
 
@@ -152,10 +152,10 @@ MetaDataViewImpl::MetaDataViewImpl(QWidget* parent) : QWidget(parent),
   QVBoxLayout* mainLayout = new QVBoxLayout;
   mainLayout->setContentsMargins(2, 0, 2, 0);
   mainLayout->addWidget(frmButtons);
-  mainLayout->addWidget(textEdit);
-  mainLayout->addWidget(lstFileName);
+  mainLayout->addWidget(textEdit, 2);
+  mainLayout->addWidget(lstFileName, 1);
   mainLayout->addWidget(frmFile);
-  mainLayout->addWidget(lstImage);
+  mainLayout->addWidget(lstImage, 2);
   mainLayout->addWidget(frmImage);
   setLayout(mainLayout);
 
@@ -178,11 +178,10 @@ MetaDataViewImpl::MetaDataViewImpl(QWidget* parent) : QWidget(parent),
   connect(m_proc_, SIGNAL(finished(int)), this, SLOT(processFinished()));
 
   setAllDisable();
-
 }
 
 MetaDataViewImpl::~MetaDataViewImpl() {
- if( m_proc_->state() == QProcess::Running) {
+  if (m_proc_->state() == QProcess::Running) {
     m_proc_->kill();
     m_proc_->waitForFinished();
   }
@@ -190,12 +189,14 @@ MetaDataViewImpl::~MetaDataViewImpl() {
 }
 
 void MetaDataViewImpl::modelClicked() {
-  if(targetTask_) {
-		if (m_ModelDialog_) {
-			m_ModelDialog_->close();
-			delete m_ModelDialog_;
-			m_ModelDialog_ = 0;
-		}
+  DDEBUG("MetaDataViewImpl::modelClicked");
+
+  if (targetTask_) {
+    if (m_ModelDialog_) {
+      m_ModelDialog_->close();
+      delete m_ModelDialog_;
+      m_ModelDialog_ = 0;
+    }
     m_ModelDialog_ = new ModelDialog(this);
     m_ModelDialog_->setAttribute(Qt::WA_DeleteOnClose);
     m_ModelDialog_->setTaskModel(targetTask_);
@@ -205,39 +206,42 @@ void MetaDataViewImpl::modelClicked() {
 
 void MetaDataViewImpl::closeModelDialog() {
   m_ModelDialog_->close();
-	delete m_ModelDialog_;
-	m_ModelDialog_ = 0;
+  delete m_ModelDialog_;
+  m_ModelDialog_ = 0;
 }
 
 void MetaDataViewImpl::updateTaskParam() {
-  if(targetTask_) {
+  DDEBUG("MetaDataViewImpl::updateTaskParam");
+  if (targetTask_) {
     targetTask_->setComment(textEdit->toPlainText());
   }
 }
 
 void MetaDataViewImpl::setTaskParam(TaskModelParam* param) {
+  DDEBUG("MetaDataViewImpl::setTaskParam");
+
   setAllClear();
   setAllEnable();
   //
   this->targetTask_ = param;
   textEdit->setText(param->getComment());
-  if(m_ModelDialog_) {
+  if (m_ModelDialog_) {
     m_ModelDialog_->changeTaskModel(targetTask_);
   }
   //
   vector<FileDataParam*> fileList = param->getFileList();
-  for(int index=0; index<fileList.size();index++) {
+  for (int index = 0; index < fileList.size(); index++) {
     FileDataParam* param = fileList[index];
-    if(param->getMode()==DB_MODE_DELETE || param->getMode()==DB_MODE_IGNORE) continue;
+    if (param->getMode() == DB_MODE_DELETE || param->getMode() == DB_MODE_IGNORE) continue;
     QListWidgetItem* item = new QListWidgetItem(param->getName());
     lstFileName->addItem(item);
     item->setData(Qt::UserRole, index);
   }
   //
   vector<ImageDataParam*> imageList = param->getImageList();
-  for(int index=0; index<imageList.size();index++) {
+  for (int index = 0; index < imageList.size(); index++) {
     ImageDataParam* param = imageList[index];
-    if(param->getMode()==DB_MODE_DELETE || param->getMode()==DB_MODE_IGNORE) continue;
+    if (param->getMode() == DB_MODE_DELETE || param->getMode() == DB_MODE_IGNORE) continue;
     QListWidgetItem* item = new QListWidgetItem(param->getName());
     item->setIcon(QIcon(QPixmap::fromImage(param->getData())));
     lstImage->addItem(item);
@@ -246,28 +250,32 @@ void MetaDataViewImpl::setTaskParam(TaskModelParam* param) {
 }
 
 void MetaDataViewImpl::clearTaskParam() {
+  DDEBUG("MetaDataViewImpl::clearTaskParam");
+
   this->targetTask_ = 0;
   setAllClear();
   setAllDisable();
 }
 
 void MetaDataViewImpl::dragEnterEvent(QDragEnterEvent* event) {
-  if(event->mimeData()->hasFormat("text/uri-list")) {
+  if (event->mimeData()->hasFormat("text/uri-list")) {
     event->acceptProposedAction();
   }
 }
 
 void MetaDataViewImpl::dropEvent(QDropEvent* event) {
-  if(event->mimeData()->hasFormat("text/uri-list")) {
+  DDEBUG("MetaDataViewImpl::dropEvent");
+
+  if (event->mimeData()->hasFormat("text/uri-list")) {
     QList<QUrl> urls = event->mimeData()->urls();
-    if(urls.isEmpty()) return;
+    if (urls.isEmpty()) return;
     //
-    for(int index=0; index<urls.length(); index++) {
+    for (int index = 0; index < urls.length(); index++) {
       QString fileName = urls[index].toLocalFile();
-      if(fileName.isEmpty()) continue;
+      if (fileName.isEmpty()) continue;
       //
       QString strName = QFileInfo(fileName).fileName();
-      if(fileName.endsWith("png") || fileName.endsWith("jpg")) {
+      if (fileName.endsWith("png") || fileName.endsWith("jpg")) {
         QListWidgetItem* item = new QListWidgetItem(strName);
         item->setIcon(QIcon(fileName));
         lstImage->addItem(item);
@@ -277,7 +285,7 @@ void MetaDataViewImpl::dropEvent(QDropEvent* event) {
         QImage image(fileName);
         param->setData(image);
         targetTask_->addImage(param);
-        item->setData(Qt::UserRole, (unsigned int)(targetTask_->getImageList().size()-1));
+        item->setData(Qt::UserRole, (unsigned int)(targetTask_->getImageList().size() - 1));
 
       } else {
         QListWidgetItem* item = new QListWidgetItem(strName);
@@ -289,7 +297,7 @@ void MetaDataViewImpl::dropEvent(QDropEvent* event) {
         file.open(QIODevice::ReadOnly);
         param->setData(file.readAll());
         targetTask_->addFile(param);
-        item->setData(Qt::UserRole, (unsigned int)(targetTask_->getFileList().size()-1));
+        item->setData(Qt::UserRole, (unsigned int)(targetTask_->getFileList().size() - 1));
       }
     }
   }
@@ -297,8 +305,10 @@ void MetaDataViewImpl::dropEvent(QDropEvent* event) {
 }
 
 void MetaDataViewImpl::fileOutputClicked() {
+  DDEBUG("MetaDataViewImpl::fileOutputClicked");
+
   QList<QListWidgetItem*> itemList = this->lstFileName->selectedItems();
-  if(itemList.size()<=0) return;
+  if (itemList.size() <= 0) return;
   QListWidgetItem *item = itemList.at(0);
   int selected = item->data(Qt::UserRole).toInt();
   QByteArray data = targetTask_->getFileList()[selected]->getData();
@@ -306,7 +316,7 @@ void MetaDataViewImpl::fileOutputClicked() {
   QFileDialog fileDialog(this);
   fileDialog.setFileMode(QFileDialog::Directory);
   fileDialog.setOption(QFileDialog::ShowDirsOnly, true);
-  if(fileDialog.exec()==false) return;
+  if (fileDialog.exec() == false) return;
   QStringList strDirs = fileDialog.selectedFiles();
   //
   QString strDir = strDirs[0];
@@ -320,7 +330,7 @@ void MetaDataViewImpl::fileOutputClicked() {
 }
 
 void MetaDataViewImpl::processFinished() {
-  for(int index=0; index<writtenFiles_.size(); index++) {
+  for (int index = 0; index < writtenFiles_.size(); index++) {
     QFile::remove(writtenFiles_[index]);
     DDEBUG_V("remove : %s", writtenFiles_[index].toStdString().c_str());
   }
@@ -328,31 +338,33 @@ void MetaDataViewImpl::processFinished() {
 }
 
 void MetaDataViewImpl::fileShowClicked() {
+  DDEBUG("MetaDataViewImpl::fileShowClicked");
+
   QList<QListWidgetItem*> itemList = this->lstFileName->selectedItems();
-  if(itemList.size()<=0) return;
+  if (itemList.size() <= 0) return;
   try {
     QListWidgetItem *item = itemList.at(0);
     int selected = item->data(Qt::UserRole).toInt();
     QByteArray data = targetTask_->getFileList()[selected]->getData();
-		QString source = QString::fromLatin1(data);
+    QString source = QString::fromLatin1(data);
     //
     QString strFile = targetTask_->getFileList()[selected]->getName();
 
     QString strExt = QFileInfo(strFile).suffix();
     QString targetApp = QString::fromStdString(SettingManager::getInstance().getTargetApp(strExt.toUpper().toStdString()));
     DDEBUG_V("targetApp : %s", targetApp.toStdString().c_str());
-    if( QFile::exists(targetApp)==false ) {
+    if (QFile::exists(targetApp) == false) {
       QMessageBox::warning(this, _("File Show"), _("APP does NOT EXIST."));
       return;
     }
 
-    if(0<targetApp.length()) {
+    if (0 < targetApp.length()) {
       QFile file(strFile);
       file.open(QIODevice::WriteOnly);
       file.write(data);
       file.close();
       //
-      if(std::find(writtenFiles_.begin(), writtenFiles_.end(), strFile) == writtenFiles_.end()) {
+      if (std::find(writtenFiles_.begin(), writtenFiles_.end(), strFile) == writtenFiles_.end()) {
         writtenFiles_.push_back(strFile);
         DDEBUG_V("%s", strFile.toStdString().c_str());
       }
@@ -363,15 +375,18 @@ void MetaDataViewImpl::fileShowClicked() {
       TextDialog dialog(source, this);
       dialog.exec();
     }
-  } catch (...) {
+  }
+  catch (...) {
   }
 }
 
 void MetaDataViewImpl::fileDeleteClicked() {
+  DDEBUG("MetaDataViewImpl::fileDeleteClicked");
+
   QList<QListWidgetItem*> itemList = this->lstFileName->selectedItems();
   int itemCnt = itemList.size();
-  for(int index=0; index<itemCnt; index++){
-    QListWidgetItem *item = itemList.at( index );
+  for (int index = 0; index < itemCnt; index++) {
+    QListWidgetItem *item = itemList.at(index);
     int selected = item->data(Qt::UserRole).toInt();
     delete item;
     targetTask_->getFileList()[selected]->setDelete();
@@ -379,8 +394,10 @@ void MetaDataViewImpl::fileDeleteClicked() {
 }
 
 void MetaDataViewImpl::imageOutputClicked() {
+  DDEBUG("MetaDataViewImpl::imageOutputClicked");
+
   QList<QListWidgetItem*> itemList = this->lstImage->selectedItems();
-  if(itemList.size()<=0) return;
+  if (itemList.size() <= 0) return;
   QListWidgetItem *item = itemList.at(0);
   int selected = item->data(Qt::UserRole).toInt();
   QImage image = targetTask_->getImageList()[selected]->getData();
@@ -388,7 +405,7 @@ void MetaDataViewImpl::imageOutputClicked() {
   QFileDialog fileDialog(this);
   fileDialog.setFileMode(QFileDialog::Directory);
   fileDialog.setOption(QFileDialog::ShowDirsOnly, true);
-  if(fileDialog.exec()==false) return;
+  if (fileDialog.exec() == false) return;
   QStringList strDirs = fileDialog.selectedFiles();
   //
   QString strDir = strDirs[0];
@@ -399,13 +416,15 @@ void MetaDataViewImpl::imageOutputClicked() {
 }
 
 void MetaDataViewImpl::imageShowClicked() {
+  DDEBUG("MetaDataViewImpl::imageShowClicked");
+
   QList<QListWidgetItem*> itemList = this->lstImage->selectedItems();
-  if(itemList.size()<=0) return;
+  if (itemList.size() <= 0) return;
   QListWidgetItem *item = itemList.at(0);
   int selected = item->data(Qt::UserRole).toInt();
   QImage image = targetTask_->getImageList()[selected]->getData();
 
-  if(!m_FigDialog_) {
+  if (!m_FigDialog_) {
     m_FigDialog_ = new FigureDialog(this);
   }
   m_FigDialog_->setImage(image);
@@ -413,10 +432,12 @@ void MetaDataViewImpl::imageShowClicked() {
 }
 
 void MetaDataViewImpl::imageDeleteClicked() {
+  DDEBUG("MetaDataViewImpl::imageDeleteClicked");
+
   QList<QListWidgetItem*> itemList = this->lstImage->selectedItems();
   int itemCnt = itemList.size();
-  for(int index=0; index<itemCnt; index++){
-    QListWidgetItem *item = itemList.at( index );
+  for (int index = 0; index < itemCnt; index++) {
+    QListWidgetItem *item = itemList.at(index);
     int selected = item->data(Qt::UserRole).toInt();
     delete item;
     targetTask_->getImageList()[selected]->setDelete();
@@ -460,14 +481,14 @@ void MetaDataViewImpl::setAllClear() {
 }
 /////
 MetaDataView::MetaDataView() : viewImpl(0) {
-	setName(_("MetaData"));
+  setName(_("MetaData"));
   setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Ignored);
 
   viewImpl = new MetaDataViewImpl(this);
   QVBoxLayout* vbox = new QVBoxLayout();
   vbox->addWidget(viewImpl);
   setLayout(vbox);
-	setDefaultLayoutArea(View::LEFT_TOP);
+  setDefaultLayoutArea(View::LEFT_TOP);
 }
 
 MetaDataView::~MetaDataView() {

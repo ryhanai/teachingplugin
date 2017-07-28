@@ -89,7 +89,7 @@ private:
 
 class MetaDataView : public cnoid::View {
 public:
-	MetaDataView();
+  MetaDataView();
   ~MetaDataView();
   void setTaskParam(TaskModelParam* param) { this->viewImpl->setTaskParam(param); }
   void updateTaskParam() { this->viewImpl->updateTaskParam(); }

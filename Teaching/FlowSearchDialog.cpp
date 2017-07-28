@@ -1,11 +1,13 @@
 #include "FlowSearchDialog.h"
 
 #include "gettext.h"
+#include "LoggerUtil.h"
 
 namespace teaching {
 
-FlowSearchDialog::FlowSearchDialog(QWidget* parent) 
-  : QDialog(parent, Qt::CustomizeWindowHint | Qt::WindowTitleHint) {
+FlowSearchDialog::FlowSearchDialog(FlowParam* currentFlow, QWidget* parent)
+  : currentFlow_(currentFlow),
+  isOk_(false), isDeleted_(false), selected_(-1), QDialog(parent, Qt::CustomizeWindowHint | Qt::WindowTitleHint) {
   QFrame* condFrame = new QFrame;
   QLabel* lblCond = new QLabel(_("Condition:"));
   leCond = new QLineEdit;
@@ -19,7 +21,7 @@ FlowSearchDialog::FlowSearchDialog(QWidget* parent)
   topLayout->addWidget(leCond);
   topLayout->addWidget(btnSearch);
   //
-  lstFlow = new QTableWidget(0,4);
+  lstFlow = new QTableWidget(0, 4);
   lstFlow->setSelectionBehavior(QAbstractItemView::SelectRows);
   lstFlow->setSelectionMode(QAbstractItemView::SingleSelection);
   lstFlow->setEditTriggers(QAbstractItemView::NoEditTriggers);
@@ -63,11 +65,12 @@ FlowSearchDialog::FlowSearchDialog(QWidget* parent)
   connect(btnDelete, SIGNAL(clicked()), this, SLOT(deleteClicked()));
   connect(btnSelect, SIGNAL(clicked()), this, SLOT(oKClicked()));
   connect(btnCancel, SIGNAL(clicked()), this, SLOT(cancelClicked()));
-  connect(lstFlow, SIGNAL(itemDoubleClicked(QListWidgetItem*)), this, SLOT(oKClicked()));
+  connect(lstFlow, SIGNAL(itemDoubleClicked(QTableWidgetItem*)), this, SLOT(oKClicked()));
+  connect(this, SIGNAL(rejected()), this, SLOT(cancelClicked()));
   //
   setWindowTitle(_("Flow List"));
-  setFixedHeight(sizeHint().height());
-  setFixedWidth(600);
+  setMinimumHeight(sizeHint().height());
+  setMinimumWidth(600);
   //
   vector<string> condList;
   flowList_ = DatabaseManager::getInstance().searchFlowList(condList, false);
@@ -75,19 +78,21 @@ FlowSearchDialog::FlowSearchDialog(QWidget* parent)
 }
 
 void FlowSearchDialog::searchClicked() {
+  DDEBUG("FlowSearchDialog::searchClicked()");
+
   lstFlow->clear();
 
   vector<string> condList;
   QStringList targetList;
   bool isOr = false;
   QString strTarget = leCond->text();
-  if( strTarget.contains("||") ) {
+  if (strTarget.contains("||")) {
     isOr = true;
     targetList = strTarget.split("||");
   } else {
     targetList = strTarget.split(" ");
   }
-  for(unsigned int index=0; index<targetList.size(); index++) {
+  for (unsigned int index = 0; index < targetList.size(); index++) {
     condList.push_back(targetList[index].trimmed().toStdString());
   }
 
@@ -96,11 +101,16 @@ void FlowSearchDialog::searchClicked() {
 }
 
 void FlowSearchDialog::deleteClicked() {
+  DDEBUG("FlowSearchDialog::deleteClicked()");
+
   QTableWidgetItem* item = lstFlow->currentItem();
-  if(item) {
-    int targetId = item->data(Qt::UserRole).toInt();
-    if(DatabaseManager::getInstance().deleteFlowModel(targetId) ) {
-			QMessageBox::information(this, _("Database"), _("Database updated"));
+  if (item) {
+    int index = item->data(Qt::UserRole).toInt();
+    if (currentFlow_) {
+      if (currentFlow_->getId() == flowList_[index]->getId()) isDeleted_ = true;
+    }
+    if (DatabaseManager::getInstance().deleteFlowModel(flowList_[index]->getId())) {
+      QMessageBox::information(this, _("Database"), _("Database updated"));
     } else {
       QMessageBox::warning(this, _("Database Error"), DatabaseManager::getInstance().getErrorStr());
     }
@@ -110,13 +120,16 @@ void FlowSearchDialog::deleteClicked() {
     return;
   }
   //
-  searchClicked();
+  close();
 }
 
 void FlowSearchDialog::oKClicked() {
+  DDEBUG("FlowSearchDialog::oKClicked()");
+
   QTableWidgetItem* item = lstFlow->currentItem();
-  if(item) {
-    selected_ = item->data(Qt::UserRole).toInt();
+  if (item) {
+    int index = item->data(Qt::UserRole).toInt();
+    selected_ = flowList_[index]->getId();
   } else {
     QMessageBox::warning(this, _("Flow List"), _("Select Target Flow"));
     return;
@@ -126,7 +139,8 @@ void FlowSearchDialog::oKClicked() {
 }
 
 void FlowSearchDialog::cancelClicked() {
-  isOk_ = false;
+  DDEBUG("FlowSearchDialog::cancelClicked()");
+
   close();
 }
 
@@ -135,16 +149,16 @@ void FlowSearchDialog::showGrid() {
   lstFlow->setRowCount(0);
   lstFlow->setHorizontalHeaderLabels(QStringList() << "Name" << "Comment" << "Created" << "Last Updated");
 
-  for(int index=0; index<flowList_.size(); index++) {
+  for (int index = 0; index < flowList_.size(); index++) {
     FlowParam* param = flowList_[index];
-    if( param->getMode()==DB_MODE_DELETE || param->getMode()==DB_MODE_IGNORE) continue;
+    if (param->getMode() == DB_MODE_DELETE || param->getMode() == DB_MODE_IGNORE) continue;
 
     int row = lstFlow->rowCount();
     lstFlow->insertRow(row);
 
     QTableWidgetItem* itemName = new QTableWidgetItem;
     lstFlow->setItem(row, 0, itemName);
-    itemName->setData(Qt::UserRole, param->getId());
+    itemName->setData(Qt::UserRole, index);
     itemName->setText(param->getName());
 
     QTableWidgetItem* itemComment = new QTableWidgetItem;

@@ -17,12 +17,12 @@ using namespace cnoid;
 
 namespace teaching {
 
-ModelDialog::ModelDialog(MetaDataViewImpl* view, QWidget* parent) 
+ModelDialog::ModelDialog(MetaDataViewImpl* view, QWidget* parent)
   : QDialog(parent, Qt::CustomizeWindowHint | Qt::WindowTitleHint),
-    targetTask_(0), currentModel_(0), currentModelIndex_(-1), selectedModel_(0),
-    isWidgetSkip_(false), parentView_(view),
-    currentBodyItem_(0),
-    updateKinematicStateLater(bind(&ModelDialog::updateKinematicState, this, true), IDLE_PRIORITY_LOW) {
+  targetTask_(0), currentModel_(0), currentModelIndex_(-1), selectedModel_(0),
+  isWidgetSkip_(false), parentView_(view),
+  currentBodyItem_(0),
+  updateKinematicStateLater(bind(&ModelDialog::updateKinematicState, this, true), IDLE_PRIORITY_LOW) {
   lstModel = UIUtil::makeTableWidget(2, false);
   lstModel->setColumnWidth(0, 50);
   lstModel->setColumnWidth(1, 300);
@@ -126,19 +126,23 @@ ModelDialog::ModelDialog(MetaDataViewImpl* view, QWidget* parent)
   connect(leRy, SIGNAL(editingFinished()), this, SLOT(modelPositionChanged()));
   connect(leRz, SIGNAL(editingFinished()), this, SLOT(modelPositionChanged()));
 
-	currentBodyItemChangeConnection = BodyBar::instance()->sigCurrentBodyItemChanged().connect(
-      bind(&ModelDialog::onCurrentBodyItemChanged, this, _1));
+  currentBodyItemChangeConnection = BodyBar::instance()->sigCurrentBodyItemChanged().connect(
+    bind(&ModelDialog::onCurrentBodyItemChanged, this, _1));
 
   setWindowTitle(_("Models"));
   resize(450, 350);
 }
 
 void ModelDialog::setTaskModel(TaskModelParam* param) {
+  DDEBUG("ModelDialog::setTaskModel()");
+
   this->targetTask_ = param;
   showGrid();
 }
 
 void ModelDialog::changeTaskModel(TaskModelParam* param) {
+  DDEBUG("ModelDialog::changeTaskModel()");
+
   updateTaskModelInfo();
   isWidgetSkip_ = true;
   currentModelIndex_ = -1;
@@ -154,28 +158,30 @@ void ModelDialog::changeTaskModel(TaskModelParam* param) {
 }
 
 void ModelDialog::okClicked() {
-  DDEBUG("MetaDataViewImpl::okClicked")
+  DDEBUG("ModelDialog::okClicked()");
+
   updateTaskModelInfo();
   connectionToKinematicStateChanged.disconnect();
-	currentBodyItemChangeConnection.disconnect();
+  currentBodyItemChangeConnection.disconnect();
   parentView_->closeModelDialog();
 }
 
 void ModelDialog::modelSelectionChanged() {
-  DDEBUG("MetaDataViewImpl::modelSelectionChanged")
+  DDEBUG("ModelDialog::modelSelectionChanged()");
+
   updateTaskModelInfo();
 
-  if(currentModel_) {
+  if (currentModel_) {
     lstModel->item(currentModelIndex_, 0)->setText(getTypeName(currentModel_->getType()));
     lstModel->item(currentModelIndex_, 1)->setText(currentModel_->getName());
   }
 
   QTableWidgetItem* item = lstModel->currentItem();
-  if(item) {
+  if (item) {
     currentModelIndex_ = lstModel->currentRow();
-    currentModel_ = targetTask_->getModelById(item->data(Qt::UserRole).toInt());
+    currentModel_ = targetTask_->getModelList()[item->data(Qt::UserRole).toInt()];
     btnRef->setEnabled(true);
-    DDEBUG_V("MetaDataViewImpl::modelSelectionChanged:item %d", currentModelIndex_)
+    DDEBUG_V("MetaDataViewImpl::modelSelectionChanged:item %d", currentModelIndex_);
 
     ChoreonoidUtil::selectTreeItem(currentModel_);
 
@@ -191,7 +197,7 @@ void ModelDialog::modelSelectionChanged() {
     leRz->setText(QString::number(currentModel_->getRotRz(), 'f', 6));
 
   } else {
-    DDEBUG("MetaDataViewImpl::modelSelectionChanged:NO item")
+    DDEBUG("MetaDataViewImpl::modelSelectionChanged:NO item");
     clearModelDetail();
     currentModelIndex_ = -1;
     currentModel_ = 0;
@@ -199,20 +205,21 @@ void ModelDialog::modelSelectionChanged() {
 }
 
 void ModelDialog::refClicked() {
-	QString strFName = QFileDialog::getOpenFileName(
-			this, "VRML File", ".", "wrl(*.wrl);;all(*.*)" );
-	if ( strFName.isEmpty() ) return;
+  DDEBUG("ModelDialog::refClicked()");
+
+  QString strFName = QFileDialog::getOpenFileName(
+    this, "VRML File", ".", "wrl(*.wrl);;all(*.*)");
+  if (strFName.isEmpty()) return;
   //
-  DDEBUG("ModelDialog::refClicked")
   QString strName = QFileInfo(strFName).fileName();
   QString strPath = QFileInfo(strFName).absolutePath();
   leFile->setText(strName);
-  if( !currentModel_ ) return;
+  if (!currentModel_) return;
   //
   QString currFile = currentModel_->getFileName();
-  if(strFName==currFile) return;
+  if (strFName == currFile) return;
   //
-  if(currentModel_->getModelItem()) {
+  if (currentModel_->getModelItem()) {
     connectionToKinematicStateChanged.disconnect();
     ChoreonoidUtil::unLoadModelItem(currentModel_);
     currentModel_->deleteModelDetails();
@@ -221,7 +228,7 @@ void ModelDialog::refClicked() {
   QFile file(strFName);
   file.open(QIODevice::ReadOnly);
   currentModel_->setData(file.readAll());
-  if( ChoreonoidUtil::readModelItem(currentModel_, strFName) ) {
+  if (ChoreonoidUtil::readModelItem(currentModel_, strFName)) {
     ChoreonoidUtil::loadModelItem(currentModel_);
     ChoreonoidUtil::showAllModelItem();
   }
@@ -230,25 +237,30 @@ void ModelDialog::refClicked() {
 }
 
 void ModelDialog::addModelClicked() {
-  if(targetTask_) {
+  DDEBUG("ModelDialog::addModelClicked()");
+
+  if (targetTask_) {
     int newIdx = DatabaseManager::getInstance().getModelMaxIndex();
     ModelParam* param = new ModelParam(newIdx, 0, "New Model", "", "", 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, true);
     targetTask_->addModel(param);
 
     int row = lstModel->rowCount();
     lstModel->insertRow(row);
-    UIUtil::makeTableItemWithData(lstModel, row, 0, getTypeName(param->getType()), param->getId());
-    UIUtil::makeTableItemWithData(lstModel, row, 1, param->getName(), param->getId());
+    UIUtil::makeTableItemWithData(lstModel, row, 0, getTypeName(param->getType()), targetTask_->getModelList().size()-1);
+    UIUtil::makeTableItemWithData(lstModel, row, 1, param->getName(), targetTask_->getModelList().size() - 1);
   }
 }
 
 void ModelDialog::deleteModelClicked() {
-  DDEBUG("MetaDataViewImpl::deleteModelClicked")
+  DDEBUG("ModelDialog::deleteModelClicked()");
+
   QTableWidgetItem* item = lstModel->currentItem();
-  if(item) {
+  if (item) {
     int itemIndex = item->data(Qt::UserRole).toInt();
-    targetTask_->deleteModelById(itemIndex);
-    if(currentModel_ && currentModel_->getModelItem()) {
+    ModelParam* target = targetTask_->getModelList()[itemIndex];
+    target->setDelete();
+    target->deleteModelDetails();
+    if (currentModel_ && currentModel_->getModelItem()) {
       ChoreonoidUtil::unLoadModelItem(currentModel_);
       connectionToKinematicStateChanged.disconnect();
     }
@@ -260,22 +272,23 @@ void ModelDialog::deleteModelClicked() {
 }
 
 void ModelDialog::modelPositionChanged() {
-  if(isWidgetSkip_) return;
-  DDEBUG("MetaDataViewImpl::modelPositionChanged")
-  if(currentModel_) {
-    if( currentModel_->getModelItem() ) {
+  if (isWidgetSkip_) return;
+  DDEBUG("ModelDialog::modelPositionChanged()");
+
+  if (currentModel_) {
+    if (currentModel_->getModelItem()) {
       double newX = leX->text().toDouble();
       double newY = leY->text().toDouble();
       double newZ = leZ->text().toDouble();
       double newRx = leRx->text().toDouble();
       double newRy = leRy->text().toDouble();
       double newRz = leRz->text().toDouble();
-      if(dbl_eq(newX, currentModel_->getPosX())==false
-        || dbl_eq(newY, currentModel_->getPosY())==false
-        || dbl_eq(newZ, currentModel_->getPosZ())==false
-        || dbl_eq(newRx, currentModel_->getRotRx())==false
-        || dbl_eq(newRy, currentModel_->getRotRy())==false
-        || dbl_eq(newRz, currentModel_->getRotRz())==false ) {
+      if (dbl_eq(newX, currentModel_->getPosX()) == false
+        || dbl_eq(newY, currentModel_->getPosY()) == false
+        || dbl_eq(newZ, currentModel_->getPosZ()) == false
+        || dbl_eq(newRx, currentModel_->getRotRx()) == false
+        || dbl_eq(newRy, currentModel_->getRotRy()) == false
+        || dbl_eq(newRz, currentModel_->getRotRz()) == false) {
         ChoreonoidUtil::updateModelItemPosition(currentModel_->getModelItem(), newX, newY, newZ, newRx, newRy, newRz);
         currentModel_->setPosX(newX);
         currentModel_->setPosY(newY);
@@ -289,30 +302,32 @@ void ModelDialog::modelPositionChanged() {
 }
 
 void ModelDialog::onCurrentBodyItemChanged(BodyItem* bodyItem) {
-  DDEBUG("MetaDataViewImpl::onCurrentBodyItemChanged")
-  if(targetTask_ && bodyItem != currentBodyItem_){
+  DDEBUG("ModelDialog::onCurrentBodyItemChanged()");
+
+  if (targetTask_ && bodyItem != currentBodyItem_) {
     connectionToKinematicStateChanged.disconnect();
     currentBodyItem_ = bodyItem;
-    if(currentBodyItem_) {
-      for(int index=0; index<targetTask_->getModelList().size(); index++) {
+    if (currentBodyItem_) {
+      for (int index = 0; index < targetTask_->getModelList().size(); index++) {
         ModelParam* model = targetTask_->getModelList()[index];
-        if(model->getModelItem().get() == currentBodyItem_) {
+        if (model->getModelItem().get() == currentBodyItem_) {
           selectedModel_ = model;
           break;
         }
       }
     }
-    if(!connectionToKinematicStateChanged.connected() && currentBodyItem_){
+    if (!connectionToKinematicStateChanged.connected() && currentBodyItem_) {
       connectionToKinematicStateChanged = currentBodyItem_->sigKinematicStateChanged().connect(
-      //    bind(&MetaDataViewImpl::updateKinematicState, this, true));
-          updateKinematicStateLater);
+        //    bind(&MetaDataViewImpl::updateKinematicState, this, true));
+        updateKinematicStateLater);
     }
   }
 }
 
 void ModelDialog::updateKinematicState(bool blockSignals) {
-  DDEBUG("MetaDataViewImpl::updateKinematicState")
-  if(currentBodyItem_ && selectedModel_){
+  DDEBUG("ModelDialog::updateKinematicState()");
+
+  if (currentBodyItem_ && selectedModel_) {
     Link* currentLink = currentBodyItem_->body()->rootLink();
     selectedModel_->setPosX(currentLink->p()[0]);
     selectedModel_->setPosY(currentLink->p()[1]);
@@ -324,7 +339,7 @@ void ModelDialog::updateKinematicState(bool blockSignals) {
     selectedModel_->setRotRy(degree(rpy[1]));
     selectedModel_->setRotRz(degree(rpy[2]));
 
-    if(selectedModel_==currentModel_) {
+    if (selectedModel_ == currentModel_) {
       isWidgetSkip_ = true;
       leX->setText(QString::number(currentModel_->getPosX(), 'f', 6));
       leY->setText(QString::number(currentModel_->getPosY(), 'f', 6));
@@ -338,75 +353,74 @@ void ModelDialog::updateKinematicState(bool blockSignals) {
 }
 /////
 void ModelDialog::showGrid() {
-  DDEBUG("MetaDataViewImpl::showGrid")
   lstModel->setRowCount(0);
 
-  for(int index=0; index<targetTask_->getModelList().size(); index++) {
+  for (int index = 0; index < targetTask_->getModelList().size(); index++) {
     ModelParam* param = targetTask_->getModelList()[index];
-    if( param->getMode()==DB_MODE_DELETE || param->getMode()==DB_MODE_IGNORE) continue;
+    if (param->getMode() == DB_MODE_DELETE || param->getMode() == DB_MODE_IGNORE) continue;
 
     int row = lstModel->rowCount();
     lstModel->insertRow(row);
-    UIUtil::makeTableItemWithData(lstModel, row, 0, getTypeName(param->getType()), param->getId());
-    UIUtil::makeTableItemWithData(lstModel, row, 1, param->getName(), param->getId());
+    UIUtil::makeTableItemWithData(lstModel, row, 0, getTypeName(param->getType()), index);
+    UIUtil::makeTableItemWithData(lstModel, row, 1, param->getName(), index);
   }
 }
 
 void ModelDialog::updateTaskModelInfo() {
-  if(currentModel_) {
+  if (currentModel_) {
     QString strModel = leModel->text();
-    if( currentModel_->getName() != strModel) {
+    if (currentModel_->getName() != strModel) {
       currentModel_->setName(strModel);
     }
     //
     QString strModelRName = leModelRName->text();
-    if( currentModel_->getRName() != strModelRName) {
+    if (currentModel_->getRName() != strModelRName) {
       currentModel_->setRName(strModelRName);
     }
     //
     QString strFile = leFile->text();
-    if( currentModel_->getFileName() != strFile) {
+    if (currentModel_->getFileName() != strFile) {
       currentModel_->setFileName(strFile);
     }
     //
     int selectedType = cmbType->currentIndex();
-    if( currentModel_->getType() != selectedType) {
+    if (currentModel_->getType() != selectedType) {
       currentModel_->setType(selectedType);
     }
     //
     string strPosX = leX->text().toUtf8().constData();
     double posX = std::atof(strPosX.c_str());
-    if( currentModel_->getPosX() != posX) {
+    if (currentModel_->getPosX() != posX) {
       currentModel_->setPosX(posX);
     }
     //
     string strPosY = leY->text().toUtf8().constData();
     double posY = std::atof(strPosY.c_str());
-    if( currentModel_->getPosY() != posY) {
+    if (currentModel_->getPosY() != posY) {
       currentModel_->setPosY(posY);
     }
     //
     string strPosZ = leZ->text().toUtf8().constData();
     double posZ = std::atof(strPosZ.c_str());
-    if( currentModel_->getPosZ() != posZ) {
+    if (currentModel_->getPosZ() != posZ) {
       currentModel_->setPosZ(posZ);
     }
     //
     string strRotRx = leRx->text().toUtf8().constData();
     double rotRx = std::atof(strRotRx.c_str());
-    if( currentModel_->getRotRx() != rotRx) {
+    if (currentModel_->getRotRx() != rotRx) {
       currentModel_->setRotRx(rotRx);
     }
     //
     string strRotRy = leRy->text().toUtf8().constData();
     double rotRy = std::atof(strRotRy.c_str());
-    if( currentModel_->getRotRy() != rotRy) {
+    if (currentModel_->getRotRy() != rotRy) {
       currentModel_->setRotRy(rotRy);
     }
     //
     string strRotRz = leRz->text().toUtf8().constData();
     double rotRz = std::atof(strRotRz.c_str());
-    if( currentModel_->getRotRz() != rotRz) {
+    if (currentModel_->getRotRz() != rotRz) {
       currentModel_->setRotRz(rotRz);
     }
   }
@@ -428,20 +442,19 @@ void ModelDialog::clearModelDetail() {
 QString ModelDialog::getTypeName(int source) {
   QString result = "";
 
-  switch(source) {
+  switch (source) {
     case 0:
-      result = "Env.";
-      break;
+    result = "Env.";
+    break;
     case 1:
-      result = "E.E.";
-      break;
+    result = "E.E.";
+    break;
     case 2:
-      result = "Work";
-      break;
+    result = "Work";
+    break;
   }
 
   return result;
 }
-
 
 }

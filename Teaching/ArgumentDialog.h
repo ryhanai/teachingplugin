@@ -12,16 +12,18 @@ class ArgumentDialog : public QDialog {
   Q_OBJECT
 public:
   ArgumentDialog(TaskModelParam* param, ElementStmParam* stmParam, QWidget* parent = 0);
+  inline bool isOK() const { return this->isOK_; }
 
 private Q_SLOTS:
-  void actionSelectionChanged();
-  void argSelectionChanged();
   void addClicked();
   void deleteClicked();
   void upClicked();
   void downClicked();
+  void actionSelectionChanged();
+  void argSelectionChanged();
   void oKClicked();
-	void cancelClicked();
+  void cancelClicked();
+  void rejected();
 
 private:
   QTableWidget* lstModel;
@@ -29,11 +31,13 @@ private:
   QTableWidget* lstHandling;
   QTableWidget* lstArg;
   //
+  QLineEdit* txtStateName;
   QComboBox* cmbAction;
   QComboBox* cmbModel;
   QComboBox* cmbTarget;
   QTextEdit* txtArgDef;
 
+  bool isOK_;
   int curArgIdx_;
   ArgumentParam* curArgParam_;
   int curActionIdx_;

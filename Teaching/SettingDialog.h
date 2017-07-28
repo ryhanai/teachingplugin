@@ -17,10 +17,11 @@ public:
 
   inline bool IsDBUpdated() const { return this->isDBUpdated_; }
 
-private Q_SLOTS:
+  private Q_SLOTS:
   void refDBClicked();
   void appSelectionChanged();
   void refAppClicked();
+  void refLogClicked();
   void oKClicked();
   void cancelClicked();
 
@@ -33,6 +34,9 @@ private:
   QLineEdit* leApp;
 
   QCheckBox* chkReal;
+
+  QComboBox* cmbLogLevel;
+  QLineEdit* leLogDir;
 
   bool isDBUpdated_;
   int currentRowIndex_;

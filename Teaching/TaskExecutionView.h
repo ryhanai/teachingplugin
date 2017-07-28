@@ -16,29 +16,31 @@ class StateMachineView;
 class TaskExecutionView : public QWidget {
 public:
   TaskExecutionView(QWidget* parent = 0);
-	inline void setStateMachineView(StateMachineView* view) { this->statemachineView_ = view; }
+  inline void setStateMachineView(StateMachineView* view) { this->statemachineView_ = view; }
   inline void setParameterView(ParameterView* view) { this->parameterView_ = view; }
-	inline void setTaskExecutor(TaskExecuteManager* executor) { this->executor_ = executor; }
+  inline void setTaskExecutor(TaskExecuteManager* executor) { this->executor_ = executor; }
 
   void unloadCurrentModel();
 
 protected:
-	void runSingleTask();
-	void runFlow(FlowParam* targetFlow);
+  void runSingleTask();
+  bool runSingleCommand(ElementStmParam* targetStm);
+  void runFlow(FlowParam* targetFlow);
+  void abortOperation();
 
-	ExecResult doTaskOperation();
-	ExecResult doOperationStep();
-	ExecResult doOperationCont();
+  ExecResult doTaskOperation();
+  ExecResult doOperationStep();
+  ExecResult doOperationCont();
 
-	bool checkPaused();
-	bool isSkipCheck_;
+  bool checkPaused();
+  bool isSkipCheck_;
 
   TaskModelParam* currentTask_;
-	ElementStmParam* currParam_;
+  ElementStmParam* currParam_;
 
   StateMachineView* statemachineView_;
-	ParameterView* parameterView_;
-	TaskExecuteManager* executor_;
+  ParameterView* parameterView_;
+  TaskExecuteManager* executor_;
 };
 
 }

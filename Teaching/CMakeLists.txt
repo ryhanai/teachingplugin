@@ -6,6 +6,10 @@ endif()
 
 set(libname CnoidTeachingPlugin)
 
+if(NOT ENABLE_PYTHON)
+  find_package(PythonLibs REQUIRED)
+endif()
+
 set(sources
   ActivityEditor.cpp
   ActivityEditorBase.cpp
@@ -15,6 +19,8 @@ set(sources
   ControllerManager.cpp
   DataBaseDetailManager.cpp
   DataBaseManager.cpp
+  DecisionDialog.cpp
+  ExecEnvDialog.cpp
   FlowActivityEditor.cpp
   FlowSearchDialog.cpp
   FlowView.cpp
@@ -23,6 +29,7 @@ set(sources
   ModelDialog.cpp
   ParameterDialog.cpp
   ParameterView.cpp
+  PythonWrapper.cpp
   SettingDialog.cpp
   StateMachineParams.cpp
   StateMachineView.cpp
@@ -45,6 +52,8 @@ set(headers
   CommandDefTypes.h
   ControllerManager.h
   DataBaseManager.h
+  DecisionDialog.h
+  ExecEnvDialog.h
   FlowActivityEditor.h
   FlowSearchDialog.h
   FlowView.h
@@ -53,6 +62,7 @@ set(headers
   ModelDialog.h
   ParameterDialog.h
   ParameterView.h
+  PythonWrapper.h
   SettingDialog.h
   StateMachineView.h
   TaskExecuteManager.h
@@ -66,9 +76,9 @@ set(headers
 
 set(qtheaders
   ActivityEditorBase.h
-  ActivityEditor.h
   ArgumentDialog.h
-  FlowActivityEditor.h
+  DecisionDialog.h
+  ExecEnvDialog.h
   FlowSearchDialog.h
   FlowView.h
   ModelDialog.h
@@ -104,9 +114,10 @@ else()
   target_link_libraries(${libname} ${QT_QTSQL_LIBRARY})
 endif()
 
-include_directories(${CONTROLLER_DIRS})
+include_directories(${CONTROLLER_DIRS} ${PYTHON_INCLUDE_DIRS})
 
-target_link_libraries(${libname} CnoidBodyPlugin)
+# target_link_libraries(${libname} CnoidBodyPlugin ${PYTHON_LIBRARIES})
+target_link_libraries(${libname} CnoidBodyPlugin ${PYTHON_LIBRARIES} TaskParamAdjust)
 
 if(UNIX)
   add_definitions("-std=c++11")

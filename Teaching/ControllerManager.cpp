@@ -37,7 +37,7 @@ void ControllerManager::setTaskInstanceView(TaskInstanceViewImpl* view) {
 }
 
 bool ControllerManager::isExistController() {
-  return 0<controllerList_.size();
+  return 0 < controllerList_.size();
 }
 
 }

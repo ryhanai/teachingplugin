@@ -30,9 +30,9 @@ CommandDefParam* TaskExecutor::getCommandDef(const std::string& commandName) {
   CommandDefParam* result = 0;
 
   std::vector<CommandDefParam*> cmdDefList = handler_->getCommandDefList();
-  for(int index=0; index<cmdDefList.size(); index++) {
+  for (int index = 0; index < cmdDefList.size(); index++) {
     CommandDefParam* cmd = cmdDefList[index];
-    if(cmd->getName().toStdString() == commandName) {
+    if (cmd->getName().toStdString() == commandName) {
       result = cmd;
       break;
     }
@@ -45,9 +45,9 @@ CommandDefParam* TaskExecutor::getCommandDef(const int commandId) {
   CommandDefParam* result = 0;
 
   std::vector<CommandDefParam*> cmdDefList = handler_->getCommandDefList();
-  for(int index=0; index<cmdDefList.size(); index++) {
+  for (int index = 0; index < cmdDefList.size(); index++) {
     CommandDefParam* cmd = cmdDefList[index];
-    if(cmd->getId() == commandId) {
+    if (cmd->getId() == commandId) {
       result = cmd;
       break;
     }
@@ -64,42 +64,43 @@ void TaskExecutor::setRootName(std::string value) {
   handler_->setRootName(value);
 }
 
-bool TaskExecutor::executeCommand (const std::string& commandName, const std::vector<CompositeParamType>& params, bool simulation) throw (CommandParseErrorException) {
+bool TaskExecutor::executeCommand(const std::string& commandName, const std::vector<CompositeParamType>& params, bool simulation) throw (CommandParseErrorException) {
   try {
     return handler_->executeCommand(commandName, params, simulation);
-  } catch (...) {
-		detachAllModelItem();
+  }
+  catch (...) {
+    detachAllModelItem();
     return false;
   }
 }
 
 bool TaskExecutor::attachModelItem(cnoid::BodyItemPtr object, int target) {
-	AttachedModel* model = new AttachedModel();
-	model->object = object;
-	model->target = target;
-	modelList.push_back(model);
+  AttachedModel* model = new AttachedModel();
+  model->object = object;
+  model->target = target;
+  modelList.push_back(model);
 
   return handler_->attachModelItem(object, target);
 }
 
 bool TaskExecutor::detachModelItem(cnoid::BodyItemPtr object, int target) {
-	for (unsigned int index = 0; index < modelList.size(); index++) {
-		AttachedModel* model = modelList[index];
-		if (model->object == object && model->target == target) {
-			this->modelList.erase(std::remove(this->modelList.begin(), this->modelList.end(), model), this->modelList.end());
-			delete model;
-			break;
-		}
-	}
+  for (unsigned int index = 0; index < modelList.size(); index++) {
+    AttachedModel* model = modelList[index];
+    if (model->object == object && model->target == target) {
+      this->modelList.erase(std::remove(this->modelList.begin(), this->modelList.end(), model), this->modelList.end());
+      delete model;
+      break;
+    }
+  }
   return handler_->detachModelItem(object, target);
 }
 
 bool TaskExecutor::detachAllModelItem() {
-	for (unsigned int index = 0; index < modelList.size(); index++) {
-		AttachedModel* model = modelList[index];
-		if (handler_->detachModelItem(model->object, model->target) == false) return false;
-	}
-	return true;
+  for (unsigned int index = 0; index < modelList.size(); index++) {
+    AttachedModel* model = modelList[index];
+    if (handler_->detachModelItem(model->object, model->target) == false) return false;
+  }
+  return true;
 }
 
 }

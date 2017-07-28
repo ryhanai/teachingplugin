@@ -11,10 +11,11 @@ namespace teaching {
 class FlowSearchDialog : public QDialog {
   Q_OBJECT
 public:
-  FlowSearchDialog(QWidget* parent = 0);
+  FlowSearchDialog(FlowParam* currentFlow, QWidget* parent = 0);
 
   inline bool IsOK() const { return this->isOk_; }
   inline int getSelectedIndex() const { return this->selected_; }
+  inline bool IsDeleted() const { return this->isDeleted_; }
 
 private Q_SLOTS:
   void searchClicked();
@@ -28,7 +29,9 @@ private:
 
   std::vector<FlowParam*> flowList_;
   int selected_;
+  FlowParam* currentFlow_;
   bool isOk_;
+  bool isDeleted_;
 
   void showGrid();
 };

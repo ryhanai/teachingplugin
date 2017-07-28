@@ -17,22 +17,22 @@ using namespace teaching;
 class TeachingPlugin : public Plugin {
 
 public:
-  TeachingPlugin() : Plugin("Teaching") { 
+  TeachingPlugin() : Plugin("Teaching") {
   }
-  
-  virtual bool initialize() {
-		viewManager().registerClass<MetaDataView>("MetaDataView", "MetaData", ViewManager::SINGLE_DEFAULT);
-		viewManager().registerClass<ParameterView>("ParameterView", "Parameter", ViewManager::SINGLE_DEFAULT);
-		viewManager().registerClass<FlowView>("FlowView", "FlowModel", ViewManager::SINGLE_DEFAULT);
-		viewManager().registerClass<TaskInstanceView>("TaskInstanceView", "TaskInstance", ViewManager::SINGLE_DEFAULT);
-		viewManager().registerClass<StateMachineView>("StateMachineView", "StateMachine", ViewManager::SINGLE_DEFAULT);
 
-		MetaDataView* metadataView = viewManager().findView<MetaDataView>("MetaData");
-		ParameterView* parameterView = viewManager().findView<ParameterView>("Parameter");
-		FlowView* flowView = viewManager().findView<FlowView>("FlowModel");
-		TaskInstanceView* taskView = viewManager().findView<TaskInstanceView>("TaskInstance");
-		StateMachineView* statemachineView = viewManager().findView<StateMachineView>("StateMachine");
-		//
+  virtual bool initialize() {
+    viewManager().registerClass<MetaDataView>("MetaDataView", "MetaData", ViewManager::SINGLE_DEFAULT);
+    viewManager().registerClass<ParameterView>("ParameterView", "Parameter", ViewManager::SINGLE_DEFAULT);
+    viewManager().registerClass<FlowView>("FlowView", "FlowModel", ViewManager::SINGLE_DEFAULT);
+    viewManager().registerClass<TaskInstanceView>("TaskInstanceView", "TaskInstance", ViewManager::SINGLE_DEFAULT);
+    viewManager().registerClass<StateMachineView>("StateMachineView", "StateMachine", ViewManager::SINGLE_DEFAULT);
+
+    MetaDataView* metadataView = viewManager().findView<MetaDataView>("MetaData");
+    ParameterView* parameterView = viewManager().findView<ParameterView>("Parameter");
+    FlowView* flowView = viewManager().findView<FlowView>("FlowModel");
+    TaskInstanceView* taskView = viewManager().findView<TaskInstanceView>("TaskInstance");
+    StateMachineView* statemachineView = viewManager().findView<StateMachineView>("StateMachine");
+    //
     flowView->setMetadataView(metadataView);
     flowView->setParameterView(parameterView);
     flowView->setStateMachineView(statemachineView);
@@ -43,22 +43,22 @@ public:
     taskView->setParameterView(parameterView);
     taskView->setStateMachineView(statemachineView);
 
-		statemachineView->setParameterView(parameterView);
+    statemachineView->setParameterView(parameterView);
 
-		TaskExecuteManager* executor = new TaskExecuteManager();
-		executor->setTaskInstanceView(taskView);
-		executor->setFlowView(flowView);
-		executor->setParameterView(parameterView);
-		executor->setStateMachineView(statemachineView);
-		executor->setMetadataView(metadataView);
+    TaskExecuteManager* executor = new TaskExecuteManager();
+    executor->setTaskInstanceView(taskView);
+    executor->setFlowView(flowView);
+    executor->setParameterView(parameterView);
+    executor->setStateMachineView(statemachineView);
+    executor->setMetadataView(metadataView);
 
-		flowView->setTaskExecutor(executor);
-		taskView->setTaskExecutor(executor);
-		statemachineView->setTaskExecutor(executor);
+    flowView->setTaskExecutor(executor);
+    taskView->setTaskExecutor(executor);
+    statemachineView->setTaskExecutor(executor);
 
-		metadataView->bringToFront();
+    metadataView->bringToFront();
 
-		return true;
+    return true;
   }
 };
 

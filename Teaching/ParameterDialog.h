@@ -19,6 +19,7 @@ private Q_SLOTS:
   void addParamClicked();
   void deleteParamClicked();
   void oKClicked();
+  void rejected();
 
 private:
   QTableWidget* lstModel;
@@ -30,7 +31,7 @@ private:
   QLineEdit* leModelName;
   QLineEdit* leUnit;
   QLineEdit* leNum;
-  QLineEdit* leElemType;
+  QComboBox* cmbElemType;
 
   int currentRowIndex_;
   TaskModelParam* targetTask_;

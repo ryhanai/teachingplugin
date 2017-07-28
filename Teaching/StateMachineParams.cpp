@@ -131,11 +131,16 @@ void ElementNode::createFinalNode() {
   item_->setPen(QPen(Qt::black, 3.0));
   item_->setBrush(QBrush(Qt::white, Qt::SolidPattern));
   item_->setParentItem(this);
+  item_->setData(Qt::UserRole, TYPE_ELEMENT);
+
+  QGraphicsEllipseItem* itemUpper = new QGraphicsEllipseItem(-9, -9, 18, 18);
+  itemUpper->setBrush(QBrush(Qt::black, Qt::SolidPattern));
+  itemUpper->setParentItem(this);
+  itemUpper->setData(Qt::UserRole, TYPE_ELEMENT);
+
+  addToGroup(itemUpper);
   addToGroup(item_);
-  QGraphicsEllipseItem* item02 = new QGraphicsEllipseItem(-9, -9, 18, 18);
-  item02->setBrush(QBrush(Qt::black, Qt::SolidPattern));
-  item02->setParentItem(this);
-  addToGroup(item02);
+
   setFlags(QGraphicsItem::ItemIsMovable | QGraphicsItem::ItemIsSelectable | QGraphicsItem::ItemSendsScenePositionChanges);
 }
 
@@ -175,12 +180,13 @@ void ElementNode::createCommandNode(QString name) {
   item_->setBrush(QBrush(Qt::white, Qt::SolidPattern));
   item_->setParentItem(this);
   addToGroup(item_);
-  QGraphicsSimpleTextItem* item02 = new QGraphicsSimpleTextItem(name);
-  item02->setParentItem(this);
-  item02->setPos(15, -9);
+
+	itemText_ = new QGraphicsSimpleTextItem(name);
+	itemText_->setParentItem(this);
+	itemText_->setPos(15, -9);
   QFont font( "Arial", 12, QFont::Bold);
-  item02->setFont(font);
-  addToGroup(item02);
+	itemText_->setFont(font);
+	addToGroup(itemText_);
   setFlags(QGraphicsItem::ItemIsMovable | QGraphicsItem::ItemIsSelectable | QGraphicsItem::ItemSendsScenePositionChanges);
 }
 

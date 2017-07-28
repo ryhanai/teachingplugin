@@ -335,7 +335,7 @@ msgid "Id:"
 msgstr "Id:"
 
 #: ParameterDialog.cpp:48
-msgid "Type:"
+msgid "Kind:"
 msgstr "種類:"
 
 #: ParameterDialog.cpp:54
@@ -347,8 +347,8 @@ msgid "Num:"
 msgstr "パラメータ数:"
 
 #: ParameterDialog.cpp:58
-msgid "Elem Type:"
-msgstr "要素種類:"
+msgid "Type:"
+msgstr "型:"
 
 #: ParameterDialog.cpp:110
 msgid "Task Parameter"
@@ -457,8 +457,8 @@ msgid "Set Guard condition"
 msgstr "ガード条件を設定する"
 
 #: StateMachineView.cpp:587
-msgid "Please select Command Element. : "
-msgstr "コマンド要素を選択してください : "
+msgid "Please select Command or Decision Node. : "
+msgstr "コマンド要素もしくはデシジョンノードを選択してください : "
 
 #: StateMachineView.cpp:609
 msgid "Please select Target Command."
@@ -629,3 +629,16 @@ msgstr "処理を継続する"
 #: TaskExecutionView.cpp:60
 msgid "Cancel pausing processing?"
 msgstr "一時停止中の処理をキャンセルしてもよろしいですか？"
+
+#: DesisionDialog.cpp:61
+msgid "Decision condition setting"
+msgstr "分岐条件設定"
+
+#: TaskExecuteManager.cpp:141
+msgid "Paused Task :"
+msgstr "タスク中断中 :"
+
+#: TaskExecuteManager.cpp:144
+msgid "Failed Task :"
+msgstr "タスク実行失敗 :"
+

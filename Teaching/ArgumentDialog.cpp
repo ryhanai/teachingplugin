@@ -1,6 +1,5 @@
 #include "ArgumentDialog.h"
-#include "Calculator.h"
-#include "DataBaseManager.h"
+#include "PythonWrapper.h"
 #include "TeachingUtil.h"
 
 #include "gettext.h"
@@ -8,9 +7,9 @@
 
 namespace teaching {
 
-ArgumentDialog::ArgumentDialog(TaskModelParam* param, ElementStmParam* stmParam, QWidget* parent) 
+ArgumentDialog::ArgumentDialog(TaskModelParam* param, ElementStmParam* stmParam, QWidget* parent)
   : QDialog(parent, Qt::CustomizeWindowHint | Qt::WindowTitleHint),
-    curArgIdx_(-1), curArgParam_(0), curActionIdx_(-1), curActionParam_(0) {
+  curArgIdx_(NULL_ID), curArgParam_(0), curActionIdx_(NULL_ID), curActionParam_(0) {
   this->targetTask_ = param;
   this->targetStm_ = stmParam;
   //
@@ -19,10 +18,12 @@ ArgumentDialog::ArgumentDialog(TaskModelParam* param, ElementStmParam* stmParam,
   lstModel->setColumnWidth(1, 150);
   lstModel->setHorizontalHeaderLabels(QStringList() << "Name" << "ID");
   //
-  lstParam = UIUtil::makeTableWidget(2, true);
+  lstParam = UIUtil::makeTableWidget(4, true);
   lstParam->setColumnWidth(0, 200);
   lstParam->setColumnWidth(1, 150);
-  lstParam->setHorizontalHeaderLabels(QStringList() << "Name" << "ID");
+  lstParam->setColumnWidth(2, 50);
+  lstParam->setColumnWidth(3, 50);
+  lstParam->setHorizontalHeaderLabels(QStringList() << "Name" << "ID" << "Type" << "Num");
   //
   QFrame* frmRef = new QFrame;
   QVBoxLayout* refLayout = new QVBoxLayout;
@@ -30,7 +31,8 @@ ArgumentDialog::ArgumentDialog(TaskModelParam* param, ElementStmParam* stmParam,
   frmRef->setLayout(refLayout);
   refLayout->addWidget(lstModel);
   refLayout->addWidget(lstParam);
-  //
+  /////
+
   lstHandling = UIUtil::makeTableWidget(3, false);
   lstHandling->setColumnWidth(0, 100);
   lstHandling->setColumnWidth(1, 150);
@@ -69,7 +71,7 @@ ArgumentDialog::ArgumentDialog(TaskModelParam* param, ElementStmParam* stmParam,
   cmbAction->addItem("Detach");
   QLabel* lblModel = new QLabel(_("Model:"));
   cmbModel = new QComboBox(this);
-  for(int index=0; index<targetTask_->getModelList().size(); index++) {
+  for (int index = 0; index < targetTask_->getModelList().size(); index++) {
     ModelParam* model = targetTask_->getModelList()[index];
     cmbModel->addItem(model->getRName());
   }
@@ -77,15 +79,16 @@ ArgumentDialog::ArgumentDialog(TaskModelParam* param, ElementStmParam* stmParam,
   QLabel* lblTarget = new QLabel(_("Parameter:"));
   cmbTarget = new QComboBox(this);
   cmbTarget->addItem("");
-  for(int index=0; index<targetTask_->getParameterList().size(); index++) {
+  for (int index = 0; index < targetTask_->getParameterList().size(); index++) {
     ParameterParam* param = targetTask_->getParameterList()[index];
     cmbTarget->addItem(param->getRName());
   }
   //
-  lstArg = UIUtil::makeTableWidget(2, false);
+  lstArg = UIUtil::makeTableWidget(3, false);
   lstArg->setColumnWidth(0, 100);
-  lstArg->setColumnWidth(1, 600);
-  lstArg->setHorizontalHeaderLabels(QStringList() << "Name" << "Definition");
+  lstArg->setColumnWidth(1, 50);
+  lstArg->setColumnWidth(2, 550);
+  lstArg->setHorizontalHeaderLabels(QStringList() << "Name" << "" << "Definition");
 
   txtArgDef = new QTextEdit;
   txtArgDef->setMaximumHeight(80);
@@ -111,23 +114,41 @@ ArgumentDialog::ArgumentDialog(TaskModelParam* param, ElementStmParam* stmParam,
   hsplitter->addWidget(frmParam);
   splitter->addWidget(hsplitter);
   QList<int> initSizes;
-  initSizes.append(400);
-  initSizes.append(800);
+  initSizes.append(500);
+  initSizes.append(700);
   splitter->setSizes(initSizes);
   //
   QFrame* frmButtons = new QFrame;
   QPushButton* btnOK = new QPushButton(_("OK"));
-	QPushButton* btnCancel = new QPushButton(_("Cancel"));
-	QHBoxLayout* buttonLayout = new QHBoxLayout(frmButtons);
+  QPushButton* btnCancel = new QPushButton(_("Cancel"));
+  QHBoxLayout* buttonLayout = new QHBoxLayout(frmButtons);
   buttonLayout->setContentsMargins(2, 2, 2, 2);
-	buttonLayout->addWidget(btnCancel);
-	buttonLayout->addStretch();
+  buttonLayout->addWidget(btnCancel);
+  buttonLayout->addStretch();
   buttonLayout->addWidget(btnOK);
   //
-  QLabel* lblTaskName = new QLabel("Command Name: " + targetStm_->getCmdName());
+  QLabel* lblName = new QLabel("Name: ");
+  txtStateName = new QLineEdit();
+  txtStateName->setText(targetStm_->getCmdDspName());
+  QFrame* frmName = new QFrame;
+  QHBoxLayout* nameLayout = new QHBoxLayout(frmName);
+  nameLayout->setContentsMargins(2, 2, 2, 2);
+  nameLayout->addWidget(lblName);
+  nameLayout->addWidget(txtStateName);
+
+  QLabel* lblCmdName = new QLabel("Command Name: ");
+  QLineEdit* txtCmdName = new QLineEdit();
+  txtCmdName->setText(targetStm_->getCmdName());
+  txtCmdName->setReadOnly(true);
+  QFrame* frmCmdName = new QFrame;
+  QHBoxLayout* cmdLayout = new QHBoxLayout(frmCmdName);
+  cmdLayout->setContentsMargins(2, 2, 2, 2);
+  cmdLayout->addWidget(lblCmdName);
+  cmdLayout->addWidget(txtCmdName);
 
   QVBoxLayout* mainLayout = new QVBoxLayout;
-  mainLayout->addWidget(lblTaskName);
+  mainLayout->addWidget(frmName);
+  mainLayout->addWidget(frmCmdName);
   mainLayout->addWidget(splitter);
   mainLayout->addWidget(frmButtons);
   setLayout(mainLayout);
@@ -139,8 +160,8 @@ ArgumentDialog::ArgumentDialog(TaskModelParam* param, ElementStmParam* stmParam,
   connect(btnUp, SIGNAL(clicked()), this, SLOT(upClicked()));
   connect(btnDown, SIGNAL(clicked()), this, SLOT(downClicked()));
   connect(btnOK, SIGNAL(clicked()), this, SLOT(oKClicked()));
-	connect(btnCancel, SIGNAL(clicked()), this, SLOT(cancelClicked()));
-	connect(this, SIGNAL(rejected()), this, SLOT(cancelClicked()));
+  connect(btnCancel, SIGNAL(clicked()), this, SLOT(cancelClicked()));
+  connect(this, SIGNAL(rejected()), this, SLOT(rejected()));
 
   setWindowTitle(_("Command"));
   resize(1200, 700);
@@ -152,9 +173,11 @@ ArgumentDialog::ArgumentDialog(TaskModelParam* param, ElementStmParam* stmParam,
 }
 
 void ArgumentDialog::addClicked() {
+  DDEBUG("ArgumentDialog::addClicked");
+
   saveCurrentAction();
   //
-  ElementStmActionParam* newAction = new ElementStmActionParam(-1, targetStm_->getId(), targetStm_->getActionList().size(), "attach", "", "", true);
+  ElementStmActionParam* newAction = new ElementStmActionParam(NULL_ID, targetStm_->getId(), targetStm_->getActionList().size(), "attach", "", "", true);
   targetStm_->addModelAction(newAction);
   //
   int row = lstHandling->rowCount();
@@ -166,13 +189,15 @@ void ArgumentDialog::addClicked() {
 }
 
 void ArgumentDialog::deleteClicked() {
-  if(curActionParam_) {
+  DDEBUG("ArgumentDialog::deleteClicked");
+
+  if (curActionParam_) {
     curActionParam_->setDelete();
     cmbAction->setCurrentIndex(0);
     cmbModel->setCurrentIndex(0);
     cmbTarget->setCurrentIndex(0);
     curActionParam_ = 0;
-    curArgIdx_ = -1;
+    curArgIdx_ = NULL_ID;
 
     int currRow = lstHandling->currentRow();
     lstHandling->removeRow(currRow);
@@ -181,33 +206,39 @@ void ArgumentDialog::deleteClicked() {
 }
 
 void ArgumentDialog::upClicked() {
+  DDEBUG("ArgumentDialog::upClicked");
+
   saveCurrentAction();
   //
   int sourceIdx = lstHandling->verticalHeader()->visualIndex(lstHandling->currentRow());
-  if(sourceIdx==0) return;
-  lstHandling->verticalHeader()->swapSections(sourceIdx, sourceIdx-1);
+  if (sourceIdx == 0) return;
+  lstHandling->verticalHeader()->swapSections(sourceIdx, sourceIdx - 1);
   lstHandling->setFocus();
 }
 
 void ArgumentDialog::downClicked() {
+  DDEBUG("ArgumentDialog::downClicked");
+
   saveCurrentAction();
   //
   int sourceIdx = lstHandling->verticalHeader()->visualIndex(lstHandling->currentRow());
-  if(lstHandling->rowCount()<=sourceIdx) return;
-  lstHandling->verticalHeader()->swapSections(sourceIdx, sourceIdx+1);
+  if (lstHandling->rowCount() <= sourceIdx) return;
+  lstHandling->verticalHeader()->swapSections(sourceIdx, sourceIdx + 1);
   lstHandling->setFocus();
 }
 
 void ArgumentDialog::actionSelectionChanged() {
+  DDEBUG("ArgumentDialog::actionSelectionChanged");
+
   saveCurrentAction();
   //
   QTableWidgetItem* item = lstHandling->currentItem();
-  if(item) {
+  if (item) {
     curActionIdx_ = lstHandling->currentRow();
     curActionParam_ = targetStm_->getActionList()[item->data(Qt::UserRole).toInt()];
-    if(curActionParam_->getAction()=="attach") {
+    if (curActionParam_->getAction() == "attach") {
       cmbAction->setCurrentIndex(0);
-    } else if(curActionParam_->getAction()=="detach") {
+    } else if (curActionParam_->getAction() == "detach") {
       cmbAction->setCurrentIndex(1);
     }
     cmbModel->setCurrentIndex(cmbModel->findText(curActionParam_->getModel()));
@@ -216,25 +247,25 @@ void ArgumentDialog::actionSelectionChanged() {
 }
 
 void ArgumentDialog::saveCurrentAction() {
-  if(curActionParam_) {
+  if (curActionParam_) {
     int selAct = cmbAction->currentIndex();
     QString strAct = "";
-    if(selAct==ACTION_ATTACH) {
+    if (selAct == ACTION_ATTACH) {
       strAct = "attach";
-    } else if(selAct==ACTION_DETACH) {
+    } else if (selAct == ACTION_DETACH) {
       strAct = "detach";
     }
-    if( curActionParam_->getAction() != strAct) {
+    if (curActionParam_->getAction() != strAct) {
       curActionParam_->setAction(strAct);
     }
     //
     QString strModel = cmbModel->itemText(cmbModel->currentIndex());
-    if( curActionParam_->getModel() != strModel) {
+    if (curActionParam_->getModel() != strModel) {
       curActionParam_->setModel(strModel);
     }
     //
     QString strTarget = cmbTarget->itemText(cmbTarget->currentIndex());
-    if( curActionParam_->getTarget() != strTarget) {
+    if (curActionParam_->getTarget() != strTarget) {
       curActionParam_->setTarget(strTarget);
     }
     /////
@@ -245,13 +276,15 @@ void ArgumentDialog::saveCurrentAction() {
 }
 
 void ArgumentDialog::argSelectionChanged() {
+  DDEBUG("ArgumentDialog::argSelectionChanged");
+
   saveCurrentArg();
-  if(curArgParam_) {
-    lstArg->item(curArgIdx_, 1)->setText(curArgParam_->getValueDesc());
+  if (curArgParam_) {
+    lstArg->item(curArgIdx_, 2)->setText(curArgParam_->getValueDesc());
   }
   //
   QTableWidgetItem* item = lstArg->currentItem();
-  if(item) {
+  if (item) {
     curArgIdx_ = lstArg->currentRow();
     curArgParam_ = targetStm_->getArgList()[item->data(Qt::UserRole).toInt()];
     txtArgDef->setText(curArgParam_->getValueDesc());
@@ -259,18 +292,18 @@ void ArgumentDialog::argSelectionChanged() {
 }
 
 void ArgumentDialog::saveCurrentArg() {
-  if(curArgParam_) {
+  if (curArgParam_) {
     QString strDef = txtArgDef->toPlainText();
-    if( curArgParam_->getValueDesc() != strDef) {
+    if (curArgParam_->getValueDesc() != strDef) {
       curArgParam_->setValueDesc(strDef);
     }
   }
 }
 
 void ArgumentDialog::showActionInfo() {
-  for(int index=0; index<targetStm_->getActionList().size(); index++) {
+  for (int index = 0; index < targetStm_->getActionList().size(); index++) {
     ElementStmActionParam* param = targetStm_->getActionList()[index];
-    if( param->getMode()==DB_MODE_DELETE || param->getMode()==DB_MODE_IGNORE) continue;
+    if (param->getMode() == DB_MODE_DELETE || param->getMode() == DB_MODE_IGNORE) continue;
 
     int row = lstHandling->rowCount();
     lstHandling->insertRow(row);
@@ -281,33 +314,43 @@ void ArgumentDialog::showActionInfo() {
 }
 
 void ArgumentDialog::showArgInfo() {
-  for(int index=0; index<targetStm_->getArgList().size(); index++) {
+  for (int index = 0; index < targetStm_->getArgList().size(); index++) {
     ArgumentParam* param = targetStm_->getArgList()[index];
-    if( param->getMode()==DB_MODE_DELETE || param->getMode()==DB_MODE_IGNORE) continue;
+    if (param->getMode() == DB_MODE_DELETE || param->getMode() == DB_MODE_IGNORE) continue;
 
     int row = lstArg->rowCount();
     lstArg->insertRow(row);
     UIUtil::makeTableItemWithData(lstArg, row, 0, param->getName(), index);
-    UIUtil::makeTableItemWithData(lstArg, row, 1, param->getValueDesc(), index);
+    int dir = targetStm_->getCommadDefParam()->getArgList()[index]->getDirection();
+    QString strDir = "in";
+    if (dir == 1) strDir = "out";
+    UIUtil::makeTableItemWithData(lstArg, row, 1, strDir, index);
+    UIUtil::makeTableItemWithData(lstArg, row, 2, param->getValueDesc(), index);
+    //
+    param->setValueDescOrg(param->getValueDesc());
   }
 }
 
 void ArgumentDialog::showParamInfo() {
-  for(int index=0; index<targetTask_->getParameterList().size(); index++) {
+  for (int index = 0; index < targetTask_->getParameterList().size(); index++) {
     ParameterParam* param = targetTask_->getParameterList()[index];
-    if( param->getMode()==DB_MODE_DELETE || param->getMode()==DB_MODE_IGNORE) continue;
+    if (param->getMode() == DB_MODE_DELETE || param->getMode() == DB_MODE_IGNORE) continue;
 
     int row = lstParam->rowCount();
     lstParam->insertRow(row);
     UIUtil::makeTableItem(lstParam, row, 0, param->getName());
     UIUtil::makeTableItem(lstParam, row, 1, param->getRName());
+    if (param->getType() == 0) {
+      UIUtil::makeTableItem(lstParam, row, 2, param->getElemTypeStr());
+      UIUtil::makeTableItem(lstParam, row, 3, QString::number(param->getElemNum()));
+    }
   }
 }
 
 void ArgumentDialog::showModelInfo() {
-  for(int index=0; index<targetTask_->getModelList().size(); index++) {
+  for (int index = 0; index < targetTask_->getModelList().size(); index++) {
     ModelParam* param = targetTask_->getModelList()[index];
-    if( param->getMode()==DB_MODE_DELETE || param->getMode()==DB_MODE_IGNORE) continue;
+    if (param->getMode() == DB_MODE_DELETE || param->getMode() == DB_MODE_IGNORE) continue;
 
     int row = lstModel->rowCount();
     lstModel->insertRow(row);
@@ -317,15 +360,26 @@ void ArgumentDialog::showModelInfo() {
 }
 
 void ArgumentDialog::oKClicked() {
+  DDEBUG("ArgumentDialog::oKClicked");
+
+  QString strName = txtStateName->text();
+  if (strName.trimmed().length() == 0) {
+    QMessageBox::warning(this, _("State"), _("Please input State Name."));
+    txtStateName->setFocus();
+    txtStateName->setSelection(0, strName.length());
+    return;
+  }
+  targetStm_->setCmdDspName(strName);
+
   saveCurrentAction();
   saveCurrentArg();
   /////
   int seq = 0;
-  for(int index=0; index<lstHandling->rowCount(); index++) {
+  for (int index = 0; index < lstHandling->rowCount(); index++) {
     int logicalIdx = lstHandling->verticalHeader()->logicalIndex(index);
     ElementStmActionParam* param = targetStm_->getActionList()[logicalIdx];
-    if( param->getMode()==DB_MODE_DELETE || param->getMode()==DB_MODE_IGNORE) continue;
-    if(param->getModel().length()==0) {
+    if (param->getMode() == DB_MODE_DELETE || param->getMode() == DB_MODE_IGNORE) continue;
+    if (param->getModel().length() == 0) {
       QMessageBox::warning(this, _("Argument"), _("Error : Model Definition."));
       return;
     }
@@ -333,48 +387,84 @@ void ArgumentDialog::oKClicked() {
     //  QMessageBox::warning(this, _("Argument"), _("Error : Model and Target are SAME."));
     //  return;
     //}
-    if(param->getSeq()!=seq) {
+    if (param->getSeq() != seq) {
       param->setSeq(seq);
     }
     seq++;
   }
   /////
-  Calculator* calculator = new Calculator();
-  for(int index=0; index<targetStm_->getArgList().size(); index++) {
+  ArgumentEstimator* handler = EstimatorFactory::getInstance().createArgEstimator(targetTask_);
+  std::stringstream errorMsg;
+  bool existError = false;
+  for (int index = 0; index < targetStm_->getArgList().size(); index++) {
     ArgumentParam* param = targetStm_->getArgList()[index];
-    if( param->getMode()==DB_MODE_DELETE || param->getMode()==DB_MODE_IGNORE) continue;
+    if (param->getMode() == DB_MODE_DELETE || param->getMode() == DB_MODE_IGNORE) continue;
+    ArgumentDefParam* argDef = targetStm_->getCommadDefParam()->getArgList()[index];
+    if (argDef->getDirection() == 1) {
+      QString targetStr = targetStm_->getArgList()[index]->getValueDesc();
+      ParameterParam* targetParam = NULL;
+      for (int idxParam = 0; idxParam < targetTask_->getParameterList().size(); idxParam++) {
+        ParameterParam* parmParm = targetTask_->getParameterList()[idxParam];
+        if (parmParm->getRName() == targetStr) {
+          targetParam = parmParm;
+          break;
+        }
+      }
+      if (targetParam == NULL) {
+        errorMsg << "[" << param->getName().toStdString() << "] " << "target parameter [" << targetStr.toStdString() << "] NOT Exists." << std::endl;
+        existError = true;
+      } else {
+        //if (targetParam->getElemTypes().toStdString() != argDef->getType()) {
+        //	DDEBUG_V("%s, %s", targetParam->getElemTypes().toStdString().c_str(), argDef->getType().c_str());
+        //	errorMsg << "[" << param->getName().toStdString() << "] " << "and target parameter [" << targetStr.toStdString() << "] TYPE Error." << std::endl;
+        //	existError = true;
+        //}
+        if (targetParam->getElemNum() < argDef->getLength()) {
+          DDEBUG_V("%d, %d", targetParam->getElemNum(), argDef->getLength());
+          errorMsg << "[" << param->getName().toStdString() << "] " << "target parameter [" << targetStr.toStdString() << "] NUM Error." << std::endl;
+          existError = true;
+        }
+      }
 
-    if(0<param->getValueDesc().trimmed().length()) {
-      if(calculator->calculate(param->getValueDesc(), targetTask_)==false) {
-        DDEBUG_V("%s", param->getValueDesc().toStdString().c_str());
-        QMessageBox::warning(this, _("Argument"), _("Error : Argument Definition."));
-        delete calculator;
-        return;
+    } else {
+      if (0 < param->getValueDesc().trimmed().length()) {
+        string strError;
+        if (handler->checkSyntax(targetTask_, param->getValueDesc(), strError) == false) {
+          DDEBUG_V("%s", param->getValueDesc().toStdString().c_str());
+          errorMsg << "[" << param->getName().toStdString() << "]" << strError << std::endl;
+          existError = true;
+        }
+      }
+      if (existError == false && targetStm_->getMode() == DB_MODE_INSERT) {
+        param->setNew();
       }
     }
-		if (targetStm_->getMode() == DB_MODE_INSERT) {
-			param->setNew();
-		}
   }
-  delete calculator;
+  EstimatorFactory::getInstance().deleteArgEstimator(handler);
+  if (existError) {
+    QMessageBox::warning(this, _("Argument"), QString::fromStdString(errorMsg.str()));
+    return;
+  }
   //
-	if (targetStm_->getMode() == DB_MODE_NORMAL) {
-		if (DatabaseManager::getInstance().saveStateParameter(targetStm_) == false) {
-			QMessageBox::warning(this, _("Save Argument Error"), DatabaseManager::getInstance().getErrorStr());
-			return;
-		}
-		targetStm_->clearActionList();
-		vector<ElementStmActionParam*> actionList = DatabaseManager::getInstance().getStmActionList(targetStm_->getId());
-		for (int index = 0; index < actionList.size(); index++) {
-			targetStm_->addModelAction(actionList[index]);
-		}
-	}
-  //
+  isOK_ = true;
   close();
 }
 
 void ArgumentDialog::cancelClicked() {
-	close();
+  DDEBUG("ArgumentDialog::cancelClicked()");
+
+  for (int index = 0; index < targetStm_->getArgList().size(); index++) {
+    ArgumentParam* param = targetStm_->getArgList()[index];
+    param->setValueDesc(param->getValueDescOrg());
+  }
+  isOK_ = false;
+  close();
+}
+
+void ArgumentDialog::rejected() {
+  DDEBUG("ArgumentDialog::rejected");
+
+  close();
 }
 
 }

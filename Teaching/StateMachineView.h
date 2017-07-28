@@ -19,29 +19,36 @@ class StateMachineViewImpl : public TaskExecutionView {
   Q_OBJECT
 public:
   StateMachineViewImpl(QWidget* parent = 0);
-	inline void setParameterView(ParameterView* view) { this->parameterView_ = view; }
+  inline void setParameterView(ParameterView* view) { this->parameterView_ = view; }
 
   void setTaskParam(TaskModelParam* param);
   void clearTaskParam();
   void createStateCommands();
 
-	void setBPStatus(bool isActive, bool isSet);
-	void setStepStatus(bool isActive);
+  void setBPStatus(bool isActive, bool isSet);
+  void setStepStatus(bool isActive);
+  void setButtonEnableMode(bool isEnable);
 
-private Q_SLOTS:
+public Q_SLOTS:
+  void editClicked();
+
+// R.Hanai
+  void trainClicked();
+// R.Hanai
+
+private Q_SLOTS :
   void setClicked();
   void modeChanged();
   void deleteClicked();
-  void editClicked();
   void runClicked();
-	void stepClicked();
-	void contClicked();
-	void bpToggled();
+  void stepClicked();
+  void contClicked();
+  void bpToggled();
 
 private:
   QLabel* lblTarget;
   QPushButton* btnTrans;
-	ItemList* lstItem;
+  ItemList* lstItem;
 
   QFrame* frmGuard;
   QRadioButton* rdTrue;
@@ -49,17 +56,24 @@ private:
   QPushButton* btnSet;
   QPushButton* btnDelete;
   QPushButton* btnEdit;
-  QPushButton* btnRun;
-	QPushButton* btnBP;
-	QPushButton* btnStep;
-	QPushButton* btnCont;
 
-	ActivityEditor* grhStateMachine;
-  TaskModelParam* targetTask_;
+// R.Hanai
+  QPushButton* btnTrain;
+  template<class T> void samplePoses(std::vector<T>& samples);
+  template<class T> void samplePosesRandom(std::vector<T>& samples);
+// R.Hanai
+
+  QPushButton* btnRun;
+  QPushButton* btnBP;
+  QPushButton* btnStep;
+  QPushButton* btnCont;
+
+  ActivityEditor* grhStateMachine;
   vector<CommandDefParam*> commandList_;
 
-	ParameterView* parameterView_;
+  ParameterView* parameterView_;
 
+  bool isExec_;
   void createCommandNodeTarget(int id, QString name);
 };
 
@@ -67,15 +81,17 @@ class StateMachineView : public cnoid::View {
 public:
   StateMachineView();
   ~StateMachineView();
-	inline void setParameterView(ParameterView* view) { viewImpl->setParameterView(view); }
-	inline void setTaskExecutor(TaskExecuteManager* executor) { viewImpl->setTaskExecutor(executor); }
+  inline void setParameterView(ParameterView* view) { viewImpl->setParameterView(view); }
+  inline void setTaskExecutor(TaskExecuteManager* executor) { viewImpl->setTaskExecutor(executor); }
 
-	void setTaskParam(TaskModelParam* param) { this->viewImpl->setTaskParam(param); }
+  void setTaskParam(TaskModelParam* param) { this->viewImpl->setTaskParam(param); }
   void clearTaskParam() { this->viewImpl->clearTaskParam(); }
 
-	void setStepStatus(bool isActive) { this->viewImpl->setStepStatus(isActive); }
+  void setStepStatus(bool isActive) { this->viewImpl->setStepStatus(isActive); }
+  inline void setButtonEnableMode(bool isEnable) { viewImpl->setButtonEnableMode(isEnable); }
 
 private:
+
   StateMachineViewImpl* viewImpl;
 };
 

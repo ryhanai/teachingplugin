@@ -8,6 +8,7 @@
 #include "ParameterDialog.h"
 
 #include "gettext.h"
+#include "LoggerUtil.h"
 
 using namespace std;
 using namespace cnoid;
@@ -17,68 +18,70 @@ namespace teaching {
 
 ModelParameterGroup::ModelParameterGroup(ParameterParam* source, ModelParam* model, QHBoxLayout* layout, QWidget* parent)
   : targetParam_(source), targetModel_(model),
-     currentBodyItem_(0),
-     updateKinematicStateLater(bind(&ModelParameterGroup::updateKinematicState, this, true), IDLE_PRIORITY_LOW),
-     QWidget(parent), os_(MessageView::mainInstance()->cout()) {
-    leX_ = new QLineEdit;
-    leX_->setText(QString::number(model->getPosX(), 'f', 4));
-    layout->addWidget(leX_);
-    source->addControl(leX_);
-    //
-    leY_ = new QLineEdit;
-    leY_->setText(QString::number(model->getPosY(), 'f', 4));
-    layout->addWidget(leY_);
-    source->addControl(leY_);
-    //
-    leZ_ = new QLineEdit;
-    leZ_->setText(QString::number(model->getPosZ(), 'f', 4));
-    layout->addWidget(leZ_);
-    source->addControl(leZ_);
-    //
-    leRx_ = new QLineEdit;
-    leRx_->setText(QString::number(model->getRotRx(), 'f', 4));
-    layout->addWidget(leRx_);
-    source->addControl(leRx_);
-    //
-    leRy_ = new QLineEdit;
-    leRy_->setText(QString::number(model->getRotRy(), 'f', 4));
-    layout->addWidget(leRy_);
-    source->addControl(leRy_);
-    //
-    leRz_ = new QLineEdit;
-    leRz_->setText(QString::number(model->getRotRz(), 'f', 4));
-    layout->addWidget(leRz_);
-    source->addControl(leRz_);
-    //
-    connect(leX_, SIGNAL(editingFinished()), this, SLOT(modelPositionChanged()));
-    connect(leY_, SIGNAL(editingFinished()), this, SLOT(modelPositionChanged()));
-    connect(leZ_, SIGNAL(editingFinished()), this, SLOT(modelPositionChanged()));
-    connect(leRx_, SIGNAL(editingFinished()), this, SLOT(modelPositionChanged()));
-    connect(leRy_, SIGNAL(editingFinished()), this, SLOT(modelPositionChanged()));
-    connect(leRz_, SIGNAL(editingFinished()), this, SLOT(modelPositionChanged()));
+  currentBodyItem_(0),
+  updateKinematicStateLater(bind(&ModelParameterGroup::updateKinematicState, this, true), IDLE_PRIORITY_LOW),
+  QWidget(parent), os_(MessageView::mainInstance()->cout()) {
+  leX_ = new QLineEdit;
+  leX_->setText(QString::number(model->getPosX(), 'f', 4));
+  layout->addWidget(leX_);
+  source->addControl(leX_);
+  //
+  leY_ = new QLineEdit;
+  leY_->setText(QString::number(model->getPosY(), 'f', 4));
+  layout->addWidget(leY_);
+  source->addControl(leY_);
+  //
+  leZ_ = new QLineEdit;
+  leZ_->setText(QString::number(model->getPosZ(), 'f', 4));
+  layout->addWidget(leZ_);
+  source->addControl(leZ_);
+  //
+  leRx_ = new QLineEdit;
+  leRx_->setText(QString::number(model->getRotRx(), 'f', 4));
+  layout->addWidget(leRx_);
+  source->addControl(leRx_);
+  //
+  leRy_ = new QLineEdit;
+  leRy_->setText(QString::number(model->getRotRy(), 'f', 4));
+  layout->addWidget(leRy_);
+  source->addControl(leRy_);
+  //
+  leRz_ = new QLineEdit;
+  leRz_->setText(QString::number(model->getRotRz(), 'f', 4));
+  layout->addWidget(leRz_);
+  source->addControl(leRz_);
+  //
+  connect(leX_, SIGNAL(editingFinished()), this, SLOT(modelPositionChanged()));
+  connect(leY_, SIGNAL(editingFinished()), this, SLOT(modelPositionChanged()));
+  connect(leZ_, SIGNAL(editingFinished()), this, SLOT(modelPositionChanged()));
+  connect(leRx_, SIGNAL(editingFinished()), this, SLOT(modelPositionChanged()));
+  connect(leRy_, SIGNAL(editingFinished()), this, SLOT(modelPositionChanged()));
+  connect(leRz_, SIGNAL(editingFinished()), this, SLOT(modelPositionChanged()));
 
-    if (targetModel_->getModelItem() == NULL) {
-      return;
-    }
-    currentBodyItem_ = targetModel_->getModelItem().get();
-    connectionToKinematicStateChanged = targetModel_->getModelItem().get()->sigKinematicStateChanged().connect(updateKinematicStateLater);
+  if (targetModel_->getModelItem() == NULL) {
+    return;
+  }
+  currentBodyItem_ = targetModel_->getModelItem().get();
+  connectionToKinematicStateChanged = targetModel_->getModelItem().get()->sigKinematicStateChanged().connect(updateKinematicStateLater);
 }
 
 void ModelParameterGroup::modelPositionChanged() {
-  if(targetModel_) {
-    if( targetModel_->getModelItem() ) {
+  DDEBUG("ModelParameterGroup::modelPositionChanged()");
+
+  if (targetModel_) {
+    if (targetModel_->getModelItem()) {
       double newX = leX_->text().toDouble();
       double newY = leY_->text().toDouble();
       double newZ = leZ_->text().toDouble();
       double newRx = leRx_->text().toDouble();
       double newRy = leRy_->text().toDouble();
       double newRz = leRz_->text().toDouble();
-      if(dbl_eq(newX, targetModel_->getPosX())==false
-        || dbl_eq(newY, targetModel_->getPosY())==false
-        || dbl_eq(newZ, targetModel_->getPosZ())==false
-        || dbl_eq(newRx, targetModel_->getRotRx())==false
-        || dbl_eq(newRy, targetModel_->getRotRy())==false
-        || dbl_eq(newRz, targetModel_->getRotRz())==false ) {
+      if (dbl_eq(newX, targetModel_->getPosX()) == false
+        || dbl_eq(newY, targetModel_->getPosY()) == false
+        || dbl_eq(newZ, targetModel_->getPosZ()) == false
+        || dbl_eq(newRx, targetModel_->getRotRx()) == false
+        || dbl_eq(newRy, targetModel_->getRotRy()) == false
+        || dbl_eq(newRz, targetModel_->getRotRz()) == false) {
         ChoreonoidUtil::updateModelItemPosition(targetModel_->getModelItem(), newX, newY, newZ, newRx, newRy, newRz);
         targetModel_->setPosX(newX);
         targetModel_->setPosY(newY);
@@ -92,7 +95,7 @@ void ModelParameterGroup::modelPositionChanged() {
 }
 
 void ModelParameterGroup::updateKinematicState(bool blockSignals) {
-  if(currentBodyItem_){
+  if (currentBodyItem_) {
     Link* currentLink = currentBodyItem_->body()->rootLink();
     targetModel_->setPosX(currentLink->p()[0]);
     targetModel_->setPosY(currentLink->p()[1]);
@@ -114,7 +117,7 @@ void ModelParameterGroup::updateKinematicState(bool blockSignals) {
 }
 
 void ModelParameterGroup::disconnectKinematics() {
-  if(connectionToKinematicStateChanged.connected()){
+  if (connectionToKinematicStateChanged.connected()) {
     connectionToKinematicStateChanged.disconnect();
   }
 }
@@ -124,6 +127,8 @@ ParameterViewImpl::ParameterViewImpl(QWidget* parent)
 }
 
 void ParameterViewImpl::setTaskParam(TaskModelParam* param) {
+  DDEBUG("ParameterViewImpl::setTaskParam()");
+
   setInputValues();
   clearView();
   this->targetTask_ = param;
@@ -149,9 +154,9 @@ void ParameterViewImpl::setTaskParam(TaskModelParam* param) {
 
   vector<ParameterParam*> paramList = param->getParameterList();
   vector<ParameterParam*>::iterator itParam = paramList.begin();
-  while (itParam != paramList.end() ) {
+  while (itParam != paramList.end()) {
     (*itParam)->clearControlList();
-    if( (*itParam)->getMode()==DB_MODE_DELETE || (*itParam)->getMode()==DB_MODE_IGNORE ) continue;
+    if ((*itParam)->getMode() == DB_MODE_DELETE || (*itParam)->getMode() == DB_MODE_IGNORE) continue;
 
     QFrame* eachFrame = new QFrame(this);
     frameList_.push_back(eachFrame);
@@ -161,11 +166,11 @@ void ParameterViewImpl::setTaskParam(TaskModelParam* param) {
     QLabel* lblName = new QLabel((*itParam)->getName());
     eachLayout->addWidget(lblName);
 
-    if((*itParam)->getType() == PARAM_KIND_MODEL) {
+    if ((*itParam)->getType() == PARAM_KIND_MODEL) {
       vector<ModelParam*> modelList = param->getModelList();
-      for(int index=0; index<modelList.size();index++) {
+      for (int index = 0; index < modelList.size(); index++) {
         ModelParam* model = modelList[index];
-        if(model->getRName() == (*itParam)->getModelName()) {
+        if (model->getRName() == (*itParam)->getModelName()) {
           ModelParameterGroup* modelParam = new ModelParameterGroup(*itParam, model, eachLayout);
           modelList_.push_back(modelParam);
           break;
@@ -174,7 +179,7 @@ void ParameterViewImpl::setTaskParam(TaskModelParam* param) {
 
     } else {
       int elem_num = (*itParam)->getElemNum();
-      for(int index=0; index<elem_num; index++) {
+      for (int index = 0; index < elem_num; index++) {
         QLineEdit* txtEach = new QLineEdit;
         txtEach->setText(QString::fromStdString((*itParam)->getValues(index)).trimmed());
         eachLayout->addWidget(txtEach);
@@ -193,10 +198,11 @@ void ParameterViewImpl::setTaskParam(TaskModelParam* param) {
 }
 
 void ParameterViewImpl::setInputValues() {
-  if(targetTask_) {
+  DDEBUG("ParameterViewImpl::setInputValues()");
+  if (targetTask_) {
     vector<ParameterParam*> paramList = targetTask_->getParameterList();
     vector<ParameterParam*>::iterator itParam = paramList.begin();
-    while (itParam != paramList.end() ) {
+    while (itParam != paramList.end()) {
       (*itParam)->saveValues();
       ++itParam;
     }
@@ -204,14 +210,15 @@ void ParameterViewImpl::setInputValues() {
 }
 
 void ParameterViewImpl::clearView() {
-  if( layout() ) {
+  DDEBUG("ParameterViewImpl::clearView()");
+  if (layout()) {
     layout()->removeWidget(lblName);
     delete lblName;
     layout()->removeWidget(btnEdit);
     delete btnEdit;
     //
     vector<QLineEdit*>::iterator itText = textList_.begin();
-    while (itText != textList_.end() ) {
+    while (itText != textList_.end()) {
       layout()->removeWidget(*itText);
       delete *itText;
       ++itText;
@@ -219,7 +226,7 @@ void ParameterViewImpl::clearView() {
     textList_.clear();
     //
     vector<QFrame*>::iterator itFrame = frameList_.begin();
-    while (itFrame != frameList_.end() ) {
+    while (itFrame != frameList_.end()) {
       layout()->removeWidget(*itFrame);
       delete *itFrame;
       ++itFrame;
@@ -227,7 +234,7 @@ void ParameterViewImpl::clearView() {
     frameList_.clear();
     //
     vector<ModelParameterGroup*>::iterator itModel = modelList_.begin();
-    while (itModel != modelList_.end() ) {
+    while (itModel != modelList_.end()) {
       (*itModel)->disconnectKinematics();
       delete *itModel;
       ++itModel;
@@ -245,21 +252,23 @@ void ParameterViewImpl::clearTaskParam() {
 }
 
 void ParameterViewImpl::editClicked() {
+  DDEBUG("ParameterViewImpl::editClicked()");
+
   ParameterDialog dialog(targetTask_, this);
   dialog.exec();
   setTaskParam(targetTask_);
 }
 
 /////
-ParameterView::ParameterView(): viewImpl(0) {
-    setName(_("Parameter"));
-    setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Ignored);
+ParameterView::ParameterView() : viewImpl(0) {
+  setName(_("Parameter"));
+  setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Ignored);
 
-    viewImpl = new ParameterViewImpl(this);
-    QVBoxLayout* vbox = new QVBoxLayout();
-    vbox->addWidget(viewImpl);
-    setLayout(vbox);
-		setDefaultLayoutArea(View::LEFT_BOTTOM);
+  viewImpl = new ParameterViewImpl(this);
+  QVBoxLayout* vbox = new QVBoxLayout();
+  vbox->addWidget(viewImpl);
+  setLayout(vbox);
+  setDefaultLayoutArea(View::LEFT_BOTTOM);
 }
 
 ParameterView::~ParameterView() {
