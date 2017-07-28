@@ -1,0 +1,418 @@
+- 
+  taskName: "pick&place (YCB screw)"
+  comment: "The robot pick a screw from a feeder, and put it on a hole of the airplane body.||A parts feeder is used for the screw and the driver bit since they need to be grasped accurately.|Finger attachments are used to fix the pose of the screw while grasping. The shape of the attachments are designed to absorb small position error. A tape with proper friction is put on the attachments|Original rubber is too adhesive to release the screw smoothly.||2 step motion is used for robust grasping.|Fixture kit: http://...|YCB Airplane: http://...||"
+  initialize: ""
+  models: 
+    - 
+      name: "plane body"
+      rname: "plane_body"
+      type: Env.
+      file_name: "YCBAirplane_before_boltingHrp.wrl"
+      pos_x: 0.427
+      pos_y: 0.073
+      pos_z: 0.92
+      rot_x: 3.97569335e-15
+      rot_y: -8
+      rot_z: -20
+    - 
+      name: "screw"
+      rname: "screw"
+      type: Env.
+      file_name: "boltHrp.wrl"
+      pos_x: 0.349
+      pos_y: -0.148
+      pos_z: 0.81
+      rot_x: 0
+      rot_y: -0
+      rot_z: 0
+  states: 
+    - 
+      id: 692
+      type: 1
+      condition: ""
+      pos_x: -68
+      pos_y: -211
+    - 
+      id: 693
+      type: 2
+      condition: ""
+      pos_x: 164
+      pos_y: 315
+    - 
+      id: 694
+      type: 5
+      cmd_name: "goInitial"
+      disp_name: "Initial Pose"
+      condition: ""
+      pos_x: 34
+      pos_y: -207
+      arguments: 
+        - 
+          seq: 1
+          name: "tm"
+          value: "3.0"
+    - 
+      id: 695
+      type: 5
+      cmd_name: "moveArm"
+      disp_name: "approach position"
+      condition: ""
+      pos_x: 5.87810993
+      pos_y: -139.605111
+      arguments: 
+        - 
+          seq: 1
+          name: "xyz"
+          value: "xyz(screw_pose) + rotFromRpy(rpy(screw_pose))*(xyz(grasp_pose) + [0,0,0.05])"
+        - 
+          seq: 2
+          name: "rpy"
+          value: "rpyFromRot(rotFromRpy(rpy(screw_pose)) * rotFromRpy(rpy(grasp_pose)))"
+        - 
+          seq: 3
+          name: "tm"
+          value: "2.0"
+        - 
+          seq: 4
+          name: "armID"
+          value: "handID"
+    - 
+      id: 696
+      type: 5
+      cmd_name: "moveArm"
+      disp_name: "grasp position"
+      condition: ""
+      pos_x: 89.6411765
+      pos_y: -120.501254
+      arguments: 
+        - 
+          seq: 1
+          name: "xyz"
+          value: "xyz(screw_pose) + rotFromRpy(rpy(screw_pose))*xyz(grasp_pose)"
+        - 
+          seq: 2
+          name: "rpy"
+          value: "rpyFromRot(rotFromRpy(rpy(screw_pose)) * rotFromRpy(rpy(grasp_pose)))"
+        - 
+          seq: 3
+          name: "tm"
+          value: "1.5"
+        - 
+          seq: 4
+          name: "armID"
+          value: "handID"
+    - 
+      id: 697
+      type: 5
+      cmd_name: "moveGripper"
+      disp_name: "pre-grasp"
+      condition: ""
+      pos_x: 12
+      pos_y: -78
+      arguments: 
+        - 
+          seq: 1
+          name: "width"
+          value: "0.025"
+        - 
+          seq: 2
+          name: "tm"
+          value: "0.5"
+        - 
+          seq: 3
+          name: "gripperID"
+          value: "handID"
+    - 
+      id: 698
+      type: 5
+      cmd_name: "moveGripper"
+      disp_name: "grasp a screw"
+      condition: ""
+      pos_x: 84.2385295
+      pos_y: -37.2859065
+      model_actions: 
+        - 
+          action: "attach"
+          model: "screw"
+          target: "handID"
+      arguments: 
+        - 
+          seq: 1
+          name: "width"
+          value: "0.02"
+        - 
+          seq: 2
+          name: "tm"
+          value: "0.3"
+        - 
+          seq: 3
+          name: "gripperID"
+          value: "handID"
+    - 
+      id: 699
+      type: 5
+      cmd_name: "moveArm"
+      disp_name: "pick-up position"
+      condition: ""
+      pos_x: 129.810193
+      pos_y: 0
+      arguments: 
+        - 
+          seq: 1
+          name: "xyz"
+          value: "xyz(screw_pose) + rotFromRpy(rpy(screw_pose)) * (xyz(grasp_pose) + [0,0,0.05])"
+        - 
+          seq: 2
+          name: "rpy"
+          value: "rpyFromRot(rotFromRpy(rpy(screw_pose)) * rotFromRpy(rpy(grasp_pose)))"
+        - 
+          seq: 3
+          name: "tm"
+          value: "1.5"
+        - 
+          seq: 4
+          name: "armID"
+          value: "handID"
+    - 
+      id: 700
+      type: 5
+      cmd_name: "moveArm"
+      disp_name: "waypoint1"
+      condition: ""
+      pos_x: 101
+      pos_y: 65
+      arguments: 
+        - 
+          seq: 1
+          name: "xyz"
+          value: "xyz(waypoint1)"
+        - 
+          seq: 2
+          name: "rpy"
+          value: "rpy(waypoint1)"
+        - 
+          seq: 3
+          name: "tm"
+          value: "2.0"
+        - 
+          seq: 4
+          name: "armID"
+          value: "handID"
+    - 
+      id: 701
+      type: 5
+      cmd_name: "moveArm"
+      disp_name: "approach position"
+      condition: ""
+      pos_x: 80.095651
+      pos_y: 114.619639
+      arguments: 
+        - 
+          seq: 1
+          name: "xyz"
+          value: "xyz(subobj_pose)+rotFromRpy(rpy(subobj_pose))*(xyz(hole_pose) + rotFromRpy(rpy(hole_pose)) * ([0,0,0.06] + xyz(grasp_pose)))"
+        - 
+          seq: 2
+          name: "rpy"
+          value: "rpyFromRot(rotFromRpy(rpy(subobj_pose))*rotFromRpy(rpy(hole_pose)) * rotFromRpy([0,0,0]) * rotFromRpy(rpy(grasp_pose)))"
+        - 
+          seq: 3
+          name: "tm"
+          value: "2.0"
+        - 
+          seq: 4
+          name: "armID"
+          value: "handID"
+    - 
+      id: 702
+      type: 5
+      cmd_name: "moveArm"
+      disp_name: "release position"
+      condition: ""
+      pos_x: 44
+      pos_y: 168
+      arguments: 
+        - 
+          seq: 1
+          name: "xyz"
+          value: "xyz(subobj_pose)+rotFromRpy(rpy(subobj_pose))*(xyz(hole_pose) + rotFromRpy(rpy(hole_pose)) * xyz(grasp_pose))"
+        - 
+          seq: 2
+          name: "rpy"
+          value: "rpyFromRot(rotFromRpy(rpy(subobj_pose))*rotFromRpy(rpy(hole_pose)) * rotFromRpy([0,0,0]) * rotFromRpy(rpy(grasp_pose)))"
+        - 
+          seq: 3
+          name: "tm"
+          value: "5.0"
+        - 
+          seq: 4
+          name: "armID"
+          value: "handID"
+    - 
+      id: 703
+      type: 5
+      cmd_name: "moveGripper"
+      disp_name: "release"
+      condition: ""
+      pos_x: 22
+      pos_y: 211
+      model_actions: 
+        - 
+          action: "detach"
+          model: "screw"
+          target: "handID"
+      arguments: 
+        - 
+          seq: 1
+          name: "width"
+          value: "0.033"
+        - 
+          seq: 2
+          name: "tm"
+          value: "0.5"
+        - 
+          seq: 3
+          name: "gripperID"
+          value: "handID"
+    - 
+      id: 704
+      type: 5
+      cmd_name: "moveArm"
+      disp_name: "moveArm"
+      condition: ""
+      pos_x: 152
+      pos_y: 252
+      arguments: 
+        - 
+          seq: 1
+          name: "xyz"
+          value: "xyz(subobj_pose)+rotFromRpy(rpy(subobj_pose))*(xyz(hole_pose) + rotFromRpy(rpy(hole_pose)) * ([0,0,0.06] + xyz(grasp_pose)))"
+        - 
+          seq: 2
+          name: "rpy"
+          value: "rpyFromRot(rotFromRpy(rpy(subobj_pose))*rotFromRpy(rpy(hole_pose)) * rotFromRpy([0,0,0]) * rotFromRpy(rpy(grasp_pose)))"
+        - 
+          seq: 3
+          name: "tm"
+          value: "2.0"
+        - 
+          seq: 4
+          name: "armID"
+          value: "handID"
+  transitions: 
+    - 
+      source_id: 692
+      target_id: 694
+    - 
+      source_id: 694
+      target_id: 695
+    - 
+      source_id: 695
+      target_id: 696
+    - 
+      source_id: 696
+      target_id: 697
+    - 
+      source_id: 697
+      target_id: 698
+    - 
+      source_id: 698
+      target_id: 699
+    - 
+      source_id: 699
+      target_id: 700
+    - 
+      source_id: 700
+      target_id: 701
+    - 
+      source_id: 701
+      target_id: 702
+    - 
+      source_id: 702
+      target_id: 703
+    - 
+      source_id: 703
+      target_id: 704
+    - 
+      source_id: 704
+      target_id: 693
+  parameters: 
+    - 
+      name: "hand selection (0=left, 1=right)"
+      rname: "handID"
+      type: 0
+      model_name: ""
+      units: ""
+      elem_num: 1
+      elem_type: 1
+      values: "1"
+    - 
+      name: "screw pose"
+      rname: "screw_pose"
+      type: 1
+      model_name: "screw"
+      units: ""
+      elem_num: 6
+      elem_type: 0
+      values: "0.3490, -0.1480, 0.8100, 0.0000, 0.0000, 0.0000"
+    - 
+      name: "grasp pose"
+      rname: "grasp_pose"
+      type: 0
+      model_name: ""
+      units: ""
+      elem_num: 6
+      elem_type: 0
+      values: "0, 0, 0.105, 0, -90, 0"
+    - 
+      name: "hole pose"
+      rname: "hole_pose"
+      type: 0
+      model_name: ""
+      units: ""
+      elem_num: 6
+      elem_type: 0
+      values: "0.025, 0.0, 0.020, 0, 0, 0"
+    - 
+      name: "hole depth"
+      rname: "hole_depth"
+      type: 0
+      model_name: ""
+      units: ""
+      elem_num: 1
+      elem_type: 0
+      values: "0.01"
+    - 
+      name: "waypoint1"
+      rname: "waypoint1"
+      type: 0
+      model_name: ""
+      units: ""
+      elem_num: 6
+      elem_type: 0
+      values: "0.35, -0.1, 1.14, 0, -90, 0"
+    - 
+      name: "airplane body"
+      rname: "subobj_pose"
+      type: 1
+      model_name: "plane_body"
+      units: ""
+      elem_num: 6
+      elem_type: 0
+      values: "0.4270, 0.0730, 0.9200, 0.0000, -8.0000, -20.0000"
+  files: 
+    - 
+      name: "fixture2.stl"
+    - 
+      name: "2step_grasp.mp4"
+  images: 
+    - 
+      name: "ycb_toy_plane.png"
+    - 
+      name: "feeder.png"
+    - 
+      name: "fixture.png"
+    - 
+      name: "screwing_task.png"
+    - 
+      name: "finger_attachment.png"

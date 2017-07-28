@@ -1,0 +1,227 @@
+- 
+  taskName: "place (YCB driver bit)"
+  comment: "place a driver bit"
+  initialize: ""
+  models: 
+    - 
+      name: "bit"
+      rname: "bit"
+      type: Env.
+      file_name: "driver_tipHrp.wrl"
+      pos_x: 0.4458
+      pos_y: 0.0681
+      pos_z: 0.9412
+      rot_x: 8.7
+      rot_y: -4.9
+      rot_z: -80.4
+  states: 
+    - 
+      id: 1012
+      type: 1
+      condition: ""
+      pos_x: -68
+      pos_y: -211
+    - 
+      id: 1013
+      type: 2
+      condition: ""
+      pos_x: 209.789977
+      pos_y: 85.5465733
+    - 
+      id: 3
+      type: 5
+      cmd_name: "true"
+      disp_name: "true"
+      condition: ""
+      pos_x: 137.856339
+      pos_y: -130.281815
+      model_actions: 
+        - 
+          action: "attach"
+          model: "bit"
+          target: "handID"
+    - 
+      id: 1029
+      type: 5
+      cmd_name: "moveArm"
+      disp_name: "waypoint1"
+      condition: ""
+      pos_x: 4.90416881
+      pos_y: -58.3749508
+      arguments: 
+        - 
+          seq: 1
+          name: "xyz"
+          value: "xyz(waypoint1)"
+        - 
+          seq: 2
+          name: "rpy"
+          value: "rpy(waypoint1)"
+        - 
+          seq: 3
+          name: "tm"
+          value: "3.0"
+        - 
+          seq: 4
+          name: "armID"
+          value: "handID"
+    - 
+      id: 1030
+      type: 5
+      cmd_name: "moveArm"
+      disp_name: "approach position"
+      condition: ""
+      pos_x: 41.5437334
+      pos_y: -33.5808665
+      arguments: 
+        - 
+          seq: 1
+          name: "xyz"
+          value: "xyz(goal_pose) + rotFromRpy(rpy(goal_pose)) * (xyz(grasp_pose) + [0,0,0.05])"
+        - 
+          seq: 2
+          name: "rpy"
+          value: "rpyFromRot(rotFromRpy(rpy(goal_pose)) * rotFromRpy(rpy(grasp_pose)))"
+        - 
+          seq: 3
+          name: "tm"
+          value: "2.0"
+        - 
+          seq: 4
+          name: "armID"
+          value: "handID"
+    - 
+      id: 1031
+      type: 5
+      cmd_name: "moveArm"
+      disp_name: "approach position"
+      condition: ""
+      pos_x: -108.34807
+      pos_y: 51.6517276
+      arguments: 
+        - 
+          seq: 1
+          name: "xyz"
+          value: "xyz(goal_pose) + rotFromRpy(rpy(goal_pose)) * (xyz(grasp_pose) + [0,0,0.05])"
+        - 
+          seq: 2
+          name: "rpy"
+          value: "rpyFromRot(rotFromRpy(rpy(goal_pose)) * rotFromRpy(rpy(grasp_pose)))"
+        - 
+          seq: 3
+          name: "tm"
+          value: "2.0"
+        - 
+          seq: 4
+          name: "armID"
+          value: "handID"
+    - 
+      id: 1032
+      type: 5
+      cmd_name: "moveGripper"
+      disp_name: "release bit"
+      condition: ""
+      pos_x: 84.1600304
+      pos_y: 44.3040901
+      model_actions: 
+        - 
+          action: "detach"
+          model: "bit"
+          target: "handID"
+      arguments: 
+        - 
+          seq: 1
+          name: "width"
+          value: "0.05"
+        - 
+          seq: 2
+          name: "tm"
+          value: "0.5"
+        - 
+          seq: 3
+          name: "gripperID"
+          value: "handID"
+    - 
+      id: 1033
+      type: 5
+      cmd_name: "moveArm"
+      disp_name: "release bit position"
+      condition: ""
+      pos_x: -30.5558254
+      pos_y: 6.04732875
+      arguments: 
+        - 
+          seq: 1
+          name: "xyz"
+          value: "xyz(goal_pose) + rotFromRpy(rpy(goal_pose))*xyz(grasp_pose)"
+        - 
+          seq: 2
+          name: "rpy"
+          value: "rpyFromRot(rotFromRpy(rpy(goal_pose)) * rotFromRpy(rpy(grasp_pose)))"
+        - 
+          seq: 3
+          name: "tm"
+          value: "2.0"
+        - 
+          seq: 4
+          name: "armID"
+          value: "handID"
+  transitions: 
+    - 
+      source_id: 1029
+      target_id: 1030
+    - 
+      source_id: 1030
+      target_id: 1033
+    - 
+      source_id: 1033
+      target_id: 1032
+    - 
+      source_id: 1032
+      target_id: 1031
+    - 
+      source_id: 1031
+      target_id: 1013
+    - 
+      source_id: 1012
+      target_id: 3
+    - 
+      source_id: 3
+      target_id: 1029
+  parameters: 
+    - 
+      name: "hand selection (0=left, 1=right)"
+      rname: "handID"
+      type: 0
+      model_name: ""
+      units: ""
+      elem_num: 1
+      elem_type: 1
+      values: "1"
+    - 
+      name: "goal pose"
+      rname: "goal_pose"
+      type: 0
+      model_name: ""
+      units: ""
+      elem_num: 6
+      elem_type: 0
+      values: "0.4480, -0.1420, 0.7730, 0.0000, 0.0000, 0.0000"
+    - 
+      name: "grasp pose"
+      rname: "grasp_pose"
+      type: 0
+      model_name: ""
+      units: ""
+      elem_num: 6
+      elem_type: 0
+      values: "0, 0, 0.18, 0, -90, 0"
+    - 
+      name: "waypoint1"
+      rname: "waypoint1"
+      type: 0
+      model_name: ""
+      units: ""
+      elem_num: 6
+      elem_type: 0
+      values: "0.4, -0.1, 1.14, 0, -90, 0"

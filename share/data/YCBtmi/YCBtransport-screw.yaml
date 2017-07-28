@@ -1,0 +1,171 @@
+- 
+  taskName: "transport (YCB screw)"
+  comment: "transport a YCB screw over a hole of the airplane body"
+  initialize: ""
+  models: 
+    - 
+      name: "plane body"
+      rname: "plane_body"
+      type: Env.
+      file_name: "YCBAirplane_before_boltingHrp.wrl"
+      pos_x: 0.427
+      pos_y: 0.073
+      pos_z: 0.92
+      rot_x: 3.97569335e-15
+      rot_y: -8
+      rot_z: -20
+    - 
+      name: "screw"
+      rname: "screw"
+      type: Env.
+      file_name: "boltHrp.wrl"
+      pos_x: 0.349
+      pos_y: -0.148
+      pos_z: 0.86
+      rot_x: 0
+      rot_y: -0
+      rot_z: 0
+  states: 
+    - 
+      id: 1
+      type: 1
+      condition: ""
+      pos_x: -68
+      pos_y: -211
+    - 
+      id: 2
+      type: 2
+      condition: ""
+      pos_x: 164
+      pos_y: 315
+    - 
+      id: 3
+      type: 5
+      cmd_name: "true"
+      disp_name: "true"
+      condition: ""
+      pos_x: 137.856339
+      pos_y: -130.281815
+      model_actions: 
+        - 
+          action: "attach"
+          model: "screw"
+          target: "handID"
+    - 
+      id: 4
+      type: 5
+      cmd_name: "moveArm"
+      disp_name: "waypoint1"
+      condition: ""
+      pos_x: 101
+      pos_y: 65
+      arguments: 
+        - 
+          seq: 1
+          name: "xyz"
+          value: "xyz(waypoint1)"
+        - 
+          seq: 2
+          name: "rpy"
+          value: "rpy(waypoint1)"
+        - 
+          seq: 3
+          name: "tm"
+          value: "2.0"
+        - 
+          seq: 4
+          name: "armID"
+          value: "handID"
+    - 
+      id: 5
+      type: 5
+      cmd_name: "moveArm"
+      disp_name: "approach position"
+      condition: ""
+      pos_x: 80.095651
+      pos_y: 114.619639
+      arguments: 
+        - 
+          seq: 1
+          name: "xyz"
+          value: "xyz(subobj_pose)+rotFromRpy(rpy(subobj_pose))*(xyz(hole_pose) + rotFromRpy(rpy(hole_pose)) * ([0,0,0.06] + xyz(grasp_pose)))"
+        - 
+          seq: 2
+          name: "rpy"
+          value: "rpyFromRot(rotFromRpy(rpy(subobj_pose))*rotFromRpy(rpy(hole_pose)) * rotFromRpy([0,0,0]) * rotFromRpy(rpy(grasp_pose)))"
+        - 
+          seq: 3
+          name: "tm"
+          value: "2.0"
+        - 
+          seq: 4
+          name: "armID"
+          value: "handID"
+  transitions: 
+    - 
+      source_id: 1
+      target_id: 3
+    - 
+      source_id: 3
+      target_id: 4
+    - 
+      source_id: 4
+      target_id: 5
+    - 
+      source_id: 5
+      target_id: 2
+  parameters: 
+    - 
+      name: "hand selection (0=left, 1=right)"
+      rname: "handID"
+      type: 0
+      model_name: ""
+      units: ""
+      elem_num: 1
+      elem_type: 1
+      values: "1"
+    - 
+      name: "screw pose"
+      rname: "screw_pose"
+      type: 1
+      model_name: "screw"
+      units: ""
+      elem_num: 6
+      elem_type: 0
+      values: "0.3490, -0.1480, 0.8600, 0.0000, 0.0000, 0.0000"
+    - 
+      name: "grasp pose"
+      rname: "grasp_pose"
+      type: 0
+      model_name: ""
+      units: ""
+      elem_num: 6
+      elem_type: 0
+      values: "0, 0, 0.105, 0, -90, 0"
+    - 
+      name: "hole pose"
+      rname: "hole_pose"
+      type: 0
+      model_name: ""
+      units: ""
+      elem_num: 6
+      elem_type: 0
+      values: "0.025, 0.0, 0.020, 0, 0, 0"
+    - 
+      name: "waypoint1"
+      rname: "waypoint1"
+      type: 0
+      model_name: ""
+      units: ""
+      elem_num: 6
+      elem_type: 0
+      values: "0.35, -0.1, 1.14, 0, -90, 0"
+    - 
+      name: "airplane body"
+      rname: "subobj_pose"
+      type: 1
+      model_name: "plane_body"
+      units: ""
+      elem_num: 6
+      elem_type: 0
+      values: "0.4270, 0.0730, 0.9200, 0.0000, -8.0000, -20.0000"

@@ -1,0 +1,648 @@
+- 
+  taskName: "cap a plastic bottle (juice)"
+  comment: "plastic bottle of green tea[350ml]|put a cap on the bottle and fasten it.|fix the bottle with the other hand.|"
+  models: 
+    - 
+      name: "cap"
+      rname: "object"
+      type: Work
+      file_name: "greentea350_capHrp.wrl"
+      pos_x: 0.350037828
+      pos_y: 0.000112685429
+      pos_z: 0.993999837
+      rot_x: 0.0217061272
+      rot_y: 0.0645535084
+      rot_z: -89.9710577
+    - 
+      name: "bottle"
+      rname: "target"
+      type: Work
+      file_name: "petfruit_bottleHrp.wrl"
+      pos_x: 0.35
+      pos_y: 0
+      pos_z: 0.872
+      rot_x: 0
+      rot_y: -0
+      rot_z: 0
+  states: 
+    - 
+      id: 352
+      type: 1
+      pos_x: 47.9402326
+      pos_y: 52.6173284
+    - 
+      id: 353
+      type: 5
+      cmd_name: "moveGripper"
+      pos_x: 115
+      pos_y: 36
+      arguments: 
+        - 
+          seq: 1
+          name: "width"
+          value: "finger_interval+0.04"
+        - 
+          seq: 2
+          name: "tm"
+          value: "0.2"
+        - 
+          seq: 3
+          name: "gripperID"
+          value: "handID"
+    - 
+      id: 354
+      type: 5
+      cmd_name: "moveArm"
+      pos_x: 163
+      pos_y: 74
+      arguments: 
+        - 
+          seq: 1
+          name: "xyz"
+          value: " xyz(parts_poseG) + rotFromRpy(rpy(parts_poseG)) * (xyz(grasp_pose) + rotFromRpy(rpy(grasp_pose)) * [approach_distance,0,0]) "
+        - 
+          seq: 2
+          name: "rpy"
+          value: " rpyFromRot(rotFromRpy(rpy(parts_poseG)) * rotFromRpy(rpy(grasp_pose))) "
+        - 
+          seq: 3
+          name: "tm"
+          value: "1.0"
+        - 
+          seq: 4
+          name: "armID"
+          value: "handID"
+    - 
+      id: 355
+      type: 5
+      cmd_name: "moveArm"
+      pos_x: 211
+      pos_y: 110
+      arguments: 
+        - 
+          seq: 1
+          name: "xyz"
+          value: " xyz(parts_poseG) + rotFromRpy(rpy(parts_poseG)) * xyz(grasp_pose)"
+        - 
+          seq: 2
+          name: "rpy"
+          value: " rpyFromRot(rotFromRpy(rpy(parts_poseG)) * rotFromRpy(rpy(grasp_pose))) "
+        - 
+          seq: 3
+          name: "tm"
+          value: "0.5"
+        - 
+          seq: 4
+          name: "armID"
+          value: "handID"
+    - 
+      id: 356
+      type: 5
+      cmd_name: "moveGripper"
+      pos_x: 261
+      pos_y: 154
+      model_actions: 
+        - 
+          action: "attach"
+          model: "object"
+          target: "handID"
+      arguments: 
+        - 
+          seq: 1
+          name: "width"
+          value: "finger_interval"
+        - 
+          seq: 2
+          name: "tm"
+          value: "0.2"
+        - 
+          seq: 3
+          name: "gripperID"
+          value: "handID"
+    - 
+      id: 357
+      type: 5
+      cmd_name: "moveArm"
+      pos_x: 317
+      pos_y: 192
+      arguments: 
+        - 
+          seq: 1
+          name: "xyz"
+          value: " xyz(parts_poseG) + rotFromRpy(rpy(parts_poseG)) * (xyz(grasp_pose) + rotFromRpy(rpy(grasp_pose)) * [approach_distance,0,0]) "
+        - 
+          seq: 2
+          name: "rpy"
+          value: " rpyFromRot(rotFromRpy(rpy(parts_poseG)) * rotFromRpy(rpy(grasp_pose))) "
+        - 
+          seq: 3
+          name: "tm"
+          value: "0.5"
+        - 
+          seq: 4
+          name: "armID"
+          value: "handID"
+    - 
+      id: 358
+      type: 5
+      cmd_name: "moveGripper"
+      pos_x: 83.1024931
+      pos_y: 120.775623
+      arguments: 
+        - 
+          seq: 1
+          name: "width"
+          value: "fix_finger_interval+0.04"
+        - 
+          seq: 2
+          name: "tm"
+          value: "0.2"
+        - 
+          seq: 3
+          name: "gripperID"
+          value: "1"
+    - 
+      id: 359
+      type: 5
+      cmd_name: "moveArm"
+      pos_x: 136.288089
+      pos_y: 193.905817
+      arguments: 
+        - 
+          seq: 1
+          name: "xyz"
+          value: " xyz(parts_poseP) + rotFromRpy(rpy(parts_poseP)) * (xyz(fix_pose) + rotFromRpy(rpy(fix_pose)) * [approach_distance,0,0]) "
+        - 
+          seq: 2
+          name: "rpy"
+          value: " rpyFromRot(rotFromRpy(rpy(parts_poseP)) * rotFromRpy(rpy(fix_pose))) "
+        - 
+          seq: 3
+          name: "tm"
+          value: "1.0"
+        - 
+          seq: 4
+          name: "armID"
+          value: "1"
+    - 
+      id: 360
+      type: 5
+      cmd_name: "moveArm"
+      pos_x: 202.770083
+      pos_y: 227.146814
+      arguments: 
+        - 
+          seq: 1
+          name: "xyz"
+          value: " xyz(parts_poseP) + rotFromRpy(rpy(parts_poseP)) * xyz(fix_pose) "
+        - 
+          seq: 2
+          name: "rpy"
+          value: " rpyFromRot(rotFromRpy(rpy(parts_poseP)) * rotFromRpy(rpy(fix_pose))) "
+        - 
+          seq: 3
+          name: "tm"
+          value: "1.0"
+        - 
+          seq: 4
+          name: "armID"
+          value: "1"
+    - 
+      id: 361
+      type: 5
+      cmd_name: "moveGripper"
+      pos_x: 280.33241
+      pos_y: 267.036011
+      arguments: 
+        - 
+          seq: 1
+          name: "width"
+          value: "fix_finger_interval"
+        - 
+          seq: 2
+          name: "tm"
+          value: "0.2"
+        - 
+          seq: 3
+          name: "gripperID"
+          value: "1"
+    - 
+      id: 362
+      type: 5
+      cmd_name: "move"
+      pos_x: 52.0775623
+      pos_y: 284.764543
+      arguments: 
+        - 
+          seq: 1
+          name: "leftHandXyz"
+          value: " xyz(parts_poseP) + rotFromRpy(rpy(parts_poseP)) * (xyz(assemble_pose) + rotFromRpy(rpy(assemble_pose)) * (xyz(grasp_pose) + rotFromRpy(rpy(grasp_pose)) * [approach_distance,0,0])) "
+        - 
+          seq: 2
+          name: "leftHandRpy"
+          value: " rpyFromRot(rotFromRpy(rpy(parts_poseP)) * rotFromRpy(rpy(assemble_pose)) * rotFromRpy(rpy(grasp_pose))) "
+        - 
+          seq: 3
+          name: "rightHandXyz"
+          value: " xyz(parts_poseP) + rotFromRpy(rpy(parts_poseP)) * xyz(fix_pose) "
+        - 
+          seq: 4
+          name: "rightHandRpy"
+          value: " rpyFromRot(rotFromRpy(rpy(parts_poseP)) * rotFromRpy(rpy(fix_pose))) "
+        - 
+          seq: 5
+          name: "torsoAngle"
+          value: "0.0"
+        - 
+          seq: 6
+          name: "tm"
+          value: "0.5"
+    - 
+      id: 363
+      type: 5
+      cmd_name: "move"
+      pos_x: 100.831025
+      pos_y: 335.734072
+      arguments: 
+        - 
+          seq: 1
+          name: "leftHandXyz"
+          value: " xyz(parts_poseP) + rotFromRpy(rpy(parts_poseP)) * (xyz(assemble_pose) + rotFromRpy(rpy(assemble_pose)) * xyz(grasp_pose)) "
+        - 
+          seq: 2
+          name: "leftHandRpy"
+          value: " rpyFromRot(rotFromRpy(rpy(parts_poseP)) * rotFromRpy(rpy(assemble_pose)) * rotFromRpy(rpy(grasp_pose))) "
+        - 
+          seq: 3
+          name: "rightHandXyz"
+          value: " xyz(parts_poseP) + rotFromRpy(rpy(parts_poseP)) * xyz(fix_pose) "
+        - 
+          seq: 4
+          name: "rightHandRpy"
+          value: " rpyFromRot(rotFromRpy(rpy(parts_poseP)) * rotFromRpy(rpy(fix_pose))) "
+        - 
+          seq: 5
+          name: "torsoAngle"
+          value: "0.0"
+        - 
+          seq: 6
+          name: "tm"
+          value: "0.5"
+    - 
+      id: 364
+      type: 5
+      cmd_name: "move"
+      pos_x: 187.257618
+      pos_y: 360.110803
+      arguments: 
+        - 
+          seq: 1
+          name: "leftHandXyz"
+          value: " xyz(parts_poseP) + rotFromRpy(rpy(parts_poseP)) * (xyz(assemble_pose) + rotFromRpy(rpy(assemble_pose)) * xyz(grasp_pose)) "
+        - 
+          seq: 2
+          name: "leftHandRpy"
+          value: " rpyFromRot(rotFromRpy(rpy(parts_poseP)) * rotFromRpy([0,0,-45.0])* rotFromRpy(rpy(assemble_pose)) * rotFromRpy(rpy(grasp_pose))) "
+        - 
+          seq: 3
+          name: "rightHandXyz"
+          value: " xyz(parts_poseP) + rotFromRpy(rpy(parts_poseP)) * xyz(fix_pose) "
+        - 
+          seq: 4
+          name: "rightHandRpy"
+          value: " rpyFromRot(rotFromRpy(rpy(parts_poseP)) * rotFromRpy(rpy(fix_pose))) "
+        - 
+          seq: 5
+          name: "torsoAngle"
+          value: "0.0"
+        - 
+          seq: 6
+          name: "tm"
+          value: "0.5"
+    - 
+      id: 365
+      type: 5
+      cmd_name: "moveGripper"
+      pos_x: 255.955679
+      pos_y: 388.919668
+      model_actions: 
+        - 
+          action: "detach"
+          model: "object"
+          target: "handID"
+      arguments: 
+        - 
+          seq: 1
+          name: "width"
+          value: "finger_interval+0.04"
+        - 
+          seq: 2
+          name: "tm"
+          value: "0.2"
+        - 
+          seq: 3
+          name: "gripperID"
+          value: "handID"
+    - 
+      id: 366
+      type: 5
+      cmd_name: "move"
+      pos_x: 49.8614958
+      pos_y: 411.080332
+      arguments: 
+        - 
+          seq: 1
+          name: "leftHandXyz"
+          value: " xyz(parts_poseP) + rotFromRpy(rpy(parts_poseP)) * (xyz(assemble_pose) + rotFromRpy(rpy(assemble_pose)) * xyz(grasp_pose)) "
+        - 
+          seq: 2
+          name: "leftHandRpy"
+          value: " rpyFromRot(rotFromRpy(rpy(parts_poseP)) * rotFromRpy(rpy(assemble_pose)) * rotFromRpy(rpy(grasp_pose))) "
+        - 
+          seq: 3
+          name: "rightHandXyz"
+          value: " xyz(parts_poseP) + rotFromRpy(rpy(parts_poseP)) * xyz(fix_pose) "
+        - 
+          seq: 4
+          name: "rightHandRpy"
+          value: " rpyFromRot(rotFromRpy(rpy(parts_poseP)) * rotFromRpy(rpy(fix_pose))) "
+        - 
+          seq: 5
+          name: "torsoAngle"
+          value: "0.0"
+        - 
+          seq: 6
+          name: "tm"
+          value: "0.5"
+    - 
+      id: 367
+      type: 5
+      cmd_name: "moveGripper"
+      pos_x: 116.34349
+      pos_y: 457.617729
+      model_actions: 
+        - 
+          action: "attach"
+          model: "object"
+          target: "handID"
+      arguments: 
+        - 
+          seq: 1
+          name: "width"
+          value: "finger_interval"
+        - 
+          seq: 2
+          name: "tm"
+          value: "0.2"
+        - 
+          seq: 3
+          name: "gripperID"
+          value: "handID"
+    - 
+      id: 368
+      type: 5
+      cmd_name: "move"
+      pos_x: 154.01662
+      pos_y: 504.155125
+      arguments: 
+        - 
+          seq: 1
+          name: "leftHandXyz"
+          value: " xyz(parts_poseP) + rotFromRpy(rpy(parts_poseP)) * (xyz(assemble_pose) + rotFromRpy(rpy(assemble_pose)) * xyz(grasp_pose)) "
+        - 
+          seq: 2
+          name: "leftHandRpy"
+          value: " rpyFromRot(rotFromRpy(rpy(parts_poseP)) * rotFromRpy([0,0,-45.0])* rotFromRpy(rpy(assemble_pose)) * rotFromRpy(rpy(grasp_pose))) "
+        - 
+          seq: 3
+          name: "rightHandXyz"
+          value: " xyz(parts_poseP) + rotFromRpy(rpy(parts_poseP)) * xyz(fix_pose) "
+        - 
+          seq: 4
+          name: "rightHandRpy"
+          value: " rpyFromRot(rotFromRpy(rpy(parts_poseP)) * rotFromRpy(rpy(fix_pose))) "
+        - 
+          seq: 5
+          name: "torsoAngle"
+          value: "0.0"
+        - 
+          seq: 6
+          name: "tm"
+          value: "0.5"
+    - 
+      id: 369
+      type: 5
+      cmd_name: "moveGripper"
+      pos_x: 229.362881
+      pos_y: 442.105263
+      model_actions: 
+        - 
+          action: "detach"
+          model: "object"
+          target: "handID"
+      arguments: 
+        - 
+          seq: 1
+          name: "width"
+          value: "finger_interval+0.04"
+        - 
+          seq: 2
+          name: "tm"
+          value: "0.2"
+        - 
+          seq: 3
+          name: "gripperID"
+          value: "handID"
+    - 
+      id: 370
+      type: 5
+      cmd_name: "move"
+      pos_x: 213.850416
+      pos_y: 532.963989
+      arguments: 
+        - 
+          seq: 1
+          name: "leftHandXyz"
+          value: "xyz(parts_poseP) + rotFromRpy(rpy(parts_poseP)) * (xyz(assemble_pose) + rotFromRpy(rpy(assemble_pose)) * (xyz(grasp_pose) + rotFromRpy(rpy(grasp_pose)) * [approach_distance,0,0]))"
+        - 
+          seq: 2
+          name: "leftHandRpy"
+          value: "rpyFromRot(rotFromRpy(rpy(parts_poseP)) * rotFromRpy(rpy(assemble_pose)) * rotFromRpy(rpy(grasp_pose)))"
+        - 
+          seq: 3
+          name: "rightHandXyz"
+          value: " xyz(parts_poseP) + rotFromRpy(rpy(parts_poseP)) * (xyz(fix_pose) + rotFromRpy(rpy(fix_pose)) * [approach_distance,0,0]) "
+        - 
+          seq: 4
+          name: "rightHandRpy"
+          value: " rpyFromRot(rotFromRpy(rpy(parts_poseP)) * rotFromRpy(rpy(fix_pose))) "
+        - 
+          seq: 5
+          name: "torsoAngle"
+          value: "0.0"
+        - 
+          seq: 6
+          name: "tm"
+          value: "0.5"
+    - 
+      id: 371
+      type: 5
+      cmd_name: "goInitial"
+      pos_x: 311.357341
+      pos_y: 524.099723
+      arguments: 
+        - 
+          seq: 1
+          name: "tm"
+          value: "1.0"
+    - 
+      id: 372
+      type: 2
+      pos_x: 366.759003
+      pos_y: 331.301939
+  transitions: 
+    - 
+      source_id: 352
+      target_id: 353
+    - 
+      source_id: 353
+      target_id: 354
+    - 
+      source_id: 354
+      target_id: 355
+    - 
+      source_id: 355
+      target_id: 356
+    - 
+      source_id: 356
+      target_id: 357
+    - 
+      source_id: 357
+      target_id: 358
+    - 
+      source_id: 358
+      target_id: 359
+    - 
+      source_id: 359
+      target_id: 360
+    - 
+      source_id: 360
+      target_id: 361
+    - 
+      source_id: 361
+      target_id: 362
+    - 
+      source_id: 362
+      target_id: 363
+    - 
+      source_id: 363
+      target_id: 364
+    - 
+      source_id: 364
+      target_id: 365
+    - 
+      source_id: 365
+      target_id: 366
+    - 
+      source_id: 366
+      target_id: 367
+    - 
+      source_id: 367
+      target_id: 368
+    - 
+      source_id: 368
+      target_id: 369
+    - 
+      source_id: 369
+      target_id: 370
+    - 
+      source_id: 370
+      target_id: 371
+    - 
+      source_id: 371
+      target_id: 372
+  parameters: 
+    - 
+      name: "cap position:xyz[m]RPY[deg]"
+      rname: "parts_poseG"
+      type: 1
+      model_name: "object"
+      units: ""
+      elem_num: 6
+      elem_type: ""
+      values: "0.3500, 0.0001, 0.9940, 0.0217, 0.0646, -89.9711"
+    - 
+      name: "approach distance[m]"
+      rname: "approach_distance"
+      type: 0
+      model_name: ""
+      units: ""
+      elem_num: 1
+      elem_type: ""
+      values: "0.0500"
+    - 
+      name: "grasp pose:xyz[m]RPY[deg]"
+      rname: "grasp_pose"
+      type: 0
+      model_name: ""
+      units: ""
+      elem_num: 6
+      elem_type: ""
+      values: "0.0000, 0.0000, 0.1, 0.0000, -90.0000, 0.0000"
+    - 
+      name: "finger interval[m]"
+      rname: "finger_interval"
+      type: 0
+      model_name: ""
+      units: ""
+      elem_num: 1
+      elem_type: "0"
+      values: "0.022"
+    - 
+      name: "bottle position:xyz[m]RPY[deg]"
+      rname: "parts_poseP"
+      type: 1
+      model_name: "target"
+      units: ""
+      elem_num: 6
+      elem_type: ""
+      values: "0.3500, 0.0000, 0.8720, 0.0000, 0.0000, 0.0000"
+    - 
+      name: "bottle mouth pos:xyz[m]RPY[deg]"
+      rname: "assemble_pose"
+      type: 0
+      model_name: ""
+      units: ""
+      elem_num: 6
+      elem_type: ""
+      values: "0.0000, 0.000, 0.12200, 0.0000, 0.0000, 0.0000"
+    - 
+      name: "hand selection (0=left,1=right)"
+      rname: "handID"
+      type: 0
+      model_name: ""
+      units: ""
+      elem_num: 1
+      elem_type: "int"
+      values: "0"
+    - 
+      name: "hold pose:xyz[m]RPY[deg]"
+      rname: "fix_pose"
+      type: 0
+      model_name: ""
+      units: ""
+      elem_num: 6
+      elem_type: ""
+      values: "0.0000, -0.1000, 0.00000, 0.0000, 0.0000, -90.0000"
+    - 
+      name: "hold finger interval[m]"
+      rname: "fix_finger_interval"
+      type: 0
+      model_name: ""
+      units: ""
+      elem_num: 1
+      elem_type: "0"
+      values: "0.06"
+  images: 
+    - 
+      name: "greentea350.jpg"

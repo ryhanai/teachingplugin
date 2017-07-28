@@ -88,33 +88,33 @@ PROTO Humanoid [
   }
 }
 
-DEF _PARTSNAME Humanoid {
+DEF rear_wheel2 Humanoid {
   humanoidBody [
-    DEF _PARTSNAME-WAIST Joint {
+    DEF WAIST Joint {
       jointType "free"
-#      rotation 1 0 0 1.570796 
-      rotation 1 0 0 0
-      translation 0.0 0.0 0.8
+      translation 0.0 0.0 0.0
+      rotation 0 0 1 0
       children [
         DEF BODY Segment {
-	  mass 0.00
-	  momentsOfInertia [1 0 0 0 1 0 0 0 1]
+    	    mass 0.1
+          centerOfMass 0 0 0
+	        momentsOfInertia [1 0 0 0 1 0 0 0 1]
           children [
-		Inline {
-			url "_PARTSNAME.wrl"
-		}
+     		    Inline {
+       			  url "rear_wheel2.wrl"
+	        	}
           ]
         }
       ]
     }
   ]
   joints [
-    USE _PARTSNAME-WAIST
+    USE WAIST
   ]
   segments [
     USE BODY
   ]
-  name "_PARTSNAME"
+  name "rear_wheel2"
   version "1.1"
 }
 
