@@ -116,8 +116,8 @@ endif()
 
 include_directories(${CONTROLLER_DIRS} ${PYTHON_INCLUDE_DIRS})
 
-# target_link_libraries(${libname} CnoidBodyPlugin ${PYTHON_LIBRARIES})
-target_link_libraries(${libname} CnoidBodyPlugin ${PYTHON_LIBRARIES} TaskParamAdjust)
+target_link_libraries(${libname} CnoidBodyPlugin ${PYTHON_LIBRARIES})
+#target_link_libraries(${libname} CnoidBodyPlugin ${PYTHON_LIBRARIES} TaskParamAdjust)
 
 if(UNIX)
   add_definitions("-std=c++11")

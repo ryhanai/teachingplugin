@@ -20,9 +20,10 @@
 #include "gettext.h"
 #include "LoggerUtil.h"
 
-// R.Hanai
+
+#ifdef __TASK_PARAM_ADJUSTER__
 #include "TaskParamAdjust/TaskParameterAdjuster.h"
-// R.Hanai
+#endif
 
 using namespace std;
 using namespace cnoid;
@@ -44,11 +45,13 @@ namespace teaching {
     btnEdit->setToolTip(_("Edit target state"));
     btnEdit->setEnabled(false);
 
-// R.Hanai
+
+#ifdef __TASK_PARAM_ADJUSTER__
     btnTrain = new QPushButton(_("Train"));
     btnTrain->setToolTip(_("Record data for parameter adjustment"));
     btnTrain->setEnabled(false);
-// R.Hanai
+#endif
+
 
     btnRun = new QPushButton(_("Command"));
     btnRun->setIcon(QIcon(":/Base/icons/play.png"));
@@ -78,9 +81,11 @@ namespace teaching {
     topLayout->addWidget(btnRun);
     topLayout->addWidget(btnEdit);
 
-// R.Hanai
+
+#ifdef __TASK_PARAM_ADJUSTER__
     topLayout->addWidget(btnTrain);
-// R.Hanai
+#endif
+
 
     topLayout->addWidget(btnDelete);
     QFrame* frmTop = new QFrame;
@@ -174,9 +179,9 @@ namespace teaching {
     connect(btnDelete, SIGNAL(clicked()), this, SLOT(deleteClicked()));
     connect(btnEdit, SIGNAL(clicked()), this, SLOT(editClicked()));
 
-// R.Hanai
+#ifdef __TASK_PARAM_ADJUSTER
     connect(btnTrain, SIGNAL(clicked()), this, SLOT(trainClicked()));
-// R.Hanai
+#endif
 
     connect(btnRun, SIGNAL(clicked()), this, SLOT(runClicked()));
     connect(btnStep, SIGNAL(clicked()), this, SLOT(stepClicked()));
@@ -221,9 +226,9 @@ namespace teaching {
       btnSet->setEnabled(true);
       btnEdit->setEnabled(true);
 
-// R.Hanai
+#ifdef __TASK_PARAM_ADJUSTER
       btnTrain->setEnabled(true);
-// R.Hanai
+#endif
 
       btnDelete->setEnabled(true);
       btnRun->setEnabled(true);
@@ -373,7 +378,7 @@ namespace teaching {
     }
   }
 
-// R.Hanai
+#ifdef __TASK_PARAM_ADJUSTER__
   BodyItem* findItemByName (const string& name)
   {
     cnoid::ItemList<BodyItem> bodyItems;
@@ -541,6 +546,7 @@ namespace teaching {
                                               0.0));
     }
   }
+#endif
 
   void StateMachineViewImpl::runClicked() {
     DDEBUG("StateMachineViewImpl::runClicked()");
