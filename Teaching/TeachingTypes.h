@@ -18,6 +18,7 @@ class TaskModelParam;
 
 static const double PI = 3.14159265358979323846;
 static const int NULL_ID = -1;
+static const int MESSAGE_PERIOD = 3000;
 
 enum ModelType {
   MODEL_ENV = 0,
@@ -179,6 +180,7 @@ public:
 
   void deleteModelDetails();
   void setInitialPos();
+  bool isChangedPosition();
 
 private:
   int id_;

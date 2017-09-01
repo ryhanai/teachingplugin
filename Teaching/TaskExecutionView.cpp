@@ -69,11 +69,9 @@ bool TaskExecutionView::checkPaused() {
   if (isSkipCheck_) return true;
   if (executor_->isBreak() == false) return false;
   //
-  QMessageBox msgBox;
-  msgBox.setText(_("Cancel pausing processing?"));
-  msgBox.setStandardButtons(QMessageBox::Yes | QMessageBox::No);
-  msgBox.setDefaultButton(QMessageBox::No);
-  int ret = msgBox.exec();
+  QMessageBox::StandardButton ret = QMessageBox::question(this, _("Confirm"),
+    _("Cancel pausing processing?"),
+    QMessageBox::Yes | QMessageBox::No);
   if (ret == QMessageBox::No) return true;
   //
   executor_->setBreak(false);

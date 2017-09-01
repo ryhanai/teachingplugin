@@ -33,7 +33,9 @@ public Q_SLOTS:
   void editClicked();
 
 // R.Hanai
+#ifdef __TASK_PARAM_ADJUSTER
   void trainClicked();
+#endif
 // R.Hanai
 
 private Q_SLOTS :

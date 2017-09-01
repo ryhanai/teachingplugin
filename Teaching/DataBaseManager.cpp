@@ -289,7 +289,7 @@ bool DatabaseManager::saveFlowModel(FlowParam* source) {
   vector<ConnectionStmParam*> transList = source->getStmConnectionList();
   vector<ConnectionStmParam*>::iterator itTrans = transList.begin();
   while (itTrans != transList.end()) {
-    if ((*itTrans)->getSourceId() < 0) {
+    if ((*itTrans)->getMode() == DB_MODE_INSERT) {
       vector<ElementStmParam*>::iterator sourceElem = find_if(stateList.begin(), stateList.end(), ElementStmParamComparator((*itTrans)->getSourceId()));
       if (sourceElem == stateList.end()) {
         ++itTrans;
@@ -297,9 +297,7 @@ bool DatabaseManager::saveFlowModel(FlowParam* source) {
         continue;
       }
       (*itTrans)->setSourceId((*sourceElem)->getId());
-    }
 
-    if ((*itTrans)->getTargetId() < 0) {
       vector<ElementStmParam*>::iterator targetElem = find_if(stateList.begin(), stateList.end(), ElementStmParamComparator((*itTrans)->getTargetId()));
       if (targetElem == stateList.end()) {
         ++itTrans;
@@ -309,6 +307,7 @@ bool DatabaseManager::saveFlowModel(FlowParam* source) {
       (*itTrans)->setTargetId((*targetElem)->getId());
       DDEBUG_V("New Trans sourceId : %d, TargetId : %d", (*itTrans)->getSourceId(), (*itTrans)->getTargetId());
     }
+
     if (saveFlowTransactionStmData(source->getId(), *itTrans) == false) {
       db_.rollback();
       return false;

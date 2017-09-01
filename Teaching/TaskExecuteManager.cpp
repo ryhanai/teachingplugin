@@ -71,7 +71,7 @@ void TaskExecuteManager::runFlow(FlowParam* targetFlow) {
   //
   setButtonEnableMode(false);
   isAbort_ = false;
-  InfoBar::instance()->showMessage(_("Running Flow :") + targetFlow->getName());
+  InfoBar::instance()->showMessage(_("Running Flow :") + targetFlow->getName(), MESSAGE_PERIOD);
   TaskExecutor::instance()->setRootName(SettingManager::getInstance().getRobotModelName());
   //
   ElementStmParam* currTask = targetFlow->getStartParam();
@@ -121,7 +121,7 @@ void TaskExecuteManager::runFlow(FlowParam* targetFlow) {
   //		break;
   //	}
   //}
-  InfoBar::instance()->showMessage(_("Finished Flow :") + targetFlow->getName());
+  InfoBar::instance()->showMessage(_("Finished Flow :") + targetFlow->getName(), MESSAGE_PERIOD);
 }
 
 bool TaskExecuteManager::runSingleCommand() {
@@ -143,7 +143,7 @@ bool TaskExecuteManager::runSingleCommand() {
   setOutArgument(parameterList);
 
   deleteArgEstimator();
-  InfoBar::instance()->showMessage(_("Finished Command :") + currParam_->getCmdName());
+  InfoBar::instance()->showMessage(_("Finished Command :") + currParam_->getCmdName(), MESSAGE_PERIOD);
 
   return cmdRet;
 }
@@ -172,7 +172,7 @@ void TaskExecuteManager::runSingleTask() {
   currParam_->updateActive(true);
   statemachineView_->repaint();
   QString taskName = currentTask_->getName();
-  InfoBar::instance()->showMessage(_("Running Task :") + taskName);
+  InfoBar::instance()->showMessage(_("Running Task :") + taskName, MESSAGE_PERIOD);
 
   TaskExecutor::instance()->setRootName(SettingManager::getInstance().getRobotModelName());
   ExecResult ret = doFlowOperation(true);
@@ -254,16 +254,26 @@ ExecResult TaskExecuteManager::doTaskOperation(bool updateCurrentTask) {
         deleteArgEstimator();
         return ExecResult::EXEC_ERROR;
       }
+      //コマンドの実行結果がFalseで次の要素がデシジョンではない場合は終了
+      if (cmdRet == false) {
+        ElementStmParam* checkNext = currParam_->getNextElem();
+        if (checkNext == 0 || checkNext->getType() != ELEMENT_DECISION) {
+          InfoBar::instance()->showMessage("");
+          DDEBUG("NextParam is NOT Decision.");
+          detachAllModelItem();
+          deleteArgEstimator();
+          return ExecResult::EXEC_ERROR;
+        }
+      }
     }
     //
     if (currParam_->getType() == ELEMENT_DECISION) {
       QString strCond = currParam_->getCondition();
-      //TODO 要確認
-      //if (strCond.length() == 0) {
-      //  deleteArgEstimator();
-      //  return ExecResult::EXEC_ERROR;
-      //}
-      bool checkCond = argHandler_->checkCondition(cmdRet, strCond.toStdString());
+      string strTarget = "";
+      if (0<strCond.length()) {
+        strTarget = strCond.toStdString();
+      }
+      bool checkCond = argHandler_->checkCondition(cmdRet, strTarget);
       if (checkCond) {
         nextParam = currParam_->getTrueElem();
       } else {
@@ -279,12 +289,6 @@ ExecResult TaskExecuteManager::doTaskOperation(bool updateCurrentTask) {
       deleteArgEstimator();
       return ExecResult::EXEC_ERROR;
     }
-    //TODO 要確認
-    //if (currParam_->getType() == ELEMENT_COMMAND && nextParam->getType() != ELEMENT_DECISION) {
-    //  if (cmdRet == false) {
-    //    break;
-    //  }
-    //}
     /////
     currParam_->updateActive(false);
     nextParam->updateActive(true);
@@ -336,13 +340,24 @@ ExecResult TaskExecuteManager::doTaskOperationStep() {
     detachAllModelItem();
     return ExecResult::EXEC_ERROR;
   }
+  //コマンドの実行結果がFalseで次の要素がデシジョンではない場合は終了
+  if (cmdRet == false) {
+    ElementStmParam* checkNext = currParam_->getNextElem();
+    if (checkNext == 0 || checkNext->getType() != ELEMENT_DECISION) {
+      InfoBar::instance()->showMessage("");
+      DDEBUG("NextParam is NOT Decision.");
+      detachAllModelItem();
+      deleteArgEstimator();
+      return ExecResult::EXEC_ERROR;
+    }
+  }
   //
   while (true) {
     if (currParam_->getType() == ELEMENT_DECISION) {
       QString strCond = currParam_->getCondition();
-      if (strCond.length() == 0) {
-        deleteArgEstimator();
-        return ExecResult::EXEC_ERROR;
+      string strTarget = "";
+      if (0<strCond.length()) {
+        strTarget = strCond.toStdString();
       }
       bool checkCond = argHandler_->checkCondition(cmdRet, strCond.toStdString());
       if (checkCond) {
@@ -359,11 +374,6 @@ ExecResult TaskExecuteManager::doTaskOperationStep() {
       detachAllModelItem();
       deleteArgEstimator();
       return ExecResult::EXEC_ERROR;
-    }
-    if (currParam_->getType() == ELEMENT_COMMAND && nextParam->getType() != ELEMENT_DECISION) {
-      if (cmdRet == false) {
-        break;
-      }
     }
     /////
     currParam_->updateActive(false);

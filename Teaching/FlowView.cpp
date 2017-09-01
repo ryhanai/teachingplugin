@@ -188,6 +188,10 @@ FlowViewImpl::FlowViewImpl(QWidget* parent)
   btnExport->setIcon(QIcon(":/Teaching/icons/Save.png"));
   btnExport->setToolTip(_("Export Flow"));
 
+  btnImport = new QPushButton(_("Import"));
+  btnImport->setIcon(QApplication::style()->standardIcon(QStyle::SP_DialogOpenButton));
+  btnImport->setToolTip(_("Import Flow"));
+
   btnRunFlow = new QPushButton(_("Flow"));
   btnRunFlow->setIcon(QIcon(":/Base/icons/play.png"));
   btnRunFlow->setToolTip(_("Run Flow"));
@@ -211,6 +215,7 @@ FlowViewImpl::FlowViewImpl(QWidget* parent)
   taskLayout->addStretch();
   taskLayout->addWidget(btnEdit);
   taskLayout->addStretch();
+  taskLayout->addWidget(btnImport);
   taskLayout->addWidget(btnExport);
   taskLayout->addStretch();
   taskLayout->addWidget(btnRunFlow);
@@ -238,6 +243,7 @@ FlowViewImpl::FlowViewImpl(QWidget* parent)
   connect(btnInitPos, SIGNAL(clicked()), this, SLOT(initPosClicked()));
   connect(btnEdit, SIGNAL(clicked()), this, SLOT(editClicked()));
   connect(btnExport, SIGNAL(clicked()), this, SLOT(exportFlowClicked()));
+  connect(btnImport, SIGNAL(clicked()), this, SLOT(importFlowClicked()));
 }
 //
 void FlowViewImpl::setButtonEnableMode(bool isEnable) {
@@ -249,6 +255,7 @@ void FlowViewImpl::setButtonEnableMode(bool isEnable) {
   btnRunTask->setEnabled(isEnable);
   btnInitPos->setEnabled(isEnable);
   btnEdit->setEnabled(isEnable);
+  btnImport->setEnabled(isEnable);
   btnExport->setEnabled(isEnable);
   btnAbort->setEnabled(!isEnable);
 }
@@ -276,6 +283,9 @@ void FlowViewImpl::searchClicked() {
       grhStateMachine->setFlowParam(0);
       grhStateMachine->removeAll();
       changeEnables(false);
+      this->metadataView->clearTaskParam();
+      this->statemachineView_->clearTaskParam();
+      this->parameterView_->clearTaskParam();
     }
     return;
   }
@@ -337,7 +347,28 @@ void FlowViewImpl::registFlowClicked() {
     if (currentFlow_->getComment() != strComment) {
       currentFlow_->setComment(strComment);
     }
-
+    //
+    bool isChanged = false;
+    for (int idxTask = 0; idxTask < currentFlow_->getStmElementList().size(); idxTask++) {
+      ElementStmParam* state = currentFlow_->getStmElementList()[idxTask];
+      TaskModelParam* task = state->getTaskParam();
+      if (task) {
+        for (int index = 0; index < task->getModelList().size(); index++) {
+          ModelParam* model = currentTask_->getModelList()[index];
+          if (model->isChangedPosition() == false) continue;
+          isChanged = true;
+          break;
+        }
+        if (isChanged) break;
+      }
+    }
+    if (isChanged) {
+      QMessageBox::StandardButton ret = QMessageBox::question(this, _("Confirm"),
+        _("Model Position was changed. Continue?"),
+        QMessageBox::Yes | QMessageBox::No);
+      if (ret == QMessageBox::No) return;
+    }
+    //
     if (DatabaseManager::getInstance().saveFlowModel(currentFlow_)) {
       currentFlow_ = DatabaseManager::getInstance().getFlowParamById(currentFlow_->getId());
       QMessageBox::information(this, _("Database"), _("Database updated"));
@@ -494,12 +525,47 @@ void FlowViewImpl::exportFlowClicked() {
   if (currentFlow_->getComment() != strComment) {
     currentFlow_->setComment(strComment);
   }
-  if (TeachingUtil::outputFlow(strFName, currentFlow_)) {
+  if (TeachingUtil::exportFlow(strFName, currentFlow_)) {
     QMessageBox::information(this, _("Export Flow"), _("target FLOW exported"));
   } else {
     QMessageBox::warning(this, _("Export Flow"), _("target FLOW export FAILED"));
   }
 
+}
+
+void FlowViewImpl::importFlowClicked() {
+  if (checkPaused()) return;
+
+  DDEBUG("FlowViewImpl::importFlowClicked()");
+  statemachineView_->setStepStatus(false);
+
+  QString strFName = QFileDialog::getOpenFileName(
+    this, "TaskFlow File", ".", "YAML(*.yaml);;all(*.*)");
+  if (strFName.isEmpty()) return;
+  //
+  vector<FlowParam*> flowModelList;
+  if (TeachingUtil::importFlow(strFName, flowModelList) == false) {
+    QMessageBox::warning(this, _("Import Flow"), _("FLOW import FAILED"));
+    return;
+  }
+  if (flowModelList.size() == 0) {
+    QMessageBox::warning(this, _("Import Flow"), _("FLOW import FAILED"));
+    return;
+  }
+  currentFlow_ = flowModelList[0];
+  if (DatabaseManager::getInstance().saveFlowModel(currentFlow_) == false) {
+    QMessageBox::warning(this, _("Import Flow"), _("FLOW save FAILED"));
+    return;
+  }
+  currentFlow_ = DatabaseManager::getInstance().getFlowParamById(currentFlow_->getId());
+
+  changeEnables(true);
+  leName->setText(currentFlow_->getName());
+  leComment->setText(currentFlow_->getComment());
+  grhStateMachine->setFlowParam(currentFlow_);
+  grhStateMachine->createStateMachine(currentFlow_);
+
+  QMessageBox::information(this, _("Import Flow"), _(" FLOW imported"));
 }
 /////
 FlowView::FlowView() : viewImpl(0) {

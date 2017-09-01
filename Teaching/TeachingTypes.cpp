@@ -404,6 +404,12 @@ void ModelParam::deleteModelDetails() {
   }
 }
 
+bool ModelParam::isChangedPosition() {
+  if (posX_ != orgPosX_ || posY_ != orgPosY_ || posZ_ != orgPosZ_
+    || rotRx_ != orgRotRx_ || rotRy_ != orgRotRy_ || rotRz_ != orgRotRz_) return true;
+  return false;
+}
+
 void ModelParam::setInitialPos() {
   if (item_) {
     ChoreonoidUtil::updateModelItemPosition(item_, orgPosX_, orgPosY_, orgPosZ_, orgRotRx_, orgRotRy_, orgRotRz_);

@@ -128,20 +128,42 @@ struct makeTree : qi::grammar<Iterator, Node(), qi::space_type> {
   qi::rule<Iterator, Node(), qi::space_type> topexpr, expr, term, factor, variable, literal, args, vector_const;
   makeTree() : makeTree::base_type(topexpr) {
     topexpr = expr > qi::eoi;
-    expr = term[qi::_val = qi::_1]
-    > *(('+' > term[qi::_val = phx::bind(&BinOpNode::create, "+", qi::_val, qi::_1)])
-    | ('-' > term[qi::_val = phx::bind(&BinOpNode::create, "-", qi::_val, qi::_1)]));
-    term = factor[qi::_val = qi::_1]
-    > *(('*' > factor[qi::_val = phx::bind(&BinOpNode::create, "*", qi::_val, qi::_1)])
-    | ('/' > factor[qi::_val = phx::bind(&BinOpNode::create, "/", qi::_val, qi::_1)]));
-    factor = literal[qi::_val = qi::_1]
-      | vector_const[qi::_val = qi::_1]
-      | ('(' > expr > ')')[qi::_val = qi::_1]
-      | (variable >> '(' > args > ')')[qi::_val = phx::bind(&FunCallNode::create, qi::_1, qi::_2)]
-      | variable[qi::_val = qi::_1];
-    args = expr[qi::_val = qi::_1]
-    > *(',' > expr[qi::_val = phx::bind(&BinOpNode::create, ",", qi::_val, qi::_1)]);
-    vector_const = ('[' > expr > ',' > expr > ',' > expr > ']')
+#if _MSC_VER >= 1900
+	const char* str_plus = "+";
+	const char* str_minus = "-";
+	const char* str_astarisc = "*";
+	const char* str_slash = "/";
+	const char* str_comma = ",";
+
+	expr = term[qi::_val = qi::_1]
+	> *(('+' > term[qi::_val = phx::bind(&BinOpNode::create, str_plus, qi::_val, qi::_1)])
+		| ('-' > term[qi::_val = phx::bind(&BinOpNode::create, str_minus, qi::_val, qi::_1)]));
+	term = factor[qi::_val = qi::_1]
+	> *(('*' > factor[qi::_val = phx::bind(&BinOpNode::create, str_astarisc, qi::_val, qi::_1)])
+		| ('/' > factor[qi::_val = phx::bind(&BinOpNode::create, str_slash, qi::_val, qi::_1)]));
+	factor = literal[qi::_val = qi::_1]
+		| vector_const[qi::_val = qi::_1]
+		| ('(' > expr > ')')[qi::_val = qi::_1]
+		| (variable >> '(' > args > ')')[qi::_val = phx::bind(&FunCallNode::create, qi::_1, qi::_2)]
+		| variable[qi::_val = qi::_1];
+	args = expr[qi::_val = qi::_1]
+	> *(',' > expr[qi::_val = phx::bind(&BinOpNode::create, str_comma, qi::_val, qi::_1)]);
+#else
+	expr = term[qi::_val = qi::_1]
+	> *(('+' > term[qi::_val = phx::bind(&BinOpNode::create, "+", qi::_val, qi::_1)])
+		| ('-' > term[qi::_val = phx::bind(&BinOpNode::create, "-", qi::_val, qi::_1)]));
+	term = factor[qi::_val = qi::_1]
+	> *(('*' > factor[qi::_val = phx::bind(&BinOpNode::create, "*", qi::_val, qi::_1)])
+		| ('/' > factor[qi::_val = phx::bind(&BinOpNode::create, "/", qi::_val, qi::_1)]));
+	factor = literal[qi::_val = qi::_1]
+		| vector_const[qi::_val = qi::_1]
+		| ('(' > expr > ')')[qi::_val = qi::_1]
+		| (variable >> '(' > args > ')')[qi::_val = phx::bind(&FunCallNode::create, qi::_1, qi::_2)]
+		| variable[qi::_val = qi::_1];
+	args = expr[qi::_val = qi::_1]
+	> *(',' > expr[qi::_val = phx::bind(&BinOpNode::create, ",", qi::_val, qi::_1)]);
+#endif
+	vector_const = ('[' > expr > ',' > expr > ',' > expr > ']')
       [qi::_val = phx::bind(&VectorConstNode::create, qi::_1, qi::_2, qi::_3)];
     //[qi::_val = phx::bind(&ValueNode::create, qi::_1)];
     variable = qi::as_string[qi::lexeme[(qi::alpha | qi::char_('_')) > *(qi::alnum | qi::char_('_'))]]

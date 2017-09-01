@@ -9,6 +9,7 @@
 
 #include "PythonWrapper.h"
 #include "Calculator.h"
+#include "DataBaseManager.h"
 
 #include "LoggerUtil.h"
 
@@ -54,313 +55,312 @@ bool TeachingUtil::loadModelDetail(QString& strFName, ModelParam* targetModel) {
   return true;
 }
 
-bool TeachingUtil::loadTaskDef(QString& strFName, std::vector<TaskModelParam*>& taskInstList) {
+bool TeachingUtil::importTask(QString& strFName, std::vector<TaskModelParam*>& taskInstList) {
   YAMLReader pyaml;
+  DDEBUG_V("TaskDef File : %s", strFName.toStdString().c_str());
   try {
-    DDEBUG_V("TaskDef File : %s", strFName.toStdString().c_str());
-    if (pyaml.load(strFName.toUtf8().constData())) {
-      QString path = QFileInfo(strFName).absolutePath();
-      Listing* taskList = pyaml.document()->toListing();
-      for (int idxTask = 0; idxTask < taskList->size(); idxTask++) {
-        cnoid::ValueNode* eachTask = taskList->at(idxTask);
-        Mapping* taskMap = eachTask->toMapping();
-        //
-        QString taskName = "";
-        QString taskComment = "";
-        QString taskExecEnv = "";
-        try { taskName = QString::fromStdString(taskMap->get("taskName").toUTF8String()); }
-        catch (...) { continue; }
-        try { taskComment = QString::fromStdString(taskMap->get("comment").toUTF8String()).replace("|", "\n"); }
-        catch (...) {}
-        try { taskExecEnv = QString::fromStdString(taskMap->get("initialize").toUTF8String()).replace("|", "\n"); }
-        catch (...) {}
+    if (pyaml.load(strFName.toUtf8().constData()) == false) return false;
 
-        TaskModelParam* taskParam = new TaskModelParam(NULL_ID, taskName, taskComment, taskExecEnv, -1, "", "");
-        taskParam->setNew();
-        taskInstList.push_back(taskParam);
-        //
-        try {
-          Listing* modelList = taskMap->get("models").toListing();
-          for (int idxModel = 0; idxModel < modelList->size(); idxModel++) {
-            Mapping* modelMap = modelList->at(idxModel)->toMapping();
-            QString modelName = "";
-            QString modelRName = "";
-            QString modelType = "";
-            QString modelFileName = "";
-            double posX = 0.0; double posY = 0.0; double posZ = 0.0;
-            double rotX = 0.0; double rotY = 0.0; double rotZ = 0.0;
+    QString path = QFileInfo(strFName).absolutePath();
+    Listing* taskList = pyaml.document()->toListing();
+    for (int idxTask = 0; idxTask < taskList->size(); idxTask++) {
+      cnoid::ValueNode* eachTask = taskList->at(idxTask);
+      Mapping* taskMap = eachTask->toMapping();
+      //
+      QString taskName = "";
+      QString taskComment = "";
+      QString taskExecEnv = "";
+      try { taskName = QString::fromStdString(taskMap->get("taskName").toString()); }
+      catch (...) { continue; }
+      try { taskComment = QString::fromStdString(taskMap->get("comment").toString()).replace("|", "\n"); }
+      catch (...) {}
+      try { taskExecEnv = QString::fromStdString(taskMap->get("initialize").toString()).replace("|", "\n"); }
+      catch (...) {}
 
-            try { modelName = QString::fromStdString(modelMap->get("name").toUTF8String()); }
-            catch (...) {}
-            try {
-              modelRName = QString::fromStdString(modelMap->get("rname").toUTF8String());
-            }
-            catch (...) {
-              DDEBUG_V("Model RName NOT EXIST : %s", modelName.toStdString().c_str());
-              return false;
-            }
-            try { modelType = QString::fromStdString(modelMap->get("type").toUTF8String()); }
-            catch (...) {}
-            try { modelFileName = QString::fromStdString(modelMap->get("file_name").toUTF8String()); }
-            catch (...) {}
-            try { posX = modelMap->get("pos_x").toDouble(); }
-            catch (...) {}
-            try { posY = modelMap->get("pos_y").toDouble(); }
-            catch (...) {}
-            try { posZ = modelMap->get("pos_z").toDouble(); }
-            catch (...) {}
-            try { rotX = modelMap->get("rot_x").toDouble(); }
-            catch (...) {}
-            try { rotY = modelMap->get("rot_y").toDouble(); }
-            catch (...) {}
-            try { rotZ = modelMap->get("rot_z").toDouble(); }
-            catch (...) {}
+      TaskModelParam* taskParam = new TaskModelParam(NULL_ID, taskName, taskComment, taskExecEnv, -1, "", "");
+      taskParam->setNew();
+      taskInstList.push_back(taskParam);
+      //
+      try {
+        Listing* modelList = taskMap->get("models").toListing();
+        for (int idxModel = 0; idxModel < modelList->size(); idxModel++) {
+          Mapping* modelMap = modelList->at(idxModel)->toMapping();
+          QString modelName = "";
+          QString modelRName = "";
+          QString modelType = "";
+          QString modelFileName = "";
+          double posX = 0.0; double posY = 0.0; double posZ = 0.0;
+          double rotX = 0.0; double rotY = 0.0; double rotZ = 0.0;
 
-            if (modelType.length() == 0) modelType = "Env";
-            ModelParam* modelParam = new ModelParam(NULL_ID, getModelType(modelType), modelName, modelRName, modelFileName, posX, posY, posZ, rotX, rotY, rotZ, true);
-            DDEBUG_V("Model Name : %s, %s", modelFileName.toStdString().c_str(), modelRName.toStdString().c_str());
-            if (0 < modelFileName.length()) {
-              QString strFullModelFile = path + QString("/") + modelFileName;
-              QFile file(strFullModelFile);
-              file.open(QIODevice::ReadOnly);
-              modelParam->setData(file.readAll());
-              //
-              //参照モデルの読み込み
-              TeachingUtil::loadModelDetail(strFullModelFile, modelParam);
-            }
-            taskParam->addModel(modelParam);
-          }
-          DDEBUG("Load Model Finished");
-        }
-        catch (...) {
-          DDEBUG("Load Model Failed");
-        }
-        //
-        try {
-          Listing* paramList = taskMap->get("parameters").toListing();
-          for (int idxParam = 0; idxParam < paramList->size(); idxParam++) {
-            Mapping* paramMap = paramList->at(idxParam)->toMapping();
-            int paramType;
-            QString paramModelName = "";
-            QString paramName = "";
-            QString paramRName = "";
-            QString paramUnit = "";
-            QString paramValue = "";
-            QString paramElemTypes = "";
-            int paramNum;
-
-            try { paramType = paramMap->get("type").toInt(); }
-            catch (...) {}
-            try { paramName = QString::fromStdString(paramMap->get("name").toUTF8String()); }
-            catch (...) {}
-            try {
-              paramRName = QString::fromStdString(paramMap->get("rname").toUTF8String());
-            }
-            catch (...) {
-              DDEBUG_V("Parameter RName NOT EXIST : %s", paramName.toStdString().c_str());
-              return false;
-            }
-            try { paramModelName = QString::fromStdString(paramMap->get("model_name").toUTF8String()); }
-            catch (...) {}
-            try { paramUnit = QString::fromStdString(paramMap->get("units").toUTF8String()); }
-            catch (...) {}
-            try { paramNum = paramMap->get("elem_num").toInt(); }
-            catch (...) {}
-            try { paramElemTypes = QString::fromStdString(paramMap->get("elem_type").toUTF8String()); }
-            catch (...) {}
-            try { paramValue = QString::fromStdString(paramMap->get("values").toUTF8String()); }
-            catch (...) {}
-            if (paramType == PARAM_KIND_MODEL) {
-              paramNum = 6;
-              if (paramModelName.length() == 0) {
-                DDEBUG("model_name is REQUREIED");
-                return false;
-              }
-              bool isExist = false;
-              for (int index = 0; index < taskParam->getModelList().size(); index++) {
-                ModelParam* model = taskParam->getModelList()[index];
-                if (paramModelName == model->getRName()) {
-                  isExist = true;
-                  break;
-                }
-              }
-              if (isExist == false) {
-                DDEBUG_V("Target Model[%s] NOT EXIST", paramModelName.toStdString().c_str());
-                return false;
-              }
-            }
-            DDEBUG_V("paramName : %s, elem_type : %s", paramName.toStdString().c_str(), paramElemTypes.toStdString().c_str());
-            ParameterParam* param = new ParameterParam(NULL_ID, paramType, paramModelName, paramNum, paramElemTypes, -1, paramName, paramRName, paramUnit);
-            param->setElemTypes(paramElemTypes);
-            param->setDBValues(paramValue);
-            param->setNewForce();
-            taskParam->addParameter(param);
-          }
-          DDEBUG("Load Parameters Finished");
-        }
-        catch (...) {
-          DDEBUG("Load Parameters Failed");
-        }
-        //
-        try {
-          Listing* stateList = taskMap->get("states").toListing();
-          for (int idxState = 0; idxState < stateList->size(); idxState++) {
-            Mapping* stateMap = stateList->at(idxState)->toMapping();
-            int id, type;
-            QString cmdName = "";
-            double posX, posY;
-            QString dispName = "";
-            QString condition = "";
-
-            try { id = stateMap->get("id").toInt(); }
-            catch (...) { continue; }
-            try { type = stateMap->get("type").toInt(); }
-            catch (...) { continue; }
-            try { cmdName = QString::fromStdString(stateMap->get("cmd_name").toUTF8String()); }
-            catch (...) {}
-            try { posX = stateMap->get("pos_x").toDouble(); }
-            catch (...) {}
-            try { posY = stateMap->get("pos_y").toDouble(); }
-            catch (...) {}
-            try { condition = QString::fromStdString(stateMap->get("condition").toUTF8String()).replace("|", "\n"); }
-            catch (...) {}
-            try { dispName = QString::fromStdString(stateMap->get("disp_name").toUTF8String()); }
-            catch (...) {}
-            DDEBUG_V("cmd_name[%s]", cmdName.toStdString().c_str());
-            ElementStmParam* stateParam = new ElementStmParam(NULL_ID, type, cmdName, dispName, posX, posY, condition);
-            stateParam->setOrgId(id);
-            stateParam->setNew();
-            taskParam->addStmElement(stateParam);
-            //
-            try {
-              Listing* stateActionList = stateMap->get("model_actions").toListing();
-              for (int idxAction = 0; idxAction < stateActionList->size(); idxAction++) {
-                Mapping* actionMap = stateActionList->at(idxAction)->toMapping();
-                QString action = "";
-                QString model = "";
-                QString target = "";
-
-                try { action = QString::fromStdString(actionMap->get("action").toUTF8String()); }
-                catch (...) {}
-                try { model = QString::fromStdString(actionMap->get("model").toUTF8String()); }
-                catch (...) {}
-                try { target = QString::fromStdString(actionMap->get("target").toUTF8String()); }
-                catch (...) {}
-                DDEBUG_V("action : %s, model : %s, target : %s", action.toStdString().c_str(), model.toStdString().c_str(), target.toStdString().c_str());
-                ElementStmActionParam* actionParam = new ElementStmActionParam(NULL_ID, NULL_ID, idxAction, action, model, target, true);
-                stateParam->addModelAction(actionParam);
-              }
-              DDEBUG("Load model_actions Finished");
-            }
-            catch (...) {
-            }
-            //
-            try {
-              Listing* argList = stateMap->get("arguments").toListing();
-              for (int idxArg = 0; idxArg < argList->size(); idxArg++) {
-                Mapping* argMap = argList->at(idxArg)->toMapping();
-                int seq;
-                QString name = "";
-                QString valueDesc = "";
-
-                try { seq = argMap->get("seq").toInt(); }
-                catch (...) { continue; }
-                try { name = QString::fromStdString(argMap->get("name").toUTF8String()); }
-                catch (...) {}
-                try { valueDesc = QString::fromStdString(argMap->get("value").toUTF8String()).replace("|", "\n"); }
-                catch (...) {}
-                DDEBUG_V("seq : %d, name : %s, valueDesc : %s", seq, name.toStdString().c_str(), valueDesc.toStdString().c_str());
-                ArgumentParam* argParam = new ArgumentParam(NULL_ID, NULL_ID, seq, name, valueDesc);
-                argParam->setNew();
-                stateParam->addArgument(argParam);
-              }
-              DDEBUG("Load arguments Finished");
-            }
-            catch (...) {
-            }
-          }
-          DDEBUG("Load States Finished");
-        }
-        catch (...) {
-          DDEBUG("Load States Failed");
-        }
-        //
-        try {
-          Listing* transList;
+          try { modelName = QString::fromStdString(modelMap->get("name").toString()); }
+          catch (...) {}
           try {
-            transList = taskMap->get("transactions").toListing();
+            modelRName = QString::fromStdString(modelMap->get("rname").toString());
           }
           catch (...) {
-            transList = taskMap->get("transitions").toListing();
+            DDEBUG_V("Model RName NOT EXIST : %s", modelName.toStdString().c_str());
+            return false;
           }
-          for (int idxTrans = 0; idxTrans < transList->size(); idxTrans++) {
-            Mapping* transMap = transList->at(idxTrans)->toMapping();
-            int sourceId, targetId;
-            QString condition = "";
+          try { modelType = QString::fromStdString(modelMap->get("type").toString()); }
+          catch (...) {}
+          try { modelFileName = QString::fromStdString(modelMap->get("file_name").toString()); }
+          catch (...) {}
+          try { posX = modelMap->get("pos_x").toDouble(); }
+          catch (...) {}
+          try { posY = modelMap->get("pos_y").toDouble(); }
+          catch (...) {}
+          try { posZ = modelMap->get("pos_z").toDouble(); }
+          catch (...) {}
+          try { rotX = modelMap->get("rot_x").toDouble(); }
+          catch (...) {}
+          try { rotY = modelMap->get("rot_y").toDouble(); }
+          catch (...) {}
+          try { rotZ = modelMap->get("rot_z").toDouble(); }
+          catch (...) {}
 
-            try { sourceId = transMap->get("source_id").toInt(); }
-            catch (...) { continue; }
-            try { targetId = transMap->get("target_id").toInt(); }
-            catch (...) { continue; }
-            try { condition = QString::fromStdString(transMap->get("guard").toUTF8String()); }
-            catch (...) {}
-            ConnectionStmParam* connParam = new ConnectionStmParam(NULL_ID, sourceId, targetId, condition);
-            connParam->setNew();
-            taskParam->addStmConnection(connParam);
+          if (modelType.length() == 0) modelType = "Env";
+          ModelParam* modelParam = new ModelParam(NULL_ID, getModelType(modelType), modelName, modelRName, modelFileName, posX, posY, posZ, rotX, rotY, rotZ, true);
+          DDEBUG_V("Model Name : %s, %s", modelFileName.toStdString().c_str(), modelRName.toStdString().c_str());
+          if (0 < modelFileName.length()) {
+            QString strFullModelFile = path + QString("/") + modelFileName;
+            QFile file(strFullModelFile);
+            file.open(QIODevice::ReadOnly);
+            modelParam->setData(file.readAll());
+            //
+            //参照モデルの読み込み
+            TeachingUtil::loadModelDetail(strFullModelFile, modelParam);
           }
-          DDEBUG("Load Transactions Finished");
+          taskParam->addModel(modelParam);
         }
-        catch (...) {
-          DDEBUG("Load Transactions Failed");
-        }
-        //
-        try {
-          Listing* filesList = taskMap->get("files").toListing();
-          for (int idxFiles = 0; idxFiles < filesList->size(); idxFiles++) {
-            Mapping* fileMap = filesList->at(idxFiles)->toMapping();
-            QString fileName = "";
+        DDEBUG("Load Model Finished");
+      }
+      catch (...) {
+        DDEBUG("Load Model Failed");
+      }
+      //
+      try {
+        Listing* paramList = taskMap->get("parameters").toListing();
+        for (int idxParam = 0; idxParam < paramList->size(); idxParam++) {
+          Mapping* paramMap = paramList->at(idxParam)->toMapping();
+          int paramType;
+          QString paramModelName = "";
+          QString paramName = "";
+          QString paramRName = "";
+          QString paramUnit = "";
+          QString paramValue = "";
+          QString paramElemTypes = "";
+          int paramNum;
 
-            try { fileName = QString::fromStdString(fileMap->get("name").toUTF8String()); }
-            catch (...) {}
-            FileDataParam* fileParam = new FileDataParam(NULL_ID, fileName);
-            fileParam->setNew();
-            if (0 < fileName.length()) {
-              QFile file(path + QString("/") + fileName);
-              file.open(QIODevice::ReadOnly);
-              fileParam->setData(file.readAll());
+          try { paramType = paramMap->get("type").toInt(); }
+          catch (...) {}
+          try { paramName = QString::fromStdString(paramMap->get("name").toString()); }
+          catch (...) {}
+          try {
+            paramRName = QString::fromStdString(paramMap->get("rname").toString());
+          }
+          catch (...) {
+            DDEBUG_V("Parameter RName NOT EXIST : %s", paramName.toStdString().c_str());
+            return false;
+          }
+          try { paramModelName = QString::fromStdString(paramMap->get("model_name").toString()); }
+          catch (...) {}
+          try { paramUnit = QString::fromStdString(paramMap->get("units").toString()); }
+          catch (...) {}
+          try { paramNum = paramMap->get("elem_num").toInt(); }
+          catch (...) {}
+          try { paramElemTypes = QString::fromStdString(paramMap->get("elem_type").toString()); }
+          catch (...) {}
+          try { paramValue = QString::fromStdString(paramMap->get("values").toString()); }
+          catch (...) {}
+          if (paramType == PARAM_KIND_MODEL) {
+            paramNum = 6;
+            if (paramModelName.length() == 0) {
+              DDEBUG("model_name is REQUREIED");
+              return false;
             }
-            taskParam->addFile(fileParam);
-          }
-          DDEBUG("Load Files Finished");
-        }
-        catch (...) {
-          DDEBUG("Load Files Failed");
-        }
-        //
-        try {
-          Listing* imagesList = taskMap->get("images").toListing();
-          for (int idxImages = 0; idxImages < imagesList->size(); idxImages++) {
-            Mapping* imageMap = imagesList->at(idxImages)->toMapping();
-            QString fileName = "";
-
-            try { fileName = QString::fromStdString(imageMap->get("name").toUTF8String()); }
-            catch (...) {}
-            ImageDataParam* imageParam = new ImageDataParam(NULL_ID, fileName);
-            imageParam->setNew();
-            if (0 < fileName.length()) {
-              QImage image(path + QString("/") + fileName);
-              imageParam->setData(image);
+            bool isExist = false;
+            for (int index = 0; index < taskParam->getModelList().size(); index++) {
+              ModelParam* model = taskParam->getModelList()[index];
+              if (paramModelName == model->getRName()) {
+                isExist = true;
+                break;
+              }
             }
-            taskParam->addImage(imageParam);
+            if (isExist == false) {
+              DDEBUG_V("Target Model[%s] NOT EXIST", paramModelName.toStdString().c_str());
+              return false;
+            }
           }
-          DDEBUG("Load Images Finished");
+          DDEBUG_V("paramName : %s, elem_type : %s", paramName.toStdString().c_str(), paramElemTypes.toStdString().c_str());
+          ParameterParam* param = new ParameterParam(NULL_ID, paramType, paramModelName, paramNum, paramElemTypes, -1, paramName, paramRName, paramUnit);
+          param->setElemTypes(paramElemTypes);
+          param->setDBValues(paramValue);
+          param->setNewForce();
+          taskParam->addParameter(param);
+        }
+        DDEBUG("Load Parameters Finished");
+      }
+      catch (...) {
+        DDEBUG("Load Parameters Failed");
+      }
+      //
+      try {
+        Listing* stateList = taskMap->get("states").toListing();
+        for (int idxState = 0; idxState < stateList->size(); idxState++) {
+          Mapping* stateMap = stateList->at(idxState)->toMapping();
+          int id, type;
+          QString cmdName = "";
+          double posX, posY;
+          QString dispName = "";
+          QString condition = "";
+
+          try { id = stateMap->get("id").toInt(); }
+          catch (...) { continue; }
+          try { type = stateMap->get("type").toInt(); }
+          catch (...) { continue; }
+          try { cmdName = QString::fromStdString(stateMap->get("cmd_name").toString()); }
+          catch (...) {}
+          try { posX = stateMap->get("pos_x").toDouble(); }
+          catch (...) {}
+          try { posY = stateMap->get("pos_y").toDouble(); }
+          catch (...) {}
+          try { condition = QString::fromStdString(stateMap->get("condition").toString()).replace("|", "\n"); }
+          catch (...) {}
+          try { dispName = QString::fromStdString(stateMap->get("disp_name").toString()); }
+          catch (...) {}
+          DDEBUG_V("cmd_name[%s]", cmdName.toStdString().c_str());
+          ElementStmParam* stateParam = new ElementStmParam(NULL_ID, type, cmdName, dispName, posX, posY, condition);
+          stateParam->setOrgId(id);
+          stateParam->setNew();
+          taskParam->addStmElement(stateParam);
+          //
+          try {
+            Listing* stateActionList = stateMap->get("model_actions").toListing();
+            for (int idxAction = 0; idxAction < stateActionList->size(); idxAction++) {
+              Mapping* actionMap = stateActionList->at(idxAction)->toMapping();
+              QString action = "";
+              QString model = "";
+              QString target = "";
+
+              try { action = QString::fromStdString(actionMap->get("action").toString()); }
+              catch (...) {}
+              try { model = QString::fromStdString(actionMap->get("model").toString()); }
+              catch (...) {}
+              try { target = QString::fromStdString(actionMap->get("target").toString()); }
+              catch (...) {}
+              DDEBUG_V("action : %s, model : %s, target : %s", action.toStdString().c_str(), model.toStdString().c_str(), target.toStdString().c_str());
+              ElementStmActionParam* actionParam = new ElementStmActionParam(NULL_ID, NULL_ID, idxAction, action, model, target, true);
+              stateParam->addModelAction(actionParam);
+            }
+            DDEBUG("Load model_actions Finished");
+          }
+          catch (...) {
+          }
+          //
+          try {
+            Listing* argList = stateMap->get("arguments").toListing();
+            for (int idxArg = 0; idxArg < argList->size(); idxArg++) {
+              Mapping* argMap = argList->at(idxArg)->toMapping();
+              int seq;
+              QString name = "";
+              QString valueDesc = "";
+
+              try { seq = argMap->get("seq").toInt(); }
+              catch (...) { continue; }
+              try { name = QString::fromStdString(argMap->get("name").toString()); }
+              catch (...) {}
+              try { valueDesc = QString::fromStdString(argMap->get("value").toString()).replace("|", "\n"); }
+              catch (...) {}
+              DDEBUG_V("seq : %d, name : %s, valueDesc : %s", seq, name.toStdString().c_str(), valueDesc.toStdString().c_str());
+              ArgumentParam* argParam = new ArgumentParam(NULL_ID, NULL_ID, seq, name, valueDesc);
+              argParam->setNew();
+              stateParam->addArgument(argParam);
+            }
+            DDEBUG("Load arguments Finished");
+          }
+          catch (...) {
+          }
+        }
+        DDEBUG("Load States Finished");
+      }
+      catch (...) {
+        DDEBUG("Load States Failed");
+      }
+      //
+      try {
+        Listing* transList;
+        try {
+          transList = taskMap->get("transactions").toListing();
         }
         catch (...) {
-          DDEBUG("Load Images Failed");
+          transList = taskMap->get("transitions").toListing();
         }
+        for (int idxTrans = 0; idxTrans < transList->size(); idxTrans++) {
+          Mapping* transMap = transList->at(idxTrans)->toMapping();
+          int sourceId, targetId;
+          QString condition = "";
+
+          try { sourceId = transMap->get("source_id").toInt(); }
+          catch (...) { continue; }
+          try { targetId = transMap->get("target_id").toInt(); }
+          catch (...) { continue; }
+          try { condition = QString::fromStdString(transMap->get("guard").toString()); }
+          catch (...) {}
+          ConnectionStmParam* connParam = new ConnectionStmParam(NULL_ID, sourceId, targetId, condition);
+          connParam->setNew();
+          taskParam->addStmConnection(connParam);
+        }
+        DDEBUG("Load Transactions Finished");
+      }
+      catch (...) {
+        DDEBUG("Load Transactions Failed");
+      }
+      //
+      try {
+        Listing* filesList = taskMap->get("files").toListing();
+        for (int idxFiles = 0; idxFiles < filesList->size(); idxFiles++) {
+          Mapping* fileMap = filesList->at(idxFiles)->toMapping();
+          QString fileName = "";
+
+          try { fileName = QString::fromStdString(fileMap->get("name").toString()); }
+          catch (...) {}
+          FileDataParam* fileParam = new FileDataParam(NULL_ID, fileName);
+          fileParam->setNew();
+          if (0 < fileName.length()) {
+            QFile file(path + QString("/") + fileName);
+            file.open(QIODevice::ReadOnly);
+            fileParam->setData(file.readAll());
+          }
+          taskParam->addFile(fileParam);
+        }
+        DDEBUG("Load Files Finished");
+      }
+      catch (...) {
+        DDEBUG("Load Files Failed");
+      }
+      //
+      try {
+        Listing* imagesList = taskMap->get("images").toListing();
+        for (int idxImages = 0; idxImages < imagesList->size(); idxImages++) {
+          Mapping* imageMap = imagesList->at(idxImages)->toMapping();
+          QString fileName = "";
+
+          try { fileName = QString::fromStdString(imageMap->get("name").toString()); }
+          catch (...) {}
+          ImageDataParam* imageParam = new ImageDataParam(NULL_ID, fileName);
+          imageParam->setNew();
+          if (0 < fileName.length()) {
+            QImage image(path + QString("/") + fileName);
+            imageParam->setData(image);
+          }
+          taskParam->addImage(imageParam);
+        }
+        DDEBUG("Load Images Finished");
+      }
+      catch (...) {
+        DDEBUG("Load Images Failed");
       }
     }
-
   }
   catch (...) {
     DDEBUG("TaskInstance File parse ERROR");
@@ -398,14 +398,15 @@ QImage TeachingUtil::db2Image(const QString& name, const QByteArray& source) {
   return result;
 }
 
-bool TeachingUtil::outputTaskDef(QString& strFName, TaskModelParam* targetTask) {
+bool TeachingUtil::exportTask(QString& strFName, TaskModelParam* targetTask) {
+  DDEBUG("TeachingUtil::exportTask");
   QString path = QFileInfo(strFName).absolutePath();
   Listing* archive = new Listing();
   archive->setDoubleFormat("%.9g");
   MappingPtr taskNode = archive->newMapping();
-  taskNode->writeUTF8("taskName", targetTask->getName().toUtf8(), DOUBLE_QUOTED);
-  taskNode->writeUTF8("comment", targetTask->getComment().replace("\n", "|").toUtf8(), DOUBLE_QUOTED);
-  taskNode->writeUTF8("initialize", targetTask->getExecEnv().replace("\n", "|").toUtf8(), DOUBLE_QUOTED);
+  taskNode->write("taskName", targetTask->getName().toUtf8(), DOUBLE_QUOTED);
+  taskNode->write("comment", targetTask->getComment().replace("\n", "|").toUtf8(), DOUBLE_QUOTED);
+  taskNode->write("initialize", targetTask->getExecEnv().replace("\n", "|").toUtf8(), DOUBLE_QUOTED);
   //
   if (0 < targetTask->getModelList().size()) {
     Listing* modelsNode = taskNode->createListing("models");
@@ -413,8 +414,8 @@ bool TeachingUtil::outputTaskDef(QString& strFName, TaskModelParam* targetTask) 
       ModelParam* param = targetTask->getModelList()[index];
       if (param->getMode() == DB_MODE_DELETE || param->getMode() == DB_MODE_IGNORE) continue;
       MappingPtr modelNode = modelsNode->newMapping();
-      modelNode->writeUTF8("name", param->getName().toUtf8(), DOUBLE_QUOTED);
-      modelNode->writeUTF8("rname", param->getRName().toUtf8(), DOUBLE_QUOTED);
+      modelNode->write("name", param->getName().toUtf8(), DOUBLE_QUOTED);
+      modelNode->write("rname", param->getRName().toUtf8(), DOUBLE_QUOTED);
       string strType = "";
       int intType = param->getType();
       if (intType == MODEL_ENV) {
@@ -425,7 +426,7 @@ bool TeachingUtil::outputTaskDef(QString& strFName, TaskModelParam* targetTask) 
         strType = "Work";
       }
       modelNode->write("type", strType);
-      modelNode->writeUTF8("file_name", param->getFileName().toUtf8(), DOUBLE_QUOTED);
+      modelNode->write("file_name", param->getFileName().toUtf8(), DOUBLE_QUOTED);
       modelNode->write("pos_x", param->getPosX());
       modelNode->write("pos_y", param->getPosY());
       modelNode->write("pos_z", param->getPosZ());
@@ -463,10 +464,10 @@ bool TeachingUtil::outputTaskDef(QString& strFName, TaskModelParam* targetTask) 
       stateNode->write("id", param->getId());
       stateNode->write("type", param->getType());
       if (param->getType() == ELEMENT_COMMAND) {
-        stateNode->writeUTF8("cmd_name", param->getCmdName().toUtf8(), DOUBLE_QUOTED);
-        stateNode->writeUTF8("disp_name", param->getCmdDspName().toUtf8(), DOUBLE_QUOTED);
+        stateNode->write("cmd_name", param->getCmdName().toUtf8(), DOUBLE_QUOTED);
+        stateNode->write("disp_name", param->getCmdDspName().toUtf8(), DOUBLE_QUOTED);
       }
-      stateNode->writeUTF8("condition", param->getCondition().replace("\n", "|").toUtf8(), DOUBLE_QUOTED);
+      stateNode->write("condition", param->getCondition().replace("\n", "|").toUtf8(), DOUBLE_QUOTED);
       stateNode->write("pos_x", param->getPosX());
       stateNode->write("pos_y", param->getPosY());
       //
@@ -475,10 +476,10 @@ bool TeachingUtil::outputTaskDef(QString& strFName, TaskModelParam* targetTask) 
         for (int idxAction = 0; idxAction < param->getActionList().size(); idxAction++) {
           ElementStmActionParam* actParam = param->getActionList()[idxAction];
           MappingPtr actionNode = actionsNode->newMapping();
-          actionNode->writeUTF8("action", actParam->getAction().toUtf8(), DOUBLE_QUOTED);
-          actionNode->writeUTF8("model", actParam->getModel().toUtf8(), DOUBLE_QUOTED);
+          actionNode->write("action", actParam->getAction().toUtf8(), DOUBLE_QUOTED);
+          actionNode->write("model", actParam->getModel().toUtf8(), DOUBLE_QUOTED);
           if (0 < actParam->getTarget().length()) {
-            actionNode->writeUTF8("target", actParam->getTarget().toUtf8(), DOUBLE_QUOTED);
+            actionNode->write("target", actParam->getTarget().toUtf8(), DOUBLE_QUOTED);
           }
         }
       }
@@ -489,8 +490,8 @@ bool TeachingUtil::outputTaskDef(QString& strFName, TaskModelParam* targetTask) 
           ArgumentParam* argParam = param->getArgList()[idxArg];
           MappingPtr argNode = argsNode->newMapping();
           argNode->write("seq", argParam->getSeq());
-          argNode->writeUTF8("name", argParam->getName().toUtf8(), DOUBLE_QUOTED);
-          argNode->writeUTF8("value", argParam->getValueDesc().replace("\n", "|").toUtf8(), DOUBLE_QUOTED);
+          argNode->write("name", argParam->getName().toUtf8(), DOUBLE_QUOTED);
+          argNode->write("value", argParam->getValueDesc().replace("\n", "|").toUtf8(), DOUBLE_QUOTED);
         }
       }
     }
@@ -506,7 +507,7 @@ bool TeachingUtil::outputTaskDef(QString& strFName, TaskModelParam* targetTask) 
       connNode->write("source_id", param->getSourceId());
       connNode->write("target_id", param->getTargetId());
       if (0 < param->getCondition().size()) {
-        connNode->writeUTF8("guard", param->getCondition().toUtf8(), DOUBLE_QUOTED);
+        connNode->write("guard", param->getCondition().toUtf8(), DOUBLE_QUOTED);
       }
     }
   }
@@ -517,14 +518,14 @@ bool TeachingUtil::outputTaskDef(QString& strFName, TaskModelParam* targetTask) 
       ParameterParam* param = targetTask->getParameterList()[index];
       if (param->getMode() == DB_MODE_DELETE || param->getMode() == DB_MODE_IGNORE) continue;
       MappingPtr paramNode = paramsNode->newMapping();
-      paramNode->writeUTF8("name", param->getName().toUtf8(), DOUBLE_QUOTED);
-      paramNode->writeUTF8("rname", param->getRName().toUtf8(), DOUBLE_QUOTED);
+      paramNode->write("name", param->getName().toUtf8(), DOUBLE_QUOTED);
+      paramNode->write("rname", param->getRName().toUtf8(), DOUBLE_QUOTED);
       paramNode->write("type", param->getType());
-      paramNode->writeUTF8("model_name", param->getModelName().toUtf8(), DOUBLE_QUOTED);
-      paramNode->writeUTF8("units", param->getUnit().toUtf8(), DOUBLE_QUOTED);
+      paramNode->write("model_name", param->getModelName().toUtf8(), DOUBLE_QUOTED);
+      paramNode->write("units", param->getUnit().toUtf8(), DOUBLE_QUOTED);
       paramNode->write("elem_num", param->getElemNum());
       paramNode->write("elem_type", param->getElemTypeNo());
-      paramNode->writeUTF8("values", param->getDBValues().toUtf8(), DOUBLE_QUOTED);
+      paramNode->write("values", param->getDBValues().toUtf8(), DOUBLE_QUOTED);
     }
   }
   //
@@ -534,7 +535,7 @@ bool TeachingUtil::outputTaskDef(QString& strFName, TaskModelParam* targetTask) 
       FileDataParam* param = targetTask->getFileList()[index];
       if (param->getMode() == DB_MODE_DELETE || param->getMode() == DB_MODE_IGNORE) continue;
       MappingPtr fileNode = filesNode->newMapping();
-      fileNode->writeUTF8("name", param->getName().toUtf8(), DOUBLE_QUOTED);
+      fileNode->write("name", param->getName().toUtf8(), DOUBLE_QUOTED);
       if (0 < param->getName().length()) {
         QFile file(path + QString("/") + param->getName());
         file.open(QIODevice::WriteOnly);
@@ -551,7 +552,7 @@ bool TeachingUtil::outputTaskDef(QString& strFName, TaskModelParam* targetTask) 
       ImageDataParam* param = targetTask->getImageList()[index];
       if (param->getMode() == DB_MODE_DELETE || param->getMode() == DB_MODE_IGNORE) continue;
       MappingPtr imageNode = imagesNode->newMapping();
-      imageNode->writeUTF8("name", param->getName().toUtf8(), DOUBLE_QUOTED);
+      imageNode->write("name", param->getName().toUtf8(), DOUBLE_QUOTED);
       if (0 < param->getName().length()) {
         QImage data = param->getData();
         data.save(path + QString("/") + param->getName());
@@ -566,13 +567,17 @@ bool TeachingUtil::outputTaskDef(QString& strFName, TaskModelParam* targetTask) 
   return true;
 }
 
-bool TeachingUtil::outputFlow(QString& strFName, FlowParam* targetFlow) {
+bool TeachingUtil::exportFlow(QString& strFName, FlowParam* targetFlow) {
+  DDEBUG("TeachingUtil::exportFlow");
+
+  vector<TaskModelParam*> taskList;
+
   QString path = QFileInfo(strFName).absolutePath();
   Listing* archive = new Listing();
   archive->setDoubleFormat("%.9g");
   MappingPtr flowNode = archive->newMapping();
-  flowNode->writeUTF8("flowName", targetFlow->getName().toUtf8(), DOUBLE_QUOTED);
-  flowNode->writeUTF8("comment", targetFlow->getComment().replace("\n", "|").toUtf8(), DOUBLE_QUOTED);
+  flowNode->write("flowName", targetFlow->getName().toUtf8(), DOUBLE_QUOTED);
+  flowNode->write("comment", targetFlow->getComment().replace("\n", "|").toUtf8(), DOUBLE_QUOTED);
   //
   if (0 < targetFlow->getStmElementList().size()) {
     Listing* statesNode = flowNode->createListing("states");
@@ -584,7 +589,8 @@ bool TeachingUtil::outputFlow(QString& strFName, FlowParam* targetFlow) {
       stateNode->write("type", param->getType());
       if (param->getType() == ELEMENT_COMMAND) {
         stateNode->write("task_id", param->getTaskParam()->getId());
-        stateNode->writeUTF8("task_name", param->getCmdDspName().toUtf8(), DOUBLE_QUOTED);
+        stateNode->write("task_name", param->getCmdDspName().toUtf8(), DOUBLE_QUOTED);
+        taskList.push_back(param->getTaskParam());
       }
       stateNode->write("pos_x", param->getPosX());
       stateNode->write("pos_y", param->getPosY());
@@ -602,7 +608,7 @@ bool TeachingUtil::outputFlow(QString& strFName, FlowParam* targetFlow) {
       connNode->write("source_id", param->getSourceId());
       connNode->write("target_id", param->getTargetId());
       if (0 < param->getCondition().size()) {
-        connNode->writeUTF8("guard", param->getCondition().toUtf8(), DOUBLE_QUOTED);
+        connNode->write("guard", param->getCondition().toUtf8(), DOUBLE_QUOTED);
       }
     }
   }
@@ -610,7 +616,124 @@ bool TeachingUtil::outputFlow(QString& strFName, FlowParam* targetFlow) {
   YAMLWriter writer(strFName.toUtf8().constData());
   writer.setKeyOrderPreservationMode(true);
   writer.putNode(archive);
+  /////
+  if (0 < taskList.size()) {
+    QDir baseDir = QFileInfo(strFName).absolutePath();
+    for (int index = 0; index < taskList.size(); index++) {
+      TaskModelParam* targetTask = taskList[index];
+      int targetId = targetTask->getId();
+      QString targetIdStr = QString::number(targetId);
+      baseDir.mkdir(targetIdStr);
+      QString targetFile = baseDir.absolutePath() + QString("/") + targetIdStr + QString("/") + targetIdStr + ".yaml";
+      DDEBUG_V("targetFile %s", targetFile.toStdString().c_str());
+      //
+      if (targetTask->IsLoaded() == false) {
+        TeachingUtil::loadTaskDetailData(targetTask);
+      }
+      exportTask(targetFile, targetTask);
+    }
+  }
 
+  return true;
+}
+
+bool TeachingUtil::importFlow(QString& strFName, std::vector<FlowParam*>& flowModelList) {
+  DDEBUG_V("TaskDef File : %s", strFName.toStdString().c_str());
+  YAMLReader pyaml;
+  try {
+    if (pyaml.load(strFName.toUtf8().constData()) == false) return false;
+
+    QString path = QFileInfo(strFName).absolutePath();
+    Listing* flowList = pyaml.document()->toListing();
+
+    for (int idxFlow = 0; idxFlow < flowList->size(); idxFlow++) {
+      cnoid::ValueNode* eachFlow = flowList->at(idxFlow);
+      Mapping* flowMap = eachFlow->toMapping();
+      //
+      QString flowName = "";
+      try { flowName = QString::fromStdString(flowMap->get("flowName").toString()); }
+      catch (...) { continue; }
+      QString flowComment = "";
+      try { flowComment = QString::fromStdString(flowMap->get("comment").toString()).replace("|", "\n"); }
+      catch (...) {}
+
+      FlowParam* flowParam = new FlowParam(NULL_ID, flowName, flowComment, "", "");
+      flowParam->setNew();
+      flowModelList.push_back(flowParam);
+
+      try {
+        Listing* stateList = flowMap->get("states").toListing();
+        for (int idxState = 0; idxState < stateList->size(); idxState++) {
+          Mapping* stateMap = stateList->at(idxState)->toMapping();
+          int id, type, task_id;
+          QString taskName = "";
+          double posX, posY;
+          QString condition = "";
+
+          try { id = stateMap->get("id").toInt(); } catch (...) { continue; }
+          try { type = stateMap->get("type").toInt(); } catch (...) { continue; }
+          try { posX = stateMap->get("pos_x").toDouble(); } catch (...) { continue; }
+          try { posY = stateMap->get("pos_y").toDouble(); } catch (...) { continue; }
+          try { condition = QString::fromStdString(stateMap->get("condition").toString()).replace("|", "\n"); } catch (...) {}
+          try { taskName = QString::fromStdString(stateMap->get("task_name").toString()); } catch (...) {}
+          try { task_id = stateMap->get("task_id").toInt(); } catch (...) {}
+
+          DDEBUG_V("task_name[%s]", taskName.toStdString().c_str());
+          ElementStmParam* stateParam = new ElementStmParam(NULL_ID, type, taskName, taskName, posX, posY, condition);
+          stateParam->setOrgId(id);
+          stateParam->setNew();
+          flowParam->addStmElement(stateParam);
+          //
+          QString targetIdStr = QString::number(task_id);
+          QString targetFile = path + QString("/") + targetIdStr + QString("/") + targetIdStr + ".yaml";
+          vector<TaskModelParam*> taskInstList;
+          if (importTask(targetFile, taskInstList)) {
+            if (0 < taskInstList.size()) {
+              TaskModelParam* task = taskInstList[0];
+              task->setNew();
+              stateParam->setTaskParam(task);
+            }
+          }
+        }
+        DDEBUG("Load States Finished");
+      }
+      catch (...) {
+        DDEBUG("Load States Failed");
+      }
+      //
+      try {
+        Listing* transList;
+        try {
+          transList = flowMap->get("transactions").toListing();
+        }
+        catch (...) {
+          transList = flowMap->get("transitions").toListing();
+        }
+        for (int idxTrans = 0; idxTrans < transList->size(); idxTrans++) {
+          Mapping* transMap = transList->at(idxTrans)->toMapping();
+          int sourceId, targetId;
+          QString condition = "";
+
+          try { sourceId = transMap->get("source_id").toInt(); }
+          catch (...) { continue; }
+          try { targetId = transMap->get("target_id").toInt(); }
+          catch (...) { continue; }
+          try { condition = QString::fromStdString(transMap->get("guard").toString()); }
+          catch (...) {}
+          ConnectionStmParam* connParam = new ConnectionStmParam(NULL_ID, sourceId, targetId, condition);
+          connParam->setNew();
+          flowParam->addStmConnection(connParam);
+        }
+        DDEBUG("Load Transactions Finished");
+      }
+      catch (...) {
+        DDEBUG("Load Transactions Failed");
+      }
+    }
+  }
+  catch (...) {
+    DDEBUG("Flow File parse ERROR");
+  }
   return true;
 }
 

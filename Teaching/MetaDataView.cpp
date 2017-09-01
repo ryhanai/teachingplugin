@@ -91,6 +91,9 @@ MetaDataViewImpl::MetaDataViewImpl(QWidget* parent) : QWidget(parent),
 
   lstFileName = new QListWidget;
   lstFileName->setSelectionMode(QListView::SingleSelection);
+  lstFileName->setAcceptDrops(true);
+  lstFileName->setDragEnabled(true);
+  lstFileName->setDragDropMode(QAbstractItemView::DragDropMode::InternalMove);
 
   btnFileOutput = new QPushButton(_("Output"));
   btnFileOutput->setIcon(QIcon(":/Teaching/icons/Save.png"));
@@ -109,6 +112,9 @@ MetaDataViewImpl::MetaDataViewImpl(QWidget* parent) : QWidget(parent),
   lstImage->setIconSize(QSize(100, 100));
   lstImage->setFlow(QListWidget::LeftToRight);
   lstImage->setWrapping(true);
+  lstImage->setAcceptDrops(true);
+  lstImage->setDragEnabled(true);
+  lstImage->setDragDropMode(QAbstractItemView::DragDropMode::InternalMove);
 
   btnImageOutput = new QPushButton(_("Output"));
   btnImageOutput->setIcon(QIcon(":/Teaching/icons/Save.png"));
@@ -152,10 +158,10 @@ MetaDataViewImpl::MetaDataViewImpl(QWidget* parent) : QWidget(parent),
   QVBoxLayout* mainLayout = new QVBoxLayout;
   mainLayout->setContentsMargins(2, 0, 2, 0);
   mainLayout->addWidget(frmButtons);
-  mainLayout->addWidget(textEdit, 2);
-  mainLayout->addWidget(lstFileName, 1);
+  mainLayout->addWidget(textEdit);
+  mainLayout->addWidget(lstFileName);
   mainLayout->addWidget(frmFile);
-  mainLayout->addWidget(lstImage, 2);
+  mainLayout->addWidget(lstImage);
   mainLayout->addWidget(frmImage);
   setLayout(mainLayout);
 
@@ -275,7 +281,7 @@ void MetaDataViewImpl::dropEvent(QDropEvent* event) {
       if (fileName.isEmpty()) continue;
       //
       QString strName = QFileInfo(fileName).fileName();
-      if (fileName.endsWith("png") || fileName.endsWith("jpg")) {
+      if (fileName.endsWith("png") || fileName.endsWith("jpg") || fileName.endsWith("jpeg")) {
         QListWidgetItem* item = new QListWidgetItem(strName);
         item->setIcon(QIcon(fileName));
         lstImage->addItem(item);

@@ -279,7 +279,7 @@ void TaskInstanceViewImpl::loadTaskClicked() {
   DDEBUG_V("loadTaskClicked : %s", strFName.toStdString().c_str());
   //タスク定義ファイルの読み込み
   vector<TaskModelParam*> taskInstList;
-  if (TeachingUtil::loadTaskDef(strFName, taskInstList) == false) {
+  if (TeachingUtil::importTask(strFName, taskInstList) == false) {
     QMessageBox::warning(this, _("Task Load Error"), "Load Error (Task Def)");
     return;
   }
@@ -328,7 +328,7 @@ void TaskInstanceViewImpl::outputTaskClicked() {
   //
   DDEBUG_V("saveTaskClicked : %s", strFName.toStdString().c_str());
   updateCurrentInfo();
-  if (TeachingUtil::outputTaskDef(strFName, currentTask_)) {
+  if (TeachingUtil::exportTask(strFName, currentTask_)) {
     QMessageBox::information(this, _("Output Task"), _("target TASK exported"));
   } else {
     QMessageBox::warning(this, _("Output Task"), _("target TASK export FAILED"));
@@ -387,6 +387,17 @@ void TaskInstanceViewImpl::registTaskClicked() {
   if (checkPaused()) return;
   DDEBUG("TaskInstanceViewImpl::registTaskClicked()");
   statemachineView_->setStepStatus(false);
+  //
+  for (int index = 0; index < currentTask_->getModelList().size(); index++) {
+    ModelParam* model = currentTask_->getModelList()[index];
+    if (model->isChangedPosition() == false) continue;
+    //
+    QMessageBox::StandardButton ret = QMessageBox::question(this, _("Confirm"),
+      _("Model Position was changed. Continue?"),
+      QMessageBox::Yes | QMessageBox::No);
+    if (ret == QMessageBox::No) return;
+    break;
+  }
   //
   if (currentTask_) {
     updateCurrentInfo();

@@ -185,6 +185,11 @@ bool PythonWrapper::checkSyntax(TaskModelParam* taskParam, QString script, strin
 }
 
 bool PythonWrapper::checkCondition(bool cmdRet, string script) {
+  //条件判断用のスクリプトが設定されていない場合は，前コマンドの実行結果をそのまま使用
+  if (script.length() == 0) {
+    return cmdRet;
+  }
+  /////
   vector<int> calcResult;
   int ret = execFunction(script, calcResult);
   if (ret != RETURN_OK) return false;

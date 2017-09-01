@@ -62,6 +62,7 @@ private Q_SLOTS :
   void abortClicked();
   void initPosClicked();
   void exportFlowClicked();
+  void importFlowClicked();
 
 private:
   QLineEdit* leName;
@@ -77,6 +78,7 @@ private:
   QPushButton* btnInitPos;
   QPushButton* btnEdit;
   QPushButton* btnExport;
+  QPushButton* btnImport;
   QPushButton* btnAbort;
 
   QPushButton* btnTrans;
