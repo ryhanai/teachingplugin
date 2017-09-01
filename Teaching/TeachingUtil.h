@@ -26,12 +26,13 @@ template <typename T> std::string toStr(const T& t) {
 
 class TeachingUtil {
 public:
-  static bool loadTaskDef(QString& strFName, std::vector<TaskModelParam*>& taskInstList);
-  static bool outputTaskDef(QString& strFName, TaskModelParam* targetTask);
+  static bool importTask(QString& strFName, std::vector<TaskModelParam*>& taskInstList);
+  static bool exportTask(QString& strFName, TaskModelParam* targetTask);
   static bool loadModelDetail(QString& strFName, ModelParam* targetModel);
   static void loadTaskDetailData(TaskModelParam* target);
 
-  static bool outputFlow(QString& strFName, FlowParam* targetFlow);
+  static bool exportFlow(QString& strFName, FlowParam* targetFlow);
+  static bool importFlow(QString& strFName, std::vector<FlowParam*>& flowModelList);
 
 private:
   static int getModelType(QString& source);
