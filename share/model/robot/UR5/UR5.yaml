@@ -1,0 +1,20 @@
+modelFile: ur5_robotiq140.wrl
+
+standardPose: [ 
+0, -90, 0, -90, 0, 0,
+0, 0, 0, 0, 0, 0, 0, 0
+ ]
+
+linkGroup: 
+  - name: Arm
+    links: [ shoulder_pan_joint, shoulder_lift_joint, elbow_joint, wrist_1_joint, wrist_2_joint, wrist_3_joint ]
+  - name: Gripper
+    links: [ right_knuckle_joint, right_finger_joint, right_inner_knuckle_joint, right_finger_tip_joint, left_knuckle_joint, left_finger_joint, left_inner_knuckle_joint, left_finger_tip_joint ]
+
+defaultIKsetup:
+  wrist_3_joint: [ shoulder_pan_joint ]
+
+divisionNumberOfPrimitiveGeometries: 16
+
+selfCollisionDetection:
+  excludeTreeDepth: 2
