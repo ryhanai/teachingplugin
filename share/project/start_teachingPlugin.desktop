@@ -1,0 +1,8 @@
+[Desktop Entry]
+Name=teachingPlugin
+Type=Application
+Exec=/home/rspuser/Program/choreonoid/build/bin/choreonoid teaching_plugin.cnoid
+Path=/home/rspuser/Program/choreonoid/ext/teachingPlugin/share/project/
+Icon=/home/rspuser/Program/choreonoid/ext/teachingPlugin/share/project/teachingPluginIcon.png
+Terminal=true
+X-KeepTerminal=true
