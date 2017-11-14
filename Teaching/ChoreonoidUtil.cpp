@@ -12,12 +12,14 @@
 #include "TeachingUtil.h"
 #include <cnoid/MessageView>  /* modified by qtconv.rb 0th rule*/  
 
+#include "LoggerUtil.h"
+
 using namespace std;
 using namespace cnoid;
 
 namespace teaching {
 
-bool ChoreonoidUtil::readModelItem(ModelParam* target, QString& fileName) {
+bool ChoreonoidUtil::readModelItem(ModelMasterParamPtr target, QString& fileName) {
   //loadBodyItem
   BodyItemPtr item = new BodyItem();
   if (item->load(fileName.toStdString()) == false) return false;
@@ -25,7 +27,9 @@ bool ChoreonoidUtil::readModelItem(ModelParam* target, QString& fileName) {
   return true;
 }
 
-bool ChoreonoidUtil::makeModelItem(ModelParam* target) {
+bool ChoreonoidUtil::makeModelItem(ModelMasterParamPtr target) {
+	if (target->getModelItem() != 0) return true;
+	/////
   QString fileName = target->getFileName();
   if (fileName.length() == 0) return false;
   //
@@ -40,9 +44,9 @@ bool ChoreonoidUtil::makeModelItem(ModelParam* target) {
   file.close();
   saved.append(strModel);
   //
-  vector<ModelDetailParam*> detailList = target->getModelDetailList();
+  vector<ModelDetailParamPtr> detailList = target->getModelDetailList();
   for (int index = 0; index < detailList.size(); index++) {
-    ModelDetailParam* detail = detailList[index];
+		ModelDetailParamPtr detail = detailList[index];
     QString strDetail = strPath + QString("/work/") + detail->getFileName();
     QFile fileDetail(strDetail);
     fileDetail.open(QIODevice::WriteOnly);
@@ -64,14 +68,16 @@ bool ChoreonoidUtil::makeModelItem(ModelParam* target) {
     QFile::remove(saved[index]);
   }
   dir.rmdir(strPath + QString("/work"));
+	//
+	target->setModelItem(item);
 
   return true;
 }
 
-bool ChoreonoidUtil::loadTaskModelItem(TaskModelParam* target) {
-  vector<ModelParam*> modelList = target->getModelList();
+bool ChoreonoidUtil::loadTaskModelItem(TaskModelParamPtr target) {
+  vector<ModelParamPtr> modelList = target->getModelList();
   for (int index = 0; index < modelList.size(); index++) {
-    ModelParam* model = modelList[index];
+		ModelParamPtr model = modelList[index];
     if (model->getMode() == DB_MODE_DELETE || model->getMode() == DB_MODE_IGNORE) continue;
     if (loadModelItem(model) == false) return false;
   }
@@ -80,10 +86,12 @@ bool ChoreonoidUtil::loadTaskModelItem(TaskModelParam* target) {
   return true;
 }
 
-bool ChoreonoidUtil::unLoadTaskModelItem(TaskModelParam* target) {
-  vector<ModelParam*> modelList = target->getModelList();
+bool ChoreonoidUtil::unLoadTaskModelItem(TaskModelParamPtr target) {
+	if (target->IsModelLoaded() == false) return true;
+
+  vector<ModelParamPtr> modelList = target->getModelList();
   for (int index = 0; index < modelList.size(); index++) {
-    ModelParam* model = modelList[index];
+		ModelParamPtr model = modelList[index];
     if (model->getMode() == DB_MODE_DELETE || model->getMode() == DB_MODE_IGNORE) continue;
     if (unLoadModelItem(model) == false) return false;
   }
@@ -104,11 +112,12 @@ cnoid::BodyItem* ChoreonoidUtil::searchParentModel(const std::string targetName)
   return NULL;
 }
 
-bool ChoreonoidUtil::loadModelItem(ModelParam* target) {
-  if (target == NULL)  return false;
-  if (target->getModelItem()) {
+bool ChoreonoidUtil::loadModelItem(ModelParamPtr target) {
+	DDEBUG("ChoreonoidUtil::loadModelItem");
+	if (target == NULL)  return false;
+  if (target->getModelMaster()->getModelItem()) {
     string robotModel = SettingManager::getInstance().getRobotModelName();
-    BodyItemPtr item = target->getModelItem();
+    BodyItemPtr item = target->getModelMaster()->getModelItem();
     ChoreonoidUtil::updateModelItemPosition(item,
       target->getPosX(), target->getPosY(), target->getPosZ(),
       target->getRotRx(), target->getRotRy(), target->getRotRz());
@@ -124,11 +133,35 @@ bool ChoreonoidUtil::loadModelItem(ModelParam* target) {
   return true;
 }
 
-bool ChoreonoidUtil::unLoadModelItem(ModelParam* target) {
-  if (target->getModelItem()) {
-    target->getModelItem()->detachFromParentItem();
+bool ChoreonoidUtil::unLoadModelItem(ModelParamPtr target) {
+	DDEBUG("ChoreonoidUtil::unLoadModelItem");
+	if (target->getModelMaster()->getModelItem()) {
+    target->getModelMaster()->getModelItem()->detachFromParentItem();
   }
   return true;
+}
+
+
+bool ChoreonoidUtil::loadModelMasterItem(ModelMasterParamPtr target) {
+	if (target == NULL)  return false;
+	if (target->getModelItem() == 0) {
+		if (makeModelItem(target) == 0) {
+			target->setModelItem(0);
+		}
+	}
+	if (target->getModelItem()) {
+		string robotModel = SettingManager::getInstance().getRobotModelName();
+		BodyItemPtr item = target->getModelItem();
+		RootItem::mainInstance()->addChildItem(item);
+	}
+	return true;
+}
+
+bool ChoreonoidUtil::unLoadModelMasterItem(ModelMasterParamPtr target) {
+	if (target->getModelItem()) {
+		target->getModelItem()->detachFromParentItem();
+	}
+	return true;
 }
 
 bool ChoreonoidUtil::updateModelItemPosition(const BodyItemPtr& target, double posX, double posY, double posZ, double rotRx, double rotRy, double rotRz) {
@@ -170,7 +203,8 @@ bool ChoreonoidUtil::updateModelItemPosition(const BodyItemPtr& target, double p
 }
 
 void ChoreonoidUtil::showAllModelItem() {
-  ItemTreeView::mainInstance()->update();
+	DDEBUG("ChoreonoidUtil::showAllModelItem");
+	ItemTreeView::mainInstance()->update();
   ItemTreeView::mainInstance()->selectAllItems();
   cnoid::ItemList<cnoid::Item> itemList = ItemTreeView::mainInstance()->selectedItems();
   for (int index = 0; index < itemList.size(); index++) {
@@ -179,11 +213,19 @@ void ChoreonoidUtil::showAllModelItem() {
   ItemTreeView::mainInstance()->clearSelection();
 }
 
-void ChoreonoidUtil::selectTreeItem(ModelParam* target) {
-  ItemTreeView::mainInstance()->clearSelection();
-  if (target->getModelItem()) {
-    ItemTreeView::mainInstance()->selectItem(target->getModelItem());
+void ChoreonoidUtil::selectTreeItem(ModelParamPtr target) {
+	DDEBUG("ChoreonoidUtil::selectTreeItem");
+	ItemTreeView::mainInstance()->clearSelection();
+  if (target->getModelMaster()->getModelItem()) {
+    ItemTreeView::mainInstance()->selectItem(target->getModelMaster()->getModelItem());
   }
+}
+
+void ChoreonoidUtil::selectTreeItem(ModelMasterParamPtr target) {
+	ItemTreeView::mainInstance()->clearSelection();
+	if (target->getModelItem()) {
+		ItemTreeView::mainInstance()->selectItem(target->getModelItem());
+	}
 }
 
 void ChoreonoidUtil::deselectTreeItem() {

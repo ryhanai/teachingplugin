@@ -11,7 +11,14 @@ namespace teaching {
 class ParameterDialog : public QDialog {
   Q_OBJECT
 public:
-  ParameterDialog(TaskModelParam* param, QWidget* parent = 0);
+  ParameterDialog(QWidget* parent = 0);
+
+  void showModelInfo(const std::vector<ModelParamPtr>& modelList);
+	void showParamInfo(const std::vector<ParameterParamPtr>& paramList);
+	void setTaskName(QString taskName);
+
+	void updateContents(const ParameterParamPtr& param);
+	void insertParameter(const ParameterParamPtr& param);
 
 private Q_SLOTS:
   void paramSelectionChanged();
@@ -22,6 +29,8 @@ private Q_SLOTS:
   void rejected();
 
 private:
+	QLabel* lblTaskName;
+
   QTableWidget* lstModel;
   QTableWidget* lstParam;
   //
@@ -32,14 +41,10 @@ private:
   QLineEdit* leUnit;
   QLineEdit* leNum;
   QComboBox* cmbElemType;
+	QComboBox* cmbHide;
 
   int currentRowIndex_;
-  TaskModelParam* targetTask_;
-  ParameterParam* currentParam_;
 
-  void showModelInfo();
-  void showParamInfo();
-  void saveCurrent();
   QString getTypeName(int source);
 };
 

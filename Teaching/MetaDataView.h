@@ -41,10 +41,10 @@ class MetaDataViewImpl : public QWidget {
 public:
   MetaDataViewImpl(QWidget* parent = 0);
   ~MetaDataViewImpl();
-  void setTaskParam(TaskModelParam* param);
+
+	void setTaskParam(TaskModelParamPtr param, vector<FileDataParamPtr>& fileList, vector<ImageDataParamPtr>& imageList);
   void updateTaskParam();
   void clearTaskParam();
-  void closeModelDialog();
 
 private Q_SLOTS:
   void modelClicked();
@@ -74,13 +74,7 @@ private:
   QPushButton* btnImageDelete;
 
   QProcess* m_proc_;
-  FigureDialog* m_FigDialog_;
-  ModelDialog* m_ModelDialog_;
   vector<QString> writtenFiles_;
-
-  TaskModelParam* targetTask_;
-
-  void updateTaskModelInfo();
 
   void setAllEnable();
   void setAllDisable();
@@ -91,9 +85,9 @@ class MetaDataView : public cnoid::View {
 public:
   MetaDataView();
   ~MetaDataView();
-  void setTaskParam(TaskModelParam* param) { this->viewImpl->setTaskParam(param); }
-  void updateTaskParam() { this->viewImpl->updateTaskParam(); }
-  void clearTaskParam() { this->viewImpl->clearTaskParam(); }
+  void setTaskParam(TaskModelParamPtr param, vector<FileDataParamPtr>& fileList, vector<ImageDataParamPtr>& imageList) {
+		this->viewImpl->setTaskParam(param, fileList, imageList);
+	}
 
 private:
   MetaDataViewImpl* viewImpl;

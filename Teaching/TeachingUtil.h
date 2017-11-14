@@ -26,17 +26,16 @@ template <typename T> std::string toStr(const T& t) {
 
 class TeachingUtil {
 public:
-  static bool importTask(QString& strFName, std::vector<TaskModelParam*>& taskInstList);
-  static bool exportTask(QString& strFName, TaskModelParam* targetTask);
-  static bool loadModelDetail(QString& strFName, ModelParam* targetModel);
-  static void loadTaskDetailData(TaskModelParam* target);
+  static bool importTask(QString& strFName, std::vector<TaskModelParamPtr>& taskInstList, vector<ModelMasterParamPtr>& modelMasterList);
+  static bool exportTask(QString& strFName, TaskModelParamPtr targetTask);
+  static bool loadModelDetail(QString& strFName, ModelMasterParamPtr targetModel);
+  static void loadTaskDetailData(TaskModelParamPtr target);
 
-  static bool exportFlow(QString& strFName, FlowParam* targetFlow);
-  static bool importFlow(QString& strFName, std::vector<FlowParam*>& flowModelList);
+  static bool exportFlow(QString& strFName, FlowParamPtr targetFlow);
+  static bool importFlow(QString& strFName, std::vector<FlowParamPtr>& flowModelList, vector<ModelMasterParamPtr>& modelMasterList);
 
 private:
   static int getModelType(QString& source);
-  static QImage db2Image(const QString& name, const QByteArray& source);
 
 };
 /////
@@ -100,7 +99,7 @@ public:
     return singleton;
   }
 
-  ArgumentEstimator* createArgEstimator(TaskModelParam* targetParam);
+  ArgumentEstimator* createArgEstimator(TaskModelParamPtr targetParam);
   void deleteArgEstimator(ArgumentEstimator* handler);
 };
 

@@ -20,6 +20,10 @@ static const double PI = 3.14159265358979323846;
 static const int NULL_ID = -1;
 static const int MESSAGE_PERIOD = 3000;
 
+typedef std::shared_ptr<ElementStmParam> ElementStmParamPtr;
+typedef std::shared_ptr<ConnectionStmParam> ConnectionStmParamPtr;
+typedef std::shared_ptr<TaskModelParam> TaskModelParamPtr;
+
 enum ModelType {
   MODEL_ENV = 0,
   MODEL_EE,
@@ -43,6 +47,11 @@ enum ElementType {
   ELEMENT_FORK,
   ELEMENT_COMMAND,
   ELEMENT_POINT
+};
+
+enum ParameterViewType {
+	PARAM_VIEW_TASK = 1,
+	PARAM_VIEW_FLOW
 };
 
 enum ParameterType {
@@ -110,44 +119,92 @@ private:
   QString fileName_;
   QByteArray data_;
 };
+typedef std::shared_ptr<ModelDetailParam> ModelDetailParamPtr;
+
+/////
+class ModelMasterParam : public DatabaseParam {
+public:
+	ModelMasterParam(int id, QString name, QString fileName)
+		: id_(id), name_(name), fileName_(fileName), item_(0) {};
+	ModelMasterParam(const ModelMasterParam* source)
+		: id_(source->id_), name_(source->name_), fileName_(source->fileName_), data_(source->data_),
+		  item_(source->item_), DatabaseParam(source)
+	{
+		for (unsigned int index = 0; index < source->modeDetailList_.size(); index++) {
+			ModelDetailParam* param = new ModelDetailParam(source->modeDetailList_[index].get());
+			param->setNewForce();
+			ModelDetailParamPtr paramPtr(param);
+			this->modeDetailList_.push_back(paramPtr);
+		}
+	};
+
+	inline int getId() const { return this->id_; }
+	inline void setId(int value) { this->id_ = value; }
+
+	inline int getOrgId() const { return this->orgId_; }
+	inline void setOrgId(int value) { this->orgId_ = value; }
+
+	inline QString getName() const { return this->name_; }
+	inline void setName(QString value) { this->name_ = value; setUpdate(); }
+
+	inline QString getFileName() const { return this->fileName_; }
+	inline void setFileName(QString value) { this->fileName_ = value; setUpdate(); }
+
+	inline void setData(QByteArray value) { this->data_ = value; }
+	inline QByteArray getData() const { return this->data_; }
+
+	inline std::vector<ModelDetailParamPtr> getModelDetailList() const { return this->modeDetailList_; }
+	inline void addModelDetail(ModelDetailParamPtr target) { this->modeDetailList_.push_back(target); }
+
+	inline void setModelItem(cnoid::BodyItemPtr value) { this->item_ = value; }
+	inline cnoid::BodyItemPtr getModelItem() const { return this->item_; }
+
+	void deleteModelDetails();
+
+private:
+	int id_;
+	int orgId_;
+	QString name_;
+	QString fileName_;
+	QByteArray data_;
+	std::vector<ModelDetailParamPtr> modeDetailList_;
+	cnoid::BodyItemPtr item_;
+};
+typedef std::shared_ptr<ModelMasterParam> ModelMasterParamPtr;
+
 /////
 class ModelParam : public DatabaseParam {
 public:
-  ModelParam(int id, int type, QString name, QString rname, QString fileName, double posX, double posY, double posZ, double rotRx, double rotRy, double rotRz, bool isNew)
-    : id_(id), type_(type), name_(name), rname_(rname), fileName_(fileName),
+  ModelParam(int id, int master_id, int type, QString name, QString rname, double posX, double posY, double posZ, double rotRx, double rotRy, double rotRz, bool isNew)
+    : id_(id), master_id_(master_id), type_(type), name_(name), rname_(rname),
     posX_(posX), posY_(posY), posZ_(posZ), rotRx_(rotRx), rotRy_(rotRy), rotRz_(rotRz),
     orgPosX_(posX), orgPosY_(posY), orgPosZ_(posZ), orgRotRx_(rotRx), orgRotRy_(rotRy), orgRotRz_(rotRz),
-    item_(0) {
+		master_(0) {
     if (isNew) setNew();
   };
   ModelParam(const ModelParam* source)
-    : id_(source->id_), type_(source->type_), name_(source->name_), rname_(source->rname_), fileName_(source->fileName_),
-    data_(source->data_),
+    : id_(source->id_), master_id_(source->master_id_), type_(source->type_), name_(source->name_), rname_(source->rname_),
     posX_(source->posX_), posY_(source->posY_), posZ_(source->posZ_),
     rotRx_(source->rotRx_), rotRy_(source->rotRy_), rotRz_(source->rotRz_),
     orgPosX_(source->orgPosX_), orgPosY_(source->orgPosY_), orgPosZ_(source->orgPosZ_),
     orgRotRx_(source->orgRotRx_), orgRotRy_(source->orgRotRy_), orgRotRz_(source->orgRotRz_),
-    item_(source->item_), DatabaseParam(source)
+		master_(source->master_),	DatabaseParam(source)
   {
-    for (unsigned int index = 0; index < source->modeDetailList_.size(); index++) {
-      ModelDetailParam* param = new ModelDetailParam(source->modeDetailList_[index]);
-      param->setNewForce();
-      this->modeDetailList_.push_back(param);
-    }
   };
 
   inline int getId() const { return this->id_; }
   inline void setId(int value) { this->id_ = value; }
 
-  inline QString getName() const { return this->name_; }
+	inline int getMasterId() const { return this->master_id_; }
+	inline void setMasterId(int value) { this->master_id_ = value; }
+
+	inline QString getName() const { return this->name_; }
   inline void setName(QString value) { this->name_ = value; setUpdate(); }
   inline QString getRName() const { return this->rname_; }
   inline void setRName(QString value) { this->rname_ = value; setUpdate(); }
 
   inline int getType() const { return this->type_; }
   inline void setType(int value) { this->type_ = value; setUpdate(); }
-  inline QString getFileName() const { return this->fileName_; }
-  inline void setFileName(QString value) { this->fileName_ = value; setUpdate(); }
 
   inline double getPosX() const { return this->posX_; }
   inline void setPosX(double value) { this->posX_ = value; setUpdate(); }
@@ -169,33 +226,25 @@ public:
   inline double getOrgRotRy() const { return this->orgRotRy_; }
   inline double getOrgRotRz() const { return this->orgRotRz_; }
 
-  inline void setData(QByteArray value) { this->data_ = value; }
-  inline QByteArray getData() const { return this->data_; }
+	inline void setModelMaster(ModelMasterParamPtr value) { this->master_ = value; }
+	inline ModelMasterParamPtr getModelMaster() const { return this->master_; }
 
-  inline void setModelItem(cnoid::BodyItemPtr value) { this->item_ = value; }
-  inline cnoid::BodyItemPtr getModelItem() const { return this->item_; }
-
-  inline std::vector<ModelDetailParam*> getModelDetailList() const { return this->modeDetailList_; }
-  inline void addModelDetail(ModelDetailParam* target){ this->modeDetailList_.push_back(target); }
-
-  void deleteModelDetails();
   void setInitialPos();
   bool isChangedPosition();
 
 private:
   int id_;
-  int type_;
+	int master_id_;
+	int type_;
   QString name_;
   QString rname_;
-  QString fileName_;
   double posX_, posY_, posZ_;
   double rotRx_, rotRy_, rotRz_;
   double orgPosX_, orgPosY_, orgPosZ_;
   double orgRotRx_, orgRotRy_, orgRotRz_;
-  QByteArray data_;
-  cnoid::BodyItemPtr item_;
-  std::vector<ModelDetailParam*> modeDetailList_;
+	ModelMasterParamPtr master_;
 };
+typedef std::shared_ptr<ModelParam> ModelParamPtr;
 /////
 class ConnectionNode : public QGraphicsItemGroup {
 public:
@@ -206,8 +255,8 @@ public:
   inline ElementNode* getSource() { return this->source; }
   inline ElementNode* getTarget() { return this->target; }
 
-  inline void setConnParam(ConnectionStmParam* elem) { this->parentElem_ = elem; }
-  inline ConnectionStmParam* getConnParam() { return this->parentElem_; }
+  inline void setConnParam(ConnectionStmParamPtr elem) { this->parentElem_ = elem; }
+  inline ConnectionStmParamPtr getConnParam() { return this->parentElem_; }
 
   inline QString getCondition() const { return this->condition; }
 
@@ -217,7 +266,7 @@ public:
   void setText(QString target);
 
 private:
-  ConnectionStmParam* parentElem_;
+	ConnectionStmParamPtr parentElem_;
   QGraphicsLineItem* body;
   QGraphicsLineItem* lineRight;
   QGraphicsLineItem* lineLeft;
@@ -242,8 +291,8 @@ public:
   inline std::vector<ConnectionNode*> getConnectionList() { return this->lineList_; }
   inline ElementType getElementType() { return this->type_; }
 
-  inline void setElemParam(ElementStmParam* elem) { this->parentElem_ = elem; }
-  inline ElementStmParam* getElemParam() { return this->parentElem_; }
+  inline void setElemParam(ElementStmParamPtr elem) { this->parentElem_ = elem; }
+  inline ElementStmParamPtr getElemParam() { return this->parentElem_; }
 
   void setBreak(bool isBreak);
   inline bool isBreak() { return this->isBreak_; }
@@ -259,7 +308,7 @@ public:
 private:
   ElementType type_;
   std::vector<ConnectionNode*> lineList_;
-  ElementStmParam* parentElem_;
+	ElementStmParamPtr parentElem_;
   QAbstractGraphicsShapeItem* item_;
   QGraphicsSimpleTextItem* itemText_;
   bool isBreak_;
@@ -304,6 +353,7 @@ private:
   QString valueDesc_;
   QString valueDescOrg_;
 };
+typedef std::shared_ptr<ArgumentParam> ArgumentParamPtr;
 
 class ElementStmActionParam : public DatabaseParam {
 public:
@@ -331,8 +381,8 @@ public:
   inline QString getTarget() const { return this->target_; }
   inline void setTarget(QString value) { this->target_ = value; setUpdate(); }
 
-  inline ModelParam* getModelParam() const { return this->targetModel_; }
-  inline void setModelParam(ModelParam* value) { this->targetModel_ = value; }
+  inline ModelParamPtr getModelParam() const { return this->targetModel_; }
+  inline void setModelParam(ModelParamPtr value) { this->targetModel_ = value; }
 
 private:
   int id_;
@@ -342,13 +392,14 @@ private:
   QString model_;
   QString target_;
 
-  ModelParam* targetModel_;
+	ModelParamPtr targetModel_;
 };
+typedef std::shared_ptr<ElementStmActionParam> ElementStmActionParamPtr;
 
 class ElementStmParam : public DatabaseParam {
 public:
   ElementStmParam(int id, int type, QString cmdName, QString cmdDspName, double posX, double posY, QString condition);
-  ElementStmParam(const ElementStmParam* source);
+  ElementStmParam(const ElementStmParamPtr source);
   virtual ~ElementStmParam();
 
   inline int getId() const { return this->id_; }
@@ -371,33 +422,37 @@ public:
   inline QString getCondition() const { return this->condition_; }
   inline void setCondition(QString value) { this->condition_ = value; }
 
-  inline std::vector<ElementStmActionParam*> getActionList() const { return this->actionList_; }
-  inline void addModelAction(ElementStmActionParam* target){ this->actionList_.push_back(target); }
+  inline std::vector<ElementStmActionParamPtr> getActionList() const { return this->actionList_; }
+  inline void addModelAction(ElementStmActionParamPtr target){ this->actionList_.push_back(target); }
+	std::vector<ElementStmActionParamPtr> getActiveStateActionList();
+	ElementStmActionParamPtr getStateActionById(int id);
 
-  inline std::vector<ArgumentParam*> getArgList() const { return this->argList_; }
-  inline void addArgument(ArgumentParam* target){ this->argList_.push_back(target); }
+  inline std::vector<ArgumentParamPtr> getArgList() const { return this->argList_; }
+  inline void addArgument(ArgumentParamPtr target){ this->argList_.push_back(target); }
+	std::vector<ArgumentParamPtr> getActiveArgumentList();
+	ArgumentParamPtr getArgumentById(int id);
 
   inline void setRealElem(ElementNode* elem) { this->realElem_ = elem; }
   inline ElementNode* getRealElem() const { return this->realElem_; }
 
-  inline void setNextElem(ElementStmParam* elem) { this->nextElem_ = elem; }
-  inline ElementStmParam* getNextElem() const { return this->nextElem_; }
-  inline void setTrueElem(ElementStmParam* elem) { this->trueElem_ = elem; }
-  inline ElementStmParam* getTrueElem() const { return this->trueElem_; }
-  inline void setFalseElem(ElementStmParam* elem) { this->falseElem_ = elem; }
-  inline ElementStmParam* getFalseElem() const { return this->falseElem_; }
+  inline void setNextElem(ElementStmParamPtr elem) { this->nextElem_ = elem; }
+  inline ElementStmParamPtr getNextElem() const { return this->nextElem_; }
+  inline void setTrueElem(ElementStmParamPtr elem) { this->trueElem_ = elem; }
+  inline ElementStmParamPtr getTrueElem() const { return this->trueElem_; }
+  inline void setFalseElem(ElementStmParamPtr elem) { this->falseElem_ = elem; }
+  inline ElementStmParamPtr getFalseElem() const { return this->falseElem_; }
 
   inline CommandDefParam* getCommadDefParam() const { return this->commandDef_; }
   inline void setCommadDefParam(CommandDefParam* value) { this->commandDef_ = value; }
 
-  inline TaskModelParam* getTaskParam() const { return this->taskParam_; }
-  inline void setTaskParam(TaskModelParam* value) { this->taskParam_ = value; }
+  inline TaskModelParamPtr getTaskParam() const { return this->taskParam_; }
+  inline void setTaskParam(TaskModelParamPtr value) { this->taskParam_ = value; }
 
   inline void setBreak(bool isBreak) { this->isBreak_ = isBreak; }
   inline bool isBreak() { return this->isBreak_; }
 
-  inline ConnectionStmParam* getParentConn() const { return this->parentConn_; }
-  inline void setParentConn(ConnectionStmParam* value) { this->parentConn_ = value; }
+  inline ConnectionStmParamPtr getParentConn() const { return this->parentConn_; }
+  inline void setParentConn(ConnectionStmParamPtr value) { this->parentConn_ = value; }
 
   void clearNextElems() {
     this->nextElem_ = 0;
@@ -424,17 +479,17 @@ private:
 
   ElementNode* realElem_;
 
-  std::vector<ElementStmActionParam*> actionList_;
-  std::vector<ArgumentParam*> argList_;
+  std::vector<ElementStmActionParamPtr> actionList_;
+  std::vector<ArgumentParamPtr> argList_;
 
-  ElementStmParam* nextElem_;
-  ElementStmParam* trueElem_;
-  ElementStmParam* falseElem_;
+	ElementStmParamPtr nextElem_;
+	ElementStmParamPtr trueElem_;
+	ElementStmParamPtr falseElem_;
 
-  ConnectionStmParam* parentConn_;
+	ConnectionStmParamPtr parentConn_;
 
   CommandDefParam* commandDef_;
-  TaskModelParam* taskParam_;
+	TaskModelParamPtr taskParam_;
 
   bool isBreak_;
 };
@@ -443,7 +498,7 @@ class ConnectionStmParam : public DatabaseParam {
 public:
   ConnectionStmParam(int id, int sourceId, int targetId, QString cond)
     : id_(id), sourceId_(sourceId), targetId_(targetId), condition_(cond) {};
-  ConnectionStmParam(const ConnectionStmParam* source);
+  ConnectionStmParam(const ConnectionStmParamPtr source);
   virtual ~ConnectionStmParam();
 
   inline int getId() const { return this->id_; }
@@ -458,28 +513,29 @@ public:
   inline QString getCondition() const { return this->condition_; }
   inline void setCondition(QString value) { this->condition_ = value; }
 
-  void addChildNode(ElementStmParam* prev, ElementStmParam* target);
-  void addChildNode(ElementStmParam* target);
-  void removeChildNode(ElementStmParam* target);
-  inline std::vector<ElementStmParam*> getChildList() const { return this->childList_; }
+  void addChildNode(ElementStmParamPtr prev, ElementStmParamPtr target);
+  void addChildNode(ElementStmParamPtr target);
+  void removeChildNode(ElementStmParamPtr target);
+  inline std::vector<ElementStmParamPtr> getChildList() const { return this->childList_; }
 
 private:
   int id_;
   int sourceId_;
   int targetId_;
   QString condition_;
-  std::vector<ElementStmParam*> childList_;
+  std::vector<ElementStmParamPtr> childList_;
 };
 
 class ParameterParam : public DatabaseParam {
 public:
-  ParameterParam(int id, int type, QString model_name, int elem_num, QString elem_types, int task_inst_id, QString name, QString rname, QString unit)
+  ParameterParam(int id, int type, QString model_name, int elem_num, QString elem_types, int task_inst_id, QString name, QString rname, QString unit, int hide)
     : id_(id), type_(type), model_name_(model_name), elem_num_(elem_num), elem_types_(elem_types),
-    task_inst_id_(task_inst_id), name_(name), rname_(rname), unit_(unit)
+    parent_id_(task_inst_id), name_(name), rname_(rname), unit_(unit), hide_(hide)
   {
     buildElemTypeList();
   };
   ParameterParam(ParameterParam* source);
+	~ParameterParam();
 
   inline int getId() const { return this->id_; }
   inline void setId(int value) { this->id_ = value; }
@@ -496,8 +552,8 @@ public:
   inline QString getElemTypes() const { return this->elem_types_; }
   void setElemTypes(QString value);
 
-  inline int getTaskInstId() const { return this->task_inst_id_; }
-  inline void setTaskInstId(int value) { this->task_inst_id_ = value; }
+  inline int getParentId() const { return this->parent_id_; }
+  inline void setParentId(int value) { this->parent_id_ = value; }
 
   inline QString getName() const { return this->name_; }
   inline void setName(QString value) { this->name_ = value; setUpdate(); }
@@ -506,7 +562,12 @@ public:
   inline QString getUnit() const { return this->unit_; }
   inline void setUnit(QString value) { this->unit_ = value; setUpdate(); }
 
+	inline int getHide() const { return this->hide_; }
+	inline void setHide(int value) { this->hide_ = value; setUpdate(); }
+
   inline void addControl(QLineEdit* target) { this->controlList_.push_back(target); }
+	inline int getControlNum() const { return this->controlList_.size(); }
+	inline QLineEdit* getControl(int index) { return this->controlList_[index]; }
 
   std::string getValues(int index);
   void setValues(int index, QString source);
@@ -518,17 +579,17 @@ public:
   QString getElemTypeStr();
   int getElemTypeNo();
 
-
 private:
   int id_;
   int type_;
   int elem_num_;
-  int task_inst_id_;
+  int parent_id_;
   QString model_name_;
   QString name_;
   QString rname_;
   QString unit_;
   QString elem_types_;
+	int hide_;
 
   std::vector<int> elemTypeList_;
   std::vector<QLineEdit*> controlList_;
@@ -536,112 +597,155 @@ private:
 
   void buildElemTypeList();
 };
+typedef std::shared_ptr<ParameterParam> ParameterParamPtr;
 ////
 class FileDataParam : public DatabaseParam {
 public:
-  FileDataParam(int id, QString name) : id_(id), name_(name) {};
+  FileDataParam(int id, int seq, QString name) : id_(id), seq_(seq), name_(name) {};
   FileDataParam(FileDataParam* source)
-    : id_(source->id_), name_(source->name_), data_(source->data_),
+    : id_(source->id_), seq_(source->seq_), name_(source->name_), data_(source->data_),
     DatabaseParam(source) {};
 
   inline int getId() const { return this->id_; }
-  inline QString getName() const { return this->name_; }
+	inline void setId(int value) { this->id_ = value; }
+
+	inline QString getName() const { return this->name_; }
+
+	inline void setSeq(int value) { this->seq_ = value; }
+	inline int getSeq() const { return this->seq_; }
 
   inline void setData(QByteArray value) { this->data_ = value; }
   inline QByteArray getData() const { return this->data_; }
 
 private:
   int id_;
-  QString name_;
+	int seq_;
+	QString name_;
   QByteArray data_;
 };
+typedef std::shared_ptr<FileDataParam> FileDataParamPtr;
 
 class ImageDataParam : public DatabaseParam {
 public:
-  ImageDataParam(int id, QString name) : id_(id), name_(name) {};
+  ImageDataParam(int id, int seq, QString name)
+		: id_(id), seq_(seq), name_(name), isLoaded_(false) {};
   ImageDataParam(ImageDataParam* source)
-    : id_(source->id_), name_(source->name_), data_(source->data_), DatabaseParam(source) {};
+    : id_(source->id_), seq_(source->seq_), name_(source->name_), data_(source->data_),
+			isLoaded_(source->isLoaded_), DatabaseParam(source) {};
 
   inline int getId() const { return this->id_; }
   inline QString getName() const { return this->name_; }
 
-  inline void setData(QImage value) { this->data_ = value; }
+	inline void setSeq(int value) { this->seq_ = value; }
+	inline int getSeq() const { return this->seq_; }
+
+	inline void setData(QImage value) { this->data_ = value; this->isLoaded_ = true; }
   inline QImage getData() const { return this->data_; }
   inline void setRawData(QByteArray value) { this->rawData_ = value; }
   inline QByteArray getRawData() const { return this->rawData_; }
+	void loadData();
 
 private:
   int id_;
-  QString name_;
+	int seq_;
+	QString name_;
   QImage data_;
   QByteArray rawData_;
+	bool isLoaded_;
+
+	QImage db2Image(const QString& name, const QByteArray& source);
+
 };
+typedef std::shared_ptr<ImageDataParam> ImageDataParamPtr;
+
 /////
 class ActivityParam : public DatabaseParam {
 public:
-  ActivityParam() {};
+  ActivityParam(int id, QString name, QString comment, QString created_date, QString last_updated_date)
+		: id_(id), name_(name), comment_(comment), created_date_(created_date), last_updated_date_(last_updated_date) {
+	};
+
   ActivityParam(const ActivityParam* source);
-  inline std::vector<ElementStmParam*> getStmElementList() const { return this->stmElemList_; }
-  inline void addStmElement(ElementStmParam* target){ this->stmElemList_.push_back(target); }
-  inline std::vector<ConnectionStmParam*> getStmConnectionList() const { return this->stmConnectionList_; }
-  inline void addStmConnection(ConnectionStmParam* target){ this->stmConnectionList_.push_back(target); }
+
+	inline int getId() const { return this->id_; }
+	inline void setId(int value) { this->id_ = value; }
+
+	inline QString getName() const { return this->name_; }
+	inline void setName(QString value) { this->name_ = value;  setUpdate(); }
+
+	inline QString getComment() const { return this->comment_; }
+	inline void setComment(QString value) { this->comment_ = value;  setUpdate(); }
+
+	inline QString getCreatedDate() const { return this->created_date_; }
+	inline void setCreatedDate(QString value) { this->created_date_ = value; }
+	inline QString getLastUpdatedDate() const { return this->last_updated_date_; }
+	inline void setLastUpdatedDate(QString value) { this->last_updated_date_ = value; }
+
+	inline std::vector<ParameterParamPtr> getParameterList() const { return this->parameterList_; }
+	inline void addParameter(ParameterParamPtr target) { this->parameterList_.push_back(target); }
+	std::vector<ParameterParamPtr> getActiveParameterList();
+	ParameterParamPtr getParameterById(int id);
+
+	inline std::vector<ElementStmParamPtr> getStmElementList() const { return this->stmElemList_; }
+  inline void addStmElement(ElementStmParamPtr target){ this->stmElemList_.push_back(target); }
+	std::vector<ElementStmParamPtr> getActiveStateList();
+
+  inline std::vector<ConnectionStmParamPtr> getStmConnectionList() const { return this->stmConnectionList_; }
+  inline void addStmConnection(ConnectionStmParamPtr target){ this->stmConnectionList_.push_back(target); }
+	std::vector<ConnectionStmParamPtr> getActiveTransitionList();
 
   inline QString getErrStr() const { return this->errContents_; }
-  inline ElementStmParam* getStartParam() const { return this->startParam_; }
+  inline ElementStmParamPtr getStartParam() const { return this->startParam_; }
 
   bool checkAndOrderStateMachine();
 
 protected:
-  std::vector<ElementStmParam*> stmElemList_;
-  std::vector<ConnectionStmParam*> stmConnectionList_;
+	int id_;
+	QString name_;
+	QString comment_;
+	QString created_date_;
+	QString last_updated_date_;
 
-  ElementStmParam* startParam_;
+	std::vector<ParameterParamPtr> parameterList_;
+	std::vector<ElementStmParamPtr> stmElemList_;
+  std::vector<ConnectionStmParamPtr> stmConnectionList_;
+
+	ElementStmParamPtr startParam_;
 
   QString errContents_;
 };
-/////
+//////////
 class TaskModelParam : public ActivityParam {
 public:
   TaskModelParam(int id, QString name, QString comment, QString execEnv, int flow_id, QString created_date, QString last_updated_date);
   TaskModelParam(const TaskModelParam* source);
   virtual ~TaskModelParam();
 
-  inline int getId() const { return this->id_; }
-  inline void setId(int value) { this->id_ = value; }
-
   inline int getFlowId() const { return this->flow_id_; }
   inline void setFlowId(int value) { this->flow_id_ = value; }
-
-  inline QString getName() const { return this->name_; }
-  inline void setName(QString value) { this->name_ = value; setUpdate(); }
-
-  inline QString getComment() const { return this->comment_; }
-  inline void setComment(QString value) { this->comment_ = value;  setUpdate(); }
-
-  inline QString getCreatedDate() const { return this->created_date_; }
-  inline void setCreatedDate(QString value) { this->created_date_ = value; }
-  inline QString getLastUpdatedDate() const { return this->last_updated_date_; }
-  inline void setLastUpdatedDate(QString value) { this->last_updated_date_ = value; }
 
   inline QString getExecEnv() const { return this->exec_env_; }
   inline void setExecEnv(QString value) { this->exec_env_ = value; }
 
-  inline std::vector<ModelParam*> getModelList() const { return this->modelList_; }
-  inline void addModel(ModelParam* target){ this->modelList_.push_back(target); }
+  inline std::vector<ModelParamPtr> getModelList() const { return this->modelList_; }
+  inline void addModel(ModelParamPtr target){ this->modelList_.push_back(target); }
+	std::vector<ModelParamPtr> getActiveModelList();
 
-  inline std::vector<ParameterParam*> getParameterList() const { return this->parameterList_; }
-  inline void addParameter(ParameterParam* target){ this->parameterList_.push_back(target); }
+  inline std::vector<FileDataParamPtr> getFileList() const { return this->fileList_; }
+  inline void addFile(FileDataParamPtr target){ this->fileList_.push_back(target); }
+	std::vector<FileDataParamPtr> getActiveFileList();
+	FileDataParamPtr getFileById(int id);
 
-  inline std::vector<FileDataParam*> getFileList() const { return this->fileList_; }
-  inline void addFile(FileDataParam* target){ this->fileList_.push_back(target); }
-  inline std::vector<ImageDataParam*> getImageList() const { return this->imageList_; }
-  inline void addImage(ImageDataParam* target){ this->imageList_.push_back(target); }
+  inline std::vector<ImageDataParamPtr> getImageList() const { return this->imageList_; }
+  inline void addImage(ImageDataParamPtr target){ this->imageList_.push_back(target); }
+	std::vector<ImageDataParamPtr> getActiveImageList();
+	ImageDataParamPtr getImageById(int id);
 
-  inline TaskModelParam* getNextTask() const { return this->nextTask_; }
-  inline void setNextTask(TaskModelParam* value) { this->nextTask_ = value; }
+  inline TaskModelParamPtr getNextTask() const { return this->nextTask_; }
+  inline void setNextTask(TaskModelParamPtr value) { this->nextTask_ = value; }
 
-  inline ElementStmParam* getStateParam() const { return this->stateParam_; }
-  inline void setStateParam(ElementStmParam* value) { this->stateParam_ = value; }
+  inline ElementStmParamPtr getStateParam() const { return this->stateParam_; }
+  inline void setStateParam(ElementStmParamPtr value) { this->stateParam_ = value; }
 
   void setAllNewData();
   void clearParameterList();
@@ -654,64 +758,38 @@ public:
   inline void setModelLoaded(bool value) { this->isModelLoaded_ = value; }
 
 private:
-  int id_;
-  QString name_;
-  QString comment_;
   int flow_id_;
-  QString created_date_;
-  QString last_updated_date_;
   QString exec_env_;
 
   bool isLoaded_;
   bool isModelLoaded_;
 
-  std::vector<ModelParam*> modelList_;
-  std::vector<ParameterParam*> parameterList_;
-  std::vector<FileDataParam*> fileList_;
-  std::vector<ImageDataParam*> imageList_;
+  std::vector<ModelParamPtr> modelList_;
+  std::vector<FileDataParamPtr> fileList_;
+  std::vector<ImageDataParamPtr> imageList_;
 
-  TaskModelParam* nextTask_;
-  ElementStmParam* stateParam_;
+	TaskModelParamPtr nextTask_;
+	ElementStmParamPtr stateParam_;
 };
 
 class FlowParam : public ActivityParam {
 public:
   FlowParam(int id, QString name, QString comment, QString created_date, QString last_updated_date)
-    : id_(id), name_(name), comment_(comment), created_date_(created_date), last_updated_date_(last_updated_date) {
+    : ActivityParam(id, name, comment, created_date, last_updated_date) {
   };
   FlowParam(const FlowParam* source) :
-    id_(source->id_), name_(source->name_), comment_(source->comment_),
-    created_date_(source->created_date_), last_updated_date_(source->last_updated_date_) {};
+		ActivityParam(source) {};
   virtual ~FlowParam() {};
-
-  inline int getId() const { return this->id_; }
-  inline void setId(int value) { this->id_ = value; }
-
-  inline QString getName() const { return this->name_; }
-  inline void setName(QString value) { this->name_ = value;  setUpdate(); }
-
-  inline QString getComment() const { return this->comment_; }
-  inline void setComment(QString value) { this->comment_ = value;  setUpdate(); }
-
-  inline QString getCreatedDate() const { return this->created_date_; }
-  inline void setCreatedDate(QString value) { this->created_date_ = value; }
-  inline QString getLastUpdatedDate() const { return this->last_updated_date_; }
-  inline void setLastUpdatedDate(QString value) { this->last_updated_date_ = value; }
-
-private:
-  int id_;
-  QString name_;
-  QString comment_;
-  QString created_date_;
-  QString last_updated_date_;
 };
+typedef std::shared_ptr<FlowParam> FlowParamPtr;
+
 /////
 struct ModelParamComparator {
   int id_;
   ModelParamComparator(int value) {
     id_ = value;
   }
-  bool operator()(const ModelParam* elem) const {
+  bool operator()(const ModelParamPtr elem) const {
     return (elem->getId() == id_
       && (elem->getMode() != DB_MODE_DELETE && elem->getMode() != DB_MODE_IGNORE));
   }
@@ -722,7 +800,7 @@ struct ModelParamComparatorByRName {
   ModelParamComparatorByRName(QString value) {
     rname_ = value;
   }
-  bool operator()(const ModelParam* elem) const {
+  bool operator()(const ModelParamPtr elem) const {
     return elem->getRName() == rname_;
   }
 };
@@ -732,7 +810,7 @@ struct ElementStmParamComparator {
   ElementStmParamComparator(int value) {
     id_ = value;
   }
-  bool operator()(const ElementStmParam* elem) const {
+  bool operator()(const ElementStmParamPtr elem) const {
     return elem->getOrgId() == id_;
   }
 };

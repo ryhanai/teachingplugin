@@ -4,6 +4,7 @@
 #include "QtUtil.h"
 #include "TeachingTypes.h"
 
+using namespace std;
 using namespace cnoid;
 
 namespace teaching {
@@ -11,8 +12,17 @@ namespace teaching {
 class ArgumentDialog : public QDialog {
   Q_OBJECT
 public:
-  ArgumentDialog(TaskModelParam* param, ElementStmParam* stmParam, QWidget* parent = 0);
+  ArgumentDialog(QWidget* parent = 0);
   inline bool isOK() const { return this->isOK_; }
+
+	void showModelInfo(vector<ModelParamPtr>& modelList);
+	void showParamInfo(vector<ParameterParamPtr>& paramList);
+	void showActionInfo(vector<ElementStmActionParamPtr>& actionList);
+	void showArgInfo(ElementStmParamPtr target, vector<ArgumentParamPtr>& argList);
+
+	void updateArgument(QString currText);
+	void updateAction(ElementStmActionParamPtr& target);
+	void updateAddAction(ElementStmActionParamPtr& target);
 
 private Q_SLOTS:
   void addClicked();
@@ -32,6 +42,7 @@ private:
   QTableWidget* lstArg;
   //
   QLineEdit* txtStateName;
+	QLineEdit* txtCmdName;
   QComboBox* cmbAction;
   QComboBox* cmbModel;
   QComboBox* cmbTarget;
@@ -39,20 +50,7 @@ private:
 
   bool isOK_;
   int curArgIdx_;
-  ArgumentParam* curArgParam_;
   int curActionIdx_;
-  ElementStmActionParam* curActionParam_;
-
-  TaskModelParam* targetTask_;
-  ElementStmParam* targetStm_;
-
-  void showModelInfo();
-  void showParamInfo();
-  void showActionInfo();
-  void showArgInfo();
-
-  void saveCurrentArg();
-  void saveCurrentAction();
 };
 
 }

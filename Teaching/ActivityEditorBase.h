@@ -3,8 +3,10 @@
 
 #include "QtUtil.h"
 #include "TeachingTypes.h"
+#include <cnoid/MenuManager>
 
 using namespace std;
+using namespace cnoid;
 
 namespace teaching {
 
@@ -24,25 +26,45 @@ enum MenuMode {
   MODE_POINT
 };
 
-class QGraphicsSceneWithMenu : public QGraphicsScene {
-Q_OBJECT
+class ActivityEditorBase : public QGraphicsView {
 public:
-  QMenu ContextMenu_;
-  QGraphicsSceneWithMenu(QObject *parent = 0);
-  void contextMenuEvent(QGraphicsSceneContextMenuEvent * contextMenuEvent);
+	ActivityEditorBase(QWidget* parent = 0);
 
-  inline void setMode(MenuMode mode) { this->mode_ = mode; }
-  inline void setConnection(ConnectionNode* conn) { this->targetConnection_ = conn; }
-  inline void setElement(ElementStmParam* param) { this->targetElem_ = param; }
+	inline void setCntMode(bool mode) { this->modeCnt_ = mode; }
 
-private Q_SLOTS:
-  void addPoint();
-  void removePoint();
+	inline ElementNode* getCurrentNode() { return targetNode_; }
+	inline ConnectionNode* getCurrentConnection() { return targetConnection_; }
 
-private:
-  MenuMode mode_;
-  ConnectionNode* targetConnection_;
-  ElementStmParam* targetElem_;
+	void deleteCurrent();
+	void addChildConnection(ConnectionStmParamPtr target, ElementNode* sourceChild, ElementNode* targetChild);
+
+	void addPoint();
+	void removePoint();
+
+	void createStateMachine(vector<ElementStmParamPtr>& elemList, vector<ConnectionStmParamPtr>& connList);
+	virtual void removeAll() {};
+
+protected:
+	bool modeCnt_;
+	int newStateNum;
+	bool selectionMode_;
+	QPointF selStartPnt_;
+	QGraphicsRectItem* selRect_;
+	QPointF elemStartPnt_;
+
+	ElementNode* targetNode_;
+	ConnectionNode* targetConnection_;
+	vector<ElementNode*> selectedNode_;
+
+	QGraphicsScene* scene_;
+	MenuManager menuManager;
+
+	void mouseMoveEvent(QMouseEvent* event);
+	void keyPressEvent(QKeyEvent* event);
+	void wheelEvent(QWheelEvent* event);
+
+	void deleteConnection(ConnectionNode* target);
+	void deleteElement();
 };
 
 class ItemList : public QListWidget {

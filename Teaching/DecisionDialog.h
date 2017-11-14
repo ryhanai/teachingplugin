@@ -11,7 +11,7 @@ namespace teaching {
 class DesisionDialog : public QDialog {
   Q_OBJECT
 public:
-  DesisionDialog(TaskModelParam* param, ElementStmParam* stmParam, QWidget* parent = 0);
+  DesisionDialog(TaskModelParamPtr param, ElementStmParamPtr stmParam, QWidget* parent = 0);
 
 private Q_SLOTS:
   void oKClicked();
@@ -22,8 +22,8 @@ private:
   QTableWidget* lstParam;
   QTextEdit* txtCondition;
 
-  TaskModelParam* targetTask_;
-  ElementStmParam* targetStm_;
+	TaskModelParamPtr targetTask_;
+	ElementStmParamPtr targetStm_;
 
   void showModelInfo();
   void showParamInfo();

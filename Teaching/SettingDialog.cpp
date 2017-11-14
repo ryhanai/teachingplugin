@@ -77,11 +77,11 @@ SettingDialog::SettingDialog(QWidget* parent)
   baseLayout->addWidget(chkReal, 6, 1, 1, 1);
   //
   QFrame* frmButtons = new QFrame;
-  QPushButton* btnOK = new QPushButton(_("OK"));
+	QPushButton* btnOK = new QPushButton(_("OK"));
   QPushButton* btnCancel = new QPushButton(_("Cancel"));
   QHBoxLayout* buttonLayout = new QHBoxLayout(frmButtons);
   buttonLayout->setContentsMargins(2, 2, 2, 2);
-  buttonLayout->addWidget(btnOK);
+	buttonLayout->addWidget(btnOK);
   buttonLayout->addStretch();
   buttonLayout->addWidget(btnCancel);
 

@@ -2,12 +2,14 @@
 #include "PythonWrapper.h"
 #include "TeachingUtil.h"
 
+#include "TeachingDataHolder.h"
+
 #include "gettext.h"
 #include "LoggerUtil.h"
 
 namespace teaching {
 
-DesisionDialog::DesisionDialog(TaskModelParam* param, ElementStmParam* stmParam, QWidget* parent)
+DesisionDialog::DesisionDialog(TaskModelParamPtr param, ElementStmParamPtr stmParam, QWidget* parent)
   : QDialog(parent, Qt::CustomizeWindowHint | Qt::WindowTitleHint) {
   this->targetTask_ = param;
   this->targetStm_ = stmParam;
@@ -66,10 +68,9 @@ DesisionDialog::DesisionDialog(TaskModelParam* param, ElementStmParam* stmParam,
 }
 
 void DesisionDialog::showParamInfo() {
-  for (int index = 0; index < targetTask_->getParameterList().size(); index++) {
-    ParameterParam* param = targetTask_->getParameterList()[index];
-    if (param->getMode() == DB_MODE_DELETE || param->getMode() == DB_MODE_IGNORE) continue;
-
+	vector<ParameterParamPtr> paramList = targetTask_->getActiveParameterList();
+  for (int index = 0; index < paramList.size(); index++) {
+		ParameterParamPtr param = paramList[index];
     int row = lstParam->rowCount();
     lstParam->insertRow(row);
     UIUtil::makeTableItem(lstParam, row, 0, param->getName());
@@ -78,10 +79,9 @@ void DesisionDialog::showParamInfo() {
 }
 
 void DesisionDialog::showModelInfo() {
-  for (int index = 0; index < targetTask_->getModelList().size(); index++) {
-    ModelParam* param = targetTask_->getModelList()[index];
-    if (param->getMode() == DB_MODE_DELETE || param->getMode() == DB_MODE_IGNORE) continue;
-
+	vector<ModelParamPtr> modelList = targetTask_->getActiveModelList();
+	for (int index = 0; index < modelList.size(); index++) {
+		ModelParamPtr param = modelList[index];
     int row = lstModel->rowCount();
     lstModel->insertRow(row);
     UIUtil::makeTableItem(lstModel, row, 0, param->getName());

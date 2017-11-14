@@ -26,8 +26,7 @@ public:
   CommandDefParam* getCommandDef(const int commandId);
 
   void setRootName(std::string value);
-  bool executeCommand(const std::string& commandName, const std::vector<CompositeParamType>& params, bool simulation = true)
-    throw (CommandParseErrorException);
+  bool executeCommand(const std::string& commandName, const std::vector<CompositeParamType>& params, bool simulation = true);
   bool attachModelItem(cnoid::BodyItemPtr object, int target);
   bool detachModelItem(cnoid::BodyItemPtr object, int target);
   bool detachAllModelItem();
@@ -45,7 +44,7 @@ struct ParameterParamComparatorByRName {
   ParameterParamComparatorByRName(QString value) {
     rname_ = value;
   }
-  bool operator()(const ParameterParam* elem) const {
+  bool operator()(const ParameterParamPtr elem) const {
     return elem->getRName() == rname_;
   }
 };

@@ -3,12 +3,9 @@
 
 #include <cnoid/View>
 #include "QtUtil.h"
-#include "DataBaseManager.h"
-#include "MetaDataView.h"
-#include "TaskInstanceView.h"
-#include "StateMachineView.h"
+#include "TeachingTypes.h"
 
-#include "TaskExecutionView.h"
+#include "StateMachineView.h"
 #include "FlowActivityEditor.h"
 
 using namespace cnoid;
@@ -21,7 +18,7 @@ class TaskInstanceView;
 class TaskInfoDialog : public QDialog {
   Q_OBJECT
 public:
-  TaskInfoDialog(TaskModelParam* param, ElementNode* elem, QWidget* parent = 0);
+  TaskInfoDialog(TaskModelParamPtr param, ElementNode* elem, QWidget* parent = 0);
 
 private Q_SLOTS:
   void oKClicked();
@@ -30,22 +27,20 @@ private Q_SLOTS:
 private:
   QLineEdit* txtName;
 
-  TaskModelParam* targetTask_;
+	TaskModelParamPtr targetTask_;
   ElementNode* targetElem_;
 };
 
-class FlowViewImpl : public TaskExecutionView {
+class FlowViewImpl : public QWidget {
   Q_OBJECT
 public:
   FlowViewImpl(QWidget* parent = 0);
 
-  inline void setMetadataView(MetaDataView* view) { this->metadataView = view; }
-  inline void setTaskInstanceView(TaskInstanceView* view) { this->taskInstView = view; }
-
-  inline FlowParam* getCurrentFlow() { return this->currentFlow_; }
-
-  void flowSelectionChanged(TaskModelParam* target);
+  void flowSelectionChanged(TaskModelParamPtr target);
   void setButtonEnableMode(bool isEnable);
+	void clearView();
+	void dispView(FlowParamPtr& target);
+	void createStateMachine(FlowParamPtr& target);
 
 public Q_SLOTS:
   void editClicked();
@@ -90,11 +85,6 @@ private:
 
   FlowActivityEditor* grhStateMachine;
 
-  MetaDataView* metadataView;
-  TaskInstanceView* taskInstView;
-
-  FlowParam* currentFlow_;
-
   void changeEnables(bool value);
 };
 
@@ -103,15 +93,6 @@ public:
   FlowView();
   ~FlowView();
 
-  inline void setMetadataView(MetaDataView* view) { viewImpl->setMetadataView(view); }
-  inline void setParameterView(ParameterView* view) { viewImpl->setParameterView(view); }
-  inline void setStateMachineView(StateMachineView* view) { viewImpl->setStateMachineView(view); }
-  inline void setTaskInstanceView(TaskInstanceView* view) { viewImpl->setTaskInstanceView(view); }
-
-  inline void setTaskExecutor(TaskExecuteManager* executor) { viewImpl->setTaskExecutor(executor); }
-  inline void unloadCurrentModel() { viewImpl->unloadCurrentModel(); }
-
-  inline FlowParam* getCurrentFlow() { return viewImpl->getCurrentFlow(); }
   inline void setButtonEnableMode(bool isEnable) { viewImpl->setButtonEnableMode(isEnable); }
 
 private:

@@ -37,7 +37,7 @@ std::string evaluator::operator()(FunCallNodeSp const& node) const {
 }
 
 /////
-MemberParam::MemberParam(NodeType type, std::string source, TaskModelParam* targetModel)
+MemberParam::MemberParam(NodeType type, std::string source, TaskModelParamPtr targetModel)
   : nodeType_(type), source_(source), valueVector6d_(6) {
   targetModel_ = targetModel;
 }
@@ -136,8 +136,8 @@ bool MemberParam::parseVector(MemberParam* elem01, MemberParam* elem02, MemberPa
 }
 
 bool MemberParam::parseVariable() {
-  vector<ParameterParam*> paramList = targetModel_->getParameterList();
-  vector<ParameterParam*>::iterator targetParam = find_if(paramList.begin(), paramList.end(), ParameterParamComparatorByRName(QString::fromLatin1(source_.c_str())));
+  vector<ParameterParamPtr> paramList = targetModel_->getParameterList();
+  vector<ParameterParamPtr>::iterator targetParam = find_if(paramList.begin(), paramList.end(), ParameterParamComparatorByRName(QString::fromLatin1(source_.c_str())));
   if (targetParam == paramList.end()) return false;
   //
   if ((*targetParam)->getElemNum() == 1) {
@@ -291,18 +291,18 @@ Calculator::~Calculator() {
   memberList_.clear();
 }
 
-void Calculator::initialize(TaskModelParam* targetParam) {
+void Calculator::initialize(TaskModelParamPtr targetParam) {
 }
 
 void Calculator::finalize() {
 }
 
-bool Calculator::buildArguments(TaskModelParam* taskParam, ElementStmParam* targetParam, std::vector<CompositeParamType>& parameterList) {
+bool Calculator::buildArguments(TaskModelParamPtr taskParam, ElementStmParamPtr targetParam, std::vector<CompositeParamType>& parameterList) {
   parameterList.clear();
 
   //à¯êîÇÃëgÇ›óßÇƒ
   for (int idxArg = 0; idxArg < targetParam->getArgList().size(); idxArg++) {
-    ArgumentParam* arg = targetParam->getArgList()[idxArg];
+		ArgumentParamPtr arg = targetParam->getArgList()[idxArg];
     QString valueDesc = arg->getValueDesc();
     //
     if (targetParam->getCommadDefParam() == 0) return false;
@@ -342,8 +342,8 @@ bool Calculator::buildArguments(TaskModelParam* taskParam, ElementStmParam* targ
       }
 
     } else {
-      vector<ParameterParam*> paramList = taskParam->getParameterList();
-      vector<ParameterParam*>::iterator targetParam = find_if(paramList.begin(), paramList.end(), ParameterParamComparatorByRName(valueDesc));
+      vector<ParameterParamPtr> paramList = taskParam->getParameterList();
+      vector<ParameterParamPtr>::iterator targetParam = find_if(paramList.begin(), paramList.end(), ParameterParamComparatorByRName(valueDesc));
       QString strVal;
       if (targetParam != paramList.end()) {
         strVal = QString::fromStdString((*targetParam)->getValues(0));
@@ -360,7 +360,7 @@ bool Calculator::buildArguments(TaskModelParam* taskParam, ElementStmParam* targ
   return true;
 }
 
-bool Calculator::checkSyntax(TaskModelParam* taskParam, QString script, string& errStr) {
+bool Calculator::checkSyntax(TaskModelParamPtr taskParam, QString script, string& errStr) {
   return calculate(script, taskParam);
 }
 
@@ -464,7 +464,7 @@ int Calculator::extractNodeInfo(const Node& source) {
   return ret;
 }
 
-bool Calculator::calculate(QString source, TaskModelParam* targetModel) {
+bool Calculator::calculate(QString source, TaskModelParamPtr targetModel) {
   QString target;
   CalcMode mode = CALC_NOTHING;
   valMode_ = VAL_SCALAR;

@@ -11,7 +11,7 @@ namespace teaching {
 class ExecEnvDialog : public QDialog {
   Q_OBJECT
 public:
-  ExecEnvDialog(TaskModelParam* param, QWidget* parent = 0);
+  ExecEnvDialog(TaskModelParamPtr param, QWidget* parent = 0);
 
 private Q_SLOTS:
   void oKClicked();
@@ -20,7 +20,7 @@ private Q_SLOTS:
 private:
   QTextEdit* txtEnv;
 
-  TaskModelParam* targetTask_;
+	TaskModelParamPtr targetTask_;
 };
 
 }

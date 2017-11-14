@@ -5,11 +5,9 @@
 #include <cnoid/YAMLReader>
 #include <cnoid/YAMLWriter>
 #include <cnoid/UTF8>
-//#include "TaskExecutor.h"
 
 #include "PythonWrapper.h"
 #include "Calculator.h"
-#include "DataBaseManager.h"
 
 #include "LoggerUtil.h"
 
@@ -18,44 +16,7 @@ using namespace cnoid;
 
 namespace teaching {
 
-bool TeachingUtil::loadModelDetail(QString& strFName, ModelParam* targetModel) {
-  QString strPath = QFileInfo(strFName).absolutePath();
-  QFile fileTxt(strFName);
-  fileTxt.open(QIODevice::ReadOnly);
-  QTextStream in(&fileTxt);
-  QString contents = in.readAll();
-  QStringList lineList = contents.split("\n");
-  QStringList loaded;
-  for (int index = 0; index < lineList.length(); index++) {
-    QString line = lineList.at(index);
-    if (line.contains("url") == false)  continue;
-    QStringList itemList = line.trimmed().split(" ");
-    bool isHit = false;
-    for (int idxItem = 0; idxItem < itemList.length(); idxItem++) {
-      QString item = itemList.at(idxItem);
-      if (isHit) {
-        QString modelName = item.replace("\"", "");
-        if (loaded.contains(modelName)) continue;
-        loaded.append(modelName);
-        ModelDetailParam* detail = new ModelDetailParam(NULL_ID, modelName);
-        detail->setNew();
-        QString fileName = strPath + QString("/") + modelName;
-        QFile fileModel(fileName);
-        fileModel.open(QIODevice::ReadOnly);
-        detail->setData(fileModel.readAll());
-        targetModel->addModelDetail(detail);
-        loadModelDetail(fileName, targetModel);
-        isHit = false;
-      }
-      if (item == QString("url")) {
-        isHit = true;
-      }
-    }
-  }
-  return true;
-}
-
-bool TeachingUtil::importTask(QString& strFName, std::vector<TaskModelParam*>& taskInstList) {
+bool TeachingUtil::importTask(QString& strFName, std::vector<TaskModelParamPtr>& taskInstList, vector<ModelMasterParamPtr>& modelMasterList) {
   YAMLReader pyaml;
   DDEBUG_V("TaskDef File : %s", strFName.toStdString().c_str());
   try {
@@ -70,14 +31,11 @@ bool TeachingUtil::importTask(QString& strFName, std::vector<TaskModelParam*>& t
       QString taskName = "";
       QString taskComment = "";
       QString taskExecEnv = "";
-      try { taskName = QString::fromStdString(taskMap->get("taskName").toString()); }
-      catch (...) { continue; }
-      try { taskComment = QString::fromStdString(taskMap->get("comment").toString()).replace("|", "\n"); }
-      catch (...) {}
-      try { taskExecEnv = QString::fromStdString(taskMap->get("initialize").toString()).replace("|", "\n"); }
-      catch (...) {}
+      try { taskName = QString::fromStdString(taskMap->get("taskName").toString()); } catch (...) { continue; }
+      try { taskComment = QString::fromStdString(taskMap->get("comment").toString()).replace("|", "\n"); } catch (...) {}
+      try { taskExecEnv = QString::fromStdString(taskMap->get("initialize").toString()).replace("|", "\n"); } catch (...) {}
 
-      TaskModelParam* taskParam = new TaskModelParam(NULL_ID, taskName, taskComment, taskExecEnv, -1, "", "");
+			TaskModelParamPtr taskParam = std::make_shared<TaskModelParam>(NULL_ID, taskName, taskComment, taskExecEnv, -1, "", "");
       taskParam->setNew();
       taskInstList.push_back(taskParam);
       //
@@ -87,54 +45,38 @@ bool TeachingUtil::importTask(QString& strFName, std::vector<TaskModelParam*>& t
           Mapping* modelMap = modelList->at(idxModel)->toMapping();
           QString modelName = "";
           QString modelRName = "";
+					int master_id = -1;
           QString modelType = "";
-          QString modelFileName = "";
           double posX = 0.0; double posY = 0.0; double posZ = 0.0;
           double rotX = 0.0; double rotY = 0.0; double rotZ = 0.0;
 
-          try { modelName = QString::fromStdString(modelMap->get("name").toString()); }
-          catch (...) {}
+          try { modelName = QString::fromStdString(modelMap->get("name").toString()); } catch (...) {}
           try {
             modelRName = QString::fromStdString(modelMap->get("rname").toString());
-          }
-          catch (...) {
+          } catch (...) {
             DDEBUG_V("Model RName NOT EXIST : %s", modelName.toStdString().c_str());
             return false;
           }
-          try { modelType = QString::fromStdString(modelMap->get("type").toString()); }
-          catch (...) {}
-          try { modelFileName = QString::fromStdString(modelMap->get("file_name").toString()); }
-          catch (...) {}
-          try { posX = modelMap->get("pos_x").toDouble(); }
-          catch (...) {}
-          try { posY = modelMap->get("pos_y").toDouble(); }
-          catch (...) {}
-          try { posZ = modelMap->get("pos_z").toDouble(); }
-          catch (...) {}
-          try { rotX = modelMap->get("rot_x").toDouble(); }
-          catch (...) {}
-          try { rotY = modelMap->get("rot_y").toDouble(); }
-          catch (...) {}
-          try { rotZ = modelMap->get("rot_z").toDouble(); }
-          catch (...) {}
+					try {
+						master_id = modelMap->get("master_id").toInt();
+					} catch (...) {
+						DDEBUG_V("MasterId NOT EXIST : %s", modelName.toStdString().c_str());
+						return false;
+					}
+					try { modelType = QString::fromStdString(modelMap->get("type").toString()); } catch (...) {}
+          try { posX = modelMap->get("pos_x").toDouble(); } catch (...) {}
+          try { posY = modelMap->get("pos_y").toDouble(); } catch (...) {}
+          try { posZ = modelMap->get("pos_z").toDouble(); } catch (...) {}
+          try { rotX = modelMap->get("rot_x").toDouble(); } catch (...) {}
+          try { rotY = modelMap->get("rot_y").toDouble(); } catch (...) {}
+          try { rotZ = modelMap->get("rot_z").toDouble(); } catch (...) {}
 
           if (modelType.length() == 0) modelType = "Env";
-          ModelParam* modelParam = new ModelParam(NULL_ID, getModelType(modelType), modelName, modelRName, modelFileName, posX, posY, posZ, rotX, rotY, rotZ, true);
-          DDEBUG_V("Model Name : %s, %s", modelFileName.toStdString().c_str(), modelRName.toStdString().c_str());
-          if (0 < modelFileName.length()) {
-            QString strFullModelFile = path + QString("/") + modelFileName;
-            QFile file(strFullModelFile);
-            file.open(QIODevice::ReadOnly);
-            modelParam->setData(file.readAll());
-            //
-            //参照モデルの読み込み
-            TeachingUtil::loadModelDetail(strFullModelFile, modelParam);
-          }
+					ModelParamPtr modelParam = std::make_shared<ModelParam>(NULL_ID, master_id, getModelType(modelType), modelName, modelRName, posX, posY, posZ, rotX, rotY, rotZ, true);
           taskParam->addModel(modelParam);
         }
         DDEBUG("Load Model Finished");
-      }
-      catch (...) {
+      } catch (...) {
         DDEBUG("Load Model Failed");
       }
       //
@@ -150,28 +92,23 @@ bool TeachingUtil::importTask(QString& strFName, std::vector<TaskModelParam*>& t
           QString paramValue = "";
           QString paramElemTypes = "";
           int paramNum;
+					int hide;
 
-          try { paramType = paramMap->get("type").toInt(); }
-          catch (...) {}
-          try { paramName = QString::fromStdString(paramMap->get("name").toString()); }
-          catch (...) {}
+          try { paramType = paramMap->get("type").toInt(); } catch (...) {}
+          try { paramName = QString::fromStdString(paramMap->get("name").toString()); } catch (...) {}
           try {
             paramRName = QString::fromStdString(paramMap->get("rname").toString());
-          }
-          catch (...) {
+          } catch (...) {
             DDEBUG_V("Parameter RName NOT EXIST : %s", paramName.toStdString().c_str());
             return false;
           }
-          try { paramModelName = QString::fromStdString(paramMap->get("model_name").toString()); }
-          catch (...) {}
-          try { paramUnit = QString::fromStdString(paramMap->get("units").toString()); }
-          catch (...) {}
-          try { paramNum = paramMap->get("elem_num").toInt(); }
-          catch (...) {}
-          try { paramElemTypes = QString::fromStdString(paramMap->get("elem_type").toString()); }
-          catch (...) {}
-          try { paramValue = QString::fromStdString(paramMap->get("values").toString()); }
-          catch (...) {}
+          try { paramModelName = QString::fromStdString(paramMap->get("model_name").toString()); } catch (...) {}
+          try { paramUnit = QString::fromStdString(paramMap->get("units").toString()); } catch (...) {}
+          try { paramNum = paramMap->get("elem_num").toInt(); } catch (...) {}
+          try { paramElemTypes = QString::fromStdString(paramMap->get("elem_type").toString()); } catch (...) {}
+          try { paramValue = QString::fromStdString(paramMap->get("values").toString()); } catch (...) {}
+					try { hide = paramMap->get("hide").toInt(); } catch (...) {}
+
           if (paramType == PARAM_KIND_MODEL) {
             paramNum = 6;
             if (paramModelName.length() == 0) {
@@ -180,7 +117,7 @@ bool TeachingUtil::importTask(QString& strFName, std::vector<TaskModelParam*>& t
             }
             bool isExist = false;
             for (int index = 0; index < taskParam->getModelList().size(); index++) {
-              ModelParam* model = taskParam->getModelList()[index];
+							ModelParamPtr model = taskParam->getModelList()[index];
               if (paramModelName == model->getRName()) {
                 isExist = true;
                 break;
@@ -192,15 +129,14 @@ bool TeachingUtil::importTask(QString& strFName, std::vector<TaskModelParam*>& t
             }
           }
           DDEBUG_V("paramName : %s, elem_type : %s", paramName.toStdString().c_str(), paramElemTypes.toStdString().c_str());
-          ParameterParam* param = new ParameterParam(NULL_ID, paramType, paramModelName, paramNum, paramElemTypes, -1, paramName, paramRName, paramUnit);
+					ParameterParamPtr param = std::make_shared<ParameterParam>(NULL_ID, paramType, paramModelName, paramNum, paramElemTypes, -1, paramName, paramRName, paramUnit, hide);
           param->setElemTypes(paramElemTypes);
           param->setDBValues(paramValue);
           param->setNewForce();
           taskParam->addParameter(param);
         }
         DDEBUG("Load Parameters Finished");
-      }
-      catch (...) {
+      } catch (...) {
         DDEBUG("Load Parameters Failed");
       }
       //
@@ -214,22 +150,15 @@ bool TeachingUtil::importTask(QString& strFName, std::vector<TaskModelParam*>& t
           QString dispName = "";
           QString condition = "";
 
-          try { id = stateMap->get("id").toInt(); }
-          catch (...) { continue; }
-          try { type = stateMap->get("type").toInt(); }
-          catch (...) { continue; }
-          try { cmdName = QString::fromStdString(stateMap->get("cmd_name").toString()); }
-          catch (...) {}
-          try { posX = stateMap->get("pos_x").toDouble(); }
-          catch (...) {}
-          try { posY = stateMap->get("pos_y").toDouble(); }
-          catch (...) {}
-          try { condition = QString::fromStdString(stateMap->get("condition").toString()).replace("|", "\n"); }
-          catch (...) {}
-          try { dispName = QString::fromStdString(stateMap->get("disp_name").toString()); }
-          catch (...) {}
+          try { id = stateMap->get("id").toInt(); } catch (...) { continue; }
+          try { type = stateMap->get("type").toInt(); } catch (...) { continue; }
+          try { cmdName = QString::fromStdString(stateMap->get("cmd_name").toString()); } catch (...) {}
+          try { posX = stateMap->get("pos_x").toDouble(); } catch (...) {}
+          try { posY = stateMap->get("pos_y").toDouble(); } catch (...) {}
+          try { condition = QString::fromStdString(stateMap->get("condition").toString()).replace("|", "\n"); } catch (...) {}
+          try { dispName = QString::fromStdString(stateMap->get("disp_name").toString()); } catch (...) {}
           DDEBUG_V("cmd_name[%s]", cmdName.toStdString().c_str());
-          ElementStmParam* stateParam = new ElementStmParam(NULL_ID, type, cmdName, dispName, posX, posY, condition);
+					ElementStmParamPtr stateParam = std::make_shared<ElementStmParam>(NULL_ID, type, cmdName, dispName, posX, posY, condition);
           stateParam->setOrgId(id);
           stateParam->setNew();
           taskParam->addStmElement(stateParam);
@@ -242,19 +171,15 @@ bool TeachingUtil::importTask(QString& strFName, std::vector<TaskModelParam*>& t
               QString model = "";
               QString target = "";
 
-              try { action = QString::fromStdString(actionMap->get("action").toString()); }
-              catch (...) {}
-              try { model = QString::fromStdString(actionMap->get("model").toString()); }
-              catch (...) {}
-              try { target = QString::fromStdString(actionMap->get("target").toString()); }
-              catch (...) {}
+              try { action = QString::fromStdString(actionMap->get("action").toString()); } catch (...) {}
+              try { model = QString::fromStdString(actionMap->get("model").toString()); } catch (...) {}
+              try { target = QString::fromStdString(actionMap->get("target").toString()); } catch (...) {}
               DDEBUG_V("action : %s, model : %s, target : %s", action.toStdString().c_str(), model.toStdString().c_str(), target.toStdString().c_str());
-              ElementStmActionParam* actionParam = new ElementStmActionParam(NULL_ID, NULL_ID, idxAction, action, model, target, true);
+							ElementStmActionParamPtr actionParam = std::make_shared<ElementStmActionParam>(NULL_ID, NULL_ID, idxAction, action, model, target, true);
               stateParam->addModelAction(actionParam);
             }
             DDEBUG("Load model_actions Finished");
-          }
-          catch (...) {
+          } catch (...) {
           }
           //
           try {
@@ -267,23 +192,19 @@ bool TeachingUtil::importTask(QString& strFName, std::vector<TaskModelParam*>& t
 
               try { seq = argMap->get("seq").toInt(); }
               catch (...) { continue; }
-              try { name = QString::fromStdString(argMap->get("name").toString()); }
-              catch (...) {}
-              try { valueDesc = QString::fromStdString(argMap->get("value").toString()).replace("|", "\n"); }
-              catch (...) {}
+              try { name = QString::fromStdString(argMap->get("name").toString()); } catch (...) {}
+              try { valueDesc = QString::fromStdString(argMap->get("value").toString()).replace("|", "\n"); } catch (...) {}
               DDEBUG_V("seq : %d, name : %s, valueDesc : %s", seq, name.toStdString().c_str(), valueDesc.toStdString().c_str());
-              ArgumentParam* argParam = new ArgumentParam(NULL_ID, NULL_ID, seq, name, valueDesc);
+							ArgumentParamPtr argParam = std::make_shared<ArgumentParam>(NULL_ID, NULL_ID, seq, name, valueDesc);
               argParam->setNew();
               stateParam->addArgument(argParam);
             }
             DDEBUG("Load arguments Finished");
-          }
-          catch (...) {
+          } catch (...) {
           }
         }
         DDEBUG("Load States Finished");
-      }
-      catch (...) {
+      } catch (...) {
         DDEBUG("Load States Failed");
       }
       //
@@ -291,8 +212,7 @@ bool TeachingUtil::importTask(QString& strFName, std::vector<TaskModelParam*>& t
         Listing* transList;
         try {
           transList = taskMap->get("transactions").toListing();
-        }
-        catch (...) {
+        } catch (...) {
           transList = taskMap->get("transitions").toListing();
         }
         for (int idxTrans = 0; idxTrans < transList->size(); idxTrans++) {
@@ -300,19 +220,15 @@ bool TeachingUtil::importTask(QString& strFName, std::vector<TaskModelParam*>& t
           int sourceId, targetId;
           QString condition = "";
 
-          try { sourceId = transMap->get("source_id").toInt(); }
-          catch (...) { continue; }
-          try { targetId = transMap->get("target_id").toInt(); }
-          catch (...) { continue; }
-          try { condition = QString::fromStdString(transMap->get("guard").toString()); }
-          catch (...) {}
-          ConnectionStmParam* connParam = new ConnectionStmParam(NULL_ID, sourceId, targetId, condition);
+          try { sourceId = transMap->get("source_id").toInt(); } catch (...) { continue; }
+          try { targetId = transMap->get("target_id").toInt(); } catch (...) { continue; }
+          try { condition = QString::fromStdString(transMap->get("guard").toString()); } catch (...) {}
+					ConnectionStmParamPtr connParam = std::make_shared<ConnectionStmParam>(NULL_ID, sourceId, targetId, condition);
           connParam->setNew();
           taskParam->addStmConnection(connParam);
         }
         DDEBUG("Load Transactions Finished");
-      }
-      catch (...) {
+      } catch (...) {
         DDEBUG("Load Transactions Failed");
       }
       //
@@ -322,9 +238,8 @@ bool TeachingUtil::importTask(QString& strFName, std::vector<TaskModelParam*>& t
           Mapping* fileMap = filesList->at(idxFiles)->toMapping();
           QString fileName = "";
 
-          try { fileName = QString::fromStdString(fileMap->get("name").toString()); }
-          catch (...) {}
-          FileDataParam* fileParam = new FileDataParam(NULL_ID, fileName);
+          try { fileName = QString::fromStdString(fileMap->get("name").toString()); } catch (...) {}
+					FileDataParamPtr fileParam = std::make_shared<FileDataParam>(NULL_ID, NULL_ID, fileName);
           fileParam->setNew();
           if (0 < fileName.length()) {
             QFile file(path + QString("/") + fileName);
@@ -334,8 +249,7 @@ bool TeachingUtil::importTask(QString& strFName, std::vector<TaskModelParam*>& t
           taskParam->addFile(fileParam);
         }
         DDEBUG("Load Files Finished");
-      }
-      catch (...) {
+      } catch (...) {
         DDEBUG("Load Files Failed");
       }
       //
@@ -347,7 +261,7 @@ bool TeachingUtil::importTask(QString& strFName, std::vector<TaskModelParam*>& t
 
           try { fileName = QString::fromStdString(imageMap->get("name").toString()); }
           catch (...) {}
-          ImageDataParam* imageParam = new ImageDataParam(NULL_ID, fileName);
+					ImageDataParamPtr imageParam = std::make_shared<ImageDataParam>(NULL_ID, NULL_ID, fileName);
           imageParam->setNew();
           if (0 < fileName.length()) {
             QImage image(path + QString("/") + fileName);
@@ -356,52 +270,108 @@ bool TeachingUtil::importTask(QString& strFName, std::vector<TaskModelParam*>& t
           taskParam->addImage(imageParam);
         }
         DDEBUG("Load Images Finished");
-      }
-      catch (...) {
+      } catch (...) {
         DDEBUG("Load Images Failed");
       }
+			//
+			try {
+				Listing* masterList = taskMap->get("model_master").toListing();
+				for (int idxMaster = 0; idxMaster < masterList->size(); idxMaster++) {
+					Mapping* masterMap = masterList->at(idxMaster)->toMapping();
+
+					int Id;
+					QString name = "";
+					QString fileName = "";
+
+					try { Id = masterMap->get("id").toInt(); } catch (...) { continue; }
+					try { name = QString::fromStdString(masterMap->get("name").toString()); } catch (...) {}
+					try { fileName = QString::fromStdString(masterMap->get("file_name").toString()); } catch (...) {}
+
+					ModelMasterParamPtr masterParam = std::make_shared<ModelMasterParam>(Id, name, fileName);
+					masterParam->setNew();
+					if (0 < fileName.length()) {
+					  QString strFullModelFile = path + QString("/") + fileName;
+					  QFile file(strFullModelFile);
+					  file.open(QIODevice::ReadOnly);
+						masterParam->setData(file.readAll());
+					  //
+					  //参照モデルの読み込み
+					  TeachingUtil::loadModelDetail(strFullModelFile, masterParam);
+					}
+					modelMasterList.push_back(masterParam);
+				}
+				DDEBUG("Load Images Finished");
+			} catch (...) {
+				DDEBUG("Load Images Failed");
+			}
     }
-  }
-  catch (...) {
+  } catch (...) {
     DDEBUG("TaskInstance File parse ERROR");
   }
   return true;
 }
 
-void TeachingUtil::loadTaskDetailData(TaskModelParam* target) {
+bool TeachingUtil::loadModelDetail(QString& strFName, ModelMasterParamPtr targetModel) {
+	QString strPath = QFileInfo(strFName).absolutePath();
+	QFile fileTxt(strFName);
+	fileTxt.open(QIODevice::ReadOnly);
+	QTextStream in(&fileTxt);
+	QString contents = in.readAll();
+	QStringList lineList = contents.split("\n");
+	QStringList loaded;
+	for (int index = 0; index < lineList.length(); index++) {
+		QString line = lineList.at(index);
+		if (line.contains("url") == false)  continue;
+		QStringList itemList = line.trimmed().split(" ");
+		bool isHit = false;
+		for (int idxItem = 0; idxItem < itemList.length(); idxItem++) {
+			QString item = itemList.at(idxItem);
+			if (isHit) {
+				QString modelName = item.replace("\"", "");
+				if (loaded.contains(modelName)) continue;
+				loaded.append(modelName);
+				ModelDetailParamPtr detail = std::make_shared<ModelDetailParam>(NULL_ID, modelName);
+				detail->setNew();
+				QString fileName = strPath + QString("/") + modelName;
+				QFile fileModel(fileName);
+				fileModel.open(QIODevice::ReadOnly);
+				detail->setData(fileModel.readAll());
+				targetModel->addModelDetail(detail);
+				loadModelDetail(fileName, targetModel);
+				isHit = false;
+			}
+			if (item == QString("url")) {
+				isHit = true;
+			}
+		}
+	}
+	return true;
+}
+
+void TeachingUtil::loadTaskDetailData(TaskModelParamPtr target) {
   if (target->IsLoaded()) return;
   DDEBUG("loadTaskDetailData");
 
   for (int idxModel = 0; idxModel < target->getModelList().size(); idxModel++) {
-    ModelParam* model = target->getModelList()[idxModel];
-    if (ChoreonoidUtil::makeModelItem(model) == false) {
-      model->setModelItem(0);
+		ModelParamPtr model = target->getModelList()[idxModel];
+    if (ChoreonoidUtil::makeModelItem(model->getModelMaster()) == false) {
+      model->getModelMaster()->setModelItem(0);
     }
   }
   for (int idxFig = 0; idxFig < target->getImageList().size(); idxFig++) {
-    ImageDataParam* param = target->getImageList()[idxFig];
-    param->setData(db2Image(param->getName(), param->getRawData()));
+		ImageDataParamPtr param = target->getImageList()[idxFig];
+    param->loadData();
   }
 
   target->setLoaded(true);
 }
 
-QImage TeachingUtil::db2Image(const QString& name, const QByteArray& source) {
-  string strType = "";
-  if (name.toUpper().endsWith("PNG")) {
-    strType = "PNG";
-  } else if (name.toUpper().endsWith("JPG")) {
-    strType = "JPG";
-  }
-  QImage result = QImage::fromData(source, strType.c_str());
-
-  return result;
-}
-
-bool TeachingUtil::exportTask(QString& strFName, TaskModelParam* targetTask) {
+bool TeachingUtil::exportTask(QString& strFName, TaskModelParamPtr targetTask) {
   DDEBUG("TeachingUtil::exportTask");
-  QString path = QFileInfo(strFName).absolutePath();
-  Listing* archive = new Listing();
+	vector<ModelMasterParamPtr> masterList;
+
+	QString path = QFileInfo(strFName).absolutePath();
+	Listing* archive = new Listing();
   archive->setDoubleFormat("%.9g");
   MappingPtr taskNode = archive->newMapping();
   taskNode->write("taskName", targetTask->getName().toUtf8(), DOUBLE_QUOTED);
@@ -411,12 +381,13 @@ bool TeachingUtil::exportTask(QString& strFName, TaskModelParam* targetTask) {
   if (0 < targetTask->getModelList().size()) {
     Listing* modelsNode = taskNode->createListing("models");
     for (int index = 0; index < targetTask->getModelList().size(); index++) {
-      ModelParam* param = targetTask->getModelList()[index];
+			ModelParamPtr param = targetTask->getModelList()[index];
       if (param->getMode() == DB_MODE_DELETE || param->getMode() == DB_MODE_IGNORE) continue;
       MappingPtr modelNode = modelsNode->newMapping();
       modelNode->write("name", param->getName().toUtf8(), DOUBLE_QUOTED);
-      modelNode->write("rname", param->getRName().toUtf8(), DOUBLE_QUOTED);
-      string strType = "";
+			modelNode->write("rname", param->getRName().toUtf8(), DOUBLE_QUOTED);
+			modelNode->write("master_id", param->getMasterId());
+			string strType = "";
       int intType = param->getType();
       if (intType == MODEL_ENV) {
         strType = "Env.";
@@ -426,39 +397,31 @@ bool TeachingUtil::exportTask(QString& strFName, TaskModelParam* targetTask) {
         strType = "Work";
       }
       modelNode->write("type", strType);
-      modelNode->write("file_name", param->getFileName().toUtf8(), DOUBLE_QUOTED);
       modelNode->write("pos_x", param->getPosX());
       modelNode->write("pos_y", param->getPosY());
       modelNode->write("pos_z", param->getPosZ());
       modelNode->write("rot_x", param->getRotRx());
       modelNode->write("rot_y", param->getRotRy());
       modelNode->write("rot_z", param->getRotRz());
-      //
-      if (0 < param->getFileName().length()) {
-        QFile file(path + QString("/") + param->getFileName());
-        file.open(QIODevice::WriteOnly);
-        QByteArray data = param->getData();
-        file.write(data);
-        file.close();
-      }
-      //
-      for (int idxSub = 0; idxSub < param->getModelDetailList().size(); idxSub++) {
-        ModelDetailParam* detail = param->getModelDetailList()[idxSub];
-        if (0 < detail->getFileName().length()) {
-          QFile fileSub(path + QString("/") + detail->getFileName());
-          fileSub.open(QIODevice::WriteOnly);
-          QByteArray dataSub = detail->getData();
-          fileSub.write(dataSub);
-          fileSub.close();
-        }
-      }
+			//
+			bool isExist = false;
+			for(int idxMaster = 0; idxMaster < masterList.size(); idxMaster++) {
+				ModelMasterParamPtr master = masterList[idxMaster];
+				if (master->getId() == param->getMasterId()) {
+					isExist = true;
+					break;
+				}
+			}
+			if (isExist == false) {
+				masterList.push_back(param->getModelMaster());
+			}
     }
   }
   //
   if (0 < targetTask->getStmElementList().size()) {
     Listing* statesNode = taskNode->createListing("states");
     for (int index = 0; index < targetTask->getStmElementList().size(); index++) {
-      ElementStmParam* param = targetTask->getStmElementList()[index];
+			ElementStmParamPtr param = targetTask->getStmElementList()[index];
       if (param->getMode() == DB_MODE_DELETE || param->getMode() == DB_MODE_IGNORE) continue;
       MappingPtr stateNode = statesNode->newMapping();
       stateNode->write("id", param->getId());
@@ -474,7 +437,7 @@ bool TeachingUtil::exportTask(QString& strFName, TaskModelParam* targetTask) {
       if (0 < param->getActionList().size()) {
         Listing* actionsNode = stateNode->createListing("model_actions");
         for (int idxAction = 0; idxAction < param->getActionList().size(); idxAction++) {
-          ElementStmActionParam* actParam = param->getActionList()[idxAction];
+					ElementStmActionParamPtr actParam = param->getActionList()[idxAction];
           MappingPtr actionNode = actionsNode->newMapping();
           actionNode->write("action", actParam->getAction().toUtf8(), DOUBLE_QUOTED);
           actionNode->write("model", actParam->getModel().toUtf8(), DOUBLE_QUOTED);
@@ -487,7 +450,7 @@ bool TeachingUtil::exportTask(QString& strFName, TaskModelParam* targetTask) {
       if (0 < param->getArgList().size()) {
         Listing* argsNode = stateNode->createListing("arguments");
         for (int idxArg = 0; idxArg < param->getArgList().size(); idxArg++) {
-          ArgumentParam* argParam = param->getArgList()[idxArg];
+					ArgumentParamPtr argParam = param->getArgList()[idxArg];
           MappingPtr argNode = argsNode->newMapping();
           argNode->write("seq", argParam->getSeq());
           argNode->write("name", argParam->getName().toUtf8(), DOUBLE_QUOTED);
@@ -500,7 +463,7 @@ bool TeachingUtil::exportTask(QString& strFName, TaskModelParam* targetTask) {
   if (0 < targetTask->getStmConnectionList().size()) {
     Listing* connsNode = taskNode->createListing("transitions");
     for (int index = 0; index < targetTask->getStmConnectionList().size(); index++) {
-      ConnectionStmParam* param = targetTask->getStmConnectionList()[index];
+			ConnectionStmParamPtr param = targetTask->getStmConnectionList()[index];
       if (param->getMode() == DB_MODE_DELETE || param->getMode() == DB_MODE_IGNORE) continue;
       if (param->getSourceId() == param->getTargetId()) continue;
       MappingPtr connNode = connsNode->newMapping();
@@ -515,7 +478,7 @@ bool TeachingUtil::exportTask(QString& strFName, TaskModelParam* targetTask) {
   if (0 < targetTask->getParameterList().size()) {
     Listing* paramsNode = taskNode->createListing("parameters");
     for (int index = 0; index < targetTask->getParameterList().size(); index++) {
-      ParameterParam* param = targetTask->getParameterList()[index];
+			ParameterParamPtr param = targetTask->getParameterList()[index];
       if (param->getMode() == DB_MODE_DELETE || param->getMode() == DB_MODE_IGNORE) continue;
       MappingPtr paramNode = paramsNode->newMapping();
       paramNode->write("name", param->getName().toUtf8(), DOUBLE_QUOTED);
@@ -526,13 +489,14 @@ bool TeachingUtil::exportTask(QString& strFName, TaskModelParam* targetTask) {
       paramNode->write("elem_num", param->getElemNum());
       paramNode->write("elem_type", param->getElemTypeNo());
       paramNode->write("values", param->getDBValues().toUtf8(), DOUBLE_QUOTED);
-    }
+			paramNode->write("hide", param->getHide());
+		}
   }
   //
   if (0 < targetTask->getFileList().size()) {
     Listing* filesNode = taskNode->createListing("files");
     for (int index = 0; index < targetTask->getFileList().size(); index++) {
-      FileDataParam* param = targetTask->getFileList()[index];
+			FileDataParamPtr param = targetTask->getFileList()[index];
       if (param->getMode() == DB_MODE_DELETE || param->getMode() == DB_MODE_IGNORE) continue;
       MappingPtr fileNode = filesNode->newMapping();
       fileNode->write("name", param->getName().toUtf8(), DOUBLE_QUOTED);
@@ -549,7 +513,7 @@ bool TeachingUtil::exportTask(QString& strFName, TaskModelParam* targetTask) {
   if (0 < targetTask->getImageList().size()) {
     Listing* imagesNode = taskNode->createListing("images");
     for (int index = 0; index < targetTask->getImageList().size(); index++) {
-      ImageDataParam* param = targetTask->getImageList()[index];
+			ImageDataParamPtr param = targetTask->getImageList()[index];
       if (param->getMode() == DB_MODE_DELETE || param->getMode() == DB_MODE_IGNORE) continue;
       MappingPtr imageNode = imagesNode->newMapping();
       imageNode->write("name", param->getName().toUtf8(), DOUBLE_QUOTED);
@@ -559,7 +523,36 @@ bool TeachingUtil::exportTask(QString& strFName, TaskModelParam* targetTask) {
       }
     }
   }
-  //
+	/////
+	if (0 < masterList.size()) {
+		Listing* mastesrNode = taskNode->createListing("model_master");
+		for (int index = 0; index < masterList.size(); index++) {
+			ModelMasterParamPtr master = masterList[index];
+			MappingPtr masterNode = mastesrNode->newMapping();
+			masterNode->write("id", master->getId());
+			masterNode->write("name", master->getName().toUtf8(), DOUBLE_QUOTED);
+			masterNode->write("file_name", master->getFileName().toUtf8(), DOUBLE_QUOTED);
+			if (0 < master->getFileName().length()) {
+			  QFile file(path + QString("/") + master->getFileName());
+			  file.open(QIODevice::WriteOnly);
+			  QByteArray data = master->getData();
+			  file.write(data);
+			  file.close();
+			}
+			
+			for (int idxSub = 0; idxSub < master->getModelDetailList().size(); idxSub++) {
+			  ModelDetailParamPtr detail = master->getModelDetailList()[idxSub];
+			  if (0 < detail->getFileName().length()) {
+			    QFile fileSub(path + QString("/") + detail->getFileName());
+			    fileSub.open(QIODevice::WriteOnly);
+			    QByteArray dataSub = detail->getData();
+			    fileSub.write(dataSub);
+			    fileSub.close();
+			  }
+			}
+		}
+	}
+	//
   YAMLWriter writer(strFName.toUtf8().constData());
   writer.setKeyOrderPreservationMode(true);
   writer.putNode(archive);
@@ -567,10 +560,10 @@ bool TeachingUtil::exportTask(QString& strFName, TaskModelParam* targetTask) {
   return true;
 }
 
-bool TeachingUtil::exportFlow(QString& strFName, FlowParam* targetFlow) {
+bool TeachingUtil::exportFlow(QString& strFName, FlowParamPtr targetFlow) {
   DDEBUG("TeachingUtil::exportFlow");
 
-  vector<TaskModelParam*> taskList;
+  vector<TaskModelParamPtr> taskList;
 
   QString path = QFileInfo(strFName).absolutePath();
   Listing* archive = new Listing();
@@ -582,7 +575,7 @@ bool TeachingUtil::exportFlow(QString& strFName, FlowParam* targetFlow) {
   if (0 < targetFlow->getStmElementList().size()) {
     Listing* statesNode = flowNode->createListing("states");
     for (int index = 0; index < targetFlow->getStmElementList().size(); index++) {
-      ElementStmParam* param = targetFlow->getStmElementList()[index];
+			ElementStmParamPtr param = targetFlow->getStmElementList()[index];
       if (param->getMode() == DB_MODE_DELETE || param->getMode() == DB_MODE_IGNORE) continue;
       MappingPtr stateNode = statesNode->newMapping();
       stateNode->write("id", param->getId());
@@ -601,7 +594,7 @@ bool TeachingUtil::exportFlow(QString& strFName, FlowParam* targetFlow) {
   if (0 < targetFlow->getStmConnectionList().size()) {
     Listing* connsNode = flowNode->createListing("transitions");
     for (int index = 0; index < targetFlow->getStmConnectionList().size(); index++) {
-      ConnectionStmParam* param = targetFlow->getStmConnectionList()[index];
+			ConnectionStmParamPtr param = targetFlow->getStmConnectionList()[index];
       if (param->getMode() == DB_MODE_DELETE || param->getMode() == DB_MODE_IGNORE) continue;
       if (param->getSourceId() == param->getTargetId()) continue;
       MappingPtr connNode = connsNode->newMapping();
@@ -620,16 +613,14 @@ bool TeachingUtil::exportFlow(QString& strFName, FlowParam* targetFlow) {
   if (0 < taskList.size()) {
     QDir baseDir = QFileInfo(strFName).absolutePath();
     for (int index = 0; index < taskList.size(); index++) {
-      TaskModelParam* targetTask = taskList[index];
+			TaskModelParamPtr targetTask = taskList[index];
       int targetId = targetTask->getId();
       QString targetIdStr = QString::number(targetId);
       baseDir.mkdir(targetIdStr);
       QString targetFile = baseDir.absolutePath() + QString("/") + targetIdStr + QString("/") + targetIdStr + ".yaml";
       DDEBUG_V("targetFile %s", targetFile.toStdString().c_str());
       //
-      if (targetTask->IsLoaded() == false) {
-        TeachingUtil::loadTaskDetailData(targetTask);
-      }
+      TeachingUtil::loadTaskDetailData(targetTask);
       exportTask(targetFile, targetTask);
     }
   }
@@ -637,7 +628,7 @@ bool TeachingUtil::exportFlow(QString& strFName, FlowParam* targetFlow) {
   return true;
 }
 
-bool TeachingUtil::importFlow(QString& strFName, std::vector<FlowParam*>& flowModelList) {
+bool TeachingUtil::importFlow(QString& strFName, std::vector<FlowParamPtr>& flowModelList, vector<ModelMasterParamPtr>& modelMasterList) {
   DDEBUG_V("TaskDef File : %s", strFName.toStdString().c_str());
   YAMLReader pyaml;
   try {
@@ -657,7 +648,7 @@ bool TeachingUtil::importFlow(QString& strFName, std::vector<FlowParam*>& flowMo
       try { flowComment = QString::fromStdString(flowMap->get("comment").toString()).replace("|", "\n"); }
       catch (...) {}
 
-      FlowParam* flowParam = new FlowParam(NULL_ID, flowName, flowComment, "", "");
+      FlowParamPtr flowParam = std::make_shared<FlowParam>(NULL_ID, flowName, flowComment, "", "");
       flowParam->setNew();
       flowModelList.push_back(flowParam);
 
@@ -679,25 +670,24 @@ bool TeachingUtil::importFlow(QString& strFName, std::vector<FlowParam*>& flowMo
           try { task_id = stateMap->get("task_id").toInt(); } catch (...) {}
 
           DDEBUG_V("task_name[%s]", taskName.toStdString().c_str());
-          ElementStmParam* stateParam = new ElementStmParam(NULL_ID, type, taskName, taskName, posX, posY, condition);
+					ElementStmParamPtr stateParam = std::make_shared<ElementStmParam>(NULL_ID, type, taskName, taskName, posX, posY, condition);
           stateParam->setOrgId(id);
           stateParam->setNew();
           flowParam->addStmElement(stateParam);
           //
           QString targetIdStr = QString::number(task_id);
           QString targetFile = path + QString("/") + targetIdStr + QString("/") + targetIdStr + ".yaml";
-          vector<TaskModelParam*> taskInstList;
-          if (importTask(targetFile, taskInstList)) {
+          vector<TaskModelParamPtr> taskInstList;
+          if (importTask(targetFile, taskInstList, modelMasterList)) {
             if (0 < taskInstList.size()) {
-              TaskModelParam* task = taskInstList[0];
+							TaskModelParamPtr task = taskInstList[0];
               task->setNew();
               stateParam->setTaskParam(task);
             }
           }
         }
         DDEBUG("Load States Finished");
-      }
-      catch (...) {
+      } catch (...) {
         DDEBUG("Load States Failed");
       }
       //
@@ -720,7 +710,7 @@ bool TeachingUtil::importFlow(QString& strFName, std::vector<FlowParam*>& flowMo
           catch (...) { continue; }
           try { condition = QString::fromStdString(transMap->get("guard").toString()); }
           catch (...) {}
-          ConnectionStmParam* connParam = new ConnectionStmParam(NULL_ID, sourceId, targetId, condition);
+					ConnectionStmParamPtr connParam = std::make_shared<ConnectionStmParam>(NULL_ID, sourceId, targetId, condition);
           connParam->setNew();
           flowParam->addStmConnection(connParam);
         }
@@ -862,7 +852,7 @@ std::vector<std::string> SettingManager::getExtList() {
   return result;
 }
 /////
-ArgumentEstimator* EstimatorFactory::createArgEstimator(TaskModelParam* targetParam) {
+ArgumentEstimator* EstimatorFactory::createArgEstimator(TaskModelParamPtr targetParam) {
   ArgumentEstimator* handler = new Calculator();
   //ArgumentEstimator* handler = new PythonWrapper();
   handler->initialize(targetParam);

@@ -1,21 +1,19 @@
 #ifndef TEACHING_FLOW_SEARCH_DIALOG_H_INCLUDED
 #define TEACHING_FLOW_SEARCH_DIALOG_H_INCLUDED
 
+#include "TeachingTypes.h"
 #include "QtUtil.h"
-#include "DataBaseManager.h"
-
-using namespace cnoid;
 
 namespace teaching {
+
+using namespace std;
 
 class FlowSearchDialog : public QDialog {
   Q_OBJECT
 public:
-  FlowSearchDialog(FlowParam* currentFlow, QWidget* parent = 0);
+  FlowSearchDialog(QWidget* parent = 0);
 
-  inline bool IsOK() const { return this->isOk_; }
-  inline int getSelectedIndex() const { return this->selected_; }
-  inline bool IsDeleted() const { return this->isDeleted_; }
+  void showGrid(const vector<FlowParamPtr>& flowList);
 
 private Q_SLOTS:
   void searchClicked();
@@ -26,14 +24,6 @@ private Q_SLOTS:
 private:
   QLineEdit* leCond;
   QTableWidget* lstFlow;
-
-  std::vector<FlowParam*> flowList_;
-  int selected_;
-  FlowParam* currentFlow_;
-  bool isOk_;
-  bool isDeleted_;
-
-  void showGrid();
 };
 
 }

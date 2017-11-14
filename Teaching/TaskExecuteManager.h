@@ -27,20 +27,20 @@ public:
   inline void setParameterView(ParameterView* view) { this->parameterView_ = view; }
   inline void setMetadataView(MetaDataView* view) { this->metadataView = view; }
 
-  inline void setCurrentTask(TaskModelParam* param) { this->currentTask_ = param; }
-  inline void setCurrentElement(ElementStmParam* param) { this->currParam_ = param; }
+  inline void setCurrentTask(TaskModelParamPtr param) { this->currentTask_ = param; }
+  inline void setCurrentElement(ElementStmParamPtr param) { this->currParam_ = param; }
 
   inline void setBreak(bool value) { this->isBreak_ = value; }
   inline bool isBreak() const { return this->isBreak_; }
 
-  inline TaskModelParam* getCurrentTask() const {
+  inline TaskModelParamPtr getCurrentTask() const {
     if (this->currentTask_) return this->currentTask_;
     return this->prevTask_;
   }
 
   void runSingleTask();
   bool runSingleCommand();
-  void runFlow(FlowParam* targetFlow);
+  void runFlow(FlowParamPtr targetFlow);
   bool detachAllModelItem();
   void abortOperation();
 
@@ -53,9 +53,9 @@ private:
   bool isBreak_;
   bool isAbort_;
 
-  TaskModelParam* currentTask_;
-  TaskModelParam* prevTask_;
-  ElementStmParam* currParam_;
+	TaskModelParamPtr currentTask_;
+	TaskModelParamPtr prevTask_;
+	ElementStmParamPtr currParam_;
 
   ArgumentEstimator* argHandler_;
 
@@ -71,7 +71,7 @@ private:
   void setOutArgument(std::vector<CompositeParamType>& parameterList);
   void setButtonEnableMode(bool isEnable);
 
-  void createArgEstimator(TaskModelParam* targetParam = NULL);
+  void createArgEstimator(TaskModelParamPtr targetParam = NULL);
   void deleteArgEstimator();
 };
 

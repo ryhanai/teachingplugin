@@ -9,19 +9,24 @@ namespace teaching {
 
 class ChoreonoidUtil {
 public:
-  static bool readModelItem(ModelParam* target, QString& fileName);
-  static bool makeModelItem(ModelParam* target);
+  static bool readModelItem(ModelMasterParamPtr target, QString& fileName);
+  static bool makeModelItem(ModelMasterParamPtr target);
 
-  static bool loadTaskModelItem(TaskModelParam* target);
-  static bool unLoadTaskModelItem(TaskModelParam* target);
+  static bool loadTaskModelItem(TaskModelParamPtr target);
+  static bool unLoadTaskModelItem(TaskModelParamPtr target);
 
-  static bool loadModelItem(ModelParam* target);
-  static bool unLoadModelItem(ModelParam* target);
+  static bool loadModelItem(ModelParamPtr target);
+  static bool unLoadModelItem(ModelParamPtr target);
+
+	static bool loadModelMasterItem(ModelMasterParamPtr target);
+	static bool unLoadModelMasterItem(ModelMasterParamPtr target);
+
   static bool updateModelItemPosition(const cnoid::BodyItemPtr& target, double posX, double posY, double posZ, double rotRx, double rotRy, double rotRz);
   static void showAllModelItem();
 
-  static void selectTreeItem(ModelParam* target);
-  static void deselectTreeItem();
+  static void selectTreeItem(ModelParamPtr target);
+	static void selectTreeItem(ModelMasterParamPtr target);
+	static void deselectTreeItem();
   static void updateScene();
 
 private:

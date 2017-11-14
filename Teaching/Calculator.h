@@ -244,7 +244,7 @@ private:
 /////
 class MemberParam {
 public:
-  MemberParam(NodeType type, std::string source, TaskModelParam* targetModel);
+  MemberParam(NodeType type, std::string source, TaskModelParamPtr targetModel);
   ~MemberParam() {};
 
   inline CalcMode getCalcMode() const { return this->calcMode_; }
@@ -273,7 +273,7 @@ private:
   Vector3d valueVector_;
   VectorXd valueVector6d_;
   Matrix3d valueMatrix_;
-  TaskModelParam* targetModel_;
+	TaskModelParamPtr targetModel_;
 
   CalcMode calcMode_;
 
@@ -295,11 +295,11 @@ public:
   Calculator() : resultScalar_(0.0), resultVector_(Vector3d::Zero()), valMode_(VAL_SCALAR) {};
   ~Calculator();
 
-  void initialize(TaskModelParam* targetParam = NULL);
+  void initialize(TaskModelParamPtr targetParam = NULL);
   void finalize();
 
-  bool buildArguments(TaskModelParam* taskParam, ElementStmParam* targetParam, std::vector<CompositeParamType>& parameterList);
-  bool checkSyntax(TaskModelParam* taskParam, QString script, string& errStr);
+  bool buildArguments(TaskModelParamPtr taskParam, ElementStmParamPtr targetParam, std::vector<CompositeParamType>& parameterList);
+  bool checkSyntax(TaskModelParamPtr taskParam, QString script, string& errStr);
   bool checkCondition(bool cmdRet, string script);
 
 private:
@@ -308,7 +308,7 @@ private:
   Vector3d resultVector_;
   Matrix3d resultMatrix_;
 
-  TaskModelParam* targetModel_;
+	TaskModelParamPtr targetModel_;
   std::vector<MemberParam*> memberList_;
 
   inline double getResultScalar() const { return this->resultScalar_; }
@@ -317,7 +317,7 @@ private:
 
   inline ValueMode getValMode() const { return this->valMode_; }
 
-  bool calculate(QString source, TaskModelParam* targetModel);
+  bool calculate(QString source, TaskModelParamPtr targetModel);
 
   int extractNodeInfo(const Node& source);
 };

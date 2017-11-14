@@ -3,7 +3,6 @@
 
 #include <string>
 #include <cnoid/View>
-#include <cnoid/MessageView>  /* modified by qtconv.rb 0th rule*/  
 #include <cnoid/LazyCaller>
 #include <cnoid/ConnectionSet>
 #include "QtUtil.h"
@@ -17,54 +16,49 @@ namespace teaching {
 class ModelParameterGroup : public QWidget {
   Q_OBJECT
 public:
-  ModelParameterGroup(ParameterParam* source, ModelParam* model, QHBoxLayout* layout, QWidget* parent = 0);
+  ModelParameterGroup(ParameterParamPtr source, ModelParamPtr model, QHBoxLayout* layout, QWidget* parent = 0);
   void disconnectKinematics();
 
 private Q_SLOTS:
   void modelPositionChanged();
 
 private:
-  QLineEdit* leX_;
-  QLineEdit* leY_;
-  QLineEdit* leZ_;
-  QLineEdit* leRx_;
-  QLineEdit* leRy_;
-  QLineEdit* leRz_;
+	QLineEdit* leX_;
+	QLineEdit* leY_;
+	QLineEdit* leZ_;
+	QLineEdit* leRx_;
+	QLineEdit* leRy_;
+	QLineEdit* leRz_;
 
-  ParameterParam* targetParam_;
-  ModelParam* targetModel_;
+	ParameterParamPtr targetParam_;
+	ModelParamPtr targetModel_;
 
   BodyItemPtr currentBodyItem_;
   Connection connectionToKinematicStateChanged;
   LazyCaller updateKinematicStateLater;
 
   void updateKinematicState(bool blockSignals);
-
-  std::ostream& os_;
 };
+typedef std::shared_ptr<ModelParameterGroup> ModelParameterGroupPtr;
 
 class ParameterViewImpl : public QWidget {
   Q_OBJECT
 public:
-  ParameterViewImpl(QWidget* parent = 0);
-  void setTaskParam(TaskModelParam* param);
+  ParameterViewImpl(ParameterViewType type, QWidget* parent = 0);
+  void setTaskParam(TaskModelParamPtr param, vector<ParameterParamPtr>& paramList);
   void clearTaskParam();
-  void setInputValues();
 
 private Q_SLOTS:
   void editClicked();
 
 private:
+	ParameterViewType type_;
   QLabel* lblName;
   QPushButton* btnEdit;
   vector<QFrame*> frameList_;
   vector<QLineEdit*> textList_;
 
-  vector<ModelParameterGroup*> modelList_;
-
-  TaskModelParam* targetTask_;
-
-  std::ostream& os_;
+  vector<ModelParameterGroupPtr> modelList_;
 
   void clearView();
 };
@@ -73,13 +67,22 @@ class ParameterView : public cnoid::View {
 public:
   ParameterView();
   ~ParameterView();
-  void setTaskParam(TaskModelParam* param) { this->viewImpl->setTaskParam(param); }
+  void setTaskParam(TaskModelParamPtr param, vector<ParameterParamPtr>& paramList) {
+		this->viewImpl->setTaskParam(param, paramList);
+	}
   void clearTaskParam() { this->viewImpl->clearTaskParam(); }
-  void setInputValues() { this->viewImpl->setInputValues(); }
 
 private:
   ParameterViewImpl* viewImpl;
 };
 
+class FlowParameterView : public cnoid::View {
+public:
+	FlowParameterView();
+	~FlowParameterView();
+
+private:
+	ParameterViewImpl* viewImpl;
+};
 }
 #endif

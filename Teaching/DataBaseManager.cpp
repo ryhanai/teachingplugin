@@ -2,10 +2,9 @@
 #include <QVariant>
 #include <QBuffer>
 #include <qsqlerror.h>
-#include "TeachingUtil.h"
-#include "ChoreonoidUtil.h"
-#include "TaskExecutor.h"
 #include <cnoid/UTF8>
+
+#include "TeachingUtil.h"
 
 #include "LoggerUtil.h"
 
@@ -19,12 +18,12 @@ DatabaseManager::DatabaseManager() {
 }
 
 bool DatabaseManager::connectDB() {
-  db_ = QSqlDatabase::addDatabase("QSQLITE");
-  db_.setDatabaseName(QString::fromStdString(SettingManager::getInstance().getDatabase()));
-  if (db_.open() == false) {
-    return false;
+	db_ = QSqlDatabase::addDatabase("QSQLITE");
+	db_.setDatabaseName(QString::fromStdString(SettingManager::getInstance().getDatabase()));
+	if (db_.open() == false) {
+		return false;
   }
-  return true;
+	return true;
 }
 
 bool DatabaseManager::reConnectDB() {
@@ -44,9 +43,9 @@ void DatabaseManager::closeDB() {
   }
 }
 /////
-vector<FlowParam*> DatabaseManager::searchFlowList(vector<string>& condList, bool isOr) {
-  flowList_.clear();
-
+vector<FlowParamPtr> DatabaseManager::searchFlowList(vector<string>& condList, bool isOr) {
+	vector<FlowParamPtr> result;
+	
   string strQuery = "SELECT ";
   strQuery += "flow_id, name, comment, created_date, last_updated_date ";
   strQuery += "FROM T_FLOW ";
@@ -73,16 +72,14 @@ vector<FlowParam*> DatabaseManager::searchFlowList(vector<string>& condList, boo
     QString createdDate = taskQuery.value(3).toString();
     QString updatedDate = taskQuery.value(4).toString();
     //
-    FlowParam* param = new FlowParam(id, name, comment, createdDate, updatedDate);
-    flowList_.push_back(param);
+		FlowParamPtr param = std::make_shared<FlowParam>(id, name, comment, createdDate, updatedDate);
+		result.push_back(param);
   }
-  return flowList_;
+  return result;
 }
 
-FlowParam* DatabaseManager::getFlowParamById(const int id) {
+FlowParamPtr DatabaseManager::getFlowParamById(const int id) {
   DDEBUG_V("getFlowParamById : %d", id);
-
-  FlowParam* result = NULL;
 
   string strQuery = "SELECT ";
   strQuery += "name, comment, created_date, last_updated_date ";
@@ -97,21 +94,21 @@ FlowParam* DatabaseManager::getFlowParamById(const int id) {
   QString createdDate = flowQuery.value(2).toString();
   QString updatedDate = flowQuery.value(3).toString();
   //
-  result = new FlowParam(id, name, comment, createdDate, updatedDate);
+	FlowParamPtr result = std::make_shared<FlowParam>(id, name, comment, createdDate, updatedDate);
   result->setName(name);
   result->setComment(comment);
   result->setCreatedDate(createdDate);
   result->setLastUpdatedDate(updatedDate);
   //
   try {
-    vector<ElementStmParam*> stateList = getFlowStateParams(id);
-    std::vector<ElementStmParam*>::iterator itState = stateList.begin();
+    vector<ElementStmParamPtr> stateList = getFlowStateParams(id);
+    std::vector<ElementStmParamPtr>::iterator itState = stateList.begin();
     while (itState != stateList.end()) {
       result->addStmElement(*itState);
       ++itState;
     }
-    vector<ConnectionStmParam*> transList = getFlowTransParams(id);
-    std::vector<ConnectionStmParam*>::iterator itTrans = transList.begin();
+    vector<ConnectionStmParamPtr> transList = getFlowTransParams(id);
+    std::vector<ConnectionStmParamPtr>::iterator itTrans = transList.begin();
     while (itTrans != transList.end()) {
       result->addStmConnection(*itTrans);
       ++itTrans;
@@ -123,15 +120,43 @@ FlowParam* DatabaseManager::getFlowParamById(const int id) {
   return result;
 }
 
-vector<TaskModelParam*> DatabaseManager::searchTaskModels(vector<string>& condList, bool isOr) {
-  taskModelList_.clear();
+vector<TaskModelParamPtr> DatabaseManager::getAllTask() {
+	taskModelList_.clear();
+
+	string strQuery = "SELECT ";
+	strQuery += "task_inst_id, name, comment, flow_id, created_date, last_updated_date, exec_env ";
+	strQuery += "FROM T_TASK_MODEL_INST ";
+	strQuery += " ORDER BY task_inst_id";
+	QSqlQuery taskQuery(db_);
+	taskQuery.exec(strQuery.c_str());
+
+	while (taskQuery.next()) {
+		int id = taskQuery.value(0).toInt();
+		QString name = taskQuery.value(1).toString();
+		QString comment = taskQuery.value(2).toString();
+		int flow_id = taskQuery.value(3).toInt();
+		QString createdDate = taskQuery.value(4).toString();
+		QString updatedDate = taskQuery.value(5).toString();
+		QString execEnv = taskQuery.value(6).toString();
+		//
+		TaskModelParamPtr param = std::make_shared<TaskModelParam>(id, name, comment, execEnv, flow_id, createdDate, updatedDate);
+		taskModelList_.push_back(param);
+		getDetailParams(param);
+	}
+	return taskModelList_;
+}
+
+vector<TaskModelParamPtr> DatabaseManager::searchTaskModels(vector<string>& condList, bool isOr) {
+	DDEBUG("DatabaseManager::searchTaskModels");
+
+	taskModelList_.clear();
 
   string strQuery = "SELECT ";
   strQuery += "task_inst_id, name, comment, flow_id, created_date, last_updated_date, exec_env ";
   strQuery += "FROM T_TASK_MODEL_INST ";
   strQuery += "WHERE flow_id < 0 ";
   string strQueryCond = " AND ( ";
-  for (unsigned int index = 0; index < condList.size(); index++) {
+	for (unsigned int index = 0; index < condList.size(); index++) {
     if (0 < index) {
       if (isOr) strQueryCond += " Or ";
       else     strQueryCond += " And ";
@@ -143,11 +168,12 @@ vector<TaskModelParam*> DatabaseManager::searchTaskModels(vector<string>& condLi
     strQuery += strQueryCond;
   }
   strQuery += " ORDER BY task_inst_id";
-  QSqlQuery taskQuery(db_);
+	DDEBUG_V("DatabaseManager::searchTaskModels %s", strQuery.c_str());
+	QSqlQuery taskQuery(db_);
   taskQuery.exec(strQuery.c_str());
 
   while (taskQuery.next()) {
-    int id = taskQuery.value(0).toInt();
+		int id = taskQuery.value(0).toInt();
     QString name = taskQuery.value(1).toString();
     QString comment = taskQuery.value(2).toString();
     int flow_id = taskQuery.value(3).toInt();
@@ -155,15 +181,17 @@ vector<TaskModelParam*> DatabaseManager::searchTaskModels(vector<string>& condLi
     QString updatedDate = taskQuery.value(5).toString();
     QString execEnv = taskQuery.value(6).toString();
     //
-    TaskModelParam* param = new TaskModelParam(id, name, comment, execEnv, flow_id, createdDate, updatedDate);
+		TaskModelParamPtr param = std::make_shared<TaskModelParam>(id, name, comment, execEnv, flow_id, createdDate, updatedDate);
     taskModelList_.push_back(param);
     getDetailParams(param);
   }
-  return taskModelList_;
+	return taskModelList_;
 }
 
-TaskModelParam* DatabaseManager::getTaskModelById(const int taskId) {
-  TaskModelParam* result = NULL;
+TaskModelParamPtr DatabaseManager::getTaskModelById(const int taskId) {
+	DDEBUG_V("DatabaseManager::getTaskModelById %d", taskId);
+
+	TaskModelParamPtr result = NULL;
 
   string strQuery = "SELECT ";
   strQuery += "task_inst_id, name, comment, flow_id, created_date, last_updated_date, exec_env ";
@@ -181,69 +209,58 @@ TaskModelParam* DatabaseManager::getTaskModelById(const int taskId) {
     QString updatedDate = taskQuery.value(5).toString();
     QString execEnv = taskQuery.value(6).toString();
     //
-    result = new TaskModelParam(id, name, comment, execEnv, flow_id, createdDate, updatedDate);
+    result.reset(new TaskModelParam(id, name, comment, execEnv, flow_id, createdDate, updatedDate));
     taskModelList_.push_back(result);
     getDetailParams(result);
   }
   return result;
 }
 
-void DatabaseManager::getDetailParams(TaskModelParam* target) {
-  vector<ModelParam*> modelList = getModelParams(target->getId());
-  std::vector<ModelParam*>::iterator itModel = modelList.begin();
+void DatabaseManager::getDetailParams(TaskModelParamPtr target) {
+  vector<ModelParamPtr> modelList = getModelParams(target->getId());
+  std::vector<ModelParamPtr>::iterator itModel = modelList.begin();
   while (itModel != modelList.end()) {
     target->addModel(*itModel);
     ++itModel;
   }
   //
-  vector<ParameterParam*> paramList = getParameterParams(target->getId());
-  std::vector<ParameterParam*>::iterator itParam = paramList.begin();
+  vector<ParameterParamPtr> paramList = getParameterParams(target->getId());
+  std::vector<ParameterParamPtr>::iterator itParam = paramList.begin();
   while (itParam != paramList.end()) {
     target->addParameter(*itParam);
     ++itParam;
   }
   //
-  vector<ElementStmParam*> stateList = getStateParams(target->getId());
-  std::vector<ElementStmParam*>::iterator itState = stateList.begin();
+  vector<ElementStmParamPtr> stateList = getStateParams(target->getId());
+  std::vector<ElementStmParamPtr>::iterator itState = stateList.begin();
   while (itState != stateList.end()) {
     target->addStmElement(*itState);
     ++itState;
   }
   //
-  vector<ConnectionStmParam*> transList = getTransParams(target->getId());
-  std::vector<ConnectionStmParam*>::iterator itTrans = transList.begin();
+  vector<ConnectionStmParamPtr> transList = getTransParams(target->getId());
+  std::vector<ConnectionStmParamPtr>::iterator itTrans = transList.begin();
   while (itTrans != transList.end()) {
     target->addStmConnection(*itTrans);
     ++itTrans;
   }
   //
-  vector<ImageDataParam*> imageList = getFigureParams(target->getId());
-  std::vector<ImageDataParam*>::iterator itImage = imageList.begin();
+  vector<ImageDataParamPtr> imageList = getFigureParams(target->getId());
+  std::vector<ImageDataParamPtr>::iterator itImage = imageList.begin();
   while (itImage != imageList.end()) {
     target->addImage(*itImage);
     ++itImage;
   }
   //
-  vector<FileDataParam*> fileList = getFileParams(target->getId());
-  std::vector<FileDataParam*>::iterator itFile = fileList.begin();
+  vector<FileDataParamPtr> fileList = getFileParams(target->getId());
+  std::vector<FileDataParamPtr>::iterator itFile = fileList.begin();
   while (itFile != fileList.end()) {
     target->addFile(*itFile);
     ++itFile;
   }
 }
 
-
-TaskModelParam* DatabaseManager::getTaskParamById(int id) {
-  for (int index = 0; index < taskModelList_.size(); index++) {
-    TaskModelParam* param = taskModelList_[index];
-    if (param->getId() == id) {
-      return param;
-    }
-  }
-  return 0;
-}
-
-TaskModelParam* DatabaseManager::getTaskModel(int index) {
+TaskModelParamPtr DatabaseManager::getTaskModel(int index) {
   if (index < 0 || taskModelList_.size() <= index) return 0;
   return taskModelList_[index];
 }
@@ -260,18 +277,19 @@ int DatabaseManager::getModelMaxIndex() {
   return maxId;
 }
 //////////
-bool DatabaseManager::saveFlowModel(FlowParam* source) {
-  db_.transaction();
+bool DatabaseManager::saveFlowModel(FlowParamPtr source) {
+	DDEBUG("DatabaseManager::saveFlowModel");
+	db_.transaction();
   if (saveFlowData(source) == false) {
     db_.rollback();
     return false;
   }
   //
-  vector<ElementStmParam*> stateList = source->getStmElementList();
-  vector<ElementStmParam*>::iterator itState = stateList.begin();
+  vector<ElementStmParamPtr> stateList = source->getStmElementList();
+  vector<ElementStmParamPtr>::iterator itState = stateList.begin();
   while (itState != stateList.end()) {
     if ((*itState)->getType() == ELEMENT_COMMAND) {
-      TaskModelParam* param = (*itState)->getTaskParam();
+			TaskModelParamPtr param = (*itState)->getTaskParam();
       param->setFlowId(source->getId());
       if (saveTaskModel(param) == false) {
         db_.rollback();
@@ -286,11 +304,11 @@ bool DatabaseManager::saveFlowModel(FlowParam* source) {
     ++itState;
   }
   //
-  vector<ConnectionStmParam*> transList = source->getStmConnectionList();
-  vector<ConnectionStmParam*>::iterator itTrans = transList.begin();
+  vector<ConnectionStmParamPtr> transList = source->getStmConnectionList();
+  vector<ConnectionStmParamPtr>::iterator itTrans = transList.begin();
   while (itTrans != transList.end()) {
     if ((*itTrans)->getMode() == DB_MODE_INSERT) {
-      vector<ElementStmParam*>::iterator sourceElem = find_if(stateList.begin(), stateList.end(), ElementStmParamComparator((*itTrans)->getSourceId()));
+      vector<ElementStmParamPtr>::iterator sourceElem = find_if(stateList.begin(), stateList.end(), ElementStmParamComparator((*itTrans)->getSourceId()));
       if (sourceElem == stateList.end()) {
         ++itTrans;
         DDEBUG("NOT Found SourceId");
@@ -298,7 +316,7 @@ bool DatabaseManager::saveFlowModel(FlowParam* source) {
       }
       (*itTrans)->setSourceId((*sourceElem)->getId());
 
-      vector<ElementStmParam*>::iterator targetElem = find_if(stateList.begin(), stateList.end(), ElementStmParamComparator((*itTrans)->getTargetId()));
+      vector<ElementStmParamPtr>::iterator targetElem = find_if(stateList.begin(), stateList.end(), ElementStmParamComparator((*itTrans)->getTargetId()));
       if (targetElem == stateList.end()) {
         ++itTrans;
         DDEBUG("NOT Found TargetId");
@@ -325,69 +343,157 @@ bool DatabaseManager::saveFlowModel(FlowParam* source) {
   return true;
 }
 
-bool DatabaseManager::saveTaskParameter(TaskModelParam* source) {
-  vector<ParameterParam*> paramList = source->getParameterList();
-  vector<ParameterParam*>::iterator itParam = paramList.begin();
-  while (itParam != paramList.end()) {
-    if (saveTaskParameterData(source->getId(), *itParam) == false) {
-      db_.rollback();
-      return false;
-    }
-    ++itParam;
-  }
+bool DatabaseManager::saveTaskModelsForLoad(vector<TaskModelParamPtr>& source) {
+	DDEBUG("saveTaskModelsForLoad");
+	errorStr_ = "";
 
-  return true;
+	db_.transaction();
+	try {
+		vector<TaskModelParamPtr>::iterator itTask = source.begin();
+		while (itTask != source.end()) {
+			if (saveTaskInstanceData(*itTask, true) == false) {
+				db_.rollback();
+				return false;
+			}
+
+			if (saveDetailData(*itTask) == false) {
+				db_.rollback();
+				return false;
+			}
+			//
+			vector<ElementStmParamPtr> stateList = (*itTask)->getStmElementList();
+			vector<ConnectionStmParamPtr> transList = (*itTask)->getStmConnectionList();
+			vector<ConnectionStmParamPtr>::iterator itTrans = transList.begin();
+			while (itTrans != transList.end()) {
+				DDEBUG_V("Trans sourceId : %d, TargetId : %d", (*itTrans)->getSourceId(), (*itTrans)->getTargetId());
+				if ((*itTrans)->getSourceId() == (*itTrans)->getTargetId()) continue;
+				vector<ElementStmParamPtr>::iterator sourceElem = find_if(stateList.begin(), stateList.end(), ElementStmParamComparator((*itTrans)->getSourceId()));
+				if (sourceElem == stateList.end()) {
+					++itTrans;
+					DDEBUG("NOT Found SourceId");
+					continue;
+				}
+				(*itTrans)->setSourceId((*sourceElem)->getId());
+
+				vector<ElementStmParamPtr>::iterator targetElem = find_if(stateList.begin(), stateList.end(), ElementStmParamComparator((*itTrans)->getTargetId()));
+				if (targetElem == stateList.end()) {
+					++itTrans;
+					DDEBUG("NOT Found TargetId");
+					continue;
+				}
+				(*itTrans)->setTargetId((*targetElem)->getId());
+				DDEBUG_V("New Trans sourceId : %d, TargetId : %d", (*itTrans)->getSourceId(), (*itTrans)->getTargetId());
+
+				if (saveTransitionStmData((*itTask)->getId(), *itTrans) == false) {
+					db_.rollback();
+					return false;
+				}
+				++itTrans;
+			}
+			++itTask;
+		}
+	} catch (...) {
+		db_.rollback();
+		return false;
+	}
+	db_.commit();
+	return true;
 }
 
-bool DatabaseManager::saveStateParameter(ElementStmParam* source) {
-  DDEBUG("saveStateParameter");
-  vector<ArgumentParam*> argList = source->getArgList();
-  vector<ArgumentParam*>::iterator itArg = argList.begin();
-  while (itArg != argList.end()) {
-    if (saveArgumentData(source->getId(), *itArg) == false) {
-      db_.rollback();
-      return false;
-    }
-    ++itArg;
-  }
-  //
-  vector<ElementStmActionParam*> actionList = source->getActionList();
-  vector<ElementStmActionParam*>::iterator itAction = actionList.begin();
-  while (itAction != actionList.end()) {
-    if (saveElementStmActionData(source->getId(), *itAction) == false) {
-      db_.rollback();
-      return false;
-    }
-    ++itAction;
-  }
-  return true;
-}
-
-bool DatabaseManager::saveTaskModelsForLoad(vector<TaskModelParam*>& source) {
-  DDEBUG("saveTaskModelsForLoad");
+bool DatabaseManager::saveImportedTaskModel(vector<TaskModelParamPtr>& source, vector<ModelMasterParamPtr>& modelMasterList) {
+  DDEBUG("DatabaseManager::saveImportedTaskModel");
   errorStr_ = "";
 
   db_.transaction();
   try {
-    vector<TaskModelParam*>::iterator itTask = source.begin();
+		if (saveModelMasterList(modelMasterList) == false) {
+			db_.rollback();
+			return false;
+		}
+		DDEBUG("M_MODEL Saved");
+		/////
+    vector<TaskModelParamPtr>::iterator itTask = source.begin();
     while (itTask != source.end()) {
       if (saveTaskInstanceData(*itTask, true) == false) {
         db_.rollback();
         return false;
       }
+			//
+			int taskId = (*itTask)->getId();
+			DDEBUG("T_TASK_MODEL_INST Saved");
 
-      if (saveDetailData(*itTask) == false) {
-        db_.rollback();
-        return false;
-      }
-      //
-      vector<ElementStmParam*> stateList = (*itTask)->getStmElementList();
-      vector<ConnectionStmParam*> transList = (*itTask)->getStmConnectionList();
-      vector<ConnectionStmParam*>::iterator itTrans = transList.begin();
+			vector<ImageDataParamPtr>::iterator itImage = (*itTask)->getImageList().begin();
+			while (itImage != (*itTask)->getImageList().end()) {
+				if (saveImageData(taskId, *itImage) == false) {
+					db_.rollback();
+					return false;
+				}
+				++itImage;
+			}
+			DDEBUG("T_FIGURE Saved");
+			//
+			vector<FileDataParamPtr>::iterator itFile = (*itTask)->getFileList().begin();
+			while (itFile != (*itTask)->getFileList().end()) {
+				if (saveFileData(taskId, *itFile) == false) {
+					db_.rollback();
+					return false;
+				}
+				++itFile;
+			}
+			DDEBUG("T_FILE Saved");
+			//
+			for (int index = 0; index < (*itTask)->getParameterList().size(); index++) {
+				ParameterParamPtr param = (*itTask)->getParameterList()[index];
+				if (saveTaskParameterData(taskId, param) == false) {
+					db_.rollback();
+					return false;
+				}
+			}
+			DDEBUG("T_TASK_INST_PARAMETER Saved");
+			//
+			DDEBUG_V("T_MODEL_INFO Saved %d", (*itTask)->getModelList().size());
+			for (int index = 0; index < (*itTask)->getModelList().size(); index++) {
+				DDEBUG_V("index %d", index);
+				ModelParamPtr param = (*itTask)->getModelList()[index];
+				bool isExist = false;
+				for (int index = 0; index < modelMasterList.size(); index++) {
+					ModelMasterParamPtr master = modelMasterList[index];
+					DDEBUG_V("Master  Org:%d, Id:%d", master->getOrgId(), master->getId());
+					if (param->getMasterId() == master->getOrgId()) {
+						param->setMasterId(master->getId());
+						isExist = true;
+						break;
+					}
+				}
+				if (isExist == false) {
+					DDEBUG_V("Master NOT Exist %d", index);
+					db_.rollback();
+					return false;
+				}
+				if (saveModelData(taskId, param) == false) {
+					db_.rollback();
+					return false;
+				}
+			}
+			DDEBUG("T_MODEL_INFO Saved");
+			//
+			vector<ElementStmParamPtr> stateList = (*itTask)->getStmElementList();
+			vector<ElementStmParamPtr>::iterator itState = stateList.begin();
+			while (itState != stateList.end()) {
+				if (saveElementStmData(taskId, *itState) == false) {
+					db_.rollback();
+					return false;
+				}
+				++itState;
+			}
+			DDEBUG("T_STATE Saved");
+			//
+			vector<ConnectionStmParamPtr> transList = (*itTask)->getStmConnectionList();
+			vector<ConnectionStmParamPtr>::iterator itTrans = transList.begin();
       while (itTrans != transList.end()) {
         DDEBUG_V("Trans sourceId : %d, TargetId : %d", (*itTrans)->getSourceId(), (*itTrans)->getTargetId());
         if ((*itTrans)->getSourceId() == (*itTrans)->getTargetId()) continue;
-        vector<ElementStmParam*>::iterator sourceElem = find_if(stateList.begin(), stateList.end(), ElementStmParamComparator((*itTrans)->getSourceId()));
+        vector<ElementStmParamPtr>::iterator sourceElem = find_if(stateList.begin(), stateList.end(), ElementStmParamComparator((*itTrans)->getSourceId()));
         if (sourceElem == stateList.end()) {
           ++itTrans;
           DDEBUG("NOT Found SourceId");
@@ -395,7 +501,7 @@ bool DatabaseManager::saveTaskModelsForLoad(vector<TaskModelParam*>& source) {
         }
         (*itTrans)->setSourceId((*sourceElem)->getId());
 
-        vector<ElementStmParam*>::iterator targetElem = find_if(stateList.begin(), stateList.end(), ElementStmParamComparator((*itTrans)->getTargetId()));
+        vector<ElementStmParamPtr>::iterator targetElem = find_if(stateList.begin(), stateList.end(), ElementStmParamComparator((*itTrans)->getTargetId()));
         if (targetElem == stateList.end()) {
           ++itTrans;
           DDEBUG("NOT Found TargetId");
@@ -410,10 +516,10 @@ bool DatabaseManager::saveTaskModelsForLoad(vector<TaskModelParam*>& source) {
         }
         ++itTrans;
       }
-      ++itTask;
+			DDEBUG("T_TRANSITION Saved");
+			++itTask;
     }
-  }
-  catch (...) {
+  } catch (...) {
     db_.rollback();
     return false;
   }
@@ -421,7 +527,7 @@ bool DatabaseManager::saveTaskModelsForLoad(vector<TaskModelParam*>& source) {
   return true;
 }
 
-bool DatabaseManager::saveTaskModel(TaskModelParam* source) {
+bool DatabaseManager::saveTaskModel(TaskModelParamPtr source) {
   DDEBUG("saveTaskModel");
   errorStr_ = "";
 
@@ -436,13 +542,13 @@ bool DatabaseManager::saveTaskModel(TaskModelParam* source) {
     return false;
   }
 
-  vector<ElementStmParam*> stateList = source->getStmElementList();
-  vector<ConnectionStmParam*> transList = source->getStmConnectionList();
-  vector<ConnectionStmParam*>::iterator itTrans = transList.begin();
+  vector<ElementStmParamPtr> stateList = source->getStmElementList();
+  vector<ConnectionStmParamPtr> transList = source->getStmConnectionList();
+  vector<ConnectionStmParamPtr>::iterator itTrans = transList.begin();
   while (itTrans != transList.end()) {
     //V‹K’Ç‰Á‚µ‚½ó‘Ô—p
     if ((*itTrans)->getSourceId() < 0 || (*itTrans)->getMode() == DB_MODE_INSERT) {
-      vector<ElementStmParam*>::iterator sourceElem = find_if(stateList.begin(), stateList.end(), ElementStmParamComparator((*itTrans)->getSourceId()));
+      vector<ElementStmParamPtr>::iterator sourceElem = find_if(stateList.begin(), stateList.end(), ElementStmParamComparator((*itTrans)->getSourceId()));
       if (sourceElem == stateList.end()) {
         ++itTrans;
         DDEBUG("NOT Found SourceId");
@@ -452,7 +558,7 @@ bool DatabaseManager::saveTaskModel(TaskModelParam* source) {
     }
 
     if ((*itTrans)->getTargetId() < 0 || (*itTrans)->getMode() == DB_MODE_INSERT) {
-      vector<ElementStmParam*>::iterator targetElem = find_if(stateList.begin(), stateList.end(), ElementStmParamComparator((*itTrans)->getTargetId()));
+      vector<ElementStmParamPtr>::iterator targetElem = find_if(stateList.begin(), stateList.end(), ElementStmParamComparator((*itTrans)->getTargetId()));
       if (targetElem == stateList.end()) {
         ++itTrans;
         DDEBUG("NOT Found TargetId");
@@ -468,7 +574,7 @@ bool DatabaseManager::saveTaskModel(TaskModelParam* source) {
     ++itTrans;
   }
   //
-  vector<ElementStmParam*>::iterator itState = stateList.begin();
+  vector<ElementStmParamPtr>::iterator itState = stateList.begin();
   while (itState != stateList.end()) {
     (*itState)->updateId();
     ++itState;
@@ -478,9 +584,9 @@ bool DatabaseManager::saveTaskModel(TaskModelParam* source) {
   return true;
 }
 /////
-bool DatabaseManager::saveDetailData(TaskModelParam* source) {
-  vector<ModelParam*> modelList = source->getModelList();
-  vector<ModelParam*>::iterator itModel = modelList.begin();
+bool DatabaseManager::saveDetailData(TaskModelParamPtr source) {
+  vector<ModelParamPtr> modelList = source->getModelList();
+  vector<ModelParamPtr>::iterator itModel = modelList.begin();
   while (itModel != modelList.end()) {
     if (saveModelData(source->getId(), *itModel) == false) {
       db_.rollback();
@@ -489,8 +595,8 @@ bool DatabaseManager::saveDetailData(TaskModelParam* source) {
     ++itModel;
   }
   //
-  vector<ImageDataParam*> imageList = source->getImageList();
-  vector<ImageDataParam*>::iterator itImage = imageList.begin();
+  vector<ImageDataParamPtr> imageList = source->getImageList();
+  vector<ImageDataParamPtr>::iterator itImage = imageList.begin();
   while (itImage != imageList.end()) {
     if (saveImageData(source->getId(), *itImage) == false) {
       db_.rollback();
@@ -499,8 +605,8 @@ bool DatabaseManager::saveDetailData(TaskModelParam* source) {
     ++itImage;
   }
   //
-  vector<FileDataParam*> fileList = source->getFileList();
-  vector<FileDataParam*>::iterator itFile = fileList.begin();
+  vector<FileDataParamPtr> fileList = source->getFileList();
+  vector<FileDataParamPtr>::iterator itFile = fileList.begin();
   while (itFile != fileList.end()) {
     if (saveFileData(source->getId(), *itFile) == false) {
       db_.rollback();
@@ -509,8 +615,8 @@ bool DatabaseManager::saveDetailData(TaskModelParam* source) {
     ++itFile;
   }
   //
-  vector<ParameterParam*> paramList = source->getParameterList();
-  vector<ParameterParam*>::iterator itParam = paramList.begin();
+  vector<ParameterParamPtr> paramList = source->getParameterList();
+  vector<ParameterParamPtr>::iterator itParam = paramList.begin();
   while (itParam != paramList.end()) {
     if (saveTaskParameterData(source->getId(), *itParam) == false) {
       db_.rollback();
@@ -519,8 +625,8 @@ bool DatabaseManager::saveDetailData(TaskModelParam* source) {
     ++itParam;
   }
   //
-  vector<ElementStmParam*> stateList = source->getStmElementList();
-  vector<ElementStmParam*>::iterator itState = stateList.begin();
+  vector<ElementStmParamPtr> stateList = source->getStmElementList();
+  vector<ElementStmParamPtr>::iterator itState = stateList.begin();
   while (itState != stateList.end()) {
     if (saveElementStmData(source->getId(), *itState) == false) {
       db_.rollback();
@@ -530,6 +636,51 @@ bool DatabaseManager::saveDetailData(TaskModelParam* source) {
   }
   return true;
 }
+
+bool DatabaseManager::deleteTaskModel(int task_inst_id) {
+	errorStr_ = "";
+	DDEBUG_V("deleteTaskModel : %d", task_inst_id);
+	db_.transaction();
+
+	if (deleteDataById("T_TASK_MODEL_INST", "task_inst_id", task_inst_id) == false) return false;
+	if (deleteDataById("T_FIGURE", "task_inst_id", task_inst_id) == false) return false;
+	if (deleteDataById("T_FILE", "task_inst_id", task_inst_id) == false) return false;
+	if (deleteDataById("T_TASK_INST_PARAMETER", "task_inst_id", task_inst_id) == false) return false;
+	if (deleteDataById("T_STATE", "task_inst_id", task_inst_id) == false) return false;
+	if (deleteDataById("T_STATE_ACTION", "task_inst_id", task_inst_id) == false) return false;
+	if (deleteDataById("T_ARGUMENT", "task_inst_id", task_inst_id) == false) return false;
+	if (deleteDataById("T_TRANSITION", "task_inst_id", task_inst_id) == false) return false;
+	if (deleteDataById("T_VIA_POINT", "task_inst_id", task_inst_id) == false) return false;
+	if (deleteDataById("T_MODEL_INFO", "task_inst_id", task_inst_id) == false) return false;
+
+	db_.commit();
+	return true;
+}
+
+bool DatabaseManager::deleteFlowModel(int id) {
+	DDEBUG("deleteFlowModel");
+	db_.transaction();
+
+	if (deleteDataById("T_FLOW", "flow_id", id) == false) return false;
+	if (deleteDataById("T_FLOW_STATE", "flow_id", id) == false) return false;
+	if (deleteDataById("T_FLOW_TRANSITION", "flow_id", id) == false) return false;
+	if (deleteDataById("T_FLOW_VIA_POINT", "flow_id", id) == false) return false;
+
+	db_.commit();
+	return true;
+}
+
+bool DatabaseManager::deleteDataById(QString tableName, QString strKey, int id) {
+	QString strQuery = "DELETE FROM " + tableName + " WHERE " + strKey + " = ? ";
+	QSqlQuery query(strQuery);
+	query.addBindValue(id);
+	if (!query.exec()) {
+		errorStr_ = "DELETE(" + tableName + ") error:" + query.lastError().databaseText() + "-" + strQuery;
+		db_.rollback();
+		return false;
+	}
+	return true;
+}
 //////////
 QByteArray DatabaseManager::image2DB(QString& name, const QImage& source) {
   QByteArray result;
@@ -537,7 +688,7 @@ QByteArray DatabaseManager::image2DB(QString& name, const QImage& source) {
   buffer.open(QBuffer::WriteOnly);
   if (name.toUpper().endsWith("PNG")) {
     source.save(&buffer, "PNG");
-  } else if (name.toUpper().endsWith("JPG")) {
+  } else if (name.toUpper().endsWith("JPG") || name.toUpper().endsWith("JPEG")) {
     source.save(&buffer, "JPG");
   }
   return result;

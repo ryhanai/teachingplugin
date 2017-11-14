@@ -5,7 +5,7 @@
 
 namespace teaching {
 
-ExecEnvDialog::ExecEnvDialog(TaskModelParam* param, QWidget* parent)
+ExecEnvDialog::ExecEnvDialog(TaskModelParamPtr param, QWidget* parent)
   : QDialog(parent, Qt::CustomizeWindowHint | Qt::WindowTitleHint) {
   this->targetTask_ = param;
   //

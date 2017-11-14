@@ -36,7 +36,7 @@ string trim(const string& str) {
   return str.substr(first, (last - first + 1));
 }
 
-void PythonWrapper::initialize(TaskModelParam* targetParam) {
+void PythonWrapper::initialize(TaskModelParamPtr targetParam) {
   Plugin* target = PluginManager::instance()->findPlugin("Python");
   if (target == NULL) {
     usePython_ = false;
@@ -63,7 +63,7 @@ void PythonWrapper::initialize(TaskModelParam* targetParam) {
     //
     //タスクパラメータの設定
     for (int idxParam = 0; idxParam < targetParam->getParameterList().size(); idxParam++) {
-      ParameterParam* param = targetParam->getParameterList()[idxParam];
+			ParameterParamPtr param = targetParam->getParameterList()[idxParam];
       QString paramName = param->getRName();
       int paramNum = param->getElemNum();
       DDEBUG_V("name : %s, %d", paramName.toStdString().c_str(), paramNum);
@@ -87,12 +87,12 @@ void PythonWrapper::finalize() {
   }
 }
 
-bool PythonWrapper::buildArguments(TaskModelParam* taskParam, ElementStmParam* targetParam, std::vector<CompositeParamType>& parameterList) {
+bool PythonWrapper::buildArguments(TaskModelParamPtr taskParam, ElementStmParamPtr targetParam, std::vector<CompositeParamType>& parameterList) {
   parameterList.clear();
 
   //引数の組み立て
   for (int idxArg = 0; idxArg < targetParam->getArgList().size(); idxArg++) {
-    ArgumentParam* arg = targetParam->getArgList()[idxArg];
+		ArgumentParamPtr arg = targetParam->getArgList()[idxArg];
     QString valueDesc = arg->getValueDesc();
     DDEBUG_V("valueDesc : %s", valueDesc.toStdString().c_str());
     //
@@ -160,7 +160,7 @@ bool PythonWrapper::buildArguments(TaskModelParam* taskParam, ElementStmParam* t
   return true;
 }
 
-bool PythonWrapper::checkSyntax(TaskModelParam* taskParam, QString script, string& errStr) {
+bool PythonWrapper::checkSyntax(TaskModelParamPtr taskParam, QString script, string& errStr) {
   std::stringstream strNum;
   strNum << funcNum_;
 

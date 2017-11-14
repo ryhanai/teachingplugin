@@ -4,8 +4,9 @@
 #include <boost/bind.hpp>
 #include "TeachingUtil.h"
 #include "ChoreonoidUtil.h"
-#include "DataBaseManager.h"
 #include "ParameterDialog.h"
+
+#include "TeachingEventHandler.h"
 
 #include "gettext.h"
 #include "LoggerUtil.h"
@@ -16,11 +17,11 @@ using namespace boost;
 
 namespace teaching {
 
-ModelParameterGroup::ModelParameterGroup(ParameterParam* source, ModelParam* model, QHBoxLayout* layout, QWidget* parent)
+ModelParameterGroup::ModelParameterGroup(ParameterParamPtr source, ModelParamPtr model, QHBoxLayout* layout, QWidget* parent)
   : targetParam_(source), targetModel_(model),
   currentBodyItem_(0),
   updateKinematicStateLater(bind(&ModelParameterGroup::updateKinematicState, this, true), IDLE_PRIORITY_LOW),
-  QWidget(parent), os_(MessageView::mainInstance()->cout()) {
+  QWidget(parent) {
   leX_ = new QLineEdit;
   leX_->setText(QString::number(model->getPosX(), 'f', 4));
   layout->addWidget(leX_);
@@ -58,18 +59,18 @@ ModelParameterGroup::ModelParameterGroup(ParameterParam* source, ModelParam* mod
   connect(leRy_, SIGNAL(editingFinished()), this, SLOT(modelPositionChanged()));
   connect(leRz_, SIGNAL(editingFinished()), this, SLOT(modelPositionChanged()));
 
-  if (targetModel_->getModelItem() == NULL) {
+  if (targetModel_->getModelMaster()->getModelItem() == NULL) {
     return;
   }
-  currentBodyItem_ = targetModel_->getModelItem().get();
-  connectionToKinematicStateChanged = targetModel_->getModelItem().get()->sigKinematicStateChanged().connect(updateKinematicStateLater);
+  currentBodyItem_ = targetModel_->getModelMaster()->getModelItem().get();
+  connectionToKinematicStateChanged = targetModel_->getModelMaster()->getModelItem().get()->sigKinematicStateChanged().connect(updateKinematicStateLater);
 }
 
 void ModelParameterGroup::modelPositionChanged() {
   DDEBUG("ModelParameterGroup::modelPositionChanged()");
 
   if (targetModel_) {
-    if (targetModel_->getModelItem()) {
+    if (targetModel_->getModelMaster()->getModelItem()) {
       double newX = leX_->text().toDouble();
       double newY = leY_->text().toDouble();
       double newZ = leZ_->text().toDouble();
@@ -82,7 +83,7 @@ void ModelParameterGroup::modelPositionChanged() {
         || dbl_eq(newRx, targetModel_->getRotRx()) == false
         || dbl_eq(newRy, targetModel_->getRotRy()) == false
         || dbl_eq(newRz, targetModel_->getRotRz()) == false) {
-        ChoreonoidUtil::updateModelItemPosition(targetModel_->getModelItem(), newX, newY, newZ, newRx, newRy, newRz);
+        ChoreonoidUtil::updateModelItemPosition(targetModel_->getModelMaster()->getModelItem(), newX, newY, newZ, newRx, newRy, newRz);
         targetModel_->setPosX(newX);
         targetModel_->setPosY(newY);
         targetModel_->setPosZ(newZ);
@@ -117,21 +118,21 @@ void ModelParameterGroup::updateKinematicState(bool blockSignals) {
 }
 
 void ModelParameterGroup::disconnectKinematics() {
-  if (connectionToKinematicStateChanged.connected()) {
-    connectionToKinematicStateChanged.disconnect();
-  }
+	DDEBUG("ModelParameterGroup::disconnectKinematics");
+	if (connectionToKinematicStateChanged.connected()) {
+		connectionToKinematicStateChanged.disconnect();
+	}
 }
 /////
-ParameterViewImpl::ParameterViewImpl(QWidget* parent)
-  : QWidget(parent), targetTask_(0), os_(MessageView::mainInstance()->cout()) {
+ParameterViewImpl::ParameterViewImpl(ParameterViewType type, QWidget* parent) : QWidget(parent) {
+	this->type_ = type;
+	TeachingEventHandler::instance()->prv_Loaded(type, this);
 }
 
-void ParameterViewImpl::setTaskParam(TaskModelParam* param) {
+void ParameterViewImpl::setTaskParam(TaskModelParamPtr param, vector<ParameterParamPtr>& paramList) {
   DDEBUG("ParameterViewImpl::setTaskParam()");
 
-  setInputValues();
-  clearView();
-  this->targetTask_ = param;
+	clearView();
   //
   QFrame* topFrame = new QFrame(this);
   frameList_.push_back(topFrame);
@@ -152,26 +153,29 @@ void ParameterViewImpl::setTaskParam(TaskModelParam* param) {
   QVBoxLayout* mainLayout = new QVBoxLayout;
   mainLayout->addWidget(topFrame);
 
-  vector<ParameterParam*> paramList = param->getParameterList();
-  vector<ParameterParam*>::iterator itParam = paramList.begin();
+  vector<ParameterParamPtr>::iterator itParam = paramList.begin();
   while (itParam != paramList.end()) {
     (*itParam)->clearControlList();
-    if ((*itParam)->getMode() == DB_MODE_DELETE || (*itParam)->getMode() == DB_MODE_IGNORE) continue;
-
     QFrame* eachFrame = new QFrame(this);
     frameList_.push_back(eachFrame);
     QHBoxLayout* eachLayout = new QHBoxLayout;
     eachLayout->setContentsMargins(0, 0, 0, 0);
     eachFrame->setLayout(eachLayout);
+
     QLabel* lblName = new QLabel((*itParam)->getName());
     eachLayout->addWidget(lblName);
+		if ((*itParam)->getHide() != 0) {
+			QPalette pal = lblName->palette();
+			pal.setColor(QPalette::WindowText, Qt::red);
+			lblName->setPalette(pal);
+		}
 
     if ((*itParam)->getType() == PARAM_KIND_MODEL) {
-      vector<ModelParam*> modelList = param->getModelList();
+      vector<ModelParamPtr> modelList = param->getModelList();
       for (int index = 0; index < modelList.size(); index++) {
-        ModelParam* model = modelList[index];
+				ModelParamPtr model = modelList[index];
         if (model->getRName() == (*itParam)->getModelName()) {
-          ModelParameterGroup* modelParam = new ModelParameterGroup(*itParam, model, eachLayout);
+					ModelParameterGroupPtr modelParam = std::make_shared<ModelParameterGroup>(*itParam, model, eachLayout);
           modelList_.push_back(modelParam);
           break;
         }
@@ -180,10 +184,15 @@ void ParameterViewImpl::setTaskParam(TaskModelParam* param) {
     } else {
       int elem_num = (*itParam)->getElemNum();
       for (int index = 0; index < elem_num; index++) {
-        QLineEdit* txtEach = new QLineEdit;
+				QLineEdit* txtEach;
+				if (index < (*itParam)->getControlNum()) {
+					txtEach = (*itParam)->getControl(index);
+				} else {
+					txtEach = new QLineEdit;
+					(*itParam)->addControl(txtEach);
+				}
         txtEach->setText(QString::fromStdString((*itParam)->getValues(index)).trimmed());
         eachLayout->addWidget(txtEach);
-        (*itParam)->addControl(txtEach);
         textList_.push_back(txtEach);
       }
     }
@@ -197,66 +206,50 @@ void ParameterViewImpl::setTaskParam(TaskModelParam* param) {
   setLayout(mainLayout);
 }
 
-void ParameterViewImpl::setInputValues() {
-  DDEBUG("ParameterViewImpl::setInputValues()");
-  if (targetTask_) {
-    vector<ParameterParam*> paramList = targetTask_->getParameterList();
-    vector<ParameterParam*>::iterator itParam = paramList.begin();
-    while (itParam != paramList.end()) {
-      (*itParam)->saveValues();
-      ++itParam;
-    }
-  }
-}
-
 void ParameterViewImpl::clearView() {
   DDEBUG("ParameterViewImpl::clearView()");
   if (layout()) {
-    layout()->removeWidget(lblName);
-    delete lblName;
-    layout()->removeWidget(btnEdit);
-    delete btnEdit;
-    //
+		layout()->removeWidget(lblName);
+		delete lblName;
+		layout()->removeWidget(btnEdit);
+		delete btnEdit;
+		//
     vector<QLineEdit*>::iterator itText = textList_.begin();
-    while (itText != textList_.end()) {
+		while (itText != textList_.end()) {
       layout()->removeWidget(*itText);
-      delete *itText;
       ++itText;
     }
-    textList_.clear();
-    //
+		textList_.clear();
+		//
+		vector<ModelParameterGroupPtr>::iterator itModel = modelList_.begin();
+		while (itModel != modelList_.end()) {
+			(*itModel)->disconnectKinematics();
+			++itModel;
+		}
+		modelList_.clear();
+		//
     vector<QFrame*>::iterator itFrame = frameList_.begin();
-    while (itFrame != frameList_.end()) {
+		while (itFrame != frameList_.end()) {
       layout()->removeWidget(*itFrame);
       delete *itFrame;
       ++itFrame;
     }
-    frameList_.clear();
+		frameList_.clear();
     //
-    vector<ModelParameterGroup*>::iterator itModel = modelList_.begin();
-    while (itModel != modelList_.end()) {
-      (*itModel)->disconnectKinematics();
-      delete *itModel;
-      ++itModel;
-    }
-    modelList_.clear();
-    //
-    delete layout();
+		delete layout();
   }
 }
 
 void ParameterViewImpl::clearTaskParam() {
-  setInputValues();
+	TeachingEventHandler::instance()->prv_SetInputValues();
   clearView();
-  this->targetTask_ = 0;
 }
 
 void ParameterViewImpl::editClicked() {
   DDEBUG("ParameterViewImpl::editClicked()");
 
-  ParameterDialog dialog(targetTask_, this);
+  ParameterDialog dialog(this);
   dialog.exec();
-  setTaskParam(targetTask_);
 }
 
 /////
@@ -264,7 +257,7 @@ ParameterView::ParameterView() : viewImpl(0) {
   setName(_("Parameter"));
   setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Ignored);
 
-  viewImpl = new ParameterViewImpl(this);
+  viewImpl = new ParameterViewImpl(ParameterViewType::PARAM_VIEW_TASK, this);
   QVBoxLayout* vbox = new QVBoxLayout();
   vbox->addWidget(viewImpl);
   setLayout(vbox);
@@ -274,4 +267,18 @@ ParameterView::ParameterView() : viewImpl(0) {
 ParameterView::~ParameterView() {
 };
 
+/////
+FlowParameterView::FlowParameterView() : viewImpl(0) {
+	setName(_("FlowParameter"));
+	setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Ignored);
+
+	viewImpl = new ParameterViewImpl(ParameterViewType::PARAM_VIEW_FLOW, this);
+	QVBoxLayout* vbox = new QVBoxLayout();
+	vbox->addWidget(viewImpl);
+	setLayout(vbox);
+	setDefaultLayoutArea(View::LEFT_BOTTOM);
+}
+
+FlowParameterView::~FlowParameterView() {
+};
 }

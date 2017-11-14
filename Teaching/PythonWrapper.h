@@ -23,11 +23,11 @@ public:
   PythonWrapper() : funcNum_(1), usePython_(false) {};
   ~PythonWrapper() {};
 
-  void initialize(TaskModelParam* targetParam = NULL);
+  void initialize(TaskModelParamPtr targetParam = NULL);
   void finalize();
 
-  bool buildArguments(TaskModelParam* taskParam, ElementStmParam* targetParam, std::vector<CompositeParamType>& parameterList);
-  bool checkSyntax(TaskModelParam* taskParam, QString script, string& errStr);
+  bool buildArguments(TaskModelParamPtr taskParam, ElementStmParamPtr targetParam, std::vector<CompositeParamType>& parameterList);
+  bool checkSyntax(TaskModelParamPtr taskParam, QString script, string& errStr);
   bool checkCondition(bool cmdRet, string script);
 
 private:

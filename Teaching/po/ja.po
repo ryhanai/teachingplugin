@@ -275,8 +275,8 @@ msgid "Model ID:"
 msgstr "モデルID:"
 
 #: ModelDialog.cpp:35
-msgid "Model File:"
-msgstr "モデルファイル:"
+msgid "Model Type:"
+msgstr "モデルタイプ:"
 
 #: ModelDialog.cpp:44 SettingDialog.cpp:22 SettingDialog.cpp:40
 msgid "Ref..."
@@ -317,6 +317,14 @@ msgstr "選択したモデルを削除する"
 #: ModelDialog.cpp:131
 msgid "Models"
 msgstr "モデル情報"
+
+#: ModelDialog.cpp:251
+msgid "Please select target MASTER"
+msgstr "マスタモデルを選択してください"
+
+#: ModelDialog.cpp:266
+msgid "Please select target Model"
+msgstr "モデルを選択してください"
 
 #: ParameterDialog.cpp:28
 msgid "Add New Parameter"
@@ -534,6 +542,10 @@ msgstr "タスクインスタンスをファイルから読み込む"
 msgid "Output Task"
 msgstr "タスク保存"
 
+#: TaskInstanceView.cpp:３０４
+msgid "Import Task"
+msgstr "タスク読込"
+
 #: TaskInstanceView.cpp:87
 msgid "Delete Task"
 msgstr "選択したタスクを削除する"
@@ -561,6 +573,10 @@ msgstr "タスク読み込み失敗"
 #: TaskInstanceView.cpp:281
 msgid "target TASK exported"
 msgstr "対象タスクをエクスポートしました"
+
+#: TaskInstanceView.cpp:306
+msgid "target TASK imported"
+msgstr "対象タスクをインポートしました"
 
 #: TaskInstanceView.cpp:283
 msgid "target TASK export FAILED"
@@ -641,4 +657,12 @@ msgstr "タスク中断中 :"
 #: TaskExecuteManager.cpp:144
 msgid "Failed Task :"
 msgstr "タスク実行失敗 :"
+
+#: ParameterDialog.cpp:65
+msgid "Visibility:"
+msgstr "可視性:"
+
+#: ParameterView.cpp:271
+msgid "FlowParameter"
+msgstr "フローパラメータ"
 

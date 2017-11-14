@@ -3,10 +3,9 @@
 #include "StateMachineView.h"
 #include "TeachingUtil.h"
 #include "TaskExecutor.h"
-#include "ArgumentDialog.h"
-#include "DecisionDialog.h"
-#include "ExecEnvDialog.h"
 #include "ControllerManager.h"
+
+#include "TeachingEventHandler.h"
 
 // R.Hanai
 #include <cnoid/ItemList>// This should be included afger ACtivityEditorBase.h
@@ -30,8 +29,7 @@ using namespace cnoid;
 
 namespace teaching {
 
-  StateMachineViewImpl::StateMachineViewImpl(QWidget* parent)
-    : isExec_(false), TaskExecutionView(parent) {
+  StateMachineViewImpl::StateMachineViewImpl(QWidget* parent) : isExec_(false) {
     lblTarget = new QLabel;
     lblTarget->setText("");
 
@@ -187,7 +185,9 @@ namespace teaching {
     connect(btnStep, SIGNAL(clicked()), this, SLOT(stepClicked()));
     connect(btnCont, SIGNAL(clicked()), this, SLOT(contClicked()));
     connect(btnBP, SIGNAL(clicked()), this, SLOT(bpToggled()));
-  }
+
+		TeachingEventHandler::instance()->stv_Loaded(this);
+	}
 
   void StateMachineViewImpl::setButtonEnableMode(bool isEnable) {
     DDEBUG("StateMachineViewImpl::setExecuteMode");
@@ -211,10 +211,9 @@ namespace teaching {
     }
   }
 
-  void StateMachineViewImpl::setTaskParam(TaskModelParam* param) {
+  void StateMachineViewImpl::setTaskParam(TaskModelParamPtr param) {
     DDEBUG("StateMachineViewImpl::setTaskParam()");
 
-    this->currentTask_ = param;
     lblTarget->setText(param->getName());
     //
     if (isExec_ == false) {
@@ -238,13 +237,15 @@ namespace teaching {
     }
     //
     grhStateMachine->setTaskParam(param);
-    grhStateMachine->createStateMachine(param);
+		vector<ElementStmParamPtr> stateList = param->getActiveStateList();
+		vector<ConnectionStmParamPtr> transList = param->getActiveTransitionList();
+		grhStateMachine->createStateMachine(stateList, transList);
   }
 
   void StateMachineViewImpl::clearTaskParam() {
-    this->currentTask_ = 0;
     lblTarget->setText("");
-    //
+		grhStateMachine->setTaskParam(0);
+		//
     btnTrans->setEnabled(false);
     lstItem->setEnabled(false);
     grhStateMachine->removeAll();
@@ -272,18 +273,11 @@ namespace teaching {
     DDEBUG("StateMachineViewImpl::setClicked()");
 
     ConnectionNode* conn = grhStateMachine->getCurrentConnection();
-    if (conn) {
-      if (conn->getSource()->getElementType() == ELEMENT_DECISION) {
-        if (rdTrue->isChecked()) {
-          conn->setText("true");
-          conn->getConnParam()->setCondition("true");
-        } else {
-          conn->setText("false");
-          conn->getConnParam()->setCondition("false");
-        }
-        conn->getConnParam()->setUpdate();
-      }
-    }
+		QString strVal = QString::fromStdString("false");
+		if (rdTrue->isChecked()) {
+			strVal = QString::fromStdString("true");
+		}
+		TeachingEventHandler::instance()->stv_SetClicked(conn, strVal);
   }
 
   void StateMachineViewImpl::modeChanged() {
@@ -293,23 +287,11 @@ namespace teaching {
   }
 
   void StateMachineViewImpl::stepClicked() {
-    DDEBUG("StateMachineViewImpl::stepClicked()");
-
-    if (doOperationStep() == ExecResult::EXEC_BREAK) {
-      setStepStatus(true);
-    } else {
-      setStepStatus(false);
-    }
+		TeachingEventHandler::instance()->tev_stm_StepClicked();
   }
 
   void StateMachineViewImpl::contClicked() {
-    DDEBUG("StateMachineViewImpl::contClicked()");
-
-    if (doOperationCont() == ExecResult::EXEC_BREAK) {
-      setStepStatus(true);
-    } else {
-      setStepStatus(false);
-    }
+		TeachingEventHandler::instance()->tev_stm_ContClicked();
   }
 
   void StateMachineViewImpl::bpToggled() {
@@ -324,7 +306,7 @@ namespace teaching {
     btnBP->setChecked(false);
     btnStep->setEnabled(isActive);
     btnCont->setEnabled(isActive);
-    executor_->setBreak(isActive);
+		TeachingEventHandler::instance()->tev_setBreak(isActive);
   }
   void StateMachineViewImpl::deleteClicked() {
     DDEBUG("StateMachineViewImpl::deleteClicked()");
@@ -333,49 +315,7 @@ namespace teaching {
   }
 
   void StateMachineViewImpl::editClicked() {
-    DDEBUG("StateMachineViewImpl::editClicked()");
-
-    ElementNode* target = grhStateMachine->getCurrentNode();
-    if (target) {
-      ElementStmParam* targetStm = target->getElemParam();
-      if ((targetStm->getType() == ELEMENT_COMMAND || targetStm->getType() == ELEMENT_DECISION) == false) {
-        QMessageBox::warning(this, _("Command"), _("Please select Command or Decision Node. : ") + QString::number(targetStm->getType()));
-        return;
-      }
-      //
-      if (targetStm->getType() == ELEMENT_COMMAND) {
-        if (targetStm->getArgList().size() == 0) {
-          DDEBUG("editClicked : No Arg");
-          QString strCmd = targetStm->getCmdName();
-          for (int index = 0; index < commandList_.size(); index++) {
-            CommandDefParam* param = commandList_[index];
-            if (param->getName() != strCmd) continue;
-            vector<ArgumentDefParam*> argList = param->getArgList();
-            for (int idxArg = 0; idxArg < argList.size(); idxArg++) {
-              ArgumentDefParam* arg = argList[idxArg];
-              ArgumentParam* argParam = new ArgumentParam(-1, targetStm->getId(), idxArg + 1, QString::fromStdString(arg->getName()), "");
-              argParam->setNew();
-              targetStm->addArgument(argParam);
-            }
-          }
-        }
-
-        ArgumentDialog dialog(currentTask_, targetStm, this);
-        dialog.exec();
-        if (dialog.isOK()) {
-          targetStm->getRealElem()->setItemText(targetStm->getCmdDspName());
-        }
-
-      } else {
-        DesisionDialog dialog(currentTask_, targetStm, this);
-        dialog.exec();
-      }
-
-    } else {
-      ExecEnvDialog dialog(currentTask_, this);
-      dialog.exec();
-
-    }
+		TeachingEventHandler::instance()->stv_EditClicked(grhStateMachine->getCurrentNode());
   }
 
 #ifdef __TASK_PARAM_ADJUSTER__
@@ -406,7 +346,7 @@ namespace teaching {
       std::cerr << "Please select a command node" << std::endl;
       return; 
     }
-    ElementStmParam* stm = currentNode->getElemParam();
+		ElementStmParamPtr stm = currentNode->getElemParam();
     if (stm->getType() != ELEMENT_COMMAND) {
       std::cerr << "Selected node is not a command node" << std::endl;
       return;
@@ -426,7 +366,7 @@ namespace teaching {
           << "(" << nodeId << "," << cmdName.toStdString() << ")";
     TaskParameterAdjuster::instance()->putIndex(hdrss.str());
 
-    std::vector<ArgumentParam*> argList = stm->getArgList();
+    std::vector<ArgumentParamPtr> argList = stm->getArgList();
     hdrss.str("");
     hdrss.clear(stringstream::goodbit);
     for (auto arg: argList) {
@@ -549,22 +489,10 @@ namespace teaching {
 #endif
 
   void StateMachineViewImpl::runClicked() {
-    DDEBUG("StateMachineViewImpl::runClicked()");
-
     bool isReal = SettingManager::getInstance().getIsReal();
     ElementNode* target = grhStateMachine->getCurrentNode();
-    if (target == NULL) return;
-    //
-    parameterView_->setInputValues();
-    ElementStmParam* targetStm = target->getElemParam();
-    if (targetStm->getType() != ELEMENT_COMMAND) {
-      QMessageBox::warning(this, _("Run Command"), _("Please select Command Element."));
-      return;
-    }
-    //
-    if (runSingleCommand(targetStm) == false) {
-      QMessageBox::information(this, _("Run Command"), _("Target Command FAILED."));
-    }
+
+		TeachingEventHandler::instance()->tev_stm_RunClicked(isReal, target);
   }
 /////
   StateMachineView::StateMachineView() : viewImpl(0) {

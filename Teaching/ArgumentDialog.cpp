@@ -1,17 +1,15 @@
 #include "ArgumentDialog.h"
-#include "PythonWrapper.h"
 #include "TeachingUtil.h"
+#include "TeachingEventHandler.h"
 
 #include "gettext.h"
 #include "LoggerUtil.h"
 
 namespace teaching {
 
-ArgumentDialog::ArgumentDialog(TaskModelParam* param, ElementStmParam* stmParam, QWidget* parent)
+ArgumentDialog::ArgumentDialog(QWidget* parent)
   : QDialog(parent, Qt::CustomizeWindowHint | Qt::WindowTitleHint),
-  curArgIdx_(NULL_ID), curArgParam_(0), curActionIdx_(NULL_ID), curActionParam_(0) {
-  this->targetTask_ = param;
-  this->targetStm_ = stmParam;
+  curArgIdx_(NULL_ID), curActionIdx_(NULL_ID) {
   //
   lstModel = UIUtil::makeTableWidget(2, true);
   lstModel->setColumnWidth(0, 200);
@@ -71,18 +69,9 @@ ArgumentDialog::ArgumentDialog(TaskModelParam* param, ElementStmParam* stmParam,
   cmbAction->addItem("Detach");
   QLabel* lblModel = new QLabel(_("Model:"));
   cmbModel = new QComboBox(this);
-  for (int index = 0; index < targetTask_->getModelList().size(); index++) {
-    ModelParam* model = targetTask_->getModelList()[index];
-    cmbModel->addItem(model->getRName());
-  }
 
   QLabel* lblTarget = new QLabel(_("Parameter:"));
   cmbTarget = new QComboBox(this);
-  cmbTarget->addItem("");
-  for (int index = 0; index < targetTask_->getParameterList().size(); index++) {
-    ParameterParam* param = targetTask_->getParameterList()[index];
-    cmbTarget->addItem(param->getRName());
-  }
   //
   lstArg = UIUtil::makeTableWidget(3, false);
   lstArg->setColumnWidth(0, 100);
@@ -129,7 +118,6 @@ ArgumentDialog::ArgumentDialog(TaskModelParam* param, ElementStmParam* stmParam,
   //
   QLabel* lblName = new QLabel("Name: ");
   txtStateName = new QLineEdit();
-  txtStateName->setText(targetStm_->getCmdDspName());
   QFrame* frmName = new QFrame;
   QHBoxLayout* nameLayout = new QHBoxLayout(frmName);
   nameLayout->setContentsMargins(2, 2, 2, 2);
@@ -137,8 +125,7 @@ ArgumentDialog::ArgumentDialog(TaskModelParam* param, ElementStmParam* stmParam,
   nameLayout->addWidget(txtStateName);
 
   QLabel* lblCmdName = new QLabel("Command Name: ");
-  QLineEdit* txtCmdName = new QLineEdit();
-  txtCmdName->setText(targetStm_->getCmdName());
+  txtCmdName = new QLineEdit();
   txtCmdName->setReadOnly(true);
   QFrame* frmCmdName = new QFrame;
   QHBoxLayout* cmdLayout = new QHBoxLayout(frmCmdName);
@@ -166,49 +153,180 @@ ArgumentDialog::ArgumentDialog(TaskModelParam* param, ElementStmParam* stmParam,
   setWindowTitle(_("Command"));
   resize(1200, 700);
   //
-  showModelInfo();
-  showParamInfo();
-  showActionInfo();
-  showArgInfo();
+	TeachingEventHandler::instance()->agd_Loaded(this);
+}
+
+void ArgumentDialog::showModelInfo(vector<ModelParamPtr>& modelList) {
+	for (int index = 0; index < modelList.size(); index++) {
+		ModelParamPtr param = modelList[index];
+
+		int row = lstModel->rowCount();
+		lstModel->insertRow(row);
+		UIUtil::makeTableItem(lstModel, row, 0, param->getName());
+		UIUtil::makeTableItem(lstModel, row, 1, param->getRName());
+
+		cmbModel->addItem(param->getRName());
+	}
+}
+
+void ArgumentDialog::showParamInfo(vector<ParameterParamPtr>& paramList) {
+	cmbTarget->addItem("");
+
+	for (int index = 0; index < paramList.size(); index++) {
+		ParameterParamPtr param = paramList[index];
+
+		int row = lstParam->rowCount();
+		lstParam->insertRow(row);
+		UIUtil::makeTableItem(lstParam, row, 0, param->getName());
+		UIUtil::makeTableItem(lstParam, row, 1, param->getRName());
+		if (param->getType() == 0) {
+			UIUtil::makeTableItem(lstParam, row, 2, param->getElemTypeStr());
+			UIUtil::makeTableItem(lstParam, row, 3, QString::number(param->getElemNum()));
+		}
+
+		cmbTarget->addItem(param->getRName());
+	}
+}
+
+void ArgumentDialog::showArgInfo(ElementStmParamPtr target, vector<ArgumentParamPtr>& argList) {
+	txtStateName->setText(target->getCmdDspName());
+	txtCmdName->setText(target->getCmdName());
+
+	for (int index = 0; index < argList.size(); index++) {
+		ArgumentParamPtr param = argList[index];
+
+		int row = lstArg->rowCount();
+		lstArg->insertRow(row);
+		UIUtil::makeTableItemWithData(lstArg, row, 0, param->getName(), param->getId());
+		int dir = target->getCommadDefParam()->getArgList()[index]->getDirection();
+		QString strDir = "in";
+		if (dir == 1) strDir = "out";
+		UIUtil::makeTableItemWithData(lstArg, row, 1, strDir, param->getId());
+		UIUtil::makeTableItemWithData(lstArg, row, 2, param->getValueDesc(), param->getId());
+		//
+		param->setValueDescOrg(param->getValueDesc());
+	}
+}
+
+void ArgumentDialog::showActionInfo(vector<ElementStmActionParamPtr>& actionList) {
+	for (int index = 0; index < actionList.size(); index++) {
+		ElementStmActionParamPtr param = actionList[index];
+
+		int row = lstHandling->rowCount();
+		lstHandling->insertRow(row);
+		UIUtil::makeTableItemWithData(lstHandling, row, 0, param->getAction(), param->getId());
+		UIUtil::makeTableItemWithData(lstHandling, row, 1, param->getModel(), param->getId());
+		UIUtil::makeTableItemWithData(lstHandling, row, 2, param->getTarget(), param->getId());
+	}
+}
+
+void ArgumentDialog::argSelectionChanged() {
+	DDEBUG("ArgumentDialog::argSelectionChanged");
+
+	if (curArgIdx_ != NULL_ID) {
+		lstArg->item(curArgIdx_, 2)->setText(txtArgDef->toPlainText());
+	}
+
+	int selected = NULL_ID;
+	curArgIdx_ = NULL_ID;
+	QTableWidgetItem* item = lstArg->currentItem();
+	if (item) {
+		curArgIdx_ = lstArg->currentRow();
+		selected = item->data(Qt::UserRole).toInt();
+	}
+	TeachingEventHandler::instance()->agd_ArgSelectionChanged(selected, txtArgDef->toPlainText());
+}
+
+void ArgumentDialog::updateArgument(QString currText) {
+	txtArgDef->setText(currText);
+}
+
+void ArgumentDialog::actionSelectionChanged() {
+	DDEBUG("ArgumentDialog::actionSelectionChanged");
+
+	QString strAct = cmbAction->currentIndex()== ACTION_ATTACH ? "attach": "detach";
+	QString strModel = cmbModel->itemText(cmbModel->currentIndex());
+	QString strTarget = cmbTarget->itemText(cmbTarget->currentIndex());
+
+	if (curActionIdx_ != NULL_ID) {
+		lstHandling->item(curActionIdx_, 0)->setText(strAct);
+		lstHandling->item(curActionIdx_, 1)->setText(strModel);
+		lstHandling->item(curActionIdx_, 2)->setText(strTarget);
+	}
+	//
+	QTableWidgetItem* item = lstHandling->currentItem();
+	int selected = NULL_ID;
+	curActionIdx_ = NULL_ID;
+	if (item) {
+		curActionIdx_ = lstHandling->currentRow();
+		selected = item->data(Qt::UserRole).toInt();
+	}
+	TeachingEventHandler::instance()->agd_ActionSelectionChanged(selected, strAct, strModel, strTarget);
+}
+
+void ArgumentDialog::updateAction(ElementStmActionParamPtr& target) {
+		if (target->getAction() == "attach") {
+			cmbAction->setCurrentIndex(0);
+		} else if (target->getAction() == "detach") {
+			cmbAction->setCurrentIndex(1);
+		}
+		cmbModel->setCurrentIndex(cmbModel->findText(target->getModel()));
+		cmbTarget->setCurrentIndex(cmbTarget->findText(target->getTarget()));
 }
 
 void ArgumentDialog::addClicked() {
   DDEBUG("ArgumentDialog::addClicked");
 
-  saveCurrentAction();
-  //
-  ElementStmActionParam* newAction = new ElementStmActionParam(NULL_ID, targetStm_->getId(), targetStm_->getActionList().size(), "attach", "", "", true);
-  targetStm_->addModelAction(newAction);
-  //
-  int row = lstHandling->rowCount();
-  lstHandling->insertRow(row);
-  int index = targetStm_->getActionList().size() - 1;
-  UIUtil::makeTableItemWithData(lstHandling, row, 0, newAction->getAction(), index);
-  UIUtil::makeTableItemWithData(lstHandling, row, 1, newAction->getModel(), index);
-  UIUtil::makeTableItemWithData(lstHandling, row, 2, newAction->getTarget(), index);
+	QString strAct = cmbAction->currentIndex() == ACTION_ATTACH ? "attach" : "detach";
+	QString strModel = cmbModel->itemText(cmbModel->currentIndex());
+	QString strTarget = cmbTarget->itemText(cmbTarget->currentIndex());
+
+	if (curActionIdx_ != NULL_ID) {
+		lstHandling->item(curActionIdx_, 0)->setText(strAct);
+		lstHandling->item(curActionIdx_, 1)->setText(strModel);
+		lstHandling->item(curActionIdx_, 2)->setText(strTarget);
+	}
+	//
+	TeachingEventHandler::instance()->agd_AddClicked(strAct, strModel, strTarget);
+}
+
+void ArgumentDialog::updateAddAction(ElementStmActionParamPtr& target) {
+	int row = lstHandling->rowCount();
+	lstHandling->insertRow(row);
+	UIUtil::makeTableItemWithData(lstHandling, row, 0, target->getAction(), target->getId());
+	UIUtil::makeTableItemWithData(lstHandling, row, 1, target->getModel(), target->getId());
+	UIUtil::makeTableItemWithData(lstHandling, row, 2, target->getTarget(), target->getId());
 }
 
 void ArgumentDialog::deleteClicked() {
-  DDEBUG("ArgumentDialog::deleteClicked");
+	TeachingEventHandler::instance()->agd_DeleteClicked();
 
-  if (curActionParam_) {
-    curActionParam_->setDelete();
+	if(curActionIdx_ != NULL_ID) {
     cmbAction->setCurrentIndex(0);
     cmbModel->setCurrentIndex(0);
     cmbTarget->setCurrentIndex(0);
-    curActionParam_ = 0;
-    curArgIdx_ = NULL_ID;
 
     int currRow = lstHandling->currentRow();
     lstHandling->removeRow(currRow);
     lstHandling->setFocus();
-  }
+
+		curActionIdx_ = NULL_ID;
+	}
 }
 
 void ArgumentDialog::upClicked() {
   DDEBUG("ArgumentDialog::upClicked");
 
-  saveCurrentAction();
+	QString strAct = cmbAction->currentIndex() == ACTION_ATTACH ? "attach" : "detach";
+	QString strModel = cmbModel->itemText(cmbModel->currentIndex());
+	QString strTarget = cmbTarget->itemText(cmbTarget->currentIndex());
+
+	if (curActionIdx_ != NULL_ID) {
+		lstHandling->item(curActionIdx_, 0)->setText(strAct);
+		lstHandling->item(curActionIdx_, 1)->setText(strModel);
+		lstHandling->item(curActionIdx_, 2)->setText(strTarget);
+	}
+	TeachingEventHandler::instance()->agd_Update(strAct, strModel, strTarget);
   //
   int sourceIdx = lstHandling->verticalHeader()->visualIndex(lstHandling->currentRow());
   if (sourceIdx == 0) return;
@@ -219,144 +337,21 @@ void ArgumentDialog::upClicked() {
 void ArgumentDialog::downClicked() {
   DDEBUG("ArgumentDialog::downClicked");
 
-  saveCurrentAction();
-  //
+	QString strAct = cmbAction->currentIndex() == ACTION_ATTACH ? "attach" : "detach";
+	QString strModel = cmbModel->itemText(cmbModel->currentIndex());
+	QString strTarget = cmbTarget->itemText(cmbTarget->currentIndex());
+
+	if (curActionIdx_ != NULL_ID) {
+		lstHandling->item(curActionIdx_, 0)->setText(strAct);
+		lstHandling->item(curActionIdx_, 1)->setText(strModel);
+		lstHandling->item(curActionIdx_, 2)->setText(strTarget);
+	}
+	TeachingEventHandler::instance()->agd_Update(strAct, strModel, strTarget);
+	//
   int sourceIdx = lstHandling->verticalHeader()->visualIndex(lstHandling->currentRow());
   if (lstHandling->rowCount() <= sourceIdx) return;
   lstHandling->verticalHeader()->swapSections(sourceIdx, sourceIdx + 1);
   lstHandling->setFocus();
-}
-
-void ArgumentDialog::actionSelectionChanged() {
-  DDEBUG("ArgumentDialog::actionSelectionChanged");
-
-  saveCurrentAction();
-  //
-  QTableWidgetItem* item = lstHandling->currentItem();
-  if (item) {
-    curActionIdx_ = lstHandling->currentRow();
-    curActionParam_ = targetStm_->getActionList()[item->data(Qt::UserRole).toInt()];
-    if (curActionParam_->getAction() == "attach") {
-      cmbAction->setCurrentIndex(0);
-    } else if (curActionParam_->getAction() == "detach") {
-      cmbAction->setCurrentIndex(1);
-    }
-    cmbModel->setCurrentIndex(cmbModel->findText(curActionParam_->getModel()));
-    cmbTarget->setCurrentIndex(cmbTarget->findText(curActionParam_->getTarget()));
-  }
-}
-
-void ArgumentDialog::saveCurrentAction() {
-  if (curActionParam_) {
-    int selAct = cmbAction->currentIndex();
-    QString strAct = "";
-    if (selAct == ACTION_ATTACH) {
-      strAct = "attach";
-    } else if (selAct == ACTION_DETACH) {
-      strAct = "detach";
-    }
-    if (curActionParam_->getAction() != strAct) {
-      curActionParam_->setAction(strAct);
-    }
-    //
-    QString strModel = cmbModel->itemText(cmbModel->currentIndex());
-    if (curActionParam_->getModel() != strModel) {
-      curActionParam_->setModel(strModel);
-    }
-    //
-    QString strTarget = cmbTarget->itemText(cmbTarget->currentIndex());
-    if (curActionParam_->getTarget() != strTarget) {
-      curActionParam_->setTarget(strTarget);
-    }
-    /////
-    lstHandling->item(curActionIdx_, 0)->setText(curActionParam_->getAction());
-    lstHandling->item(curActionIdx_, 1)->setText(curActionParam_->getModel());
-    lstHandling->item(curActionIdx_, 2)->setText(curActionParam_->getTarget());
-  }
-}
-
-void ArgumentDialog::argSelectionChanged() {
-  DDEBUG("ArgumentDialog::argSelectionChanged");
-
-  saveCurrentArg();
-  if (curArgParam_) {
-    lstArg->item(curArgIdx_, 2)->setText(curArgParam_->getValueDesc());
-  }
-  //
-  QTableWidgetItem* item = lstArg->currentItem();
-  if (item) {
-    curArgIdx_ = lstArg->currentRow();
-    curArgParam_ = targetStm_->getArgList()[item->data(Qt::UserRole).toInt()];
-    txtArgDef->setText(curArgParam_->getValueDesc());
-  }
-}
-
-void ArgumentDialog::saveCurrentArg() {
-  if (curArgParam_) {
-    QString strDef = txtArgDef->toPlainText();
-    if (curArgParam_->getValueDesc() != strDef) {
-      curArgParam_->setValueDesc(strDef);
-    }
-  }
-}
-
-void ArgumentDialog::showActionInfo() {
-  for (int index = 0; index < targetStm_->getActionList().size(); index++) {
-    ElementStmActionParam* param = targetStm_->getActionList()[index];
-    if (param->getMode() == DB_MODE_DELETE || param->getMode() == DB_MODE_IGNORE) continue;
-
-    int row = lstHandling->rowCount();
-    lstHandling->insertRow(row);
-    UIUtil::makeTableItemWithData(lstHandling, row, 0, param->getAction(), index);
-    UIUtil::makeTableItemWithData(lstHandling, row, 1, param->getModel(), index);
-    UIUtil::makeTableItemWithData(lstHandling, row, 2, param->getTarget(), index);
-  }
-}
-
-void ArgumentDialog::showArgInfo() {
-  for (int index = 0; index < targetStm_->getArgList().size(); index++) {
-    ArgumentParam* param = targetStm_->getArgList()[index];
-    if (param->getMode() == DB_MODE_DELETE || param->getMode() == DB_MODE_IGNORE) continue;
-
-    int row = lstArg->rowCount();
-    lstArg->insertRow(row);
-    UIUtil::makeTableItemWithData(lstArg, row, 0, param->getName(), index);
-    int dir = targetStm_->getCommadDefParam()->getArgList()[index]->getDirection();
-    QString strDir = "in";
-    if (dir == 1) strDir = "out";
-    UIUtil::makeTableItemWithData(lstArg, row, 1, strDir, index);
-    UIUtil::makeTableItemWithData(lstArg, row, 2, param->getValueDesc(), index);
-    //
-    param->setValueDescOrg(param->getValueDesc());
-  }
-}
-
-void ArgumentDialog::showParamInfo() {
-  for (int index = 0; index < targetTask_->getParameterList().size(); index++) {
-    ParameterParam* param = targetTask_->getParameterList()[index];
-    if (param->getMode() == DB_MODE_DELETE || param->getMode() == DB_MODE_IGNORE) continue;
-
-    int row = lstParam->rowCount();
-    lstParam->insertRow(row);
-    UIUtil::makeTableItem(lstParam, row, 0, param->getName());
-    UIUtil::makeTableItem(lstParam, row, 1, param->getRName());
-    if (param->getType() == 0) {
-      UIUtil::makeTableItem(lstParam, row, 2, param->getElemTypeStr());
-      UIUtil::makeTableItem(lstParam, row, 3, QString::number(param->getElemNum()));
-    }
-  }
-}
-
-void ArgumentDialog::showModelInfo() {
-  for (int index = 0; index < targetTask_->getModelList().size(); index++) {
-    ModelParam* param = targetTask_->getModelList()[index];
-    if (param->getMode() == DB_MODE_DELETE || param->getMode() == DB_MODE_IGNORE) continue;
-
-    int row = lstModel->rowCount();
-    lstModel->insertRow(row);
-    UIUtil::makeTableItem(lstModel, row, 0, param->getName());
-    UIUtil::makeTableItem(lstModel, row, 1, param->getRName());
-  }
 }
 
 void ArgumentDialog::oKClicked() {
@@ -369,101 +364,35 @@ void ArgumentDialog::oKClicked() {
     txtStateName->setSelection(0, strName.length());
     return;
   }
-  targetStm_->setCmdDspName(strName);
 
-  saveCurrentAction();
-  saveCurrentArg();
+	QString strAct = cmbAction->currentIndex() == ACTION_ATTACH ? "attach" : "detach";
+	QString strModel = cmbModel->itemText(cmbModel->currentIndex());
+	QString strTarget = cmbTarget->itemText(cmbTarget->currentIndex());
+	QString strArgDef = txtArgDef->toPlainText();
   /////
-  int seq = 0;
-  for (int index = 0; index < lstHandling->rowCount(); index++) {
-    int logicalIdx = lstHandling->verticalHeader()->logicalIndex(index);
-    ElementStmActionParam* param = targetStm_->getActionList()[logicalIdx];
-    if (param->getMode() == DB_MODE_DELETE || param->getMode() == DB_MODE_IGNORE) continue;
-    if (param->getModel().length() == 0) {
-      QMessageBox::warning(this, _("Argument"), _("Error : Model Definition."));
-      return;
-    }
-    //if(param->getModel()==param->getTarget()) {
-    //  QMessageBox::warning(this, _("Argument"), _("Error : Model and Target are SAME."));
-    //  return;
-    //}
-    if (param->getSeq() != seq) {
-      param->setSeq(seq);
-    }
-    seq++;
-  }
-  /////
-  ArgumentEstimator* handler = EstimatorFactory::getInstance().createArgEstimator(targetTask_);
-  std::stringstream errorMsg;
-  bool existError = false;
-  for (int index = 0; index < targetStm_->getArgList().size(); index++) {
-    ArgumentParam* param = targetStm_->getArgList()[index];
-    if (param->getMode() == DB_MODE_DELETE || param->getMode() == DB_MODE_IGNORE) continue;
-    ArgumentDefParam* argDef = targetStm_->getCommadDefParam()->getArgList()[index];
-    if (argDef->getDirection() == 1) {
-      QString targetStr = targetStm_->getArgList()[index]->getValueDesc();
-      ParameterParam* targetParam = NULL;
-      for (int idxParam = 0; idxParam < targetTask_->getParameterList().size(); idxParam++) {
-        ParameterParam* parmParm = targetTask_->getParameterList()[idxParam];
-        if (parmParm->getRName() == targetStr) {
-          targetParam = parmParm;
-          break;
-        }
-      }
-      if (targetParam == NULL) {
-        errorMsg << "[" << param->getName().toStdString() << "] " << "target parameter [" << targetStr.toStdString() << "] NOT Exists." << std::endl;
-        existError = true;
-      } else {
-        //if (targetParam->getElemTypes().toStdString() != argDef->getType()) {
-        //	DDEBUG_V("%s, %s", targetParam->getElemTypes().toStdString().c_str(), argDef->getType().c_str());
-        //	errorMsg << "[" << param->getName().toStdString() << "] " << "and target parameter [" << targetStr.toStdString() << "] TYPE Error." << std::endl;
-        //	existError = true;
-        //}
-        if (targetParam->getElemNum() < argDef->getLength()) {
-          DDEBUG_V("%d, %d", targetParam->getElemNum(), argDef->getLength());
-          errorMsg << "[" << param->getName().toStdString() << "] " << "target parameter [" << targetStr.toStdString() << "] NUM Error." << std::endl;
-          existError = true;
-        }
-      }
+  int seq = 1;
+	for (int index = 0; index < lstHandling->rowCount(); index++) {
+		int logicalIdx = lstHandling->verticalHeader()->logicalIndex(index);
+		int selected = lstHandling->item(logicalIdx, 0)->data(Qt::UserRole).toInt();
+		DDEBUG_V("%d %d %d", index, logicalIdx, selected);
+		TeachingEventHandler::instance()->agd_SetSeq(selected, seq);
+		seq++;
+	}
 
-    } else {
-      if (0 < param->getValueDesc().trimmed().length()) {
-        string strError;
-        if (handler->checkSyntax(targetTask_, param->getValueDesc(), strError) == false) {
-          DDEBUG_V("%s", param->getValueDesc().toStdString().c_str());
-          errorMsg << "[" << param->getName().toStdString() << "]" << strError << std::endl;
-          existError = true;
-        }
-      }
-      if (existError == false && targetStm_->getMode() == DB_MODE_INSERT) {
-        param->setNew();
-      }
-    }
-  }
-  EstimatorFactory::getInstance().deleteArgEstimator(handler);
-  if (existError) {
-    QMessageBox::warning(this, _("Argument"), QString::fromStdString(errorMsg.str()));
-    return;
-  }
+	if(TeachingEventHandler::instance()->agd_OKClicked(strName, strAct, strModel, strTarget, strArgDef)==false) return;
   //
   isOK_ = true;
   close();
 }
 
 void ArgumentDialog::cancelClicked() {
-  DDEBUG("ArgumentDialog::cancelClicked()");
-
-  for (int index = 0; index < targetStm_->getArgList().size(); index++) {
-    ArgumentParam* param = targetStm_->getArgList()[index];
-    param->setValueDesc(param->getValueDescOrg());
-  }
+	TeachingEventHandler::instance()->agd_CancelClicked();
   isOK_ = false;
   close();
 }
 
 void ArgumentDialog::rejected() {
   DDEBUG("ArgumentDialog::rejected");
-
   close();
 }
 

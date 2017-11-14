@@ -6,6 +6,7 @@
 #include "TeachingUtil.h"
 #include "ChoreonoidUtil.h"
 #include "TaskExecutor.h"
+#include "TeachingEventHandler.h"
 
 #include "gettext.h"
 #include "LoggerUtil.h"
@@ -31,37 +32,33 @@ void TaskExecuteManager::abortOperation() {
   isAbort_ = true;
 }
 
-void TaskExecuteManager::runFlow(FlowParam* targetFlow) {
+void TaskExecuteManager::runFlow(FlowParamPtr targetFlow) {
   if (!targetFlow) {
     QMessageBox::warning(0, _("Run Flow"), _("Select Target Flow"));
     return;
   }
-  this->taskInstView->unloadCurrentModel();
   if (currentTask_) {
     ChoreonoidUtil::unLoadTaskModelItem(currentTask_);
   }
 
-  parameterView_->setInputValues();
+	TeachingEventHandler::instance()->prv_SetInputValues();
 
   if (targetFlow->checkAndOrderStateMachine()) {
     QMessageBox::warning(0, _("Run Flow"), targetFlow->getErrStr());
     return;
   }
-  vector<ElementStmParam*> stateList = targetFlow->getStmElementList();
+  vector<ElementStmParamPtr> stateList = targetFlow->getStmElementList();
   for (int index = 0; index < stateList.size(); index++) {
-    ElementStmParam* targetState = stateList[index];
+		ElementStmParamPtr targetState = stateList[index];
     if (targetState->getType() != ELEMENT_COMMAND) continue;
     //
-    TaskModelParam* targetTask = targetState->getTaskParam();
-    if (targetTask->IsModelLoaded()) {
-      ChoreonoidUtil::unLoadTaskModelItem(targetTask);
-    }
+		TaskModelParamPtr targetTask = targetState->getTaskParam();
+    ChoreonoidUtil::unLoadTaskModelItem(targetTask);
+
     if (targetState->getMode() == DB_MODE_DELETE || targetState->getMode() == DB_MODE_IGNORE) {
       continue;
     }
-    if (targetTask->IsLoaded() == false) {
-      TeachingUtil::loadTaskDetailData(targetTask);
-    }
+    TeachingUtil::loadTaskDetailData(targetTask);
     if (targetTask->checkAndOrderStateMachine()) {
       QMessageBox::warning(0, _("Run Flow"), currentTask_->getErrStr());
       return;
@@ -74,8 +71,8 @@ void TaskExecuteManager::runFlow(FlowParam* targetFlow) {
   InfoBar::instance()->showMessage(_("Running Flow :") + targetFlow->getName(), MESSAGE_PERIOD);
   TaskExecutor::instance()->setRootName(SettingManager::getInstance().getRobotModelName());
   //
-  ElementStmParam* currTask = targetFlow->getStartParam();
-  ElementStmParam* nextTask = 0;
+	ElementStmParamPtr currTask = targetFlow->getStartParam();
+	ElementStmParamPtr nextTask = 0;
   while (true) {
     if (currTask->getType() == ELEMENT_COMMAND) {
       currentTask_ = currTask->getTaskParam();
@@ -150,8 +147,8 @@ bool TaskExecuteManager::runSingleCommand() {
 
 void TaskExecuteManager::runSingleTask() {
   DDEBUG("TaskExecuteManager::runSingleTask");
-  parameterView_->setInputValues();
-  statemachineView_->setStepStatus(false);
+	TeachingEventHandler::instance()->prv_SetInputValues();
+	statemachineView_->setStepStatus(false);
   if (currParam_) {
     currParam_->updateActive(false);
     statemachineView_->repaint();
@@ -205,24 +202,28 @@ ExecResult TaskExecuteManager::doFlowOperation(bool isSingle) {
 }
 
 ExecResult TaskExecuteManager::doFlowOperationCont() {
-  while (true) {
+	DDEBUG("TaskExecuteManager::doFlowOperationCont");
+	while (true) {
     if (currentTask_ == 0) break;
 
     ExecResult ret = doTaskOperation();
     if (ret != ExecResult::EXEC_FINISHED) return ret;
-  }
+		if (isAbort_) return ExecResult::EXEC_FINISHED;
+	}
   if (prevTask_->getStateParam()) prevTask_->getStateParam()->updateActive(false);
   this->flowView_->repaint();
   return ExecResult::EXEC_FINISHED;
 }
 
 ExecResult TaskExecuteManager::doTaskOperation(bool updateCurrentTask) {
-  bool isReal = SettingManager::getInstance().getIsReal();
+	DDEBUG("TaskExecuteManager::doTaskOperation");
+
+	bool isReal = SettingManager::getInstance().getIsReal();
 
   //モデル情報の設定
   parseModelInfo();
 
-  ElementStmParam* nextParam;
+	ElementStmParamPtr nextParam;
   bool cmdRet = false;
 
   //引数計算モジュールの初期化
@@ -235,13 +236,15 @@ ExecResult TaskExecuteManager::doTaskOperation(bool updateCurrentTask) {
       if (isAbort_) {
         detachAllModelItem();
         deleteArgEstimator();
-        return ExecResult::EXEC_FINISHED;
+				DDEBUG("TaskExecuteManager::doTaskOperation EXEC_FINISHED(Abort)");
+				return ExecResult::EXEC_FINISHED;
       }
       //引数の組み立て
       if (argHandler_->buildArguments(currentTask_, currParam_, parameterList) == false) {
         detachAllModelItem();
         deleteArgEstimator();
-        return ExecResult::EXEC_ERROR;
+				DDEBUG("TaskExecuteManager::doTaskOperation EXEC_ERROR(Arg)");
+				return ExecResult::EXEC_ERROR;
       }
       //コマンド実行
       cmdRet = TaskExecutor::instance()->executeCommand(currParam_->getCmdName().toStdString(), parameterList, isReal);
@@ -252,17 +255,19 @@ ExecResult TaskExecuteManager::doTaskOperation(bool updateCurrentTask) {
       if (doModelAction() == false) {
         detachAllModelItem();
         deleteArgEstimator();
-        return ExecResult::EXEC_ERROR;
+				DDEBUG("TaskExecuteManager::doTaskOperation EXEC_ERROR(Model Action)");
+				return ExecResult::EXEC_ERROR;
       }
       //コマンドの実行結果がFalseで次の要素がデシジョンではない場合は終了
       if (cmdRet == false) {
-        ElementStmParam* checkNext = currParam_->getNextElem();
+				ElementStmParamPtr checkNext = currParam_->getNextElem();
         if (checkNext == 0 || checkNext->getType() != ELEMENT_DECISION) {
           InfoBar::instance()->showMessage("");
           DDEBUG("NextParam is NOT Decision.");
           detachAllModelItem();
           deleteArgEstimator();
-          return ExecResult::EXEC_ERROR;
+					DDEBUG("TaskExecuteManager::doTaskOperation EXEC_ERROR(Dec)");
+					return ExecResult::EXEC_ERROR;
         }
       }
     }
@@ -287,7 +292,8 @@ ExecResult TaskExecuteManager::doTaskOperation(bool updateCurrentTask) {
       DDEBUG_V("currParam : %d, nextParam:NOT EXIST.", currParam_->getType());
       detachAllModelItem();
       deleteArgEstimator();
-      return ExecResult::EXEC_ERROR;
+			DDEBUG("TaskExecuteManager::doTaskOperation EXEC_ERROR");
+			return ExecResult::EXEC_ERROR;
     }
     /////
     currParam_->updateActive(false);
@@ -297,6 +303,7 @@ ExecResult TaskExecuteManager::doTaskOperation(bool updateCurrentTask) {
 
     currParam_ = nextParam;
     if (nextParam->getType() == ELEMENT_FINAL) {
+			DDEBUG("TaskExecuteManager::doTaskOperation ELEMENT_FINAL");
 
       // R.Hanai
       if (!updateCurrentTask) { break; }
@@ -312,17 +319,20 @@ ExecResult TaskExecuteManager::doTaskOperation(bool updateCurrentTask) {
     }
   }
   deleteArgEstimator();
-  return ExecResult::EXEC_FINISHED;
+	DDEBUG("TaskExecuteManager::doTaskOperation EXEC_FINISHED");
+	return ExecResult::EXEC_FINISHED;
 }
 
 ExecResult TaskExecuteManager::doTaskOperationStep() {
-  bool isReal = SettingManager::getInstance().getIsReal();
-  parameterView_->setInputValues();
+	DDEBUG("TaskExecuteManager::doTaskOperationStep");
+
+	bool isReal = SettingManager::getInstance().getIsReal();
+	TeachingEventHandler::instance()->prv_SetInputValues();
 
   //モデル情報の設定
   parseModelInfo();
 
-  ElementStmParam* nextParam;
+	ElementStmParamPtr nextParam;
   bool cmdRet = false;
   std::vector<CompositeParamType> parameterList;
 
@@ -342,7 +352,7 @@ ExecResult TaskExecuteManager::doTaskOperationStep() {
   }
   //コマンドの実行結果がFalseで次の要素がデシジョンではない場合は終了
   if (cmdRet == false) {
-    ElementStmParam* checkNext = currParam_->getNextElem();
+		ElementStmParamPtr checkNext = currParam_->getNextElem();
     if (checkNext == 0 || checkNext->getType() != ELEMENT_DECISION) {
       InfoBar::instance()->showMessage("");
       DDEBUG("NextParam is NOT Decision.");
@@ -398,14 +408,14 @@ ExecResult TaskExecuteManager::doTaskOperationStep() {
 }
 //////////
 void TaskExecuteManager::parseModelInfo() {
-  vector<ModelParam*> modelList = currentTask_->getModelList();
-  vector<ElementStmParam*> stateList = currentTask_->getStmElementList();
+  vector<ModelParamPtr> modelList = currentTask_->getModelList();
+  vector<ElementStmParamPtr> stateList = currentTask_->getStmElementList();
   for (int index = 0; index < stateList.size(); index++) {
-    ElementStmParam* state = stateList[index];
-    vector<ElementStmActionParam*> actionList = state->getActionList();
+		ElementStmParamPtr state = stateList[index];
+    vector<ElementStmActionParamPtr> actionList = state->getActionList();
     for (int idxAction = 0; idxAction < actionList.size(); idxAction++) {
-      ElementStmActionParam* action = actionList[idxAction];
-      std::vector<ModelParam*>::iterator model = std::find_if(modelList.begin(), modelList.end(), ModelParamComparatorByRName(action->getModel()));
+			ElementStmActionParamPtr action = actionList[idxAction];
+      std::vector<ModelParamPtr>::iterator model = std::find_if(modelList.begin(), modelList.end(), ModelParamComparatorByRName(action->getModel()));
       if (model == modelList.end()) continue;
       action->setModelParam(*model);
     }
@@ -413,14 +423,14 @@ void TaskExecuteManager::parseModelInfo() {
 }
 
 bool TaskExecuteManager::doModelAction() {
-  vector<ElementStmActionParam*> actionList = currParam_->getActionList();
+  vector<ElementStmActionParamPtr> actionList = currParam_->getActionList();
   for (int index = 0; index < actionList.size(); index++) {
-    ElementStmActionParam* action = actionList[index];
+		ElementStmActionParamPtr action = actionList[index];
     DDEBUG_V("Action : %s = %s, %s, %s", currParam_->getCmdName().toStdString().c_str(), action->getAction().toStdString().c_str(), action->getModel().toStdString().c_str(), action->getTarget().toStdString().c_str());
     //
     if (action->getAction() == "attach" || action->getAction() == "detach") {
-      vector<ParameterParam*> paramList = currentTask_->getParameterList();
-      vector<ParameterParam*>::iterator targetParam = find_if(paramList.begin(), paramList.end(), ParameterParamComparatorByRName(action->getTarget()));
+      vector<ParameterParamPtr> paramList = currentTask_->getParameterList();
+      vector<ParameterParamPtr>::iterator targetParam = find_if(paramList.begin(), paramList.end(), ParameterParamComparatorByRName(action->getTarget()));
       QString strVal;
       int intTarget = -1;
       if (targetParam != paramList.end()) {
@@ -429,14 +439,14 @@ bool TaskExecuteManager::doModelAction() {
       }
       //
       if (action->getAction() == "attach") {
-        bool ret = TaskExecutor::instance()->attachModelItem(action->getModelParam()->getModelItem(), intTarget);
+        bool ret = TaskExecutor::instance()->attachModelItem(action->getModelParam()->getModelMaster()->getModelItem(), intTarget);
         if (ret == false) {
           QMessageBox::warning(0, _("Run Task"), _("Model Attach Failed."));
           return false;
         }
 
       } else if (action->getAction() == "detach") {
-        bool ret = TaskExecutor::instance()->detachModelItem(action->getModelParam()->getModelItem(), intTarget);
+        bool ret = TaskExecutor::instance()->detachModelItem(action->getModelParam()->getModelMaster()->getModelItem(), intTarget);
         if (ret == false) {
           QMessageBox::warning(0, _("Run Task"), _("Model Detach Failed."));
           return false;
@@ -448,17 +458,24 @@ bool TaskExecuteManager::doModelAction() {
 }
 
 void TaskExecuteManager::prepareTask() {
-  this->taskInstView->unloadCurrentModel();
-  if (prevTask_) {
+	DDEBUG("TaskExecuteManager::prepareTask");
+
+	if (prevTask_) {
     ChoreonoidUtil::unLoadTaskModelItem(prevTask_);
     if (prevTask_->getStateParam()) prevTask_->getStateParam()->updateActive(false);
     if (currentTask_ && currentTask_->getStateParam()) currentTask_->getStateParam()->updateActive(true);
     this->flowView_->repaint();
   }
   bool isUpdateTree = ChoreonoidUtil::loadTaskModelItem(currentTask_);
-  this->metadataView->setTaskParam(currentTask_);
-  this->statemachineView_->setTaskParam(currentTask_);
-  this->parameterView_->setTaskParam(currentTask_);
+
+	vector<FileDataParamPtr> fileList = currentTask_->getActiveFileList();
+	std::vector<ImageDataParamPtr> imageList = currentTask_->getActiveImageList();
+	this->metadataView->setTaskParam(currentTask_, fileList, imageList);
+ 
+	this->statemachineView_->setTaskParam(currentTask_);
+
+	vector<ParameterParamPtr> paramList = currentTask_->getActiveParameterList();
+	this->parameterView_->setTaskParam(currentTask_, paramList);
   if (isUpdateTree) {
     ChoreonoidUtil::showAllModelItem();
   }
@@ -467,7 +484,6 @@ void TaskExecuteManager::prepareTask() {
   currParam_->updateActive(true);
   statemachineView_->repaint();
   ChoreonoidUtil::updateScene();
-  parameterView_->setInputValues();
 }
 
 void TaskExecuteManager::setOutArgument(std::vector<CompositeParamType>& parameterList) {
@@ -476,9 +492,9 @@ void TaskExecuteManager::setOutArgument(std::vector<CompositeParamType>& paramet
     if (argDef->getDirection() != 1) continue;
 
     QString targetStr = currParam_->getArgList()[idxArg]->getValueDesc();
-    ParameterParam* targetParam = NULL;
+		ParameterParamPtr targetParam = NULL;
     for (int idxParam = 0; idxParam < currentTask_->getParameterList().size(); idxParam++) {
-      ParameterParam* parmParm = currentTask_->getParameterList()[idxParam];
+			ParameterParamPtr parmParm = currentTask_->getParameterList()[idxParam];
       if (parmParm->getRName() == targetStr) {
         targetParam = parmParm;
         break;
@@ -515,7 +531,7 @@ bool TaskExecuteManager::detachAllModelItem() {
   return TaskExecutor::instance()->detachAllModelItem();
 }
 
-void TaskExecuteManager::createArgEstimator(TaskModelParam* targetParam) {
+void TaskExecuteManager::createArgEstimator(TaskModelParamPtr targetParam) {
   argHandler_ = EstimatorFactory::getInstance().createArgEstimator(targetParam);
 }
 

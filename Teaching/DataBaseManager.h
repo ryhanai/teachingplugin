@@ -25,71 +25,80 @@ public:
   bool connectDB();
   bool reConnectDB();
   void closeDB();
-  vector<FlowParam*> searchFlowList(vector<string>& condList, bool isOr);
 
-  TaskModelParam* getTaskModelById(const int taskId);
-  vector<TaskModelParam*> searchTaskModels(vector<string>& condList, bool isOr);
-  TaskModelParam* getTaskParamById(int id);
-  FlowParam* getFlowParamById(const int id);
+  vector<FlowParamPtr> searchFlowList(vector<string>& condList, bool isOr);
+	FlowParamPtr getFlowParamById(const int id);
 
-  TaskModelParam* getTaskModel(int index);
-  vector<ElementStmActionParam*> getStmActionList(int stateId);
-  vector<ParameterParam*> getParameterParams(int instId);
+	vector<TaskModelParamPtr> getAllTask();
+	TaskModelParamPtr getTaskModelById(const int taskId);
+  vector<TaskModelParamPtr> searchTaskModels(vector<string>& condList, bool isOr);
 
-  void getDetailParams(TaskModelParam* target);
+	TaskModelParamPtr getTaskModel(int index);
+  vector<ElementStmActionParamPtr> getStmActionList(int taskId, int stateId);
+	vector<ArgumentParamPtr> getArgumentParams(int taskId, int stateId);
+	vector<ParameterParamPtr> getParameterParams(int instId);
 
-  bool saveTaskModel(TaskModelParam* source);
-  bool saveTaskModelsForLoad(vector<TaskModelParam*>& source);
-  bool saveFlowModel(FlowParam* source);
+  void getDetailParams(TaskModelParamPtr target);
+
+  bool saveTaskModel(TaskModelParamPtr source);
+	bool saveTaskModelsForLoad(vector<TaskModelParamPtr>& source);
+  bool saveImportedTaskModel(vector<TaskModelParamPtr>& source, vector<ModelMasterParamPtr>& modelMasterList);
+  bool saveFlowModel(FlowParamPtr source);
   bool deleteFlowModel(int id);
-  bool deleteTaskModel(TaskModelParam* target);
+  bool deleteTaskModel(int task_inst_id);
 
-  bool saveTaskParameter(TaskModelParam* source);
-  bool saveStateParameter(ElementStmParam* source);
+  bool saveTaskParameter(TaskModelParamPtr source);
+  bool saveStateParameter(int taskId, ElementStmParamPtr source);
 
   int getModelMaxIndex();
+
+	vector<ModelMasterParamPtr> getModelMasterList();
+	bool saveModelMasterList(vector<ModelMasterParamPtr> target);
 
   inline QString getErrorStr() const { return this->errorStr_; }
 
 private:
   QSqlDatabase db_;
-  vector<TaskModelParam*> taskModelList_;
-  vector<FlowParam*> flowList_;
+  vector<TaskModelParamPtr> taskModelList_;
   QString errorStr_;
 
-  vector<ArgumentParam*> getArgumentParams(int stateId);
-  vector<ModelParam*> getModelParams(int id);
-  vector<ImageDataParam*> getFigureParams(int id);
-  vector<FileDataParam*> getFileParams(int id);
-  vector<ElementStmParam*> getStateParams(int instId);
-  vector<ConnectionStmParam*> getTransParams(int instId);
-  vector<ElementStmParam*> getViaPointParams(int connId);
+  vector<ModelParamPtr> getModelParams(int id);
+  vector<ImageDataParamPtr> getFigureParams(int id);
+  vector<FileDataParamPtr> getFileParams(int id);
+  vector<ElementStmParamPtr> getStateParams(int instId);
+  vector<ConnectionStmParamPtr> getTransParams(int instId);
+  vector<ElementStmParamPtr> getViaPointParams(int taskId, int transId);
 
-  bool saveTaskInstanceData(TaskModelParam* source, bool updateDate);
-  bool saveTaskParameterData(int taskId, ParameterParam* source);
-  bool saveElementStmData(int parentId, ElementStmParam* source);
-  bool saveElementStmActionData(int stateId, ElementStmActionParam* source);
-  bool saveTransitionStmData(int parentId, ConnectionStmParam* source);
-  bool saveArgumentData(int stateId, ArgumentParam* source);
+  bool saveTaskInstanceData(TaskModelParamPtr source, bool updateDate);
+  bool saveTaskParameterData(int taskId, ParameterParamPtr source);
+  bool saveElementStmData(int parentId, ElementStmParamPtr source);
+  bool saveElementStmActionData(int taskId, int stateId, ElementStmActionParamPtr source);
+  bool saveTransitionStmData(int parentId, ConnectionStmParamPtr source);
+  bool saveArgumentData(int taskId, int stateId, ArgumentParamPtr source);
 
-  bool saveViaPointData(ConnectionStmParam* source);
+  bool saveViaPointData(int taskId, ConnectionStmParamPtr source);
 
-  vector<ElementStmParam*> getFlowStateParams(int instId);
-  vector<ConnectionStmParam*> getFlowTransParams(int instId);
-  vector<ElementStmParam*> getFlowViaPointParams(int connId);
+  vector<ElementStmParamPtr> getFlowStateParams(int flow_id);
+  vector<ConnectionStmParamPtr> getFlowTransParams(int flow_id);
+  vector<ElementStmParamPtr> getFlowViaPointParams(int flow_id, int trans_id);
+	vector<ParameterParamPtr> getFlowParameterParams(int flowId);
 
-  bool saveFlowStmData(int parentId, ElementStmParam* source);
-  bool saveFlowTransactionStmData(int parentId, ConnectionStmParam* source);
-  bool saveFlowViaPointData(ConnectionStmParam* source);
+  bool saveFlowStmData(int parentId, ElementStmParamPtr source);
+  bool saveFlowTransactionStmData(int parentId, ConnectionStmParamPtr source);
+  bool saveFlowViaPointData(int parentId, ConnectionStmParamPtr source);
+	bool saveFlowParameter(FlowParamPtr source);
+	bool saveFlowParameterData(int flowId, ParameterParamPtr source);
 
   /////
-  bool saveFlowData(FlowParam* source);
+  bool saveFlowData(FlowParamPtr source);
 
-  bool saveDetailData(TaskModelParam* source);
-  bool saveModelData(int parentId, ModelParam* source);
-  bool saveModelDetailData(int modelId, ModelDetailParam* source);
-  bool saveImageData(int parentId, ImageDataParam* source);
-  bool saveFileData(int parentId, FileDataParam* source);
+  bool saveDetailData(TaskModelParamPtr source);
+  bool saveModelData(int parentId, ModelParamPtr source);
+  bool saveModelDetailData(int modelId, ModelDetailParamPtr source);
+  bool saveImageData(int parentId, ImageDataParamPtr source);
+  bool saveFileData(int parentId, FileDataParamPtr source);
+
+	bool deleteDataById(QString tableName, QString strKey, int id);
 
   QByteArray image2DB(QString& name, const QImage& source);
 };

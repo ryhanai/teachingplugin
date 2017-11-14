@@ -1,10 +1,9 @@
 #include <cnoid/InfoBar>
 
 #include "FlowView.h"
-#include "TeachingUtil.h"
-#include "ChoreonoidUtil.h"
-#include "TaskExecutor.h"
 #include "FlowSearchDialog.h"
+
+#include "TeachingEventHandler.h"
 
 #include "gettext.h"
 #include "LoggerUtil.h"
@@ -15,7 +14,7 @@ using namespace cnoid;
 
 namespace teaching {
 
-TaskInfoDialog::TaskInfoDialog(TaskModelParam* param, ElementNode* elem, QWidget* parent)
+TaskInfoDialog::TaskInfoDialog(TaskModelParamPtr param, ElementNode* elem, QWidget* parent)
   : QDialog(parent, Qt::CustomizeWindowHint | Qt::WindowTitleHint) {
   this->targetTask_ = param;
   this->targetElem_ = elem;
@@ -70,8 +69,7 @@ void TaskInfoDialog::cancelClicked() {
   close();
 }
 //////////
-FlowViewImpl::FlowViewImpl(QWidget* parent)
-  : TaskExecutionView(parent), currentFlow_(0) {
+FlowViewImpl::FlowViewImpl(QWidget* parent) {
   QFrame* flowFrame = new QFrame;
   QLabel* lblName = new QLabel(_("Flow Name:"));
   leName = new QLineEdit;
@@ -244,6 +242,8 @@ FlowViewImpl::FlowViewImpl(QWidget* parent)
   connect(btnEdit, SIGNAL(clicked()), this, SLOT(editClicked()));
   connect(btnExport, SIGNAL(clicked()), this, SLOT(exportFlowClicked()));
   connect(btnImport, SIGNAL(clicked()), this, SLOT(importFlowClicked()));
+
+	TeachingEventHandler::instance()->flv_Loaded(this);
 }
 //
 void FlowViewImpl::setButtonEnableMode(bool isEnable) {
@@ -260,174 +260,67 @@ void FlowViewImpl::setButtonEnableMode(bool isEnable) {
   btnAbort->setEnabled(!isEnable);
 }
 
-void FlowViewImpl::searchClicked() {
-  if (checkPaused()) return;
-  DDEBUG("FlowViewImpl::searchClicked()");
+void FlowViewImpl::dispView(FlowParamPtr& target) {
+	changeEnables(true);
+	leName->setText(target->getName());
+	leComment->setText(target->getComment());
+	createStateMachine(target);
+}
 
-  statemachineView_->setStepStatus(false);
-  //
-  FlowSearchDialog dialog(currentFlow_, this);
-  dialog.exec();
-  DDEBUG_V("FlowSearchDialog %d, %d", dialog.IsOK(), dialog.IsDeleted());
-  if (dialog.IsDeleted()) {
-    if (currentFlow_) {
-      this->taskInstView->unloadCurrentModel();
-      if (currentTask_) {
-        ChoreonoidUtil::unLoadTaskModelItem(currentTask_);
-      }
-      currentTask_ = 0;
-      currParam_ = 0;
-      currentFlow_ = 0;
-      leName->setText("");
-      leComment->setText("");
-      grhStateMachine->setFlowParam(0);
-      grhStateMachine->removeAll();
-      changeEnables(false);
-      this->metadataView->clearTaskParam();
-      this->statemachineView_->clearTaskParam();
-      this->parameterView_->clearTaskParam();
-    }
-    return;
-  }
-  //
-  if (dialog.IsOK() == false) return;
-  //
-  int selected = dialog.getSelectedIndex();
-  DDEBUG_V("selected : %d", selected);
-  if (currentFlow_) {
-    this->taskInstView->unloadCurrentModel();
-    if (currentTask_) {
-      ChoreonoidUtil::unLoadTaskModelItem(currentTask_);
-    }
-    currentTask_ = 0;
-    currParam_ = 0;
-  }
-  currentFlow_ = DatabaseManager::getInstance().getFlowParamById(selected);
-  if (currentFlow_ == 0) {
-    QMessageBox::warning(this, _("Flow"), _("FAILED to Open Flow."));
-    return;
-  }
-  changeEnables(true);
-  leName->setText(currentFlow_->getName());
-  leComment->setText(currentFlow_->getComment());
-  grhStateMachine->setFlowParam(currentFlow_);
-  grhStateMachine->createStateMachine(currentFlow_);
+void FlowViewImpl::createStateMachine(FlowParamPtr& target) {
+	grhStateMachine->setFlowParam(target);
+	vector<ElementStmParamPtr> stateList = target->getActiveStateList();
+	vector<ConnectionStmParamPtr> transList = target->getActiveTransitionList();
+	grhStateMachine->createStateMachine(stateList, transList);
+}
+
+void FlowViewImpl::clearView() {
+	  leName->setText("");
+	  leComment->setText("");
+	  grhStateMachine->setFlowParam(0);
+	  grhStateMachine->removeAll();
+	  changeEnables(false);
+}
+/////
+void FlowViewImpl::searchClicked() {
+	TeachingEventHandler::instance()->flv_SearchClicked();
 }
 
 void FlowViewImpl::newFlowClicked() {
-  if (checkPaused()) return;
-  DDEBUG("FlowViewImpl::newFlowClicked()");
-
-  statemachineView_->setStepStatus(false);
-  //
-  if (!currentFlow_) delete currentFlow_;
-  currentFlow_ = new FlowParam(NULL_ID, "", "", "", "");
-  currentFlow_->setNew();
-
-  leName->setText("");
-  leComment->setText("");
-  changeEnables(true);
-
-  grhStateMachine->setFlowParam(currentFlow_);
+	TeachingEventHandler::instance()->flv_NewFlowClicked();
   leName->setFocus();
 }
 
 void FlowViewImpl::registFlowClicked() {
-  if (checkPaused()) return;
-  DDEBUG("FlowViewImpl::registFlowClicked()");
-
-  statemachineView_->setStepStatus(false);
-  //
-  if (currentFlow_) {
-    QString strName = leName->text();
-    if (currentFlow_->getName() != strName) {
-      currentFlow_->setName(strName);
-    }
-    QString strComment = leComment->text();
-    if (currentFlow_->getComment() != strComment) {
-      currentFlow_->setComment(strComment);
-    }
-    //
-    bool isChanged = false;
-    for (int idxTask = 0; idxTask < currentFlow_->getStmElementList().size(); idxTask++) {
-      ElementStmParam* state = currentFlow_->getStmElementList()[idxTask];
-      TaskModelParam* task = state->getTaskParam();
-      if (task) {
-        for (int index = 0; index < task->getModelList().size(); index++) {
-          ModelParam* model = currentTask_->getModelList()[index];
-          if (model->isChangedPosition() == false) continue;
-          isChanged = true;
-          break;
-        }
-        if (isChanged) break;
-      }
-    }
-    if (isChanged) {
-      QMessageBox::StandardButton ret = QMessageBox::question(this, _("Confirm"),
-        _("Model Position was changed. Continue?"),
-        QMessageBox::Yes | QMessageBox::No);
-      if (ret == QMessageBox::No) return;
-    }
-    //
-    if (DatabaseManager::getInstance().saveFlowModel(currentFlow_)) {
-      currentFlow_ = DatabaseManager::getInstance().getFlowParamById(currentFlow_->getId());
-      QMessageBox::information(this, _("Database"), _("Database updated"));
-      grhStateMachine->setFlowParam(currentFlow_);
-      grhStateMachine->createStateMachine(currentFlow_);
-
-    } else {
-      QMessageBox::warning(this, _("Database Error"), DatabaseManager::getInstance().getErrorStr());
-    }
-  }
+	TeachingEventHandler::instance()->flv_RegistFlowClicked(leName->text(), leComment->text());
 }
 
 void FlowViewImpl::deleteTaskClicked() {
-  if (checkPaused()) return;
+  if (TeachingEventHandler::instance()->checkPaused()) return;
 
   DDEBUG("FlowViewImpl::deleteTaskClicked()");
-  statemachineView_->setStepStatus(false);
   grhStateMachine->deleteCurrent();
-  currentFlow_->setUpdate();
+	TeachingEventHandler::instance()->flv_DeleteTaskClicked();
 }
 
 void FlowViewImpl::modeChanged() {
   DDEBUG("FlowViewImpl::modeChanged()");
-
   grhStateMachine->setCntMode(btnTrans->isChecked());
 }
 
-void FlowViewImpl::runFlowClicked() {
-  DDEBUG("FlowViewImpl::runFlowClicked()");
-  runFlow(currentFlow_);
-}
+void FlowViewImpl::editClicked() {
+	DDEBUG("FlowViewImpl::editClicked()");
 
-void FlowViewImpl::runTaskClicked() {
-  DDEBUG("FlowViewImpl::runTaskClicked()");
-  runSingleTask();
-}
-
-void FlowViewImpl::abortClicked() {
-  DDEBUG("FlowViewImpl::abortClicked");
-  abortOperation();
-}
-
-void FlowViewImpl::initPosClicked() {
-  if (!currentFlow_) return;
-  if (checkPaused()) return;
-
-  DDEBUG("FlowViewImpl::initPosClicked()");
-  statemachineView_->setStepStatus(false);
-  //
-  for (int idxState = 0; idxState < currentFlow_->getStmElementList().size(); idxState++) {
-    ElementStmParam* targetState = currentFlow_->getStmElementList()[idxState];
-    if (targetState->getType() == ELEMENT_COMMAND) {
-      TaskModelParam* task = targetState->getTaskParam();
-      for (int index = 0; index < task->getModelList().size(); index++) {
-        task->getModelList()[index]->setInitialPos();
-      }
-    }
-  }
-  executor_->detachAllModelItem();
+	ElementNode* target = grhStateMachine->getCurrentNode();
+	if (target) {
+		ElementStmParamPtr targetStm = target->getElemParam();
+		if (targetStm->getType() != ELEMENT_COMMAND) {
+			QMessageBox::warning(this, _("TaskInstance"), _("Please select Task Instance Node. : ") + QString::number(targetStm->getType()));
+			return;
+		}
+		TaskInfoDialog dialog(targetStm->getTaskParam(), target, this);
+		dialog.exec();
+	}
 }
 
 void FlowViewImpl::changeEnables(bool value) {
@@ -451,122 +344,34 @@ void FlowViewImpl::changeEnables(bool value) {
   btnExport->setEnabled(value);
 }
 
-void FlowViewImpl::flowSelectionChanged(TaskModelParam* target) {
-  if (checkPaused()) return;
-  DDEBUG("FlowViewImpl::flowSelectionChanged()");
-  statemachineView_->setStepStatus(false);
-  //
-  this->taskInstView->unloadCurrentModel();
-  if (currentTask_) {
-    ChoreonoidUtil::unLoadTaskModelItem(currentTask_);
-  }
-  //
-  currentTask_ = target;
-  if (currentTask_) {
-    if (currentTask_->IsLoaded() == false) {
-      TeachingUtil::loadTaskDetailData(currentTask_);
-    }
-    bool isUpdateTree = ChoreonoidUtil::loadTaskModelItem(currentTask_);
-
-    this->metadataView->setTaskParam(currentTask_);
-    this->statemachineView_->setTaskParam(currentTask_);
-    this->parameterView_->setTaskParam(currentTask_);
-    //即更新を行うとエラーになってしまうため
-    if (isUpdateTree) {
-      ChoreonoidUtil::showAllModelItem();
-    }
-
-  } else {
-    this->metadataView->clearTaskParam();
-    this->statemachineView_->clearTaskParam();
-    this->parameterView_->clearTaskParam();
-  }
-}
-
-void FlowViewImpl::editClicked() {
-  DDEBUG("FlowViewImpl::editClicked()");
-
-  ElementNode* target = grhStateMachine->getCurrentNode();
-  if (target) {
-    ElementStmParam* targetStm = target->getElemParam();
-    if (targetStm->getType() != ELEMENT_COMMAND) {
-      QMessageBox::warning(this, _("TaskInstance"), _("Please select Task Instance Node. : ") + QString::number(targetStm->getType()));
-      return;
-    }
-    TaskInfoDialog dialog(targetStm->getTaskParam(), target, this);
-    dialog.exec();
-  }
-}
-
 void FlowViewImpl::exportFlowClicked() {
-  if (checkPaused()) return;
-
-  DDEBUG("FlowViewImpl::exportFlowClicked()");
-  statemachineView_->setStepStatus(false);
-  //
-  if (!currentFlow_) {
-    QMessageBox::warning(this, _("Export Flow"), _("Please select target FLOW"));
-    return;
-  }
-  //
-  QFileDialog::Options options;
-  QString strSelectedFilter;
-  QString strFName = QFileDialog::getSaveFileName(
-    this, tr("FlowModel File"), ".",
-    tr("YAML(*.yaml);;all(*.*)"),
-    &strSelectedFilter, options);
-  if (strFName.isEmpty()) return;
-  //
-  QString strName = leName->text();
-  if (currentFlow_->getName() != strName) {
-    currentFlow_->setName(strName);
-  }
-  QString strComment = leComment->text();
-  if (currentFlow_->getComment() != strComment) {
-    currentFlow_->setComment(strComment);
-  }
-  if (TeachingUtil::exportFlow(strFName, currentFlow_)) {
-    QMessageBox::information(this, _("Export Flow"), _("target FLOW exported"));
-  } else {
-    QMessageBox::warning(this, _("Export Flow"), _("target FLOW export FAILED"));
-  }
-
+	TeachingEventHandler::instance()->flv_FlowExportClicked(leName->text(), leComment->text());
 }
 
 void FlowViewImpl::importFlowClicked() {
-  if (checkPaused()) return;
-
-  DDEBUG("FlowViewImpl::importFlowClicked()");
-  statemachineView_->setStepStatus(false);
-
-  QString strFName = QFileDialog::getOpenFileName(
-    this, "TaskFlow File", ".", "YAML(*.yaml);;all(*.*)");
-  if (strFName.isEmpty()) return;
-  //
-  vector<FlowParam*> flowModelList;
-  if (TeachingUtil::importFlow(strFName, flowModelList) == false) {
-    QMessageBox::warning(this, _("Import Flow"), _("FLOW import FAILED"));
-    return;
-  }
-  if (flowModelList.size() == 0) {
-    QMessageBox::warning(this, _("Import Flow"), _("FLOW import FAILED"));
-    return;
-  }
-  currentFlow_ = flowModelList[0];
-  if (DatabaseManager::getInstance().saveFlowModel(currentFlow_) == false) {
-    QMessageBox::warning(this, _("Import Flow"), _("FLOW save FAILED"));
-    return;
-  }
-  currentFlow_ = DatabaseManager::getInstance().getFlowParamById(currentFlow_->getId());
-
-  changeEnables(true);
-  leName->setText(currentFlow_->getName());
-  leComment->setText(currentFlow_->getComment());
-  grhStateMachine->setFlowParam(currentFlow_);
-  grhStateMachine->createStateMachine(currentFlow_);
-
-  QMessageBox::information(this, _("Import Flow"), _(" FLOW imported"));
+	TeachingEventHandler::instance()->flv_FlowImportClicked();
 }
+
+void FlowViewImpl::runFlowClicked() {
+	TeachingEventHandler::instance()->flv_RunFlowClicked();
+}
+
+void FlowViewImpl::runTaskClicked() {
+	TeachingEventHandler::instance()->tev_RunTaskClicked();
+}
+
+void FlowViewImpl::abortClicked() {
+	TeachingEventHandler::instance()->tev_AbortClicked();
+}
+
+void FlowViewImpl::initPosClicked() {
+	TeachingEventHandler::instance()->flv_InitPosClicked();
+}
+
+void FlowViewImpl::flowSelectionChanged(TaskModelParamPtr target) {
+	TeachingEventHandler::instance()->flv_SelectionChanged(target);
+}
+
 /////
 FlowView::FlowView() : viewImpl(0) {
   setName(_("FlowModel"));

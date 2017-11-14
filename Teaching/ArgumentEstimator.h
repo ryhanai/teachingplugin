@@ -15,11 +15,11 @@ public:
 	ArgumentEstimator() {};
 	virtual ~ArgumentEstimator() {};
 
-	virtual void initialize(TaskModelParam* targetParam = NULL) = 0;
+	virtual void initialize(TaskModelParamPtr targetParam = NULL) = 0;
 	virtual void finalize() = 0;
 
-	virtual bool buildArguments(TaskModelParam* taskParam, ElementStmParam* targetParam, std::vector<CompositeParamType>& parameterList) = 0;
-	virtual bool checkSyntax(TaskModelParam* taskParam, QString script, string& errStr) = 0;
+	virtual bool buildArguments(TaskModelParamPtr taskParam, ElementStmParamPtr targetParam, std::vector<CompositeParamType>& parameterList) = 0;
+	virtual bool checkSyntax(TaskModelParamPtr taskParam, QString script, string& errStr) = 0;
 	virtual bool checkCondition(bool cmdRet, string script) = 0;
 };
 

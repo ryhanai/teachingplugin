@@ -27,6 +27,7 @@ set(sources
   LoggerUtil.cpp
   MetaDataView.cpp
   ModelDialog.cpp
+  ModelMasterDialog.cpp
   ParameterDialog.cpp
   ParameterView.cpp
   PythonWrapper.cpp
@@ -34,9 +35,10 @@ set(sources
   StateMachineParams.cpp
   StateMachineView.cpp
   TaskExecuteManager.cpp
-  TaskExecutionView.cpp
   TaskExecutor.cpp
   TaskInstanceView.cpp
+  TeachingDataHolder.cpp
+  TeachingEventHandler.cpp
   TeachingPlugin.cpp
   TeachingTypes.cpp
   TeachingUtil.cpp
@@ -60,28 +62,30 @@ set(headers
   LoggerUtil.h
   MetaDataView.h
   ModelDialog.h
+  ModelMasterDialog.h
   ParameterDialog.h
   ParameterView.h
   PythonWrapper.h
   SettingDialog.h
   StateMachineView.h
   TaskExecuteManager.h
-  TaskExecutionView.h
   TaskExecutor.h
   TaskInstanceView.h
+  TeachingDataHolder.h
+  TeachingEventHandler.h
   TeachingTypes.h
   TeachingUtil.h
   QtUtil.h
   )
 
 set(qtheaders
-  ActivityEditorBase.h
   ArgumentDialog.h
   DecisionDialog.h
   ExecEnvDialog.h
   FlowSearchDialog.h
   FlowView.h
   ModelDialog.h
+  ModelMasterDialog.h
   MetaDataView.h
   ParameterDialog.h
   ParameterView.h
