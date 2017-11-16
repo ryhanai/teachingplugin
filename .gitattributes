@@ -1,0 +1,2 @@
+share/*sqlite3* filter=lfs diff=lfs merge=lfs -text
+share/data/**/* filter=lfs diff=lfs merge=lfs -text
