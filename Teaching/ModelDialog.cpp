@@ -28,10 +28,12 @@ ModelDialog::ModelDialog(QWidget* parent)
 	QPushButton* btnAddModel = new QPushButton("<<");
 	btnAddModel->setToolTip(_("Add new Model"));
 	btnAddModel->setFixedWidth(30);
+	btnAddModel->setAutoDefault(false);
 
 	QPushButton* btnDeleteModel = new QPushButton(">>");
 	btnDeleteModel->setToolTip(_("Delete selected Model"));
 	btnDeleteModel->setFixedWidth(30);
+	btnDeleteModel->setAutoDefault(false);
 
 	QFrame* frmModelList= new QFrame;
 	QGridLayout* modelLayout = new QGridLayout(frmModelList);
@@ -95,7 +97,9 @@ ModelDialog::ModelDialog(QWidget* parent)
   //
   QFrame* frmBotButtons = new QFrame;
   QPushButton* btnOK = new QPushButton(_("OK"));
+	btnOK->setAutoDefault(false);
 	QPushButton* btnCancel = new QPushButton(_("Cancel"));
+	btnCancel->setAutoDefault(false);
 	QHBoxLayout* buttonBotLayout = new QHBoxLayout(frmBotButtons);
   buttonBotLayout->setContentsMargins(2, 2, 2, 2);
 	buttonBotLayout->addWidget(btnCancel);

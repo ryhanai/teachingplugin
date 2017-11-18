@@ -44,7 +44,7 @@ typedef std::shared_ptr<ModelParameterGroup> ModelParameterGroupPtr;
 class ParameterViewImpl : public QWidget {
   Q_OBJECT
 public:
-  ParameterViewImpl(ParameterViewType type, QWidget* parent = 0);
+  ParameterViewImpl(QWidget* parent = 0);
   void setTaskParam(TaskModelParamPtr param, vector<ParameterParamPtr>& paramList);
   void clearTaskParam();
 
@@ -52,7 +52,6 @@ private Q_SLOTS:
   void editClicked();
 
 private:
-	ParameterViewType type_;
   QLabel* lblName;
   QPushButton* btnEdit;
   vector<QFrame*> frameList_;
@@ -74,15 +73,6 @@ public:
 
 private:
   ParameterViewImpl* viewImpl;
-};
-
-class FlowParameterView : public cnoid::View {
-public:
-	FlowParameterView();
-	~FlowParameterView();
-
-private:
-	ParameterViewImpl* viewImpl;
 };
 }
 #endif

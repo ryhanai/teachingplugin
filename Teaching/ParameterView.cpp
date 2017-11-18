@@ -124,9 +124,8 @@ void ModelParameterGroup::disconnectKinematics() {
 	}
 }
 /////
-ParameterViewImpl::ParameterViewImpl(ParameterViewType type, QWidget* parent) : QWidget(parent) {
-	this->type_ = type;
-	TeachingEventHandler::instance()->prv_Loaded(type, this);
+ParameterViewImpl::ParameterViewImpl(QWidget* parent) : QWidget(parent) {
+	TeachingEventHandler::instance()->prv_Loaded(this);
 }
 
 void ParameterViewImpl::setTaskParam(TaskModelParamPtr param, vector<ParameterParamPtr>& paramList) {
@@ -257,7 +256,7 @@ ParameterView::ParameterView() : viewImpl(0) {
   setName(_("Parameter"));
   setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Ignored);
 
-  viewImpl = new ParameterViewImpl(ParameterViewType::PARAM_VIEW_TASK, this);
+  viewImpl = new ParameterViewImpl(this);
   QVBoxLayout* vbox = new QVBoxLayout();
   vbox->addWidget(viewImpl);
   setLayout(vbox);
@@ -265,20 +264,5 @@ ParameterView::ParameterView() : viewImpl(0) {
 }
 
 ParameterView::~ParameterView() {
-};
-
-/////
-FlowParameterView::FlowParameterView() : viewImpl(0) {
-	setName(_("FlowParameter"));
-	setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Ignored);
-
-	viewImpl = new ParameterViewImpl(ParameterViewType::PARAM_VIEW_FLOW, this);
-	QVBoxLayout* vbox = new QVBoxLayout();
-	vbox->addWidget(viewImpl);
-	setLayout(vbox);
-	setDefaultLayoutArea(View::LEFT_BOTTOM);
-}
-
-FlowParameterView::~FlowParameterView() {
 };
 }

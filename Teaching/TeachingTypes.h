@@ -49,11 +49,6 @@ enum ElementType {
   ELEMENT_POINT
 };
 
-enum ParameterViewType {
-	PARAM_VIEW_TASK = 1,
-	PARAM_VIEW_FLOW
-};
-
 enum ParameterType {
   PARAM_SCALAR = 1,
   PARAM_VECTOR

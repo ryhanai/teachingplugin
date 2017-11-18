@@ -25,7 +25,6 @@ public:
   virtual bool initialize() {
     viewManager().registerClass<MetaDataView>("MetaDataView", "MetaData", ViewManager::SINGLE_DEFAULT);
     viewManager().registerClass<ParameterView>("ParameterView", "Parameter", ViewManager::SINGLE_DEFAULT);
-		viewManager().registerClass<FlowParameterView>("FlowParameterView", "FlowParameter", ViewManager::SINGLE_DEFAULT);
 		viewManager().registerClass<FlowView>("FlowView", "FlowModel", ViewManager::SINGLE_DEFAULT);
     viewManager().registerClass<TaskInstanceView>("TaskInstanceView", "TaskInstance", ViewManager::SINGLE_DEFAULT);
     viewManager().registerClass<StateMachineView>("StateMachineView", "StateMachine", ViewManager::SINGLE_DEFAULT);
@@ -33,7 +32,6 @@ public:
     MetaDataView* metadataView = viewManager().findView<MetaDataView>("MetaData");
     ParameterView* parameterView = viewManager().findView<ParameterView>("Parameter");
     FlowView* flowView = viewManager().findView<FlowView>("FlowModel");
-		FlowParameterView* flowParameterView = viewManager().findView<FlowParameterView>("FlowParameter");
 		TaskInstanceView* taskView = viewManager().findView<TaskInstanceView>("TaskInstance");
     StateMachineView* statemachineView = viewManager().findView<StateMachineView>("StateMachine");
     //

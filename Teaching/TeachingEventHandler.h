@@ -77,7 +77,7 @@ public:
 	void stv_SetClicked(ConnectionNode* target, QString value);
 
 	//ParameterView
-	void prv_Loaded(ParameterViewType type, ParameterViewImpl* view);
+	void prv_Loaded(ParameterViewImpl* view);
 	void prv_SetInputValues();
 
 	//TaskExecutionView
@@ -174,7 +174,6 @@ private:
 	StateMachineViewImpl* stv_;
 
 	ParameterViewImpl* prv_;
-	ParameterViewImpl* fpv_;
 
 	FlowSearchDialog* fsd_;
 

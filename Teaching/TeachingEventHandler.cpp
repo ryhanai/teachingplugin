@@ -647,12 +647,8 @@ void TeachingEventHandler::stv_SetClicked(ConnectionNode* target, QString value)
 }
 
 //ParameterView
-void TeachingEventHandler::prv_Loaded(ParameterViewType type, ParameterViewImpl* view) {
-	if (type == ParameterViewType::PARAM_VIEW_FLOW) {
-		this->fpv_ = view;
-	} else {
-		this->prv_ = view;
-	}
+void TeachingEventHandler::prv_Loaded(ParameterViewImpl* view) {
+	this->prv_ = view;
 }
 
 void TeachingEventHandler::prv_SetInputValues() {
