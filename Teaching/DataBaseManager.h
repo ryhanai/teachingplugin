@@ -95,7 +95,8 @@ private:
   bool saveDetailData(TaskModelParamPtr source);
   bool saveModelData(int parentId, ModelParamPtr source);
   bool saveModelDetailData(int modelId, ModelDetailParamPtr source);
-  bool saveImageData(int parentId, ImageDataParamPtr source);
+	bool saveModelParameter(int modelId, ModelParameterParamPtr source);
+	bool saveImageData(int parentId, ImageDataParamPtr source);
   bool saveFileData(int parentId, FileDataParamPtr source);
 
 	bool deleteDataById(QString tableName, QString strKey, int id);

@@ -1359,17 +1359,34 @@ vector<ModelMasterParamPtr> DatabaseManager::getModelMasterList() {
 		param->setData(query.value(3).toByteArray());
 		result.push_back(param);
 		//
-		string strSubQuery = "SELECT ";
-		strSubQuery += "model_detail_id, file_name, model_data ";
-		strSubQuery += "FROM M_MODEL_DETAIL WHERE model_id = " + toStr(model_id) + " ORDER BY model_detail_id";
-		QSqlQuery subQuery(db_);
-		subQuery.exec(strSubQuery.c_str());
-		while (subQuery.next()) {
-			int detail_id = subQuery.value(0).toInt();
-			QString detailName = subQuery.value(1).toString();
-			ModelDetailParamPtr detailParam = std::make_shared<ModelDetailParam>(detail_id, detailName);
-			detailParam->setData(subQuery.value(2).toByteArray());
-			param->addModelDetail(detailParam);
+		{
+			string strSubQuery = "SELECT ";
+			strSubQuery += "model_detail_id, file_name, model_data ";
+			strSubQuery += "FROM M_MODEL_DETAIL WHERE model_id = " + toStr(model_id) + " ORDER BY model_detail_id";
+			QSqlQuery subQuery(db_);
+			subQuery.exec(strSubQuery.c_str());
+			while (subQuery.next()) {
+				int detail_id = subQuery.value(0).toInt();
+				QString detailName = subQuery.value(1).toString();
+				ModelDetailParamPtr detailParam = std::make_shared<ModelDetailParam>(detail_id, detailName);
+				detailParam->setData(subQuery.value(2).toByteArray());
+				param->addModelDetail(detailParam);
+			}
+		}
+		//
+		{
+			string strSubQuery = "SELECT ";
+			strSubQuery += "model_param_id, name, value ";
+			strSubQuery += "FROM M_MODEL_PARAMETER WHERE model_id = " + toStr(model_id) + " ORDER BY model_param_id";
+			QSqlQuery subQuery(db_);
+			subQuery.exec(strSubQuery.c_str());
+			while (subQuery.next()) {
+				int param_id = subQuery.value(0).toInt();
+				QString parmName = subQuery.value(1).toString();
+				QString parmDesc = subQuery.value(2).toString();
+				ModelParameterParamPtr modelParam = std::make_shared<ModelParameterParam>(model_id, param_id, parmName, parmDesc);
+				param->addModelParameter(modelParam);
+			}
 		}
 	}
 
@@ -1449,6 +1466,16 @@ bool DatabaseManager::saveModelMasterList(vector<ModelMasterParamPtr> target) {
 				}
 			}
 		}
+		//
+		vector<ModelParameterParamPtr> paramList = source->getModelParameterList();
+		if (0 < paramList.size()) {
+			for (int idxDet = 0; idxDet < paramList.size(); idxDet++) {
+				ModelParameterParamPtr detail = paramList[idxDet];
+				if (saveModelParameter(source->getId(), detail) == false) {
+					return false;
+				}
+			}
+		}
 	}
 	//
 	return true;
@@ -1497,6 +1524,69 @@ bool DatabaseManager::saveModelDetailData(int modelId, ModelDetailParamPtr sourc
     source->setNormal();
   }
   return true;
+}
+
+/////M_MODEL_PARAMETER/////
+bool DatabaseManager::saveModelParameter(int modelId, ModelParameterParamPtr source) {
+	DDEBUG_V("saveModelParameter : %d, %d", modelId, source->getMode());
+	if (source->getMode() == DB_MODE_INSERT) {
+		string strMaxQuery = "SELECT max(model_param_id) FROM M_MODEL_PARAMETER WHERE model_id = " + toStr(modelId);
+		QSqlQuery maxQuery(db_);
+		maxQuery.exec(strMaxQuery.c_str());
+		int maxId = -1;
+		if (maxQuery.next()) {
+			maxId = maxQuery.value(0).toInt();
+			maxId++;
+		}
+		source->setId(maxId);
+		//
+		string strQuery = "INSERT INTO M_MODEL_PARAMETER ";
+		strQuery += "(model_id, model_param_id, name, value) ";
+		strQuery += "VALUES ( ?, ?, ?, ? )";
+
+		QSqlQuery query(QString::fromStdString(strQuery));
+		query.addBindValue(modelId);
+		query.addBindValue(maxId);
+		query.addBindValue(source->getName());
+		query.addBindValue(source->getValueDesc());
+		if (!query.exec()) {
+			errorStr_ = "INSERT(M_MODEL_PARAMETER) error:" + query.lastError().databaseText();
+			return false;
+		}
+		source->setNormal();
+
+	} else if (source->getMode() == DB_MODE_UPDATE) {
+		string strQuery = "UPDATE M_MODEL_PARAMETER ";
+		strQuery += "SET name = ?, value = ? ";
+		strQuery += "WHERE model_id = ? AND model_param_id = ?";
+
+		QSqlQuery query(QString::fromStdString(strQuery));
+		query.addBindValue(source->getName());
+		query.addBindValue(source->getValueDesc());
+		query.addBindValue(source->getMasterId());
+		query.addBindValue(source->getId());
+
+		if (!query.exec()) {
+			errorStr_ = "UPDATE(M_MODEL_PARAMETER) error:" + query.lastError().databaseText() + "-" + QString::fromStdString(strQuery);
+			return false;
+		}
+		source->setNormal();
+
+	} else if (source->getMode() == DB_MODE_DELETE) {
+		string strQuery = "DELETE FROM M_MODEL_PARAMETER ";
+		strQuery += "WHERE model_id = ? AND model_param_id = ? ";
+
+		QSqlQuery query(QString::fromStdString(strQuery));
+		query.addBindValue(modelId);
+		query.addBindValue(source->getId());
+
+		if (!query.exec()) {
+			errorStr_ = "DELETE(M_MODEL_PARAMETER) error:" + query.lastError().databaseText() + "-" + QString::fromStdString(strQuery);
+			return false;
+		}
+		source->setNormal();
+	}
+	return true;
 }
 
 /////T_FIGURE/////

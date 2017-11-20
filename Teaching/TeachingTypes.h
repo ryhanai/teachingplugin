@@ -117,6 +117,36 @@ private:
 typedef std::shared_ptr<ModelDetailParam> ModelDetailParamPtr;
 
 /////
+class ModelParameterParam : public DatabaseParam {
+public:
+	ModelParameterParam(int masterId, int id, QString name, QString valueDesc)
+		: master_id_(masterId), id_(id), name_(name), valueDesc_(valueDesc) {
+	};
+	ModelParameterParam(const ModelParameterParam* source)
+		: master_id_(source->master_id_), id_(source->id_), 
+		name_(source->name_), valueDesc_(source->valueDesc_), DatabaseParam(source) {
+	};
+
+	inline int getMasterId() const { return this->master_id_; }
+	inline void setMasterId(int value) { this->master_id_ = value; setUpdate(); }
+
+	inline int getId() const { return this->id_; }
+	inline void setId(int value) { this->id_ = value; setUpdate(); }
+
+	inline QString getName() const { return this->name_; }
+	inline void setName(QString value) { this->name_ = value; setUpdate(); }
+
+	inline QString getValueDesc() const { return this->valueDesc_; }
+	inline void setValueDesc(QString value) { this->valueDesc_ = value; setUpdate(); }
+
+private:
+	int master_id_;
+	int id_;
+	QString name_;
+	QString valueDesc_;
+};
+typedef std::shared_ptr<ModelParameterParam> ModelParameterParamPtr;
+/////
 class ModelMasterParam : public DatabaseParam {
 public:
 	ModelMasterParam(int id, QString name, QString fileName)
@@ -125,11 +155,17 @@ public:
 		: id_(source->id_), name_(source->name_), fileName_(source->fileName_), data_(source->data_),
 		  item_(source->item_), DatabaseParam(source)
 	{
-		for (unsigned int index = 0; index < source->modeDetailList_.size(); index++) {
-			ModelDetailParam* param = new ModelDetailParam(source->modeDetailList_[index].get());
+		for (unsigned int index = 0; index < source->modelDetailList_.size(); index++) {
+			ModelDetailParam* param = new ModelDetailParam(source->modelDetailList_[index].get());
 			param->setNewForce();
 			ModelDetailParamPtr paramPtr(param);
-			this->modeDetailList_.push_back(paramPtr);
+			this->modelDetailList_.push_back(paramPtr);
+		}
+		for (unsigned int index = 0; index < source->modelParameterList_.size(); index++) {
+			ModelParameterParam* param = new ModelParameterParam(source->modelParameterList_[index].get());
+			param->setNewForce();
+			ModelParameterParamPtr paramPtr(param);
+			this->modelParameterList_.push_back(paramPtr);
 		}
 	};
 
@@ -148,13 +184,17 @@ public:
 	inline void setData(QByteArray value) { this->data_ = value; }
 	inline QByteArray getData() const { return this->data_; }
 
-	inline std::vector<ModelDetailParamPtr> getModelDetailList() const { return this->modeDetailList_; }
-	inline void addModelDetail(ModelDetailParamPtr target) { this->modeDetailList_.push_back(target); }
+	inline std::vector<ModelDetailParamPtr> getModelDetailList() const { return this->modelDetailList_; }
+	inline void addModelDetail(ModelDetailParamPtr target) { this->modelDetailList_.push_back(target); }
+
+	inline std::vector<ModelParameterParamPtr> getModelParameterList() const { return this->modelParameterList_; }
+	inline void addModelParameter(ModelParameterParamPtr target) { this->modelParameterList_.push_back(target); }
 
 	inline void setModelItem(cnoid::BodyItemPtr value) { this->item_ = value; }
 	inline cnoid::BodyItemPtr getModelItem() const { return this->item_; }
 
 	void deleteModelDetails();
+	std::vector<ModelParameterParamPtr> getActiveParamList();
 
 private:
 	int id_;
@@ -162,7 +202,8 @@ private:
 	QString name_;
 	QString fileName_;
 	QByteArray data_;
-	std::vector<ModelDetailParamPtr> modeDetailList_;
+	std::vector<ModelDetailParamPtr> modelDetailList_;
+	std::vector<ModelParameterParamPtr> modelParameterList_;
 	cnoid::BodyItemPtr item_;
 };
 typedef std::shared_ptr<ModelMasterParam> ModelMasterParamPtr;

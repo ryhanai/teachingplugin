@@ -273,6 +273,22 @@ ModelMasterParamPtr TeachingDataHolder::addModelMaster() {
 	return param;
 }
 
+void TeachingDataHolder::addModelMasterParam(ModelMasterParamPtr target) {
+	int maxId = -1;
+	for (int index = 0; index < target->getModelParameterList().size(); index++) {
+		ModelParameterParamPtr param = target->getModelParameterList()[index];
+		if (maxId < param->getId()) {
+			maxId = param->getId();
+		}
+	}
+	maxId++;
+	DDEBUG_V("TeachingDataHolder::addModelMasterParam %d", maxId);
+
+	ModelParameterParamPtr newParam = std::make_shared<ModelParameterParam>(target->getId(), maxId, "New Param", "");
+	newParam->setNew();
+	target->addModelParameter(newParam);
+}
+
 void TeachingDataHolder::updateModelMaster(int id, QString name, QString fileName) {
 	ModelMasterParamPtr target = getModelMasterById(id);
 	target->setName(name);
@@ -280,6 +296,21 @@ void TeachingDataHolder::updateModelMaster(int id, QString name, QString fileNam
 }
 
 bool TeachingDataHolder::saveModelMaster(QString& errMessage) {
+	for (int index = 0; index < modelMasterList_.size(); index++) {
+		ModelMasterParamPtr master = modelMasterList_[index];
+		for (int idxParam = 0; idxParam < master->getActiveParamList().size(); idxParam++) {
+			ModelParameterParamPtr param = master->getActiveParamList()[idxParam];
+			if (param->getName().length() == 0) {
+				errMessage = "Parameter Name is Empty. [ " + master->getName() + " ]";
+				return false;
+			}
+			if (param->getValueDesc().length() == 0) {
+				errMessage = "Parameter Definition is Empty. [ " + master->getName() + " : " + param->getName() + " ]";
+				return false;
+			}
+		}
+	}
+
 	bool ret = DatabaseManager::getInstance().saveModelMasterList(this->modelMasterList_);
 	if (ret == false) {
 		errMessage = DatabaseManager::getInstance().getErrorStr();

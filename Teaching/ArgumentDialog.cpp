@@ -12,10 +12,15 @@ ArgumentDialog::ArgumentDialog(QWidget* parent)
   curArgIdx_(NULL_ID), curActionIdx_(NULL_ID) {
   //
   lstModel = UIUtil::makeTableWidget(2, true);
-  lstModel->setColumnWidth(0, 200);
-  lstModel->setColumnWidth(1, 150);
+  lstModel->setColumnWidth(0, 100);
+  lstModel->setColumnWidth(1, 120);
   lstModel->setHorizontalHeaderLabels(QStringList() << "Name" << "ID");
-  //
+	//
+	lstModelParam = UIUtil::makeTableWidget(2, true);
+	lstModelParam->setColumnWidth(0, 100);
+	lstModelParam->setColumnWidth(1, 130);
+	lstModelParam->setHorizontalHeaderLabels(QStringList() << "Name" << "Definition");
+	//
   lstParam = UIUtil::makeTableWidget(4, true);
   lstParam->setColumnWidth(0, 200);
   lstParam->setColumnWidth(1, 150);
@@ -24,13 +29,13 @@ ArgumentDialog::ArgumentDialog(QWidget* parent)
   lstParam->setHorizontalHeaderLabels(QStringList() << "Name" << "ID" << "Type" << "Num");
   //
   QFrame* frmRef = new QFrame;
-  QVBoxLayout* refLayout = new QVBoxLayout;
+	QGridLayout* refLayout = new QGridLayout;
   refLayout->setContentsMargins(0, 0, 0, 0);
   frmRef->setLayout(refLayout);
-  refLayout->addWidget(lstModel);
-  refLayout->addWidget(lstParam);
+  refLayout->addWidget(lstModel, 0, 0, 1, 1);
+	refLayout->addWidget(lstModelParam, 0, 1, 1, 1);
+	refLayout->addWidget(lstParam, 1, 0, 1, 2);
   /////
-
   lstHandling = UIUtil::makeTableWidget(3, false);
   lstHandling->setColumnWidth(0, 100);
   lstHandling->setColumnWidth(1, 150);
@@ -140,7 +145,8 @@ ArgumentDialog::ArgumentDialog(QWidget* parent)
   mainLayout->addWidget(frmButtons);
   setLayout(mainLayout);
   //
-  connect(lstHandling, SIGNAL(itemSelectionChanged()), this, SLOT(actionSelectionChanged()));
+	connect(lstModel, SIGNAL(itemSelectionChanged()), this, SLOT(modelSelectionChanged()));
+	connect(lstHandling, SIGNAL(itemSelectionChanged()), this, SLOT(actionSelectionChanged()));
   connect(lstArg, SIGNAL(itemSelectionChanged()), this, SLOT(argSelectionChanged()));
   connect(btnAdd, SIGNAL(clicked()), this, SLOT(addClicked()));
   connect(btnDelete, SIGNAL(clicked()), this, SLOT(deleteClicked()));
@@ -162,10 +168,23 @@ void ArgumentDialog::showModelInfo(vector<ModelParamPtr>& modelList) {
 
 		int row = lstModel->rowCount();
 		lstModel->insertRow(row);
-		UIUtil::makeTableItem(lstModel, row, 0, param->getName());
-		UIUtil::makeTableItem(lstModel, row, 1, param->getRName());
+		UIUtil::makeTableItemWithData(lstModel, row, 0, param->getName(), param->getMasterId());
+		UIUtil::makeTableItemWithData(lstModel, row, 1, param->getRName(), param->getMasterId());
 
 		cmbModel->addItem(param->getRName());
+	}
+}
+
+void ArgumentDialog::showModelParamInfo(vector<ModelParameterParamPtr>& paramList) {
+	lstModelParam->setRowCount(0);
+
+	for (int index = 0; index < paramList.size(); index++) {
+		ModelParameterParamPtr param = paramList[index];
+
+		int row = lstModelParam->rowCount();
+		lstModelParam->insertRow(row);
+		UIUtil::makeTableItem(lstModelParam, row, 0, param->getName());
+		UIUtil::makeTableItem(lstModelParam, row, 1, param->getValueDesc());
 	}
 }
 
@@ -272,6 +291,15 @@ void ArgumentDialog::updateAction(ElementStmActionParamPtr& target) {
 		}
 		cmbModel->setCurrentIndex(cmbModel->findText(target->getModel()));
 		cmbTarget->setCurrentIndex(cmbTarget->findText(target->getTarget()));
+}
+
+void ArgumentDialog::modelSelectionChanged() {
+	int selected = NULL_ID;
+	QTableWidgetItem* item = lstModel->currentItem();
+	if (item) {
+		selected = item->data(Qt::UserRole).toInt();
+	}
+	TeachingEventHandler::instance()->agd_ModelSelectionChanged(selected);
 }
 
 void ArgumentDialog::addClicked() {

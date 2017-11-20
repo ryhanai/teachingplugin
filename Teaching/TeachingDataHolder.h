@@ -49,6 +49,7 @@ public:
 	ModelMasterParamPtr getModelMasterById(int id);
 	void updateModelMaster(int id, QString name, QString fileName);
 	ModelMasterParamPtr addModelMaster();
+	void addModelMasterParam(ModelMasterParamPtr target);
 	bool saveModelMaster(QString& errMessage);
 	bool saveModelMasterList(vector<ModelMasterParamPtr> masterList);
 

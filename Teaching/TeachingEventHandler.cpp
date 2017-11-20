@@ -1187,6 +1187,28 @@ void TeachingEventHandler::mmd_ModelSelectionChanged(int newId, QString name, QS
 	mmd_CurrentModel_ = model;
 
 	this->mmd_->updateContents(model->getName(), model->getFileName());
+	this->mmd_->showParamGrid(model->getActiveParamList());
+	mmd_CurrentParam_ = 0;
+}
+
+void TeachingEventHandler::mmd_ModelParameterSelectionChanged(int newId, QString name, QString desc) {
+	DDEBUG_V("TeachingEventHandler::mmd_ModelParameterSelectionChanged %d,  %s, %s", newId, name.toStdString().c_str(), desc.toStdString().c_str());
+	if (mmd_CurrentParam_) {
+		mmd_CurrentParam_->setName(name);
+		mmd_CurrentParam_->setValueDesc(desc);
+	}
+	mmd_CurrentParam_ = 0;
+	//
+	for (int index = 0; mmd_CurrentModel_->getModelParameterList().size(); index++) {
+		ModelParameterParamPtr param = mmd_CurrentModel_->getModelParameterList()[index];
+		if (newId == param->getId()) {
+			mmd_CurrentParam_ = param;
+			break;
+		}
+	}
+	if (mmd_CurrentParam_) {
+		this->mmd_->updateParamContents(mmd_CurrentParam_->getName(), mmd_CurrentParam_->getValueDesc());
+	}
 }
 
 void TeachingEventHandler::mmd_RefClicked() {
@@ -1237,7 +1259,18 @@ void TeachingEventHandler::mmd_DeleteModelClicked(int id) {
 	}
 }
 
-bool TeachingEventHandler::mmd_OkClicked(QString name, QString fileName, QString errMessage) {
+void TeachingEventHandler::mmd_AddModelParamClicked() {
+	if (!mmd_CurrentModel_) return;
+	TeachingDataHolder::instance()->addModelMasterParam(mmd_CurrentModel_);
+	this->mmd_->showParamGrid(mmd_CurrentModel_->getActiveParamList());
+}
+
+void TeachingEventHandler::mmd_DeleteModelParamClicked() {
+	if (!mmd_CurrentModel_ || !mmd_CurrentParam_) return;
+	mmd_CurrentParam_->setDelete();
+}
+
+bool TeachingEventHandler::mmd_OkClicked(QString name, QString fileName, QString& errMessage) {
 	if (mmd_CurrentId_ != NULL_ID) {
 		TeachingDataHolder::instance()->updateModelMaster(mmd_CurrentId_, name, fileName);
 	}
@@ -1245,6 +1278,18 @@ bool TeachingEventHandler::mmd_OkClicked(QString name, QString fileName, QString
 }
 
 //ArgumentDialog
+void TeachingEventHandler::agd_ModelSelectionChanged(int selectedId) {
+	vector<ModelParamPtr> modelList = com_CurrentTask_->getActiveModelList();
+	for (int index = 0; index < modelList.size(); index++) {
+		ModelParamPtr model = modelList[index];
+		if (model->getId() == selectedId) {
+			vector<ModelParameterParamPtr> paramList = model->getModelMaster()->getActiveParamList();
+			agd_->showModelParamInfo(paramList);
+			return;
+		}
+	}
+}
+
 void TeachingEventHandler::agd_Loaded(ArgumentDialog* dialog) {
 	this->agd_ = dialog;
 

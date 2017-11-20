@@ -16,6 +16,7 @@ public:
   inline bool isOK() const { return this->isOK_; }
 
 	void showModelInfo(vector<ModelParamPtr>& modelList);
+	void showModelParamInfo(vector<ModelParameterParamPtr>& paramList);
 	void showParamInfo(vector<ParameterParamPtr>& paramList);
 	void showActionInfo(vector<ElementStmActionParamPtr>& actionList);
 	void showArgInfo(ElementStmParamPtr target, vector<ArgumentParamPtr>& argList);
@@ -25,6 +26,7 @@ public:
 	void updateAddAction(ElementStmActionParamPtr& target);
 
 private Q_SLOTS:
+  void modelSelectionChanged();
   void addClicked();
   void deleteClicked();
   void upClicked();
@@ -37,7 +39,8 @@ private Q_SLOTS:
 
 private:
   QTableWidget* lstModel;
-  QTableWidget* lstParam;
+	QTableWidget* lstModelParam;
+	QTableWidget* lstParam;
   QTableWidget* lstHandling;
   QTableWidget* lstArg;
   //

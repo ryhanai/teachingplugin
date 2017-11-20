@@ -116,12 +116,16 @@ public:
 	//ModelMasterDialog
 	void mmd_Loaded(ModelMasterDialog* dialog);
 	void mmd_ModelSelectionChanged(int newId, QString name, QString fileName);
+	void mmd_ModelParameterSelectionChanged(int newId, QString name, QString desc);
 	void mmd_RefClicked();
 	void mmd_AddModelClicked();
 	void mmd_DeleteModelClicked(int id);
-	bool mmd_OkClicked(QString name, QString fileName, QString errMessage);
+	void mmd_AddModelParamClicked();
+	void mmd_DeleteModelParamClicked();
+	bool mmd_OkClicked(QString name, QString fileName, QString& errMessage);
 
 	//ArgumentDialog
+	void agd_ModelSelectionChanged(int selectedId);
 	void agd_Loaded(ArgumentDialog* dialog);
 	void agd_ArgSelectionChanged(int selectedId, QString strDef);
 	void agd_ActionSelectionChanged(int selectedId, QString strAct, QString strModel, QString strTarget);
@@ -150,7 +154,7 @@ private:
 			mdd_CurrentMasterId_(NULL_ID), mdd_CurrentModelMaster_(0),
 			mdd_updateKinematicStateLater(bind(&TeachingEventHandler::mdd_updateKinematicState, this, true), IDLE_PRIORITY_LOW),
 			prd_(0), prd_CurrentParam_(0),
-			mmd_(0), mmd_CurrentId_(NULL_ID), mmd_CurrentModel_(0),
+			mmd_(0), mmd_CurrentId_(NULL_ID), mmd_CurrentModel_(0), mmd_CurrentParam_(0),
 			agd_(0), agd_Current_Stm_(0), agd_Current_Arg_(0), agd_Current_Action_(0),
 		  executor_(0) {
 	};
@@ -194,6 +198,7 @@ private:
 	ModelMasterDialog* mmd_;
 	int mmd_CurrentId_;
 	ModelMasterParamPtr mmd_CurrentModel_;
+	ModelParameterParamPtr mmd_CurrentParam_;
 
 	ArgumentDialog* agd_;
 	ElementStmParamPtr agd_Current_Stm_;

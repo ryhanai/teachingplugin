@@ -431,12 +431,21 @@ ParameterParam::~ParameterParam() {
 }
 /////
 void ModelMasterParam::deleteModelDetails() {
-  for (int index = 0; index < modeDetailList_.size(); index++) {
-    modeDetailList_[index]->setDelete();
+  for (int index = 0; index < modelDetailList_.size(); index++) {
+    modelDetailList_[index]->setDelete();
   }
 }
-/////
 
+std::vector<ModelParameterParamPtr> ModelMasterParam::getActiveParamList() {
+	vector<ModelParameterParamPtr> result;
+	for (int index = 0; index < modelParameterList_.size(); index++) {
+		ModelParameterParamPtr param = modelParameterList_[index];
+		if (param->getMode() == DB_MODE_DELETE || param->getMode() == DB_MODE_IGNORE) continue;
+		result.push_back(param);
+	}
+	return result;
+}
+/////
 bool ModelParam::isChangedPosition() {
 	DDEBUG_V("ModelParam::isChangedPosition x:%f, %f, y:%f, %f, z:%f, %f, Rx:%f, %f, Ry:%f, %f, Rz:%f, %f", posX_, orgPosX_, posY_, orgPosY_, posZ_, orgPosZ_, rotRx_, orgRotRx_, rotRy_, orgRotRy_, rotRz_, orgRotRz_);
 
