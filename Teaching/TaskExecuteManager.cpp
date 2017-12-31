@@ -122,7 +122,8 @@ void TaskExecuteManager::runFlow(FlowParamPtr targetFlow) {
 }
 
 bool TaskExecuteManager::runSingleCommand() {
-  bool isReal = SettingManager::getInstance().getIsReal();
+	DDEBUG("TaskExecuteManager::runSingleCommand");
+	bool isReal = SettingManager::getInstance().getIsReal();
 
   //ˆø”ŒvZƒ‚ƒWƒ…[ƒ‹‚Ì‰Šú‰»
   createArgEstimator(currentTask_);

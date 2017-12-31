@@ -22,17 +22,8 @@ CREATE TABLE T_FLOW_TRANSITION (
 	trans_id		integer not null,
 	source_id		integer not null,
 	target_id		integer not null,
-	condition		text,
+	source_index		integer,
 	primary key(flow_id, trans_id)
-);
-
-CREATE TABLE T_FLOW_VIA_POINT (
-	flow_id			integer not null,
-	trans_id		integer not null,
-	seq				integer not null,
-	pos_x			real not null,
-	pos_y			real not null,
-	primary key(flow_id, trans_id, seq)
 );
 
 CREATE TABLE T_TASK_MODEL_INST (
@@ -116,17 +107,8 @@ CREATE TABLE T_TRANSITION (
 	trans_id		integer not null,
 	source_id		integer not null,
 	target_id		integer not null,
-	condition		text
+	source_index		integer
 	primary key(task_inst_id, trans_id)
-);
-
-CREATE TABLE T_VIA_POINT (
-	task_inst_id	integer not null,
-	trans_id		integer not null,
-	seq				integer not null,
-	pos_x			real not null,
-	pos_y			real not null,
-	primary key(task_inst_id, trans_id, seq)
 );
 
 CREATE TABLE T_MODEL_INFO (

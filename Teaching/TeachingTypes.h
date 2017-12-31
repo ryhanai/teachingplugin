@@ -8,10 +8,14 @@
 #include "QtUtil.h"
 #include <cnoid/BodyItem>
 #include "CommandDefTypes.h"
+#include "NodeEditor/Node.hpp"
+
+namespace QtNodes {
+	class Node;
+}
 
 namespace teaching {
 
-class ElementNode;
 class ElementStmParam;
 class ConnectionStmParam;
 class TaskModelParam;
@@ -30,11 +34,6 @@ enum ModelType {
   MODEL_WORK
 };
 
-enum TaskParamType {
-  TASK_PARAM_NORMAL = 0,
-  TASK_PARAM_MODEL
-};
-
 enum ActionType {
   ACTION_ATTACH = 0,
   ACTION_DETACH
@@ -45,8 +44,7 @@ enum ElementType {
   ELEMENT_FINAL,
   ELEMENT_DECISION,
   ELEMENT_FORK,
-  ELEMENT_COMMAND,
-  ELEMENT_POINT
+  ELEMENT_COMMAND
 };
 
 enum ParameterType {
@@ -282,82 +280,6 @@ private:
 };
 typedef std::shared_ptr<ModelParam> ModelParamPtr;
 /////
-class ConnectionNode : public QGraphicsItemGroup {
-public:
-  explicit ConnectionNode(double sourceX, double sourceY, double targetX, double targetY);
-
-  inline void setSource(ElementNode* elem) { this->source = elem; }
-  inline void setTarget(ElementNode* elem) { this->target = elem; }
-  inline ElementNode* getSource() { return this->source; }
-  inline ElementNode* getTarget() { return this->target; }
-
-  inline void setConnParam(ConnectionStmParamPtr elem) { this->parentElem_ = elem; }
-  inline ConnectionStmParamPtr getConnParam() { return this->parentElem_; }
-
-  inline QString getCondition() const { return this->condition; }
-
-  void reDrawConnection();
-  void setLine(double sourceX, double sourceY, double targetX, double targetY);
-  void setPen(QPen target);
-  void setText(QString target);
-
-private:
-	ConnectionStmParamPtr parentElem_;
-  QGraphicsLineItem* body;
-  QGraphicsLineItem* lineRight;
-  QGraphicsLineItem* lineLeft;
-  QGraphicsSimpleTextItem* text;
-  ElementNode* source;
-  ElementNode* target;
-  QString condition;
-};
-
-class ElementNode : public QGraphicsItemGroup {
-public:
-  explicit ElementNode(QString target);
-  explicit ElementNode(int type, QString cmdName);
-  void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget);
-
-  inline void addConnection(ConnectionNode* target) { this->lineList_.push_back(target); }
-  inline ConnectionNode* getCurrentConnection() { return this->lineList_[this->lineList_.size() - 1]; }
-  inline void removeCurrentConnection() { this->lineList_.pop_back(); }
-  inline void removeTargetConnection(ConnectionNode* target) {
-    this->lineList_.erase(std::remove(this->lineList_.begin(), this->lineList_.end(), target), this->lineList_.end());
-  }
-  inline std::vector<ConnectionNode*> getConnectionList() { return this->lineList_; }
-  inline ElementType getElementType() { return this->type_; }
-
-  inline void setElemParam(ElementStmParamPtr elem) { this->parentElem_ = elem; }
-  inline ElementStmParamPtr getElemParam() { return this->parentElem_; }
-
-  void setBreak(bool isBreak);
-  inline bool isBreak() { return this->isBreak_; }
-
-  void setItemText(QString cmdName) {
-    itemText_->setText(cmdName);
-  }
-
-  void updatePosition(double x, double y);
-  void updateActive(bool isActive);
-  void updateSelect(bool isActive);
-
-private:
-  ElementType type_;
-  std::vector<ConnectionNode*> lineList_;
-	ElementStmParamPtr parentElem_;
-  QAbstractGraphicsShapeItem* item_;
-  QGraphicsSimpleTextItem* itemText_;
-  bool isBreak_;
-  bool isActive_;
-
-  void createStartNode();
-  void createFinalNode();
-  void createDecisionNode();
-  void createForkNode();
-  void createPoint();
-  void createCommandNode(QString name);
-};
-/////
 class ArgumentParam : public DatabaseParam {
 public:
   ArgumentParam(int id, int state_id, int seq, QString name, QString valueDesc)
@@ -441,9 +363,6 @@ public:
   inline int getId() const { return this->id_; }
   inline void setId(int value) { this->id_ = value; }
 
-  inline int getOrgId() const { return this->org_id_; }
-  inline void setOrgId(int value) { this->org_id_ = value; }
-
   inline int getType() const { return this->type_; }
 
   inline double getPosX() const { return this->posX_; }
@@ -468,8 +387,8 @@ public:
 	std::vector<ArgumentParamPtr> getActiveArgumentList();
 	ArgumentParamPtr getArgumentById(int id);
 
-  inline void setRealElem(ElementNode* elem) { this->realElem_ = elem; }
-  inline ElementNode* getRealElem() const { return this->realElem_; }
+  inline void setRealElem(QtNodes::Node* elem) { this->realElem_ = elem; }
+  inline QtNodes::Node* getRealElem() const { return this->realElem_; }
 
   inline void setNextElem(ElementStmParamPtr elem) { this->nextElem_ = elem; }
   inline ElementStmParamPtr getNextElem() const { return this->nextElem_; }
@@ -495,16 +414,12 @@ public:
     this->trueElem_ = 0;
     this->falseElem_ = 0;
   }
-  void updateId() {
-    org_id_ = id_;
-  }
   void updateActive(bool isActive);
-  void updateSelect(bool isActive);
   void clearActionList();
+	void updatePos();
 
 private:
   int id_;
-  int org_id_;
   int type_;
   double posX_;
   double posY_;
@@ -513,7 +428,7 @@ private:
   QString cmdDspName_;
   QString condition_;
 
-  ElementNode* realElem_;
+	QtNodes::Node* realElem_;
 
   std::vector<ElementStmActionParamPtr> actionList_;
   std::vector<ArgumentParamPtr> argList_;
@@ -532,34 +447,29 @@ private:
 
 class ConnectionStmParam : public DatabaseParam {
 public:
-  ConnectionStmParam(int id, int sourceId, int targetId, QString cond)
-    : id_(id), sourceId_(sourceId), targetId_(targetId), condition_(cond) {};
-  ConnectionStmParam(const ConnectionStmParamPtr source);
-  virtual ~ConnectionStmParam();
+	ConnectionStmParam(int id, int sourceId, int targetId, int sourceIndex)
+		: id_(id), sourceId_(sourceId), targetId_(targetId), sourceIndex_(sourceIndex) {
+	};
+	ConnectionStmParam(const ConnectionStmParamPtr source);
+	virtual ~ConnectionStmParam();
 
-  inline int getId() const { return this->id_; }
-  inline void setId(int value) { this->id_ = value; }
+	inline int getId() const { return this->id_; }
+	inline void setId(int value) { this->id_ = value; }
 
-  inline int getSourceId() const { return this->sourceId_; }
-  inline void setSourceId(int value) { this->sourceId_ = value; }
+	inline int getSourceId() const { return this->sourceId_; }
+	inline void setSourceId(int value) { this->sourceId_ = value; }
 
-  inline int getTargetId() const { return this->targetId_; }
-  inline void setTargetId(int value) { this->targetId_ = value; }
+	inline int getTargetId() const { return this->targetId_; }
+	inline void setTargetId(int value) { this->targetId_ = value; }
 
-  inline QString getCondition() const { return this->condition_; }
-  inline void setCondition(QString value) { this->condition_ = value; }
-
-  void addChildNode(ElementStmParamPtr prev, ElementStmParamPtr target);
-  void addChildNode(ElementStmParamPtr target);
-  void removeChildNode(ElementStmParamPtr target);
-  inline std::vector<ElementStmParamPtr> getChildList() const { return this->childList_; }
+	inline int getSourceIndex() const { return this->sourceIndex_; }
+	inline void setSourceIndex(int value) { this->sourceIndex_ = value; }
 
 private:
-  int id_;
-  int sourceId_;
-  int targetId_;
-  QString condition_;
-  std::vector<ElementStmParamPtr> childList_;
+	int id_;
+	int sourceId_;
+	int targetId_;
+	int sourceIndex_;
 };
 
 class ParameterParam : public DatabaseParam {
@@ -733,7 +643,9 @@ public:
   inline QString getErrStr() const { return this->errContents_; }
   inline ElementStmParamPtr getStartParam() const { return this->startParam_; }
 
-  bool checkAndOrderStateMachine();
+	int getMaxStateId();
+	bool checkAndOrderStateMachine();
+	void clearTransitionList();
 
 protected:
 	int id_;
@@ -750,6 +662,7 @@ protected:
 
   QString errContents_;
 };
+typedef std::shared_ptr<ActivityParam> ActivityParamPtr;
 //////////
 class TaskModelParam : public ActivityParam {
 public:
@@ -847,7 +760,7 @@ struct ElementStmParamComparator {
     id_ = value;
   }
   bool operator()(const ElementStmParamPtr elem) const {
-    return elem->getOrgId() == id_;
+    return elem->getId() == id_;
   }
 };
 

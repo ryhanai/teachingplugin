@@ -11,7 +11,7 @@
 namespace teaching {
 
 static const std::string PARAMETER_FILE = "Setting.prm";
-static const double DBL_DELTA = 0.0000000000001;
+static const double DBL_DELTA = 0.0000001;
 
 inline bool dbl_eq(double d1, double d2) {
   if (-DBL_DELTA < (d1 - d2) && (d1 - d2) < DBL_DELTA)

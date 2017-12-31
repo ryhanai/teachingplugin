@@ -16,6 +16,13 @@
 #include <cnoid/SceneView>
 // R.Hanai
 
+#include "NodeEditor/NodeStyle.hpp"
+#include "NodeEditor/ConnectionStyle.hpp"
+#include "NodeEditor/FlowViewStyle.hpp"
+
+#include "NodeEditor/FlowScene.hpp"
+#include "NodeEditor/models.hpp"
+
 #include "gettext.h"
 #include "LoggerUtil.h"
 
@@ -23,9 +30,6 @@
 #ifdef __TASK_PARAM_ADJUSTER__
 #include "TaskParamAdjust/TaskParameterAdjuster.h"
 #endif
-
-using namespace std;
-using namespace cnoid;
 
 namespace teaching {
 
@@ -89,75 +93,30 @@ namespace teaching {
     QFrame* frmTop = new QFrame;
     frmTop->setLayout(topLayout);
 
-    btnTrans = new QPushButton();
-    btnTrans->setText("Transition");
-    btnTrans->setCheckable(true);
-    QPixmap *pix = new QPixmap(30, 30);
-    pix->fill(QColor(212, 206, 199));
-    QPainter* painter = new QPainter(pix);
-    painter->setRenderHint(QPainter::Antialiasing, true);
-    painter->setPen(QPen(Qt::black, 3.0));
-    painter->drawLine(0, 15, 30, 15);
-    painter->drawLine(29, 15, 20, 5);
-    painter->drawLine(29, 15, 20, 25);
-    btnTrans->setIconSize(QSize(30, 30));
-    btnTrans->setIcon(QIcon(*pix));
-    btnTrans->setStyleSheet("text-align:left;");
-    btnTrans->setEnabled(false);
-
     lstItem = new ItemList(QString::fromStdString("application/StateMachineItem"));
     lstItem->setStyleSheet("background-color: rgb( 212, 206, 199 )};");
     lstItem->setEnabled(false);
     lstItem->createInitialNodeTarget();
     lstItem->createFinalNodeTarget();
     lstItem->createDecisionNodeTarget();
-    //createForkNodeTarget();
 
-    grhStateMachine = new ActivityEditor(this, this);
-    grhStateMachine->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-    grhStateMachine->setStyleSheet("background-color: white;");
-    grhStateMachine->setAcceptDrops(true);
-    grhStateMachine->setEnabled(false);
+		setStyle();
+		FlowScene* scene = new FlowScene(registerDataModels());
+		grhStateMachine = new StateMachineEditor(scene, this);
+		grhStateMachine->setAcceptDrops(true);
+		grhStateMachine->setEnabled(false);
+
     setAcceptDrops(true);
-
-    QLabel* lblGuard = new QLabel("Guard:");
-    rdTrue = new QRadioButton("True");
-    rdFalse = new QRadioButton("False");
-
-    btnSet = new QPushButton(_("Set"));
-    btnSet->setIcon(QIcon(":/Teaching/icons/Logout.png"));
-    btnSet->setToolTip(_("Set Guard condition"));
-
-    rdTrue->setEnabled(false);
-    rdFalse->setEnabled(false);
-    btnSet->setEnabled(false);
 
     QVBoxLayout* itemLayout = new QVBoxLayout;
     itemLayout->setContentsMargins(0, 0, 0, 0);
-    itemLayout->addWidget(btnTrans);
     itemLayout->addWidget(lstItem);
     QFrame* frmItem = new QFrame;
     frmItem->setLayout(itemLayout);
 
-    QHBoxLayout* guardLayout = new QHBoxLayout;
-    guardLayout->addStretch();
-    guardLayout->addWidget(lblGuard);
-    guardLayout->addWidget(rdTrue);
-    guardLayout->addWidget(rdFalse);
-    guardLayout->addWidget(btnSet);
-    frmGuard = new QFrame;
-    frmGuard->setLayout(guardLayout);
-
-    QVBoxLayout* editorLayout = new QVBoxLayout;
-    editorLayout->setContentsMargins(0, 0, 0, 0);
-    editorLayout->addWidget(grhStateMachine);
-    editorLayout->addWidget(frmGuard);
-    QFrame* editorFrame = new QFrame;
-    editorFrame->setLayout(editorLayout);
-
     QSplitter* splBase = new QSplitter(Qt::Horizontal);
     splBase->addWidget(frmItem);
-    splBase->addWidget(editorFrame);
+    splBase->addWidget(grhStateMachine);
     splBase->setStretchFactor(0, 0);
     splBase->setStretchFactor(1, 1);
     splBase->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
@@ -172,8 +131,6 @@ namespace teaching {
     mainLayout->addWidget(splBase);
     setLayout(mainLayout);
     //
-    connect(btnTrans, SIGNAL(toggled(bool)), this, SLOT(modeChanged()));
-    connect(btnSet, SIGNAL(clicked()), this, SLOT(setClicked()));
     connect(btnDelete, SIGNAL(clicked()), this, SLOT(deleteClicked()));
     connect(btnEdit, SIGNAL(clicked()), this, SLOT(editClicked()));
 
@@ -217,12 +174,8 @@ namespace teaching {
     lblTarget->setText(param->getName());
     //
     if (isExec_ == false) {
-      btnTrans->setEnabled(true);
       lstItem->setEnabled(true);
       grhStateMachine->setEnabled(true);
-      rdTrue->setEnabled(true);
-      rdFalse->setEnabled(true);
-      btnSet->setEnabled(true);
       btnEdit->setEnabled(true);
 
 #ifdef __TASK_PARAM_ADJUSTER
@@ -236,7 +189,7 @@ namespace teaching {
       btnCont->setEnabled(false);
     }
     //
-    grhStateMachine->setTaskParam(param);
+    grhStateMachine->setTargetParam(param);
 		vector<ElementStmParamPtr> stateList = param->getActiveStateList();
 		vector<ConnectionStmParamPtr> transList = param->getActiveTransitionList();
 		grhStateMachine->createStateMachine(stateList, transList);
@@ -244,15 +197,11 @@ namespace teaching {
 
   void StateMachineViewImpl::clearTaskParam() {
     lblTarget->setText("");
-		grhStateMachine->setTaskParam(0);
+		grhStateMachine->setTargetParam(0);
 		//
-    btnTrans->setEnabled(false);
     lstItem->setEnabled(false);
     grhStateMachine->removeAll();
     grhStateMachine->setEnabled(false);
-    rdTrue->setEnabled(false);
-    rdFalse->setEnabled(false);
-    btnSet->setEnabled(false);
     btnRun->setEnabled(false);
   }
 
@@ -269,23 +218,6 @@ namespace teaching {
     item->setData(Qt::UserRole, id);
   }
 
-  void StateMachineViewImpl::setClicked() {
-    DDEBUG("StateMachineViewImpl::setClicked()");
-
-    ConnectionNode* conn = grhStateMachine->getCurrentConnection();
-		QString strVal = QString::fromStdString("false");
-		if (rdTrue->isChecked()) {
-			strVal = QString::fromStdString("true");
-		}
-		TeachingEventHandler::instance()->stv_SetClicked(conn, strVal);
-  }
-
-  void StateMachineViewImpl::modeChanged() {
-    DDEBUG("StateMachineViewImpl::modeChanged()");
-
-    grhStateMachine->setCntMode(btnTrans->isChecked());
-  }
-
   void StateMachineViewImpl::stepClicked() {
 		TeachingEventHandler::instance()->tev_stm_StepClicked();
   }
@@ -295,8 +227,6 @@ namespace teaching {
   }
 
   void StateMachineViewImpl::bpToggled() {
-    DDEBUG("StateMachineViewImpl::bpToggled()");
-
     grhStateMachine->setBreakPoint(btnBP->isChecked());
   }
 
@@ -309,13 +239,13 @@ namespace teaching {
 		TeachingEventHandler::instance()->tev_setBreak(isActive);
   }
   void StateMachineViewImpl::deleteClicked() {
-    DDEBUG("StateMachineViewImpl::deleteClicked()");
-
-    grhStateMachine->deleteCurrent();
+    grhStateMachine->deleteSelectedNodes();
   }
 
   void StateMachineViewImpl::editClicked() {
-		TeachingEventHandler::instance()->stv_EditClicked(grhStateMachine->getCurrentNode());
+		DDEBUG("StateMachineViewImpl::editClicked()");
+		ElementStmParamPtr target = grhStateMachine->getCurrentNode();
+		TeachingEventHandler::instance()->stv_EditClicked(target);
   }
 
 #ifdef __TASK_PARAM_ADJUSTER__
@@ -490,23 +420,169 @@ namespace teaching {
 
   void StateMachineViewImpl::runClicked() {
     bool isReal = SettingManager::getInstance().getIsReal();
-    ElementNode* target = grhStateMachine->getCurrentNode();
-
+		ElementStmParamPtr target = grhStateMachine->getCurrentNode();
 		TeachingEventHandler::instance()->tev_stm_RunClicked(isReal, target);
+	}
+
+void StateMachineViewImpl::setStyle() {
+	FlowViewStyle::setStyle(
+			R"(
+  {
+    "FlowViewStyle": {
+      "BackgroundColor": [255, 255, 240],
+      "FineGridColor": [245, 245, 230],
+      "CoarseGridColor": [235, 235, 220]
+    }
   }
+  )");
+
+		NodeStyle::setNodeStyle(
+			R"(
+  {
+    "NodeStyle": {
+      "NormalBoundaryColor": "darkgray",
+      "SelectedBoundaryColor": "deepskyblue",
+      "GradientColor0": "mintcream",
+      "GradientColor1": "mintcream",
+      "GradientColor2": "mintcream",
+      "GradientColor3": "mintcream",
+      "ShadowColor": [200, 200, 200],
+      "FontColor": [10, 10, 10],
+      "FontColorFaded": [100, 100, 100],
+      "ConnectionPointColor": "white",
+      "PenWidth": 2.0,
+      "HoveredPenWidth": 2.5,
+      "ConnectionPointDiameter": 10.0,
+      "Opacity": 1.0
+    }
+  }
+  )");
+
+		ConnectionStyle::setConnectionStyle(
+			R"(
+  {
+    "ConnectionStyle": {
+      "ConstructionColor": "gray",
+      "NormalColor": "black",
+      "SelectedColor": "gray",
+      "SelectedHaloColor": "deepskyblue",
+      "HoveredColor": "deepskyblue",
+
+      "LineWidth": 3.0,
+      "ConstructionLineWidth": 2.0,
+      "PointDiameter": 10.0,
+
+      "UseDataDefinedColors": false
+    }
+  }
+  )");
+}
+
+std::shared_ptr<DataModelRegistry> StateMachineViewImpl::registerDataModels() {
+	auto ret = std::make_shared<DataModelRegistry>();
+
+	ret->registerModel<TaskDataModel>("Tasks");
+	ret->registerModel<ParamDataModel>("Variables");
+	ret->registerModel<DecisionDataModel>("Syntaxes");
+	ret->registerModel<FinalDataModel>("Syntaxes");
+	ret->registerModel<InitialDataModel>("Syntaxes");
+
+	return ret;
+}
 /////
-  StateMachineView::StateMachineView() : viewImpl(0) {
-    setName(_("StateMachine"));
-    setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Ignored);
+StateMachineView::StateMachineView() : viewImpl(0) {
+  setName(_("StateMachine"));
+  setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Ignored);
 
-    viewImpl = new StateMachineViewImpl(this);
-    QVBoxLayout* vbox = new QVBoxLayout();
-    vbox->addWidget(viewImpl);
-    setLayout(vbox);
-    setDefaultLayoutArea(View::RIGHT);
-  }
+  viewImpl = new StateMachineViewImpl(this);
+  QVBoxLayout* vbox = new QVBoxLayout();
+  vbox->addWidget(viewImpl);
+  setLayout(vbox);
+  setDefaultLayoutArea(View::RIGHT);
+}
 
-  StateMachineView::~StateMachineView() {
-  };
+StateMachineView::~StateMachineView() {
+};
   
+//////////
+ItemList::ItemList(QString elemType, QWidget* parent)
+	: elemType_(elemType), QListWidget(parent) {
+}
+
+void ItemList::mousePressEvent(QMouseEvent* event) {
+	DDEBUG("ItemList::mousePressEvent");
+	if (event->button() == Qt::LeftButton) {
+		startPos = event->pos();
+	}
+	QListWidget::mousePressEvent(event);
+}
+
+void ItemList::mouseMoveEvent(QMouseEvent* event) {
+	DDEBUG("ItemList::mouseMoveEvent");
+	if (event->buttons() == Qt::LeftButton) {
+		int distance = (event->pos() - startPos).manhattanLength();
+		if (QApplication::startDragDistance() <= distance) {
+			QModelIndexList indexes = selectionModel()->selection().indexes();
+			if (0 < indexes.size()) {
+				QModelIndex selected = indexes.at(0);
+				if (0 <= selected.row()) {
+					QByteArray itemData;
+					QMimeData* mimeData = new QMimeData;
+					mimeData->setData(elemType_, itemData);
+					mimeData->setText(item(selected.row())->text());
+					mimeData->setProperty("CommandId", item(selected.row())->data(Qt::UserRole));
+					QDrag* drag = new QDrag(this);
+					drag->setMimeData(mimeData);
+					drag->exec(Qt::CopyAction);
+				}
+			}
+		}
+	}
+	QListWidget::mouseMoveEvent(event);
+}
+
+void ItemList::createInitialNodeTarget() {
+	QPixmap *pix = new QPixmap(30, 30);
+	pix->fill(QColor(212, 206, 199));
+	QPainter* painter = new QPainter(pix);
+	painter->setRenderHint(QPainter::Antialiasing, true);
+	painter->setBrush(QBrush(Qt::black, Qt::SolidPattern));
+	painter->drawEllipse(5, 5, 20, 20);
+
+	this->setIconSize(QSize(30, 30));
+	QListWidgetItem* item = new QListWidgetItem("Start", this);
+	item->setIcon(QIcon(*pix));
+}
+
+void ItemList::createFinalNodeTarget() {
+	QPixmap *pix = new QPixmap(30, 30);
+	pix->fill(QColor(212, 206, 199));
+	QPainter* painter = new QPainter(pix);
+	painter->setRenderHint(QPainter::Antialiasing, true);
+	painter->setBrush(QBrush(Qt::white, Qt::SolidPattern));
+	painter->setPen(QPen(Qt::black));
+	painter->drawEllipse(5, 5, 20, 20);
+	painter->setBrush(QBrush(Qt::black, Qt::SolidPattern));
+	painter->drawEllipse(10, 10, 10, 10);
+
+	this->setIconSize(QSize(30, 30));
+	QListWidgetItem* item = new QListWidgetItem("Final", this);
+	item->setIcon(QIcon(*pix));
+}
+
+void ItemList::createDecisionNodeTarget() {
+	QPixmap *pix = new QPixmap(30, 30);
+	pix->fill(QColor(212, 206, 199));
+	QPainter* painter = new QPainter(pix);
+	painter->setRenderHint(QPainter::Antialiasing, true);
+	painter->setBrush(QBrush(Qt::black, Qt::SolidPattern));
+	QPolygon polygon;
+	polygon << QPoint(15.0, 5.0) << QPoint(0.0, 15.0)
+		<< QPoint(15.0, 25.0) << QPoint(30.0, 15.0) << QPoint(15.0, 5.0);
+	painter->drawPolygon(polygon);
+	this->setIconSize(QSize(30, 30));
+	QListWidgetItem* item = new QListWidgetItem("Decision/Merge", this);
+	item->setIcon(QIcon(*pix));
+}
+
 }

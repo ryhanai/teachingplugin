@@ -58,6 +58,7 @@
     <file>icons/Warning.png</file>
     <file>icons/Yes.png</file>
 
+    <file>icons/DefaultStyle.json</file>
 </qresource>
 </RCC>
 

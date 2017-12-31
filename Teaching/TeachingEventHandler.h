@@ -73,8 +73,7 @@ public:
 
 	//StateMachineView
 	void stv_Loaded(StateMachineViewImpl* view);
-	void stv_EditClicked(ElementNode* target);
-	void stv_SetClicked(ConnectionNode* target, QString value);
+	void stv_EditClicked(ElementStmParamPtr target);
 
 	//ParameterView
 	void prv_Loaded(ParameterViewImpl* view);
@@ -82,7 +81,7 @@ public:
 
 	//TaskExecutionView
 	void tev_setBreak(bool value) { executor_->setBreak(value); }
-	void tev_stm_RunClicked(bool isReal, ElementNode* target);
+	void tev_stm_RunClicked(bool isReal, ElementStmParamPtr target);
 	void tev_stm_StepClicked();
 	void tev_stm_ContClicked();
 	void tev_RunTaskClicked();
@@ -188,8 +187,8 @@ private:
 	ModelMasterParamPtr mdd_CurrentModelMaster_;
 	ModelParamPtr mdd_selectedModel_;
 	BodyItemPtr mdd_BodyItem_;
-	Connection mdd_connectionToKinematicStateChanged;
-	Connection mdd_currentBodyItemChangeConnection;
+	cnoid::Connection mdd_connectionToKinematicStateChanged;
+	cnoid::Connection mdd_currentBodyItemChangeConnection;
 	LazyCaller mdd_updateKinematicStateLater;
 
 	ParameterDialog* prd_;

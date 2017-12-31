@@ -27,6 +27,7 @@ public:
 	inline void addTaskData(TaskModelParamPtr param) { taskList_.push_back(param); };
 	vector<TaskModelParamPtr> getTaskList() { return taskList_; };
 	TaskModelParamPtr getTaskInstanceById(int id);
+	TaskModelParamPtr getFlowTaskInstanceById(int id);
 	vector<TaskModelParamPtr> searchTaskModels(vector<string>& condList, bool isOr);
 	bool deleteTaskModel(int task_inst_id);
 	bool saveImportedTaskModel(vector<TaskModelParamPtr>& source, vector<ModelMasterParamPtr>& modelMasterList);

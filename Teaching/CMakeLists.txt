@@ -11,8 +11,6 @@ if(NOT ENABLE_PYTHON)
 endif()
 
 set(sources
-  ActivityEditor.cpp
-  ActivityEditorBase.cpp
   ArgumentDialog.cpp
   Calculator.cpp
   ChoreonoidUtil.cpp
@@ -21,7 +19,6 @@ set(sources
   DataBaseManager.cpp
   DecisionDialog.cpp
   ExecEnvDialog.cpp
-  FlowActivityEditor.cpp
   FlowSearchDialog.cpp
   FlowView.cpp
   LoggerUtil.cpp
@@ -32,7 +29,6 @@ set(sources
   ParameterView.cpp
   PythonWrapper.cpp
   SettingDialog.cpp
-  StateMachineParams.cpp
   StateMachineView.cpp
   TaskExecuteManager.cpp
   TaskExecutor.cpp
@@ -42,11 +38,35 @@ set(sources
   TeachingPlugin.cpp
   TeachingTypes.cpp
   TeachingUtil.cpp
+
+  NodeEditor/ActivityEditorBase.cpp
+  NodeEditor/Connection.cpp
+  NodeEditor/ConnectionBlurEffect.cpp
+  NodeEditor/ConnectionGeometry.cpp
+  NodeEditor/ConnectionGraphicsObject.cpp
+  NodeEditor/ConnectionPainter.cpp
+  NodeEditor/ConnectionState.cpp
+  NodeEditor/ConnectionStyle.cpp
+  NodeEditor/DataModelRegistry.cpp
+  NodeEditor/FlowEditor.cpp
+  NodeEditor/FlowScene.cpp
+  NodeEditor/FlowViewStyle.cpp
+  NodeEditor/models.cpp
+  NodeEditor/Node.cpp
+  NodeEditor/NodeConnectionInteraction.cpp
+  NodeEditor/NodeDataModel.cpp
+  NodeEditor/NodeGeometry.cpp
+  NodeEditor/NodeGraphicsObject.cpp
+  NodeEditor/NodePainter.cpp
+  NodeEditor/NodeState.cpp
+  NodeEditor/NodeStyle.cpp
+  NodeEditor/ParamWidget.cpp
+  NodeEditor/Properties.cpp
+  NodeEditor/StateMachineEditor.cpp
+  NodeEditor/StyleCollection.cpp
 )
 
 set(headers
-  ActivityEditorBase.h
-  ActivityEditor.h
   ArgumentDialog.h
   Calculator.h
   ChoreonoidUtil.h
@@ -56,7 +76,6 @@ set(headers
   DataBaseManager.h
   DecisionDialog.h
   ExecEnvDialog.h
-  FlowActivityEditor.h
   FlowSearchDialog.h
   FlowView.h
   LoggerUtil.h
@@ -76,6 +95,43 @@ set(headers
   TeachingTypes.h
   TeachingUtil.h
   QtUtil.h
+
+  NodeEditor/ActivityEditorBase.hpp
+  NodeEditor/Compiler.hpp
+  NodeEditor/Connection.hpp
+  NodeEditor/ConnectionBlurEffect.hpp
+  NodeEditor/ConnectionGeometry.hpp
+  NodeEditor/ConnectionGraphicsObject.hpp
+  NodeEditor/ConnectionPainter.hpp
+  NodeEditor/ConnectionState.hpp
+  NodeEditor/ConnectionStyle.hpp
+  NodeEditor/DataModelRegistry.hpp
+  NodeEditor/Export.hpp
+  NodeEditor/FlowEditor.hpp
+  NodeEditor/FlowScene.hpp
+  NodeEditor/FlowViewStyle.hpp
+  NodeEditor/make_unique.hpp
+  NodeEditor/models.hpp
+  NodeEditor/Node.hpp
+  NodeEditor/NodeConnectionInteraction.hpp
+  NodeEditor/NodeData.hpp
+  NodeEditor/NodeDataModel.hpp
+  NodeEditor/NodeGeometry.hpp
+  NodeEditor/NodeGraphicsObject.hpp
+  NodeEditor/NodePainter.hpp
+  NodeEditor/NodePainterDelegate.hpp
+  NodeEditor/NodeState.hpp
+  NodeEditor/NodeStyle.hpp
+  NodeEditor/OperatingSystem.hpp
+  NodeEditor/ParamWidget.hpp
+  NodeEditor/PortType.hpp
+  NodeEditor/Properties.hpp
+  NodeEditor/QStringStdHash.hpp
+  NodeEditor/QUuidStdHash.hpp
+  NodeEditor/Serializable.hpp
+  NodeEditor/StateMachineEditor.hpp
+  NodeEditor/Style.hpp
+  NodeEditor/StyleCollection.hpp
   )
 
 set(qtheaders
@@ -92,6 +148,13 @@ set(qtheaders
   SettingDialog.h
   StateMachineView.h
   TaskInstanceView.h
+
+  NodeEditor/ActivityEditorBase.hpp
+  NodeEditor/Node.hpp
+  NodeEditor/FlowScene.hpp
+  NodeEditor/NodeDataModel.hpp
+  NodeEditor/Connection.hpp
+  NodeEditor/ParamWidget.hpp
   )
 
 if(NOT QT5)
@@ -130,6 +193,8 @@ elseif(MSVC)
   set_target_properties(${libname} PROPERTIES LINK_FLAGS /NODEFAULTLIB:LIBCMT )
   set_target_properties(${libname} PROPERTIES DEBUG_POSTFIX d )
   set_target_properties(${libname} PROPERTIES COMPILE_FLAGS "/wd4250 /wd4275 /wd4018 /wd4305")
-
 endif(UNIX)
+
+target_compile_definitions(${libname} PUBLIC "-DNODE_EDITOR_STATIC")
+
 apply_common_setting_for_plugin(${libname}  "${headers}")

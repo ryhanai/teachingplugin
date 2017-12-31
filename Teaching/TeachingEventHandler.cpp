@@ -64,6 +64,7 @@ void TeachingEventHandler::tiv_TaskSelectionChanged(int selectedId, QString strT
 		mdd_currentBodyItemChangeConnection = BodyBar::instance()->sigCurrentBodyItemChanged().connect(
 			bind(&TeachingEventHandler::mdd_CurrentBodyItemChanged, this, _1));
 	}
+	DDEBUG("TeachingEventHandler::tiv_TaskSelectionChanged End");
 }
 
 bool TeachingEventHandler::tiv_DeleteTaskClicked() {
@@ -107,6 +108,7 @@ void TeachingEventHandler::tiv_TaskExportClicked(QString strTask) {
 	if (tiv_CurrentTask_->getName() != strTask) {
 		tiv_CurrentTask_->setName(strTask);
 	}
+	stv_->updateTargetParam();
 	mdv_->updateTaskParam();
 	tiv_->updateGrid(tiv_CurrentTask_);
 	prv_SetInputValues();
@@ -158,6 +160,7 @@ bool TeachingEventHandler::tiv_TaskImportClicked() {
 }
 
 void TeachingEventHandler::tiv_SearchClicked(QString cond) {
+	DDEBUG("TeachingEventHandler::tiv_SearchClicked");
 	stv_->setStepStatus(false);
 
 	if (ControllerManager::instance()->isExistController() == false) {
@@ -175,6 +178,7 @@ void TeachingEventHandler::tiv_SearchClicked(QString cond) {
 	com_CurrentTask_ = 0;
 
 	tiv_SearchTaskInstance(cond);
+	DDEBUG("TeachingEventHandler::tiv_SearchClicked End");
 }
 
 void TeachingEventHandler::tiv_SearchTaskInstance(QString cond) {
@@ -202,7 +206,6 @@ void TeachingEventHandler::tiv_RegistTaskClicked(QString strTask) {
 	DDEBUG("TeachingEventHandler::tiv_RegistTaskClicked()");
 
 	stv_->setStepStatus(false);
-
 	if (tiv_CurrentTask_ == 0) return;
 
 	for (int index = 0; index < tiv_CurrentTask_->getModelList().size(); index++) {
@@ -219,7 +222,9 @@ void TeachingEventHandler::tiv_RegistTaskClicked(QString strTask) {
 	if (tiv_CurrentTask_->getName() != strTask) {
 		tiv_CurrentTask_->setName(strTask);
 	}
+	stv_->updateTargetParam();
 	mdv_->updateTaskParam();
+	prv_SetInputValues();
 	tiv_->updateGrid(tiv_CurrentTask_);
 	unloadTaskModelItems();
 
@@ -243,15 +248,14 @@ void TeachingEventHandler::tiv_RegistNewTaskClicked(QString strTask, QString str
 	if (tiv_CurrentTask_->getName() != strTask) {
 		tiv_CurrentTask_->setName(strTask);
 	}
+	stv_->updateTargetParam();
 	mdv_->updateTaskParam();
-	tiv_->updateGrid(tiv_CurrentTask_);
 	unloadTaskModelItems();
 
 	tiv_CurrentTask_->setAllNewData();
 
 	if (TeachingDataHolder::instance()->saveTaskModelasNew(tiv_CurrentTask_)) {
-		tiv_->updateGrid(tiv_CurrentTask_);
-		updateComViews(tiv_CurrentTask_);
+		tiv_SearchClicked("");
 		QMessageBox::information(tiv_, _("Database"), _("Database updated"));
 	} else {
 		QMessageBox::warning(tiv_, _("Database Error"), TeachingDataHolder::instance()->getErrorStr());
@@ -329,6 +333,7 @@ void TeachingEventHandler::flv_SelectionChanged(TaskModelParamPtr target) {
 	DDEBUG("TeachingEventHandler::flv_SelectionChanged");
 	stv_->setStepStatus(false);
 
+	stv_->updateTargetParam();
 	unloadTaskModelItems();
 
 	com_CurrentTask_ = target;
@@ -462,6 +467,10 @@ void TeachingEventHandler::flv_RegistFlowClicked(QString name, QString comment) 
 			QMessageBox::Yes | QMessageBox::No);
 		if (ret == QMessageBox::No) return;
 	}
+
+	stv_->updateTargetParam();
+	flv_->updateTargetParam();
+
 	if (TeachingDataHolder::instance()->saveFlowModel(flv_CurrentFlow_)) {
 		flv_CurrentFlow_ = TeachingDataHolder::instance()->reGetFlowById(flv_CurrentFlow_->getId());
 		QMessageBox::information(flv_, _("Save Flow"), _("Target flow saved"));
@@ -590,7 +599,7 @@ void TeachingEventHandler::stv_Loaded(StateMachineViewImpl* view) {
 	this->stv_ = view;
 }
 
-void TeachingEventHandler::stv_EditClicked(ElementNode* target) {
+void TeachingEventHandler::stv_EditClicked(ElementStmParamPtr target) {
 	DDEBUG("TeachingEventHandler::stv_EditClicked()");
 	if (target == 0) {
 		ExecEnvDialog dialog(com_CurrentTask_, stv_);
@@ -598,7 +607,7 @@ void TeachingEventHandler::stv_EditClicked(ElementNode* target) {
 		return;
 	}
 	/////
-	agd_Current_Stm_ = target->getElemParam();
+	agd_Current_Stm_ = target;
 	if ((agd_Current_Stm_->getType() == ELEMENT_COMMAND || agd_Current_Stm_->getType() == ELEMENT_DECISION) == false) {
 		QMessageBox::warning(stv_, _("Command"), _("Please select Command or Decision Node. : ") + QString::number(agd_Current_Stm_->getType()));
 		return;
@@ -632,18 +641,10 @@ void TeachingEventHandler::stv_EditClicked(ElementNode* target) {
 		ArgumentDialog dialog(stv_);
 		dialog.exec();
 		if (dialog.isOK()) {
-			agd_Current_Stm_->getRealElem()->setItemText(agd_Current_Stm_->getCmdDspName());
+			agd_Current_Stm_->getRealElem()->nodeDataModel()->setTaskName(agd_Current_Stm_->getCmdDspName());
+			agd_Current_Stm_->getRealElem()->nodeGraphicsObject().update();
 		}
 	}
-}
-
-void TeachingEventHandler::stv_SetClicked(ConnectionNode* target, QString value) {
-	if (target == 0) return;
-	if (target->getSource()->getElementType() != ELEMENT_DECISION) return;
-
-	target->setText(value);
-	target->getConnParam()->setCondition(value);
-	target->getConnParam()->setUpdate();
 }
 
 //ParameterView
@@ -664,20 +665,19 @@ void TeachingEventHandler::prv_SetInputValues() {
 }
 
 //TaskExecutionView
-void TeachingEventHandler::tev_stm_RunClicked(bool isReal, ElementNode* target) {
+void TeachingEventHandler::tev_stm_RunClicked(bool isReal, ElementStmParamPtr target) {
 	DDEBUG("TeachingEventHandler::tev_stm_RunClicked()");
 
 	if (target == NULL) return;
 
 	prv_SetInputValues();
-	ElementStmParamPtr targetStm = target->getElemParam();
-	if (targetStm->getType() != ELEMENT_COMMAND) {
+	if (target->getType() != ELEMENT_COMMAND) {
 		QMessageBox::warning(stv_, _("Run Command"), _("Please select Command Element."));
 		return;
 	}
 	//
 	executor_->setCurrentTask(com_CurrentTask_);
-	executor_->setCurrentElement(targetStm);
+	executor_->setCurrentElement(target);
 	if (executor_->runSingleCommand() == false) {
 		QMessageBox::information(stv_, _("Run Command"), _("Target Command FAILED."));
 	}
@@ -720,6 +720,8 @@ void TeachingEventHandler::tev_stm_ContClicked() {
 
 void TeachingEventHandler::tev_RunTaskClicked() {
 	DDEBUG("TeachingEventHandler::tev_RunTaskClicked()");
+	stv_->updateTargetParam();
+
 	executor_->setCurrentTask(com_CurrentTask_);
 	executor_->setCurrentElement(com_CurrParam_);
 	executor_->runSingleTask();
@@ -1460,6 +1462,7 @@ void TeachingEventHandler::agd_SetSeq(int selected, int seq) {
 }
 ///////////
 void TeachingEventHandler::unloadTaskModelItems() {
+	DDEBUG("TeachingEventHandler::unloadTaskModelItems");
 	ChoreonoidUtil::deselectTreeItem();
 
 	if (com_CurrentTask_) {
@@ -1472,6 +1475,8 @@ void TeachingEventHandler::unloadTaskModelItems() {
 }
 
 void TeachingEventHandler::updateComViews(TaskModelParamPtr targetTask) {
+	DDEBUG("TeachingEventHandler::updateComViews()");
+
 	TeachingUtil::loadTaskDetailData(targetTask);
 	bool isUpdateTree = ChoreonoidUtil::loadTaskModelItem(targetTask);
 

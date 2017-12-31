@@ -140,6 +140,7 @@ bool TeachingUtil::importTask(QString& strFName, std::vector<TaskModelParamPtr>&
         DDEBUG("Load Parameters Failed");
       }
       //
+			unordered_map<int, int> stateIdMap;
       try {
         Listing* stateList = taskMap->get("states").toListing();
         for (int idxState = 0; idxState < stateList->size(); idxState++) {
@@ -158,8 +159,9 @@ bool TeachingUtil::importTask(QString& strFName, std::vector<TaskModelParamPtr>&
           try { condition = QString::fromStdString(stateMap->get("condition").toString()).replace("|", "\n"); } catch (...) {}
           try { dispName = QString::fromStdString(stateMap->get("disp_name").toString()); } catch (...) {}
           DDEBUG_V("cmd_name[%s]", cmdName.toStdString().c_str());
-					ElementStmParamPtr stateParam = std::make_shared<ElementStmParam>(NULL_ID, type, cmdName, dispName, posX, posY, condition);
-          stateParam->setOrgId(id);
+					int newId = taskParam->getMaxStateId();
+					stateIdMap[id] = newId;
+					ElementStmParamPtr stateParam = std::make_shared<ElementStmParam>(newId, type, cmdName, dispName, posX, posY, condition);
           stateParam->setNew();
           taskParam->addStmElement(stateParam);
           //
@@ -217,13 +219,14 @@ bool TeachingUtil::importTask(QString& strFName, std::vector<TaskModelParamPtr>&
         }
         for (int idxTrans = 0; idxTrans < transList->size(); idxTrans++) {
           Mapping* transMap = transList->at(idxTrans)->toMapping();
-          int sourceId, targetId;
-          QString condition = "";
+          int sourceId, targetId, sourceIndex;
 
           try { sourceId = transMap->get("source_id").toInt(); } catch (...) { continue; }
           try { targetId = transMap->get("target_id").toInt(); } catch (...) { continue; }
-          try { condition = QString::fromStdString(transMap->get("guard").toString()); } catch (...) {}
-					ConnectionStmParamPtr connParam = std::make_shared<ConnectionStmParam>(NULL_ID, sourceId, targetId, condition);
+          try { sourceIndex = transMap->get("source_index").toInt(); } catch (...) {}
+					int newSourceId = stateIdMap[sourceId];
+					int newTargetId = stateIdMap[targetId];
+					ConnectionStmParamPtr connParam = std::make_shared<ConnectionStmParam>(NULL_ID, newSourceId, newTargetId, sourceIndex);
           connParam->setNew();
           taskParam->addStmConnection(connParam);
         }
@@ -469,9 +472,7 @@ bool TeachingUtil::exportTask(QString& strFName, TaskModelParamPtr targetTask) {
       MappingPtr connNode = connsNode->newMapping();
       connNode->write("source_id", param->getSourceId());
       connNode->write("target_id", param->getTargetId());
-      if (0 < param->getCondition().size()) {
-        connNode->write("guard", param->getCondition().toUtf8(), DOUBLE_QUOTED);
-      }
+      connNode->write("source_index", param->getSourceIndex());
     }
   }
   //
@@ -600,9 +601,7 @@ bool TeachingUtil::exportFlow(QString& strFName, FlowParamPtr targetFlow) {
       MappingPtr connNode = connsNode->newMapping();
       connNode->write("source_id", param->getSourceId());
       connNode->write("target_id", param->getTargetId());
-      if (0 < param->getCondition().size()) {
-        connNode->write("guard", param->getCondition().toUtf8(), DOUBLE_QUOTED);
-      }
+      connNode->write("source_index", param->getSourceIndex());
     }
   }
   //
@@ -670,8 +669,7 @@ bool TeachingUtil::importFlow(QString& strFName, std::vector<FlowParamPtr>& flow
           try { task_id = stateMap->get("task_id").toInt(); } catch (...) {}
 
           DDEBUG_V("task_name[%s]", taskName.toStdString().c_str());
-					ElementStmParamPtr stateParam = std::make_shared<ElementStmParam>(NULL_ID, type, taskName, taskName, posX, posY, condition);
-          stateParam->setOrgId(id);
+					ElementStmParamPtr stateParam = std::make_shared<ElementStmParam>(id, type, taskName, taskName, posX, posY, condition);
           stateParam->setNew();
           flowParam->addStmElement(stateParam);
           //
@@ -701,16 +699,15 @@ bool TeachingUtil::importFlow(QString& strFName, std::vector<FlowParamPtr>& flow
         }
         for (int idxTrans = 0; idxTrans < transList->size(); idxTrans++) {
           Mapping* transMap = transList->at(idxTrans)->toMapping();
-          int sourceId, targetId;
-          QString condition = "";
+          int sourceId, targetId, sourceIndex;
 
           try { sourceId = transMap->get("source_id").toInt(); }
           catch (...) { continue; }
           try { targetId = transMap->get("target_id").toInt(); }
           catch (...) { continue; }
-          try { condition = QString::fromStdString(transMap->get("guard").toString()); }
+          try { sourceIndex = transMap->get("source_index").toInt(); }
           catch (...) {}
-					ConnectionStmParamPtr connParam = std::make_shared<ConnectionStmParam>(NULL_ID, sourceId, targetId, condition);
+					ConnectionStmParamPtr connParam = std::make_shared<ConnectionStmParam>(NULL_ID, sourceId, targetId, sourceIndex);
           connParam->setNew();
           flowParam->addStmConnection(connParam);
         }

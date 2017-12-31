@@ -153,7 +153,7 @@ void ParameterDialog::showParamInfo(const vector<ParameterParamPtr>& paramList) 
 		QString strModel = "";
 		QString strUnit = "";
 		QString strElemNum = "";
-		if (param->getType() == TASK_PARAM_MODEL) {
+		if (param->getType() == PARAM_KIND_MODEL) {
 			strModel = param->getModelName();
 			strUnit = param->getUnit();
 		} else {

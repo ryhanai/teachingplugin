@@ -174,7 +174,6 @@ void TaskInstanceViewImpl::taskSelectionChanged() {
 
   currentTaskIndex_ = lstResult->currentRow();
 	TaskModelParamPtr newTask = TeachingDataHolder::instance()->getTaskInstanceById(selectedId);
-	DDEBUG_V("TaskInstanceViewImpl::taskSelectionChanged() : %d", newTask->getId());
   leTask->setText(newTask->getName());
 }
 
@@ -232,12 +231,7 @@ void TaskInstanceViewImpl::outputTaskClicked() {
 
 void TaskInstanceViewImpl::registNewTaskClicked() {
 	TeachingEventHandler::instance()->tiv_RegistNewTaskClicked(leTask->text(), leCond->text());
-
-	isSkip_ = true;
 	lstResult->setCurrentCell(currentTaskIndex_, 0);
-	isSkip_ = false;
-	//
-	currentTaskIndex_ = lstResult->currentRow();
 }
 
 void TaskInstanceViewImpl::registTaskClicked() {

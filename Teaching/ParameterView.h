@@ -34,7 +34,7 @@ private:
 	ModelParamPtr targetModel_;
 
   BodyItemPtr currentBodyItem_;
-  Connection connectionToKinematicStateChanged;
+  cnoid::Connection connectionToKinematicStateChanged;
   LazyCaller updateKinematicStateLater;
 
   void updateKinematicState(bool blockSignals);

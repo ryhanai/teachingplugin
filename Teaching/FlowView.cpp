@@ -1,9 +1,15 @@
 #include <cnoid/InfoBar>
 
 #include "FlowView.h"
-#include "FlowSearchDialog.h"
 
 #include "TeachingEventHandler.h"
+
+#include "NodeEditor/NodeStyle.hpp"
+#include "NodeEditor/ConnectionStyle.hpp"
+#include "NodeEditor/FlowViewStyle.hpp"
+
+#include "NodeEditor/FlowScene.hpp"
+#include "NodeEditor/models.hpp"
 
 #include "gettext.h"
 #include "LoggerUtil.h"
@@ -14,10 +20,9 @@ using namespace cnoid;
 
 namespace teaching {
 
-TaskInfoDialog::TaskInfoDialog(TaskModelParamPtr param, ElementNode* elem, QWidget* parent)
+TaskInfoDialog::TaskInfoDialog(ElementStmParamPtr param, QWidget* parent)
   : QDialog(parent, Qt::CustomizeWindowHint | Qt::WindowTitleHint) {
-  this->targetTask_ = param;
-  this->targetElem_ = elem;
+  this->targetParam_ = param;
   //
   txtName = new QLineEdit;
 
@@ -42,8 +47,8 @@ TaskInfoDialog::TaskInfoDialog(TaskModelParamPtr param, ElementNode* elem, QWidg
   setWindowTitle(_("Task Instance Name"));
   resize(400, 100);
   //
-  txtName->setText(targetTask_->getName());
-  txtName->setSelection(0, targetTask_->getName().length());
+  txtName->setText(targetParam_->getTaskParam()->getName());
+  txtName->setSelection(0, targetParam_->getTaskParam()->getName().length());
 }
 
 void TaskInfoDialog::oKClicked() {
@@ -56,9 +61,10 @@ void TaskInfoDialog::oKClicked() {
     txtName->setSelection(0, strName.length());
     return;
   }
-  targetTask_->setName(strName);
-  targetTask_->setUpdate();
-  targetElem_->setItemText(strName);
+	targetParam_->getTaskParam()->setName(strName);
+	targetParam_->getTaskParam()->setUpdate();
+	targetParam_->getRealElem()->nodeDataModel()->setTaskName(strName);
+	targetParam_->getRealElem()->nodeGraphicsObject().update();
   //
   close();
 }
@@ -99,79 +105,14 @@ FlowViewImpl::FlowViewImpl(QWidget* parent) {
   flowLayout->addWidget(lblComment, 1, 0, 1, 1, Qt::AlignRight);
   flowLayout->addWidget(leComment, 1, 1, 1, 5);
   //
-  btnTrans = new QPushButton();
-  btnTrans->setText("Transition");
-  btnTrans->setCheckable(true);
-  QPixmap *pix = new QPixmap(30, 30);
-  pix->fill(QColor(212, 206, 199));
-  QPainter* painter = new QPainter(pix);
-  painter->setRenderHint(QPainter::Antialiasing, true);
-  painter->setPen(QPen(Qt::black, 3.0));
-  painter->drawLine(0, 15, 30, 15);
-  painter->drawLine(29, 15, 20, 5);
-  painter->drawLine(29, 15, 20, 25);
-  btnTrans->setIconSize(QSize(30, 30));
-  btnTrans->setIcon(QIcon(*pix));
-  btnTrans->setStyleSheet("text-align:left;");
-  btnTrans->setEnabled(false);
+	setStyle();
+	FlowScene* scene = new FlowScene(registerDataModels());
+	grhStateMachine = new FlowEditor(scene, this);
+	grhStateMachine->setAcceptDrops(true);
+	grhStateMachine->setEnabled(false);
+	
+	setAcceptDrops(true);
 
-  lstItem = new ItemList(QString::fromStdString("application/TaskInstanceItem"));
-  lstItem->setStyleSheet("background-color: rgb( 212, 206, 199 )};");
-  lstItem->setEnabled(false);
-  lstItem->createInitialNodeTarget();
-  lstItem->createFinalNodeTarget();
-  //lstItem->createDecisionNodeTarget();
-  //createForkNodeTarget();
-
-  grhStateMachine = new FlowActivityEditor(this, this);
-  grhStateMachine->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-  grhStateMachine->setStyleSheet("background-color: white;");
-  grhStateMachine->setAcceptDrops(true);
-  grhStateMachine->setEnabled(false);
-  setAcceptDrops(true);
-
-  //QLabel* lblGuard = new QLabel("Guard:");
-  //rdTrue = new QRadioButton("True");
-  //rdFalse = new QRadioButton("False");
-
-  //btnSet = new QPushButton(_("Set"));
-  //btnSet->setIcon(QIcon(":/Teaching/icons/Logout.png"));
-  //btnSet->setToolTip(_("Set Guard condition"));
-
-  //rdTrue->setEnabled(false);
-  //rdFalse->setEnabled(false);
-  //btnSet->setEnabled(false);
-
-  QVBoxLayout* itemLayout = new QVBoxLayout;
-  itemLayout->setContentsMargins(0, 0, 0, 0);
-  itemLayout->addWidget(btnTrans);
-  itemLayout->addWidget(lstItem);
-  QFrame* frmItem = new QFrame;
-  frmItem->setLayout(itemLayout);
-
-  //QHBoxLayout* guardLayout = new QHBoxLayout;
-  //guardLayout->addStretch();
-  //guardLayout->addWidget(lblGuard);
-  //guardLayout->addWidget(rdTrue);
-  //guardLayout->addWidget(rdFalse);
-  //guardLayout->addWidget(btnSet);
-  //frmGuard = new QFrame;
-  //frmGuard->setLayout(guardLayout);
-
-  QVBoxLayout* editorLayout = new QVBoxLayout;
-  editorLayout->setContentsMargins(0, 0, 0, 0);
-  editorLayout->addWidget(grhStateMachine);
-  //	editorLayout->addWidget(frmGuard);
-  QFrame* editorFrame = new QFrame;
-  editorFrame->setLayout(editorLayout);
-
-  QSplitter* splBase = new QSplitter(Qt::Horizontal);
-  splBase->addWidget(frmItem);
-  splBase->addWidget(editorFrame);
-  splBase->setStretchFactor(0, 0);
-  splBase->setStretchFactor(1, 1);
-  splBase->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-  splBase->show();
   //
   QFrame* frmTask = new QFrame;
   btnDeleteTask = new QPushButton(_("Delete"));
@@ -223,14 +164,13 @@ FlowViewImpl::FlowViewImpl(QWidget* parent) {
   //
   QVBoxLayout* mainLayout = new QVBoxLayout;
   mainLayout->addWidget(flowFrame);
-  mainLayout->addWidget(splBase);
+  mainLayout->addWidget(grhStateMachine);
   mainLayout->addWidget(frmTask);
 
   setLayout(mainLayout);
   //
   changeEnables(false);
   //
-  connect(btnTrans, SIGNAL(toggled(bool)), this, SLOT(modeChanged()));
   connect(btnSearch, SIGNAL(clicked()), this, SLOT(searchClicked()));
   connect(btnNewFlow, SIGNAL(clicked()), this, SLOT(newFlowClicked()));
   connect(btnRegistFlow, SIGNAL(clicked()), this, SLOT(registFlowClicked()));
@@ -268,7 +208,7 @@ void FlowViewImpl::dispView(FlowParamPtr& target) {
 }
 
 void FlowViewImpl::createStateMachine(FlowParamPtr& target) {
-	grhStateMachine->setFlowParam(target);
+	grhStateMachine->setTargetParam(target);
 	vector<ElementStmParamPtr> stateList = target->getActiveStateList();
 	vector<ConnectionStmParamPtr> transList = target->getActiveTransitionList();
 	grhStateMachine->createStateMachine(stateList, transList);
@@ -277,7 +217,7 @@ void FlowViewImpl::createStateMachine(FlowParamPtr& target) {
 void FlowViewImpl::clearView() {
 	  leName->setText("");
 	  leComment->setText("");
-	  grhStateMachine->setFlowParam(0);
+	  grhStateMachine->setTargetParam(0);
 	  grhStateMachine->removeAll();
 	  changeEnables(false);
 }
@@ -299,26 +239,20 @@ void FlowViewImpl::deleteTaskClicked() {
   if (TeachingEventHandler::instance()->checkPaused()) return;
 
   DDEBUG("FlowViewImpl::deleteTaskClicked()");
-  grhStateMachine->deleteCurrent();
+  grhStateMachine->deleteSelectedNodes();
 	TeachingEventHandler::instance()->flv_DeleteTaskClicked();
-}
-
-void FlowViewImpl::modeChanged() {
-  DDEBUG("FlowViewImpl::modeChanged()");
-  grhStateMachine->setCntMode(btnTrans->isChecked());
 }
 
 void FlowViewImpl::editClicked() {
 	DDEBUG("FlowViewImpl::editClicked()");
 
-	ElementNode* target = grhStateMachine->getCurrentNode();
+	ElementStmParamPtr target = grhStateMachine->getCurrentNode();
 	if (target) {
-		ElementStmParamPtr targetStm = target->getElemParam();
-		if (targetStm->getType() != ELEMENT_COMMAND) {
-			QMessageBox::warning(this, _("TaskInstance"), _("Please select Task Instance Node. : ") + QString::number(targetStm->getType()));
+		if (target->getType() != ELEMENT_COMMAND) {
+			QMessageBox::warning(this, _("TaskInstance"), _("Please select Task Instance Node. : ") + QString::number(target->getType()));
 			return;
 		}
-		TaskInfoDialog dialog(targetStm->getTaskParam(), target, this);
+		TaskInfoDialog dialog(target, this);
 		dialog.exec();
 	}
 }
@@ -328,8 +262,6 @@ void FlowViewImpl::changeEnables(bool value) {
   leComment->setEnabled(value);
   btnRegistFlow->setEnabled(value);
   //
-  btnTrans->setEnabled(value);
-  lstItem->setEnabled(value);
   grhStateMachine->removeAll();
   grhStateMachine->setEnabled(value);
   //rdTrue->setEnabled(false);
@@ -372,6 +304,71 @@ void FlowViewImpl::flowSelectionChanged(TaskModelParamPtr target) {
 	TeachingEventHandler::instance()->flv_SelectionChanged(target);
 }
 
+void FlowViewImpl::setStyle() {
+	FlowViewStyle::setStyle(
+		R"(
+  {
+    "FlowViewStyle": {
+      "BackgroundColor": [255, 255, 240],
+      "FineGridColor": [245, 245, 230],
+      "CoarseGridColor": [235, 235, 220]
+    }
+  }
+  )");
+
+	NodeStyle::setNodeStyle(
+		R"(
+  {
+    "NodeStyle": {
+      "NormalBoundaryColor": "darkgray",
+      "SelectedBoundaryColor": "deepskyblue",
+      "GradientColor0": "mintcream",
+      "GradientColor1": "mintcream",
+      "GradientColor2": "mintcream",
+      "GradientColor3": "mintcream",
+      "ShadowColor": [200, 200, 200],
+      "FontColor": [10, 10, 10],
+      "FontColorFaded": [100, 100, 100],
+      "ConnectionPointColor": "white",
+      "PenWidth": 2.0,
+      "HoveredPenWidth": 2.5,
+      "ConnectionPointDiameter": 10.0,
+      "Opacity": 1.0
+    }
+  }
+  )");
+
+	ConnectionStyle::setConnectionStyle(
+		R"(
+  {
+    "ConnectionStyle": {
+      "ConstructionColor": "gray",
+      "NormalColor": "black",
+      "SelectedColor": "gray",
+      "SelectedHaloColor": "deepskyblue",
+      "HoveredColor": "deepskyblue",
+
+      "LineWidth": 3.0,
+      "ConstructionLineWidth": 2.0,
+      "PointDiameter": 10.0,
+
+      "UseDataDefinedColors": false
+    }
+  }
+  )");
+}
+
+std::shared_ptr<DataModelRegistry> FlowViewImpl::registerDataModels() {
+	auto ret = std::make_shared<DataModelRegistry>();
+
+	ret->registerModel<TaskDataModel>("Tasks");
+	ret->registerModel<ParamDataModel>("Variables");
+	ret->registerModel<DecisionDataModel>("Syntaxes");
+	ret->registerModel<FinalDataModel>("Syntaxes");
+	ret->registerModel<InitialDataModel>("Syntaxes");
+
+	return ret;
+}
 /////
 FlowView::FlowView() : viewImpl(0) {
   setName(_("FlowModel"));

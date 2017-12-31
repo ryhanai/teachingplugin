@@ -6,9 +6,12 @@
 #include "TeachingTypes.h"
 
 #include "StateMachineView.h"
-#include "FlowActivityEditor.h"
+
+#include "NodeEditor/FlowEditor.hpp"
+#include "NodeEditor/DataModelRegistry.hpp"
 
 using namespace cnoid;
+using namespace QtNodes;
 
 namespace teaching {
 
@@ -18,7 +21,7 @@ class TaskInstanceView;
 class TaskInfoDialog : public QDialog {
   Q_OBJECT
 public:
-  TaskInfoDialog(TaskModelParamPtr param, ElementNode* elem, QWidget* parent = 0);
+  TaskInfoDialog(ElementStmParamPtr param, QWidget* parent = 0);
 
 private Q_SLOTS:
   void oKClicked();
@@ -27,8 +30,7 @@ private Q_SLOTS:
 private:
   QLineEdit* txtName;
 
-	TaskModelParamPtr targetTask_;
-  ElementNode* targetElem_;
+	ElementStmParamPtr targetParam_;
 };
 
 class FlowViewImpl : public QWidget {
@@ -42,12 +44,12 @@ public:
 	void dispView(FlowParamPtr& target);
 	void createStateMachine(FlowParamPtr& target);
 
+	inline void updateTargetParam() { grhStateMachine->updateTargetParam(); };
+
 public Q_SLOTS:
   void editClicked();
 
 private Q_SLOTS :
-  void modeChanged();
-
   void searchClicked();
   void newFlowClicked();
   void registFlowClicked();
@@ -76,16 +78,12 @@ private:
   QPushButton* btnImport;
   QPushButton* btnAbort;
 
-  QPushButton* btnTrans;
-  ItemList* lstItem;
-  //QFrame* frmGuard;
-  //QRadioButton* rdTrue;
-  //QRadioButton* rdFalse;
-  //QPushButton* btnSet;
-
-  FlowActivityEditor* grhStateMachine;
+  FlowEditor* grhStateMachine;
 
   void changeEnables(bool value);
+
+	void setStyle();
+	std::shared_ptr<DataModelRegistry> registerDataModels();
 };
 
 class FlowView : public cnoid::View {
@@ -94,6 +92,7 @@ public:
   ~FlowView();
 
   inline void setButtonEnableMode(bool isEnable) { viewImpl->setButtonEnableMode(isEnable); }
+	inline void updateTargetParam() { viewImpl->updateTargetParam(); }
 
 private:
   FlowViewImpl* viewImpl;

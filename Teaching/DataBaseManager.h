@@ -41,7 +41,6 @@ public:
   void getDetailParams(TaskModelParamPtr target);
 
   bool saveTaskModel(TaskModelParamPtr source);
-	bool saveTaskModelsForLoad(vector<TaskModelParamPtr>& source);
   bool saveImportedTaskModel(vector<TaskModelParamPtr>& source, vector<ModelMasterParamPtr>& modelMasterList);
   bool saveFlowModel(FlowParamPtr source);
   bool deleteFlowModel(int id);
@@ -67,25 +66,20 @@ private:
   vector<FileDataParamPtr> getFileParams(int id);
   vector<ElementStmParamPtr> getStateParams(int instId);
   vector<ConnectionStmParamPtr> getTransParams(int instId);
-  vector<ElementStmParamPtr> getViaPointParams(int taskId, int transId);
 
   bool saveTaskInstanceData(TaskModelParamPtr source, bool updateDate);
   bool saveTaskParameterData(int taskId, ParameterParamPtr source);
   bool saveElementStmData(int parentId, ElementStmParamPtr source);
   bool saveElementStmActionData(int taskId, int stateId, ElementStmActionParamPtr source);
-  bool saveTransitionStmData(int parentId, ConnectionStmParamPtr source);
+  bool saveTransitionStmData(int parentId, vector<ConnectionStmParamPtr>& source);
   bool saveArgumentData(int taskId, int stateId, ArgumentParamPtr source);
-
-  bool saveViaPointData(int taskId, ConnectionStmParamPtr source);
 
   vector<ElementStmParamPtr> getFlowStateParams(int flow_id);
   vector<ConnectionStmParamPtr> getFlowTransParams(int flow_id);
-  vector<ElementStmParamPtr> getFlowViaPointParams(int flow_id, int trans_id);
 	vector<ParameterParamPtr> getFlowParameterParams(int flowId);
 
   bool saveFlowStmData(int parentId, ElementStmParamPtr source);
-  bool saveFlowTransactionStmData(int parentId, ConnectionStmParamPtr source);
-  bool saveFlowViaPointData(int parentId, ConnectionStmParamPtr source);
+  bool saveFlowTransactionStmData(int parentId, vector<ConnectionStmParamPtr>& source);
 	bool saveFlowParameter(FlowParamPtr source);
 	bool saveFlowParameterData(int flowId, ParameterParamPtr source);
 

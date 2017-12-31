@@ -7,13 +7,33 @@
 #include "TeachingTypes.h"
 #include "CommandDefTypes.h"
 #include "ParameterView.h"
-#include "ActivityEditor.h"
+
+#include "NodeEditor/StateMachineEditor.hpp"
+#include "NodeEditor/DataModelRegistry.hpp"
+
 
 using namespace cnoid;
 using namespace std;
+using namespace QtNodes;
 
 namespace teaching {
+class ItemList : public QListWidget {
+public:
+	ItemList(QString elemType, QWidget* parent = 0);
 
+	void createInitialNodeTarget();
+	void createFinalNodeTarget();
+	void createDecisionNodeTarget();
+
+protected:
+	void mousePressEvent(QMouseEvent* event);
+	void mouseMoveEvent(QMouseEvent* event);
+
+private:
+	QPoint startPos;
+	QString elemType_;
+};
+//////////
 class StateMachineViewImpl : public QWidget {
   Q_OBJECT
 public:
@@ -28,6 +48,8 @@ public:
   void setStepStatus(bool isActive);
   void setButtonEnableMode(bool isEnable);
 
+	inline void updateTargetParam() { grhStateMachine->updateTargetParam(); };
+
 public Q_SLOTS:
   void editClicked();
 
@@ -38,8 +60,6 @@ public Q_SLOTS:
 // R.Hanai
 
 private Q_SLOTS :
-  void setClicked();
-  void modeChanged();
   void deleteClicked();
   void runClicked();
   void stepClicked();
@@ -48,13 +68,8 @@ private Q_SLOTS :
 
 private:
   QLabel* lblTarget;
-  QPushButton* btnTrans;
   ItemList* lstItem;
 
-  QFrame* frmGuard;
-  QRadioButton* rdTrue;
-  QRadioButton* rdFalse;
-  QPushButton* btnSet;
   QPushButton* btnDelete;
   QPushButton* btnEdit;
 
@@ -69,13 +84,16 @@ private:
   QPushButton* btnStep;
   QPushButton* btnCont;
 
-  ActivityEditor* grhStateMachine;
+	StateMachineEditor* grhStateMachine;
   vector<CommandDefParam*> commandList_;
 
   ParameterView* parameterView_;
 
   bool isExec_;
   void createCommandNodeTarget(int id, QString name);
+
+	void setStyle();
+	std::shared_ptr<DataModelRegistry> registerDataModels();
 };
 
 class StateMachineView : public cnoid::View {
@@ -89,9 +107,9 @@ public:
 
   void setStepStatus(bool isActive) { this->viewImpl->setStepStatus(isActive); }
   inline void setButtonEnableMode(bool isEnable) { viewImpl->setButtonEnableMode(isEnable); }
+	inline void updateTargetParam() { viewImpl->updateTargetParam(); }
 
 private:
-
   StateMachineViewImpl* viewImpl;
 };
 

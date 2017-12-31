@@ -39,131 +39,6 @@ void DatabaseParam::setNormal() {
   mode_ = DB_MODE_NORMAL;
 }
 /////
-void ElementNode::updateSelect(bool isActive) {
-  this->isActive_ = isActive;
-  if (type_ == ELEMENT_START) {
-    if (isActive) {
-      item_->setBrush(QBrush(Qt::red, Qt::SolidPattern));
-    } else {
-      item_->setBrush(QBrush(Qt::black, Qt::SolidPattern));
-    }
-
-  } else if (type_ == ELEMENT_FINAL) {
-    if (isActive) {
-      item_->setPen(QPen(Qt::red, 3.0));
-    } else {
-      item_->setPen(QPen(Qt::black, 3.0));
-    }
-
-  } else if (type_ == ELEMENT_DECISION) {
-    if (isActive) {
-      item_->setBrush(QBrush(Qt::red, Qt::SolidPattern));
-    } else {
-      item_->setBrush(QBrush(Qt::black, Qt::SolidPattern));
-    }
-
-  } else if (type_ == ELEMENT_FORK) {
-    if (isActive) {
-      item_->setBrush(QBrush(Qt::red, Qt::SolidPattern));
-    } else {
-      item_->setBrush(QBrush(Qt::black, Qt::SolidPattern));
-    }
-
-  } else if (type_ == ELEMENT_COMMAND) {
-    if (isBreak_) {
-      if (isActive) {
-        item_->setPen(QPen(Qt::cyan, 3.0));
-      } else {
-        item_->setPen(QPen(Qt::green, 3.0));
-      }
-    } else {
-      if (isActive) {
-        item_->setPen(QPen(Qt::red, 3.0));
-      } else {
-        item_->setPen(QPen(Qt::black, 3.0));
-      }
-    }
-  } else if (type_ == ELEMENT_POINT) {
-    if (isActive) {
-      item_->setPen(QPen(Qt::red, 3.0));
-      item_->setBrush(QBrush(Qt::red, Qt::SolidPattern));
-    } else {
-      item_->setPen(QPen(Qt::black, 3.0));
-      item_->setBrush(QBrush(Qt::black, Qt::SolidPattern));
-    }
-  }
-}
-
-void ElementNode::setBreak(bool isBreak) {
-  this->isBreak_ = isBreak;
-  //
-  if (isBreak_) {
-    if (isActive_) {
-      item_->setPen(QPen(Qt::cyan, 3.0));
-    } else {
-      item_->setPen(QPen(Qt::green, 3.0));
-    }
-  } else {
-    if (isActive_) {
-      item_->setPen(QPen(Qt::red, 3.0));
-    } else {
-      item_->setPen(QPen(Qt::black, 3.0));
-    }
-  }
-}
-
-void ElementNode::updateActive(bool isActive) {
-  if (type_ == ELEMENT_START) {
-    if (isActive) {
-      item_->setBrush(QBrush(Qt::blue, Qt::SolidPattern));
-    } else {
-      item_->setBrush(QBrush(Qt::black, Qt::SolidPattern));
-    }
-
-  } else if (type_ == ELEMENT_FINAL) {
-    if (isActive) {
-      item_->setPen(QPen(Qt::blue, 3.0));
-    } else {
-      item_->setPen(QPen(Qt::black, 3.0));
-    }
-
-  } else if (type_ == ELEMENT_DECISION) {
-    if (isActive) {
-      item_->setBrush(QBrush(Qt::blue, Qt::SolidPattern));
-    } else {
-      item_->setBrush(QBrush(Qt::black, Qt::SolidPattern));
-    }
-
-  } else if (type_ == ELEMENT_FORK) {
-    if (isActive) {
-      item_->setBrush(QBrush(Qt::blue, Qt::SolidPattern));
-    } else {
-      item_->setBrush(QBrush(Qt::black, Qt::SolidPattern));
-    }
-
-  } else if (type_ == ELEMENT_COMMAND) {
-    if (isActive) {
-      if (isBreak_) {
-        item_->setPen(QPen(Qt::magenta, 3.0));
-      } else {
-        item_->setPen(QPen(Qt::blue, 3.0));
-      }
-    } else {
-      if (isBreak_) {
-        item_->setPen(QPen(Qt::green, 3.0));
-      } else {
-        item_->setPen(QPen(Qt::black, 3.0));
-      }
-    }
-  }
-}
-/////
-void ElementStmParam::updateSelect(bool isActive) {
-  if (this->realElem_) {
-    this->realElem_->updateSelect(isActive);
-  }
-}
-
 void ElementStmParam::updateActive(bool isActive) {
   if (this->realElem_) {
     this->realElem_->updateActive(isActive);
@@ -172,6 +47,15 @@ void ElementStmParam::updateActive(bool isActive) {
 
 void ElementStmParam::clearActionList() {
   actionList_.clear();
+}
+
+void ElementStmParam::updatePos() {
+	DDEBUG("ElementStmParam::updatePos");
+	if (mode_ == DB_MODE_DELETE || mode_ == DB_MODE_IGNORE) return;
+
+	posX_ = realElem_->nodeGraphicsObject().pos().x();
+	posY_ = realElem_->nodeGraphicsObject().pos().y();
+	setUpdate();
 }
 
 vector<ArgumentParamPtr> ElementStmParam::getActiveArgumentList() {
@@ -225,7 +109,7 @@ ElementStmParam::ElementStmParam(int id, int type, QString cmdName, QString cmdD
 }
 
 ElementStmParam::ElementStmParam(const ElementStmParamPtr source)
-  : id_(source->id_), org_id_(source->org_id_), type_(source->type_),
+  : id_(source->id_), type_(source->type_),
   cmdName_(source->cmdName_), cmdDspName_(source->cmdDspName_),
   posX_(source->posX_), posY_(source->posY_), condition_(source->condition_),
   nextElem_(source->nextElem_), trueElem_(source->trueElem_), falseElem_(source->falseElem_),
@@ -248,47 +132,16 @@ ElementStmParam::ElementStmParam(const ElementStmParamPtr source)
 ElementStmParam::~ElementStmParam() {
   actionList_.clear();
   argList_.clear();
-  delete realElem_;
-}
-
-void ConnectionStmParam::addChildNode(ElementStmParamPtr target) {
-  this->childList_.push_back(target);
-}
-
-void ConnectionStmParam::addChildNode(ElementStmParamPtr prev, ElementStmParamPtr target){
-  DDEBUG("ConnectionStmParam::addChildNode");
-  if (childList_.size() == 0) {
-    this->childList_.push_back(target);
-  } else {
-    vector<ElementStmParamPtr>::iterator iter = find(childList_.begin(), childList_.end(), prev);
-    if (iter != childList_.end()) {
-      DDEBUG("ConnectionStmParam::addChildNode NOT FOUND");
-      childList_.insert(iter + 1, target);
-    } else {
-      DDEBUG("ConnectionStmParam::addChildNode FOUND");
-      childList_.insert(childList_.begin(), target);
-    }
-  }
-}
-
-void ConnectionStmParam::removeChildNode(ElementStmParamPtr target) {
-  this->childList_.erase(std::remove(this->childList_.begin(), this->childList_.end(), target), this->childList_.end());
 }
 
 ConnectionStmParam::ConnectionStmParam(const ConnectionStmParamPtr source)
   : id_(source->id_),
   sourceId_(source->sourceId_), targetId_(source->targetId_),
-  condition_(source->condition_), DatabaseParam(source.get())
+	sourceIndex_(source->sourceIndex_), DatabaseParam(source.get())
 {
-  for (unsigned int index = 0; index < source->childList_.size(); index++) {
-		ElementStmParamPtr param = std::make_shared<ElementStmParam>(source->childList_[index]);
-    param->setNewForce();
-    this->childList_.push_back(param);
-  }
 };
 
 ConnectionStmParam::~ConnectionStmParam() {
-  childList_.clear();
 }
 /////
 void ParameterParam::setElemTypes(QString value) {
@@ -551,7 +404,8 @@ TaskModelParam::~TaskModelParam() {
 }
 
 void TaskModelParam::clearDetailParams() {
-  modelList_.clear();
+	//DDEBUG("TaskModelParam::clearDetailParams");
+	modelList_.clear();
 	stmElemList_.clear();
 	stmConnectionList_.clear();
 	parameterList_.clear();
@@ -655,6 +509,22 @@ ActivityParam::ActivityParam(const ActivityParam* source)
   }
 }
 
+int ActivityParam::getMaxStateId() {
+	int result = 0;
+	for (int index = 0; index < stmElemList_.size(); index++) {
+		ElementStmParamPtr target = stmElemList_[index];
+		if (result < target->getId()) {
+			result = target->getId();
+		}
+	}
+	result++;
+	return result;
+}
+
+void ActivityParam::clearTransitionList() {
+	stmConnectionList_.clear();
+}
+
 bool ActivityParam::checkAndOrderStateMachine() {
   errContents_ = "";
   //
@@ -717,12 +587,6 @@ bool ActivityParam::checkAndOrderStateMachine() {
       errContents_ = "Flow from out finalNode exists.";
       return true;
     }
-    if (std::find(decisionNodeIds.begin(), decisionNodeIds.end(), sourceId) != decisionNodeIds.end()) {
-      if ((*itConnChk)->getCondition().length() == 0) {
-        errContents_ = "Condition is not set for the flow from decisionNode.";
-        return true;
-      }
-    }
     ++itConnChk;
   }
   /////
@@ -761,21 +625,21 @@ bool ActivityParam::checkAndOrderStateMachine() {
         }
         //
         if ((*itElem)->getType() == ELEMENT_DECISION) {
-          if ((*itConn)->getCondition().startsWith(QString("true"))) {
+          if ((*itConn)->getSourceIndex()==0) {
             trueCnt++;
             if (1 < trueCnt) {
               errContents_ = "Several TRUE flows exist from Node.";
               return true;
             }
             (*itElem)->setTrueElem(*targetElem);
-          } else {
-            falseCnt++;
-            if (1 < falseCnt) {
-              errContents_ = "Several FALSE flows exist from Node.";
-              return true;
-            }
-            (*itElem)->setFalseElem(*targetElem);
-          }
+					} else {
+						falseCnt++;
+						if (1 < falseCnt) {
+							errContents_ = "Several FALSE flows exist from Node.";
+							return true;
+						}
+						(*itElem)->setFalseElem(*targetElem);
+					}
 
         } else {
           nextCnt++;

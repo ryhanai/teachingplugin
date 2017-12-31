@@ -72,7 +72,12 @@ FlowParamPtr TeachingDataHolder::getFlowById(int id) {
 }
 
 FlowParamPtr TeachingDataHolder::reGetFlowById(int id) {
-	return DatabaseManager::getInstance().getFlowParamById(id);
+	FlowParamPtr ret = DatabaseManager::getInstance().getFlowParamById(id);
+	if (ret) {
+		vector<string> condList;
+		flowList_ = DatabaseManager::getInstance().searchFlowList(condList, false);
+	}
+	return ret;
 }
 
 bool TeachingDataHolder::saveFlowModel(FlowParamPtr& target) {
@@ -81,13 +86,23 @@ bool TeachingDataHolder::saveFlowModel(FlowParamPtr& target) {
 
 //T_TASK_MODEL_INST
 TaskModelParamPtr TeachingDataHolder::getTaskInstanceById(int id) {
+	DDEBUG_V("TeachingDataHolder::getTaskInstanceById : %d", id);
+
 	std::vector<TaskModelParamPtr>::iterator taskItr = std::find_if(taskList_.begin(), taskList_.end(), TaskInstanceComparatorByID(id));
-	if (taskItr == taskList_.end()) return 0;
+	if (taskItr == taskList_.end()) {
+		DDEBUG("TeachingDataHolder::getTaskInstanceById : NOT Found");
+		return 0;
+	}
 	return *taskItr;
+}
+
+TaskModelParamPtr TeachingDataHolder::getFlowTaskInstanceById(int id) {
+	return DatabaseManager::getInstance().getTaskModelById(id);
 }
 
 vector<TaskModelParamPtr> TeachingDataHolder::searchTaskModels(vector<string>& condList, bool isOr) {
 	vector<TaskModelParamPtr> taskList = DatabaseManager::getInstance().searchTaskModels(condList, isOr);
+	taskList_ = taskList;
 	return taskList;
 }
 
@@ -125,16 +140,7 @@ bool TeachingDataHolder::saveTaskModel(TaskModelParamPtr source) {
 }
 
 bool TeachingDataHolder::saveTaskModelasNew(TaskModelParamPtr source) {
-	vector<TaskModelParamPtr> taskList;
-	taskList.push_back(source);
-	if (DatabaseManager::getInstance().saveTaskModelsForLoad(taskList) == false) return false;
-
-	TaskModelParamPtr newTask = DatabaseManager::getInstance().getTaskModelById(source->getId());
-	TeachingUtil::loadTaskDetailData(newTask);
-	if (newTask) {
-		addTaskData(newTask);
-	}
-
+	if (DatabaseManager::getInstance().saveTaskModel(source) == false) return false;
 	return true;
 }
 
