@@ -45,6 +45,7 @@ public:
 	void createStateMachine(FlowParamPtr& target);
 
 	inline void updateTargetParam() { grhStateMachine->updateTargetParam(); };
+	void updatingParamInfo(TaskModelParamPtr targetTask, ElementStmParamPtr targetState) { grhStateMachine->updatingParamInfo(targetTask, targetState); };
 
 public Q_SLOTS:
   void editClicked();
@@ -92,7 +93,8 @@ public:
   ~FlowView();
 
   inline void setButtonEnableMode(bool isEnable) { viewImpl->setButtonEnableMode(isEnable); }
-	inline void updateTargetParam() { viewImpl->updateTargetParam(); }
+	inline void updateTargetParam() { viewImpl->updateTargetParam(); };
+	inline void updatingParamInfo(TaskModelParamPtr targetTask, ElementStmParamPtr targetState) { viewImpl->updatingParamInfo(targetTask, targetState); };
 
 private:
   FlowViewImpl* viewImpl;

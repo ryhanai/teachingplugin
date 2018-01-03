@@ -37,22 +37,16 @@ public:
 
   /// Returns vector of connections ID.
   /// Some of them can be empty (null)
-  std::vector<ConnectionPtrSet> const&
-  getEntries(PortType) const;
+  std::vector<ConnectionPtrSet> const& getEntries(PortType) const;
+  std::vector<ConnectionPtrSet> & getEntries(PortType);
 
-  std::vector<ConnectionPtrSet> &
-  getEntries(PortType);
+  ConnectionPtrSet connections(PortType portType, PortIndex portIndex) const;
 
-  ConnectionPtrSet
-  connections(PortType portType, PortIndex portIndex) const;
-
-  void
-  setConnection(PortType portType,
+  void setConnection(PortType portType,
                 PortIndex portIndex,
                 Connection& connection);
 
-  void
-  eraseConnection(PortType portType,
+  void eraseConnection(PortType portType,
                   PortIndex portIndex,
                   QUuid id);
 

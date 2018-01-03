@@ -666,3 +666,14 @@ msgstr "可視性:"
 msgid "FlowParameter"
 msgstr "フローパラメータ"
 
+#: TeachingDataHolder.cpp:311
+msgid "A parameter with the same name exists."
+msgstr "同じ名前のパラメータが定義されています"
+
+#: TeachingDataHolder.cpp:318
+msgid "Parameter Name is Empty."
+msgstr "パラメータ名を指定してください"
+
+#: TeachingDataHolder.cpp:323
+msgid "Parameter Definition is Empty."
+msgstr "パラメータ定義を指定してください"

@@ -217,7 +217,7 @@ void MetaDataViewImpl::updateTaskParam() {
 	}
 }
 
-void MetaDataViewImpl::setTaskParam(TaskModelParamPtr param, vector<FileDataParamPtr>& fileList, vector<ImageDataParamPtr>& imageList) {
+void MetaDataViewImpl::setTaskParam(TaskModelParamPtr param) {
   DDEBUG("MetaDataViewImpl::setTaskParam");
 
   setAllClear();
@@ -225,6 +225,7 @@ void MetaDataViewImpl::setTaskParam(TaskModelParamPtr param, vector<FileDataPara
   //
   textEdit->setText(param->getComment());
   //
+	vector<FileDataParamPtr> fileList = param->getActiveFileList();
   for (int index = 0; index < fileList.size(); index++) {
 		FileDataParamPtr param = fileList[index];
     QListWidgetItem* item = new QListWidgetItem(param->getName());
@@ -233,6 +234,7 @@ void MetaDataViewImpl::setTaskParam(TaskModelParamPtr param, vector<FileDataPara
 		DDEBUG_V("MetaDataViewImpl::setTaskParam file id=%d, index=%d", param->getId(), index);
 	}
   //
+	vector<ImageDataParamPtr> imageList = param->getActiveImageList();
   for (int index = 0; index < imageList.size(); index++) {
 		ImageDataParamPtr param = imageList[index];
     QListWidgetItem* item = new QListWidgetItem(param->getName());

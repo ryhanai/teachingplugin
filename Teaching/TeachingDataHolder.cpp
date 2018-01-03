@@ -2,8 +2,8 @@
 #include "DataBaseManager.h"
 #include "TeachingUtil.h"
 
+#include "gettext.h"
 #include "LoggerUtil.h"
-
 
 namespace teaching {
 
@@ -304,14 +304,24 @@ void TeachingDataHolder::updateModelMaster(int id, QString name, QString fileNam
 bool TeachingDataHolder::saveModelMaster(QString& errMessage) {
 	for (int index = 0; index < modelMasterList_.size(); index++) {
 		ModelMasterParamPtr master = modelMasterList_[index];
+		QStringList existParam;
 		for (int idxParam = 0; idxParam < master->getActiveParamList().size(); idxParam++) {
 			ModelParameterParamPtr param = master->getActiveParamList()[idxParam];
+			if ( existParam.contains(param->getName())) {
+				QString errMessageDetail = _("A parameter with the same name exists.");
+				errMessage = errMessageDetail + " [ " + master->getName() + " : " + param->getName() + " ]";
+				return false;
+			}
+			existParam.append(param->getName());
+			//
 			if (param->getName().length() == 0) {
-				errMessage = "Parameter Name is Empty. [ " + master->getName() + " ]";
+				QString errMessageDetail = _("Parameter Name is Empty.");
+				errMessage = errMessageDetail + "[ " + master->getName() + " ]";
 				return false;
 			}
 			if (param->getValueDesc().length() == 0) {
-				errMessage = "Parameter Definition is Empty. [ " + master->getName() + " : " + param->getName() + " ]";
+				QString errMessageDetail = _("Parameter Definition is Empty.");
+				errMessage = errMessageDetail + "[ " + master->getName() + " : " + param->getName() + " ]";
 				return false;
 			}
 		}

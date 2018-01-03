@@ -42,7 +42,7 @@ public:
   MetaDataViewImpl(QWidget* parent = 0);
   ~MetaDataViewImpl();
 
-	void setTaskParam(TaskModelParamPtr param, vector<FileDataParamPtr>& fileList, vector<ImageDataParamPtr>& imageList);
+	void setTaskParam(TaskModelParamPtr param);
   void updateTaskParam();
   void clearTaskParam();
 
@@ -85,8 +85,8 @@ class MetaDataView : public cnoid::View {
 public:
   MetaDataView();
   ~MetaDataView();
-  void setTaskParam(TaskModelParamPtr param, vector<FileDataParamPtr>& fileList, vector<ImageDataParamPtr>& imageList) {
-		this->viewImpl->setTaskParam(param, fileList, imageList);
+  void setTaskParam(TaskModelParamPtr param) {
+		this->viewImpl->setTaskParam(param);
 	}
 
 private:

@@ -30,6 +30,13 @@ enum NodeType {
 
 class StyleCollection;
 
+class PortInfo {
+public:
+	PortInfo(int id, QString name) : id_(id), name_(name) {};
+	int id_;
+	QString name_;
+};
+
 class NODE_EDITOR_PUBLIC NodeDataModel : public QObject, public Serializable {
   Q_OBJECT
 
@@ -110,10 +117,8 @@ public:
   void
   setTaskName (QString const &) { }
 
-  virtual
-  QString
-  taskName() const { return QString(""); }
-	QStringList portNames;
+  virtual QString taskName() const { return QString(""); }
+	std::vector<PortInfo> portNames;
 
 Q_SIGNALS:
 

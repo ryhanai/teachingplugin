@@ -187,11 +187,12 @@ void FlowEditor::dropEvent(QDropEvent* event) {
 		teaching::TaskModelParamPtr targetTask = teaching::TeachingDataHolder::instance()->getTaskInstanceById(id);
 		if (targetTask) {
 			std::vector<teaching::ParameterParamPtr> paramList = targetTask->getActiveParameterList();
-			QStringList portList;
+			vector<PortInfo> portList;
 			for (int index = 0; index < paramList.size(); index++) {
 				teaching::ParameterParamPtr param = paramList[index];
 				if (param->getHide()) continue;
-				portList.append(param->getName());
+				PortInfo info(param->getId(), param->getName());
+				portList.push_back(info);
 			}
 			type->portNames = portList;
 		}
@@ -244,11 +245,12 @@ void FlowEditor::createStateMachine(std::vector<ElementStmParamPtr>& elemList, s
 				teaching::TaskModelParamPtr targetTask = teaching::TeachingDataHolder::instance()->getFlowTaskInstanceById(id);
 				if (targetTask) {
 					std::vector<teaching::ParameterParamPtr> paramList = targetTask->getActiveParameterList();
-					QStringList portList;
+					vector<PortInfo> portList;
 					for (int index = 0; index < paramList.size(); index++) {
 						teaching::ParameterParamPtr param = paramList[index];
 						if (param->getHide()) continue;
-						portList.append(param->getName());
+						PortInfo info(param->getId(), param->getName());
+						portList.push_back(info);
 					}
 					type->portNames = portList;
 				}
@@ -308,4 +310,68 @@ void FlowEditor::updateTargetParam() {
 		connParam->setNew();
 		targetParam_->addStmConnection(connParam);
 	}
+}
+
+void FlowEditor::updatingParamInfo(TaskModelParamPtr targetTask, ElementStmParamPtr targetState) {
+	DDEBUG("FlowEditor::updatingParamInfo");
+
+	std::vector<teaching::ParameterParamPtr> paramList = targetTask->getActiveParameterList();
+	vector<PortInfo> portList;
+	for (int index = 0; index < paramList.size(); index++) {
+		teaching::ParameterParamPtr param = paramList[index];
+		if (param->getHide()) continue;
+		PortInfo info(param->getId(), param->getName());
+		portList.push_back(info);
+	}
+
+	auto type = _scene->registry().create("Task");
+	type->setTaskName(targetState->getCmdDspName());
+	type->portNames = portList;
+
+	auto& node = _scene->createNode(std::move(type));
+	node.nodeGraphicsObject().setPos(targetState->getPosX(), targetState->getPosY());
+	node.setParamId(targetState->getId());
+	node.setBreak(targetState->isBreak());
+
+	Node* orgNode = targetState->getRealElem();
+
+	std::unordered_map<QUuid, Connection*> outMap = orgNode->nodeState().connections(PortType::Out, 0);
+	for (auto it = outMap.begin(); it != outMap.end(); ++it) {
+		Connection* target = it->second;
+		_scene->deleteConnection(*target);
+		Node* inNode = target->getNode(PortType::In);
+		_scene->createConnection(*inNode, 0, node, 0);
+	}
+	std::unordered_map<QUuid, Connection*> inMap = orgNode->nodeState().connections(PortType::In, 0);
+	for (auto it = inMap.begin(); it != inMap.end(); ++it) {
+		Connection* target = it->second;
+		Node* oppNode = target->getNode(PortType::Out);
+		_scene->createConnection(node, 0, *oppNode, 0);
+	}
+	//
+	int inNum = orgNode->nodeDataModel()->nPorts(PortType::In);
+	for (int index = 1; index < inNum; index++) {
+		int targetId = orgNode->nodeDataModel()->portNames.at(index - 1).id_;
+		ParameterParamPtr targetParam = targetTask->getParameterById(targetId);
+		if (targetParam->getHide()) {
+			continue;
+		}
+		int targetIndex = -1;
+		for (int idxInfo = 0; idxInfo < portList.size(); idxInfo++) {
+			PortInfo info = portList[idxInfo];
+			if (info.id_ == targetId) {
+				targetIndex = idxInfo;
+				break;
+			}
+		}
+		//DDEBUG_V("index %d=%s", index, orgNode->nodeDataModel()->portNames.at(index - 1).toStdString().c_str());
+		std::unordered_map<QUuid, Connection*> inMap = orgNode->nodeState().connections(PortType::In, index);
+		for (auto it = inMap.begin(); it != inMap.end(); ++it) {
+			Connection* target = it->second;
+			Node* oppNode = target->getNode(PortType::Out);
+			_scene->createConnection(node, targetIndex + 1, *oppNode, 0);
+		}
+	}
+	_scene->removeNode(*orgNode);
+	targetState->setRealElem(&node);
 }

@@ -1096,6 +1096,24 @@ bool TeachingEventHandler::prd_OkClicked(QString name, QString id, int type, QSt
 		}
 	}
 	//
+	if (flv_CurrentFlow_) {
+		ElementStmParamPtr targetState = 0;
+		for (int index = 0; index < flv_CurrentFlow_->getStmElementList().size(); index++) {
+			ElementStmParamPtr state = flv_CurrentFlow_->getStmElementList()[index];
+			TaskModelParamPtr task = state->getTaskParam();
+			if (task) {
+				if (task->getId() == com_CurrentTask_->getId()) {
+					targetState = state;
+					break;
+				}
+			}
+		}
+		if (targetState) {
+			DDEBUG("Call updatingParamInfo");
+			flv_->updatingParamInfo(com_CurrentTask_, targetState);
+		}
+	}
+	//
 	if (TeachingDataHolder::instance()->saveTaskParameter(com_CurrentTask_) == false) {
 		QMessageBox::warning(prd_, _("Save Task Parameter Error"), TeachingDataHolder::instance()->getErrorStr());
 		return false;
@@ -1104,11 +1122,9 @@ bool TeachingEventHandler::prd_OkClicked(QString name, QString id, int type, QSt
 	com_CurrentTask_->clearParameterList();
 	vector<ParameterParamPtr> newParamList = TeachingDataHolder::instance()->loadParameter(com_CurrentTask_->getId());
 	for (int index = 0; index < newParamList.size(); index++) {
-		ParameterParamPtr param = newParamList[index];
-		com_CurrentTask_->addParameter(param);
+		com_CurrentTask_->addParameter(newParamList[index]);
 	}
-	vector<ParameterParamPtr> dispList = tiv_CurrentTask_->getActiveParameterList();
-	prv_->setTaskParam(tiv_CurrentTask_, dispList);
+	prv_->setTaskParam(com_CurrentTask_);
 
 	return true;
 }
@@ -1480,14 +1496,9 @@ void TeachingEventHandler::updateComViews(TaskModelParamPtr targetTask) {
 	TeachingUtil::loadTaskDetailData(targetTask);
 	bool isUpdateTree = ChoreonoidUtil::loadTaskModelItem(targetTask);
 
-	vector<FileDataParamPtr> fileList = targetTask->getActiveFileList();
-	std::vector<ImageDataParamPtr> imageList = targetTask->getActiveImageList();
-	mdv_->setTaskParam(targetTask, fileList, imageList);
-
+	mdv_->setTaskParam(targetTask);
 	stv_->setTaskParam(targetTask);
-
-	vector<ParameterParamPtr> paramList = targetTask->getActiveParameterList();
-	prv_->setTaskParam(targetTask, paramList);
+	prv_->setTaskParam(targetTask);
 
 	//即更新を行うとエラーになってしまうため
 	if (isUpdateTree) {

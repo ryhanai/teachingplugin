@@ -116,7 +116,7 @@ public:
 
   QString portCaption(PortType portType, PortIndex portIndex) const override {
     if (portType == PortType::In) {
-			return portNames.at(portIndex - 1);
+			return portNames.at(portIndex - 1).name_;
 		}
 
     return QString("");

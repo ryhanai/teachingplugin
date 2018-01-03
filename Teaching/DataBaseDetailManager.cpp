@@ -873,7 +873,8 @@ bool DatabaseManager::saveTransitionStmData(int parentId, vector<ConnectionStmPa
 }
 /////T_TASK_INST_PARAMETER/////
 vector<ParameterParamPtr> DatabaseManager::getParameterParams(int instId) {
-  vector<ParameterParamPtr> result;
+	DDEBUG_V("DatabaseManager::getParameterParams: %d", instId);
+	vector<ParameterParamPtr> result;
 
   string strInstId = toStr(instId);
   string strInstQuery = "SELECT ";

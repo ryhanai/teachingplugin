@@ -128,7 +128,7 @@ ParameterViewImpl::ParameterViewImpl(QWidget* parent) : QWidget(parent) {
 	TeachingEventHandler::instance()->prv_Loaded(this);
 }
 
-void ParameterViewImpl::setTaskParam(TaskModelParamPtr param, vector<ParameterParamPtr>& paramList) {
+void ParameterViewImpl::setTaskParam(TaskModelParamPtr param) {
   DDEBUG("ParameterViewImpl::setTaskParam()");
 
 	clearView();
@@ -152,7 +152,8 @@ void ParameterViewImpl::setTaskParam(TaskModelParamPtr param, vector<ParameterPa
   QVBoxLayout* mainLayout = new QVBoxLayout;
   mainLayout->addWidget(topFrame);
 
-  vector<ParameterParamPtr>::iterator itParam = paramList.begin();
+	vector<ParameterParamPtr> paramList = param->getActiveParameterList();
+	vector<ParameterParamPtr>::iterator itParam = paramList.begin();
   while (itParam != paramList.end()) {
     (*itParam)->clearControlList();
     QFrame* eachFrame = new QFrame(this);

@@ -127,7 +127,8 @@ bool MemberParam::calcBinOpe(MemberParam* lhs, MemberParam* rhs) {
 }
 
 bool MemberParam::parseVector(MemberParam* elem01, MemberParam* elem02, MemberParam* elem03) {
-  valueVector_[0] = elem01->getValueScalar();
+	DDEBUG("MemberParam::parseVector");
+	valueVector_[0] = elem01->getValueScalar();
   valueVector_[1] = elem02->getValueScalar();
   valueVector_[2] = elem03->getValueScalar();
   valMode_ = VAL_VECTOR;
@@ -136,8 +137,10 @@ bool MemberParam::parseVector(MemberParam* elem01, MemberParam* elem02, MemberPa
 }
 
 bool MemberParam::parseVariable() {
-  vector<ParameterParamPtr> paramList = targetModel_->getParameterList();
+	DDEBUG_V("MemberParam::parseVariable source:%s", source_.c_str());
+	vector<ParameterParamPtr> paramList = targetModel_->getParameterList();
   vector<ParameterParamPtr>::iterator targetParam = find_if(paramList.begin(), paramList.end(), ParameterParamComparatorByRName(QString::fromLatin1(source_.c_str())));
+
   if (targetParam == paramList.end()) return false;
   //
   if ((*targetParam)->getElemNum() == 1) {
@@ -489,6 +492,7 @@ bool Calculator::calculate(QString source, TaskModelParamPtr targetModel) {
   //
   for (int index = memberList_.size() - 1; 0 <= index; index--) {
     MemberParam* member = memberList_[index];
+		DDEBUG_V("member %d, %s", member->nodeType_, member->source_.c_str());
     switch (member->nodeType_) {
       case TYPE_VALUE:
       {

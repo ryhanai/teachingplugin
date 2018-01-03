@@ -45,8 +45,9 @@ class ParameterViewImpl : public QWidget {
   Q_OBJECT
 public:
   ParameterViewImpl(QWidget* parent = 0);
-  void setTaskParam(TaskModelParamPtr param, vector<ParameterParamPtr>& paramList);
-  void clearTaskParam();
+  //void setTaskParam(TaskModelParamPtr param, vector<ParameterParamPtr>& paramList);
+	void setTaskParam(TaskModelParamPtr param);
+	void clearTaskParam();
 
 private Q_SLOTS:
   void editClicked();
@@ -66,8 +67,8 @@ class ParameterView : public cnoid::View {
 public:
   ParameterView();
   ~ParameterView();
-  void setTaskParam(TaskModelParamPtr param, vector<ParameterParamPtr>& paramList) {
-		this->viewImpl->setTaskParam(param, paramList);
+	void setTaskParam(TaskModelParamPtr param) {
+		this->viewImpl->setTaskParam(param);
 	}
   void clearTaskParam() { this->viewImpl->clearTaskParam(); }
 

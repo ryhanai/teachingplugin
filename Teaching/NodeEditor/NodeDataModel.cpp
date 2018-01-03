@@ -5,18 +5,11 @@
 using QtNodes::NodeDataModel;
 using QtNodes::NodeStyle;
 
-NodeDataModel::
-NodeDataModel()
-  : _nodeStyle(StyleCollection::nodeStyle())
-{
+NodeDataModel::NodeDataModel() : _nodeStyle(StyleCollection::nodeStyle()) {
   // Derived classes can initialize specific style here
 }
 
-
-QJsonObject
-NodeDataModel::
-save() const
-{
+QJsonObject NodeDataModel::save() const {
   QJsonObject modelJson;
 
   modelJson["name"] = name();
@@ -24,18 +17,10 @@ save() const
   return modelJson;
 }
 
-
-NodeStyle const&
-NodeDataModel::
-nodeStyle() const
-{
+NodeStyle const& NodeDataModel::nodeStyle() const {
   return _nodeStyle;
 }
 
-
-void
-NodeDataModel::
-setNodeStyle(NodeStyle const& style)
-{
+void NodeDataModel::setNodeStyle(NodeStyle const& style) {
   _nodeStyle = style;
 }

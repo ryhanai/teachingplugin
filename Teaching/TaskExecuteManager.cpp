@@ -469,14 +469,9 @@ void TaskExecuteManager::prepareTask() {
   }
   bool isUpdateTree = ChoreonoidUtil::loadTaskModelItem(currentTask_);
 
-	vector<FileDataParamPtr> fileList = currentTask_->getActiveFileList();
-	std::vector<ImageDataParamPtr> imageList = currentTask_->getActiveImageList();
-	this->metadataView->setTaskParam(currentTask_, fileList, imageList);
- 
+	this->metadataView->setTaskParam(currentTask_);
 	this->statemachineView_->setTaskParam(currentTask_);
-
-	vector<ParameterParamPtr> paramList = currentTask_->getActiveParameterList();
-	this->parameterView_->setTaskParam(currentTask_, paramList);
+	this->parameterView_->setTaskParam(currentTask_);
   if (isUpdateTree) {
     ChoreonoidUtil::showAllModelItem();
   }

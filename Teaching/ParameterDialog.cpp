@@ -17,13 +17,14 @@ ParameterDialog::ParameterDialog(QWidget* parent)
   lstModel->setColumnWidth(1, 100);
   lstModel->setHorizontalHeaderLabels(QStringList() << "Name" << "ID");
   //
-  lstParam = UIUtil::makeTableWidget(5, false);
-  lstParam->setColumnWidth(0, 100);
-  lstParam->setColumnWidth(1, 100);
-  lstParam->setColumnWidth(2, 150);
-  lstParam->setColumnWidth(3, 100);
-  lstParam->setColumnWidth(4, 50);
-  lstParam->setHorizontalHeaderLabels(QStringList() << "Name" << "Type" << "Model" << "Unit" << "Num");
+  lstParam = UIUtil::makeTableWidget(6, false);
+	lstParam->setColumnWidth(0, 30);
+	lstParam->setColumnWidth(1, 100);
+  lstParam->setColumnWidth(2, 100);
+  lstParam->setColumnWidth(3, 150);
+  lstParam->setColumnWidth(4, 100);
+  lstParam->setColumnWidth(5, 50);
+  lstParam->setHorizontalHeaderLabels(QStringList() << "" << "Name" << "Type" << "Model" << "Unit" << "Num");
 
   QPushButton* btnAddParam = new QPushButton(_("Add"));
   btnAddParam->setIcon(QIcon(":/Teaching/icons/Plus.png"));
@@ -124,7 +125,7 @@ ParameterDialog::ParameterDialog(QWidget* parent)
 
   setWindowTitle(_("Task Parameter"));
   setFixedHeight(sizeHint().height());
-  setFixedWidth(800);
+  setFixedWidth(1200);
   //
   btnOK->setFocus();
 
@@ -148,8 +149,13 @@ void ParameterDialog::showParamInfo(const vector<ParameterParamPtr>& paramList) 
 		int row = lstParam->rowCount();
 		lstParam->insertRow(row);
 
-		UIUtil::makeTableItemWithData(lstParam, row, 0, param->getName(), param->getId());
-		UIUtil::makeTableItemWithData(lstParam, row, 1, getTypeName(param->getType()), param->getId());
+		QString visibility = "+";
+		if (param->getHide() == 1) {
+			visibility = "-";
+		}
+		UIUtil::makeTableItemWithData(lstParam, row, 0, visibility, param->getId());
+		UIUtil::makeTableItemWithData(lstParam, row, 1, param->getName(), param->getId());
+		UIUtil::makeTableItemWithData(lstParam, row, 2, getTypeName(param->getType()), param->getId());
 		QString strModel = "";
 		QString strUnit = "";
 		QString strElemNum = "";
@@ -159,9 +165,9 @@ void ParameterDialog::showParamInfo(const vector<ParameterParamPtr>& paramList) 
 		} else {
 			strElemNum = param->getElemNum();
 		}
-		UIUtil::makeTableItemWithData(lstParam, row, 2, strModel, param->getId());
-		UIUtil::makeTableItemWithData(lstParam, row, 3, strUnit, param->getId());
-		UIUtil::makeTableItemWithData(lstParam, row, 4, strElemNum, param->getId());
+		UIUtil::makeTableItemWithData(lstParam, row, 3, strModel, param->getId());
+		UIUtil::makeTableItemWithData(lstParam, row, 4, strUnit, param->getId());
+		UIUtil::makeTableItemWithData(lstParam, row, 5, strElemNum, param->getId());
 	}
 }
 
@@ -203,16 +209,21 @@ void ParameterDialog::paramSelectionChanged() {
 	int hide = cmbHide->currentIndex();
 
 	if (currentRowIndex_ != NULL_ID) {
-		lstParam->item(currentRowIndex_, 0)->setText(strName);
-		lstParam->item(currentRowIndex_, 1)->setText(getTypeName(type));
+		QString visibility = "+";
+		if (hide == 1) {
+			visibility = "-";
+		}
+		lstParam->item(currentRowIndex_, 0)->setText(visibility);
+		lstParam->item(currentRowIndex_, 1)->setText(strName);
+		lstParam->item(currentRowIndex_, 2)->setText(getTypeName(type));
 		if (type == 0) {
-			lstParam->item(currentRowIndex_, 2)->setText("");
-			lstParam->item(currentRowIndex_, 3)->setText(strUnit);
-			lstParam->item(currentRowIndex_, 4)->setText(strNum);
-		} else {
-			lstParam->item(currentRowIndex_, 2)->setText(strModel);
 			lstParam->item(currentRowIndex_, 3)->setText("");
+			lstParam->item(currentRowIndex_, 4)->setText(strUnit);
+			lstParam->item(currentRowIndex_, 5)->setText(strNum);
+		} else {
+			lstParam->item(currentRowIndex_, 3)->setText(strModel);
 			lstParam->item(currentRowIndex_, 4)->setText("");
+			lstParam->item(currentRowIndex_, 5)->setText("");
 		}
 	}
 	currentRowIndex_ = lstParam->currentRow();

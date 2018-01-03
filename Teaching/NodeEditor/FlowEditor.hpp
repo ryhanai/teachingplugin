@@ -21,6 +21,7 @@ public:
 
 	void createStateMachine(std::vector<ElementStmParamPtr>& elemList, std::vector<ConnectionStmParamPtr>& connList);
 	void updateTargetParam();
+	void updatingParamInfo(TaskModelParamPtr targetTask, ElementStmParamPtr targetState);
 
 protected:
   void contextMenuEvent(QContextMenuEvent *event) override;
