@@ -11,12 +11,22 @@ std::string evaluator::operator()(ValueNodeSp const& node) const {
   std::string result = boost::lexical_cast<std::string>(node->v_);
   return result;
 }
-std::string evaluator::operator()(VectorConstNodeSp const& node) const {
+std::string evaluator::operator()(Vector3dConstNodeSp const& node) const {
   std::string result = (boost::format("[%s,%s,%s]")
     % boost::apply_visitor(*this, node->x_)
     % boost::apply_visitor(*this, node->y_)
     % boost::apply_visitor(*this, node->z_)).str();
   return result;
+}
+std::string evaluator::operator()(Vector6dConstNodeSp const& node) const {
+	std::string result = (boost::format("[%s,%s,%s,%s,%s,%s]")
+		% boost::apply_visitor(*this, node->x_)
+		% boost::apply_visitor(*this, node->y_)
+		% boost::apply_visitor(*this, node->z_)
+		% boost::apply_visitor(*this, node->Rx_)
+		% boost::apply_visitor(*this, node->Ry_)
+		% boost::apply_visitor(*this, node->Rz_) ).str();
+	return result;
 }
 std::string evaluator::operator()(BinOpNodeSp const& node) const {
   std::string result = (boost::format("(%1%%2%%3%)")
@@ -49,8 +59,9 @@ bool MemberParam::parseScalar() {
 }
 
 bool MemberParam::calcBinOpe(MemberParam* lhs, MemberParam* rhs) {
-  ValueMode leftMode = lhs->valMode_;
+	ValueMode leftMode = lhs->valMode_;
   ValueMode rightMode = rhs->valMode_;
+	DDEBUG_V("MemberParam::calcBinOpe %s %d %d", arg03_.c_str(), leftMode, rightMode);
   //
   if (arg03_ == "+") {
     if (leftMode == VAL_SCALAR && rightMode == VAL_SCALAR) {
@@ -58,11 +69,16 @@ bool MemberParam::calcBinOpe(MemberParam* lhs, MemberParam* rhs) {
       valMode_ = VAL_SCALAR;
       return true;
 
-    } else if (leftMode == VAL_VECTOR && rightMode == VAL_VECTOR) {
-      valueVector_ = lhs->getValueVector() + rhs->getValueVector();
-      valMode_ = VAL_VECTOR;
+    } else if (leftMode == VAL_VECTOR_3D && rightMode == VAL_VECTOR_3D) {
+      valueVector3d_ = lhs->getValueVector3d() + rhs->getValueVector3d();
+      valMode_ = VAL_VECTOR_3D;
       return true;
-    }
+
+		} else if (leftMode == VAL_VECTOR_6D && rightMode == VAL_VECTOR_6D) {
+			valueVector6d_ = lhs->getValueVector6d() + rhs->getValueVector6d();
+			valMode_ = VAL_VECTOR_6D;
+			return true;
+		}
 
   } else if (arg03_ == "-") {
     if (leftMode == VAL_SCALAR && rightMode == VAL_SCALAR) {
@@ -70,11 +86,16 @@ bool MemberParam::calcBinOpe(MemberParam* lhs, MemberParam* rhs) {
       valMode_ = VAL_SCALAR;
       return true;
 
-    } else if (leftMode == VAL_VECTOR && rightMode == VAL_VECTOR) {
-      valueVector_ = lhs->getValueVector() - rhs->getValueVector();
-      valMode_ = VAL_VECTOR;
+    } else if (leftMode == VAL_VECTOR_3D && rightMode == VAL_VECTOR_3D) {
+      valueVector3d_ = lhs->getValueVector3d() - rhs->getValueVector3d();
+      valMode_ = VAL_VECTOR_3D;
       return true;
-    }
+
+		} else if (leftMode == VAL_VECTOR_6D && rightMode == VAL_VECTOR_6D) {
+			valueVector6d_ = lhs->getValueVector6d() - rhs->getValueVector6d();
+			valMode_ = VAL_VECTOR_6D;
+			return true;
+		}
 
   } else if (arg03_ == "*") {
     if (leftMode == VAL_SCALAR) {
@@ -82,22 +103,34 @@ bool MemberParam::calcBinOpe(MemberParam* lhs, MemberParam* rhs) {
         valueScalar_ = lhs->getValueScalar() * rhs->getValueScalar();
         valMode_ = VAL_SCALAR;
         return true;
-      } else if (rightMode == VAL_VECTOR) {
-        valueVector_ = lhs->getValueScalar() * rhs->getValueVector();
-        valMode_ = VAL_VECTOR;
+      } else if (rightMode == VAL_VECTOR_3D) {
+        valueVector3d_ = lhs->getValueScalar() * rhs->getValueVector3d();
+        valMode_ = VAL_VECTOR_3D;
         return true;
-      }
-    } else if (leftMode == VAL_VECTOR) {
+			} else if (rightMode == VAL_VECTOR_6D) {
+				valueVector6d_ = lhs->getValueScalar() * rhs->getValueVector6d();
+				valMode_ = VAL_VECTOR_6D;
+				return true;
+			}
+
+    } else if (leftMode == VAL_VECTOR_3D) {
       if (rightMode == VAL_SCALAR) {
-        valueVector_ = lhs->getValueVector() * rhs->getValueScalar();
-        valMode_ = VAL_VECTOR;
+        valueVector3d_ = lhs->getValueVector3d() * rhs->getValueScalar();
+        valMode_ = VAL_VECTOR_3D;
         return true;
       }
 
-    } else if (leftMode == VAL_MATRIX) {
-      if (rightMode == VAL_VECTOR) {
-        valueVector_ = lhs->getValueMatrix() * rhs->getValueVector();
-        valMode_ = VAL_VECTOR;
+		} else if (leftMode == VAL_VECTOR_6D) {
+			if (rightMode == VAL_SCALAR) {
+				valueVector6d_ = lhs->getValueVector6d() * rhs->getValueScalar();
+				valMode_ = VAL_VECTOR_6D;
+				return true;
+			}
+
+		} else if (leftMode == VAL_MATRIX) {
+      if (rightMode == VAL_VECTOR_3D) {
+        valueVector3d_ = lhs->getValueMatrix() * rhs->getValueVector3d();
+        valMode_ = VAL_VECTOR_3D;
         return true;
 
       } else if (rightMode == VAL_MATRIX) {
@@ -114,75 +147,139 @@ bool MemberParam::calcBinOpe(MemberParam* lhs, MemberParam* rhs) {
         valMode_ = VAL_SCALAR;
         return true;
       }
-    } else if (leftMode == VAL_VECTOR) {
+    } else if (leftMode == VAL_VECTOR_3D) {
       if (rightMode == VAL_SCALAR) {
-        valueVector_ = lhs->getValueVector() / rhs->getValueScalar();
-        valMode_ = VAL_VECTOR;
+        valueVector3d_ = lhs->getValueVector3d() / rhs->getValueScalar();
+        valMode_ = VAL_VECTOR_3D;
         return true;
       }
-    }
+
+		} else if (leftMode == VAL_VECTOR_6D) {
+			if (rightMode == VAL_SCALAR) {
+				valueVector6d_ = lhs->getValueVector6d() / rhs->getValueScalar();
+				valMode_ = VAL_VECTOR_6D;
+				return true;
+			}
+		}
   }
 
   return false;
 }
 
-bool MemberParam::parseVector(MemberParam* elem01, MemberParam* elem02, MemberParam* elem03) {
-	DDEBUG("MemberParam::parseVector");
-	valueVector_[0] = elem01->getValueScalar();
-  valueVector_[1] = elem02->getValueScalar();
-  valueVector_[2] = elem03->getValueScalar();
-  valMode_ = VAL_VECTOR;
+bool MemberParam::parseVector3d(MemberParam* elem01, MemberParam* elem02, MemberParam* elem03) {
+	DDEBUG("MemberParam::parseVector3d");
+	valueVector3d_[0] = elem01->getValueScalar();
+  valueVector3d_[1] = elem02->getValueScalar();
+  valueVector3d_[2] = elem03->getValueScalar();
+	valMode_ = VAL_VECTOR_3D;
 
   return true;
 }
 
+bool MemberParam::parseVector6d(MemberParam* elem01, MemberParam* elem02, MemberParam* elem03, MemberParam* elem04, MemberParam* elem05, MemberParam* elem06) {
+	DDEBUG("MemberParam::parseVector6d");
+	valueVector6d_[0] = elem01->getValueScalar();
+	valueVector6d_[1] = elem02->getValueScalar();
+	valueVector6d_[2] = elem03->getValueScalar();
+	valueVector6d_[3] = elem04->getValueScalar();
+	valueVector6d_[4] = elem05->getValueScalar();
+	valueVector6d_[5] = elem06->getValueScalar();
+	valMode_ = VAL_VECTOR_6D;
+
+	return true;
+}
+
 bool MemberParam::parseVariable() {
 	DDEBUG_V("MemberParam::parseVariable source:%s", source_.c_str());
+	QString paramName = QString::fromStdString(source_);
+	QString modelParamName = "";
+
+	if (paramName.contains(".")) {
+		QStringList sourceList = paramName.split(".");
+		paramName = sourceList[0];
+		if (1 < sourceList.size()) {
+			modelParamName = sourceList[1];
+		}
+	}
+
 	vector<ParameterParamPtr> paramList = targetModel_->getParameterList();
-  vector<ParameterParamPtr>::iterator targetParam = find_if(paramList.begin(), paramList.end(), ParameterParamComparatorByRName(QString::fromLatin1(source_.c_str())));
-
+	DDEBUG_V("MemberParam::parseVariable : Find PARAM %d,%s", paramList.size(), paramName.toStdString().c_str());
+	vector<ParameterParamPtr>::iterator targetParam = find_if(paramList.begin(), paramList.end(), ParameterParamComparatorByRName(paramName));
   if (targetParam == paramList.end()) return false;
-  //
-  if ((*targetParam)->getElemNum() == 1) {
-    valueScalar_ = (*targetParam)->getNumValues(0);
-    valMode_ = VAL_SCALAR;
+	//
+	if (0 < modelParamName.length()) {
+		DDEBUG("MemberParam::parseVariable : Model Param");
 
-  } else if ((*targetParam)->getElemNum() == 3) {
-    valueVector_[0] = (*targetParam)->getNumValues(0);
-    valueVector_[1] = (*targetParam)->getNumValues(1);
-    valueVector_[2] = (*targetParam)->getNumValues(2);
-    valMode_ = VAL_VECTOR;
+		QString modelName = (*targetParam)->getModelName();
+		DDEBUG_V("MemberParam::parseVariable : Find Model %s", modelName.toStdString().c_str());
+		vector<ModelParamPtr> modelList = targetModel_->getModelList();
+		vector<ModelParamPtr>::iterator targetModelItr = find_if(modelList.begin(), modelList.end(), ModelParamComparatorByRName(modelName));
+		if (targetModelItr == modelList.end()) return false;
+		ModelMasterParamPtr master = (*targetModelItr)->getModelMaster();
+		vector<ModelParameterParamPtr> masterParamList = master->getModelParameterList();
+		DDEBUG_V("MemberParam::parseVariable : Find Param %s", modelParamName.toStdString().c_str());
+		vector<ModelParameterParamPtr>::iterator masterParamItr = find_if(masterParamList.begin(), masterParamList.end(), ModelMasterParamComparatorByRName(modelParamName));
+		if (masterParamItr == masterParamList.end()) return false;
 
-  } else if ((*targetParam)->getElemNum() == 6) {
-    valueVector6d_[0] = (*targetParam)->getNumValues(0);
-    valueVector6d_[1] = (*targetParam)->getNumValues(1);
-    valueVector6d_[2] = (*targetParam)->getNumValues(2);
-    valueVector6d_[3] = (*targetParam)->getNumValues(3);
-    valueVector6d_[4] = (*targetParam)->getNumValues(4);
-    valueVector6d_[5] = (*targetParam)->getNumValues(5);
-    valMode_ = VAL_VECTOR_6d;
-  }
+		QString desc = (*masterParamItr)->getValueDesc();
+		DDEBUG_V("MemberParam::parseVariable : Model Param=%s",desc.toStdString().c_str());
+		desc = desc.replace("origin", (*targetParam)->getRName());
+		DDEBUG_V("MemberParam::parseVariable : Model Param Rep=%s", desc.toStdString().c_str());
+		Calculator* calc = new Calculator();
+		if (calc->calculate(desc, targetModel_) == false) {
+			DDEBUG("MemberParam::parseVariable : Calc Error");
+			return false;
+		}
+		valueVector6d_ = calc->getResultVector6d();
+		valMode_ = VAL_VECTOR_6D;
+		delete calc;
+		DDEBUG_V("MemberParam::parseVariable : Calc End %f, %f, %f, %f, %f, %f", valueVector6d_[0], valueVector6d_[1], valueVector6d_[2], valueVector6d_[3], valueVector6d_[4], valueVector6d_[5]);
+
+	} else {
+		DDEBUG("MemberParam::parseVariable : Param");
+		if ((*targetParam)->getElemNum() == 1) {
+			valueScalar_ = (*targetParam)->getNumValues(0);
+			valMode_ = VAL_SCALAR;
+
+		} else if ((*targetParam)->getElemNum() == 3) {
+			valueVector3d_[0] = (*targetParam)->getNumValues(0);
+			valueVector3d_[1] = (*targetParam)->getNumValues(1);
+			valueVector3d_[2] = (*targetParam)->getNumValues(2);
+			valMode_ = VAL_VECTOR_3D;
+
+		} else if ((*targetParam)->getElemNum() == 6) {
+			valueVector6d_[0] = (*targetParam)->getNumValues(0);
+			valueVector6d_[1] = (*targetParam)->getNumValues(1);
+			valueVector6d_[2] = (*targetParam)->getNumValues(2);
+			valueVector6d_[3] = (*targetParam)->getNumValues(3);
+			valueVector6d_[4] = (*targetParam)->getNumValues(4);
+			valueVector6d_[5] = (*targetParam)->getNumValues(5);
+			valMode_ = VAL_VECTOR_6D;
+		}
+	}
 
   return true;
 }
 
 bool MemberParam::calcFunc(MemberParam* args) {
-  ValueMode argsMode = args->valMode_;
+	DDEBUG("MemberParam::calcFunc");
+	
+	ValueMode argsMode = args->valMode_;
   if (arg01_ == "xyz") {
-    if (argsMode != VAL_VECTOR_6d) return false;
+    if (argsMode != VAL_VECTOR_6D) return false;
     VectorXd argVec6d = args->getValueVector6d();
     if (calcTranslation(argVec6d) == false) return false;
-    valMode_ = VAL_VECTOR;
+    valMode_ = VAL_VECTOR_3D;
 
   } else if (arg01_ == "rpy") {
-    if (argsMode != VAL_VECTOR_6d) return false;
+    if (argsMode != VAL_VECTOR_6D) return false;
     VectorXd argVec6d = args->getValueVector6d();
     if (calcRotation(argVec6d) == false) return false;
-    valMode_ = VAL_VECTOR;
+    valMode_ = VAL_VECTOR_3D;
 
   } else if (arg01_ == "rotFromRpy") {
-    if (argsMode != VAL_VECTOR) return false;
-    Vector3d argVec3d = args->getValueVector();
+    if (argsMode != VAL_VECTOR_3D) return false;
+    Vector3d argVec3d = args->getValueVector3d();
     if (calcRpy2mat(argVec3d) == false) return false;
     valMode_ = VAL_MATRIX;
 
@@ -190,7 +287,7 @@ bool MemberParam::calcFunc(MemberParam* args) {
     if (argsMode != VAL_MATRIX) return false;
     Matrix3d argMtx3d = args->getValueMatrix();
     if (calcMat2rpy(argMtx3d) == false) return false;
-    valMode_ = VAL_VECTOR;
+    valMode_ = VAL_VECTOR_3D;
 
   } else {
     return false;
@@ -200,17 +297,18 @@ bool MemberParam::calcFunc(MemberParam* args) {
 }
 
 bool MemberParam::calcTranslation(VectorXd& arg) {
-  valueVector_[0] = arg[0];
-  valueVector_[1] = arg[1];
-  valueVector_[2] = arg[2];
+	DDEBUG_V("MemberParam::calcTranslation: %f, %f, %f", arg[0], arg[1], arg[2]);
+	valueVector3d_[0] = arg[0];
+  valueVector3d_[1] = arg[1];
+  valueVector3d_[2] = arg[2];
 
   return true;
 }
 
 bool MemberParam::calcRotation(VectorXd& arg) {
-  valueVector_[0] = arg[3];
-  valueVector_[1] = arg[4];
-  valueVector_[2] = arg[5];
+  valueVector3d_[0] = arg[3];
+  valueVector3d_[1] = arg[4];
+  valueVector3d_[2] = arg[5];
 
   return true;
 }
@@ -278,9 +376,9 @@ bool MemberParam::calcMat2rpy(const Matrix3d& matrix) {
     Yaw = atan2(matrix(2, 1), matrix(2, 2));
   }
 
-  valueVector_[0] = Yaw * 180.0 / PI;
-  valueVector_[1] = Pitch * 180.0 / PI;
-  valueVector_[2] = Roll * 180.0 / PI;
+  valueVector3d_[0] = Yaw * 180.0 / PI;
+  valueVector3d_[1] = Pitch * 180.0 / PI;
+  valueVector3d_[2] = Roll * 180.0 / PI;
 
   return true;
 }
@@ -336,11 +434,11 @@ bool Calculator::buildArguments(TaskModelParamPtr taskParam, ElementStmParamPtr 
         DDEBUG_V("name : %s, %f", arg->getName().toStdString().c_str(), this->getResultScalar());
         parameterList.push_back(this->getResultScalar());
       } else {
-        DDEBUG_V("name : %s = %f, %f, %f", arg->getName().toStdString().c_str(), this->getResultVector()[0], this->getResultVector()[1], this->getResultVector()[2]);
+        DDEBUG_V("name : %s = %f, %f, %f", arg->getName().toStdString().c_str(), this->getResultVector3d()[0], this->getResultVector3d()[1], this->getResultVector3d()[2]);
         VectorXd argVec(3);
-        argVec[0] = this->getResultVector()[0];
-        argVec[1] = this->getResultVector()[1];
-        argVec[2] = this->getResultVector()[2];
+        argVec[0] = this->getResultVector3d()[0];
+        argVec[1] = this->getResultVector3d()[1];
+        argVec[2] = this->getResultVector3d()[2];
         parameterList.push_back(argVec);
       }
 
@@ -374,6 +472,7 @@ bool Calculator::checkCondition(bool cmdRet, string script) {
 int Calculator::extractNodeInfo(const Node& source) {
   int ret = -1;
   int type = source.which();
+	DDEBUG_V("Calculator::extractNodeInfo %d", type);
   switch (type) {
     case 0:
     {
@@ -386,7 +485,7 @@ int Calculator::extractNodeInfo(const Node& source) {
 
     case 1:
     {
-      VectorConstNodeSp val = boost::get<VectorConstNodeSp>(source);
+      Vector3dConstNodeSp val = boost::get<Vector3dConstNodeSp>(source);
       Node nodeX = val->x_;
       std::string strX = boost::apply_visitor(evaluator(), nodeX);
       Node nodeY = val->y_;
@@ -412,7 +511,59 @@ int Calculator::extractNodeInfo(const Node& source) {
       break;
     }
 
-    case 2:
+		case 2:
+		{
+			Vector6dConstNodeSp val = boost::get<Vector6dConstNodeSp>(source);
+			Node nodeX = val->x_;
+			std::string strX = boost::apply_visitor(evaluator(), nodeX);
+			Node nodeY = val->y_;
+			std::string strY = boost::apply_visitor(evaluator(), nodeY);
+			Node nodeZ = val->z_;
+			std::string strZ = boost::apply_visitor(evaluator(), nodeZ);
+			Node nodeRX = val->Rx_;
+			std::string strRX = boost::apply_visitor(evaluator(), nodeRX);
+			Node nodeRY = val->Ry_;
+			std::string strRY = boost::apply_visitor(evaluator(), nodeRY);
+			Node nodeRZ = val->Rz_;
+			std::string strRZ = boost::apply_visitor(evaluator(), nodeRZ);
+
+			MemberParam* member = new MemberParam(TYPE_VECTOR6, "[" + strX + "," + strY + "," + strZ + "," + strRX + "," + strRY + "," + strRZ + "]", targetModel_);
+			member->arg01_ = strX;
+			member->arg02_ = strY;
+			member->arg03_ = strZ;
+			member->arg04_ = strRX;
+			member->arg05_ = strRY;
+			member->arg06_ = strRZ;
+			memberList_.push_back(member);
+			ret = memberList_.size() - 1;
+			//
+			int idx01 = extractNodeInfo(nodeX);
+			if (idx01 < 0) return false;
+			member->idxArg01_ = idx01;
+
+			int idx02 = extractNodeInfo(nodeY);
+			if (idx02 < 0) return false;
+			member->idxArg02_ = idx02;
+
+			int idx03 = extractNodeInfo(nodeZ);
+			if (idx03 < 0) return false;
+			member->idxArg03_ = idx03;
+
+			int idx04 = extractNodeInfo(nodeRX);
+			if (idx04 < 0) return false;
+			member->idxArg04_ = idx04;
+
+			int idx05 = extractNodeInfo(nodeRY);
+			if (idx05 < 0) return false;
+			member->idxArg05_ = idx05;
+
+			int idx06 = extractNodeInfo(nodeRZ);
+			if (idx06 < 0) return false;
+			member->idxArg06_ = idx06;
+			break;
+		}
+
+		case 3:
     {
       BinOpNodeSp val = boost::get<BinOpNodeSp>(source);
       Node lhs = val->lhs_;
@@ -436,7 +587,7 @@ int Calculator::extractNodeInfo(const Node& source) {
       break;
     }
 
-    case 3:
+    case 4:
     {
       VariableNodeSp val = boost::get<VariableNodeSp>(source);
       std::string strVal = boost::lexical_cast<std::string>(val->nm_);
@@ -445,7 +596,7 @@ int Calculator::extractNodeInfo(const Node& source) {
       break;
     }
 
-    case 4:
+    case 5:
     {
       FunCallNodeSp val = boost::get<FunCallNodeSp>(source);
       Node func = val->fun_;
@@ -468,7 +619,8 @@ int Calculator::extractNodeInfo(const Node& source) {
 }
 
 bool Calculator::calculate(QString source, TaskModelParamPtr targetModel) {
-  QString target;
+	DDEBUG("Calculator::calculate");
+	QString target;
   CalcMode mode = CALC_NOTHING;
   valMode_ = VAL_SCALAR;
   std::vector<MemberParam*>::iterator itStart = memberList_.begin();
@@ -484,12 +636,12 @@ bool Calculator::calculate(QString source, TaskModelParamPtr targetModel) {
   makeTree<std::string::iterator> mt;
   Node result;
   std::string::iterator it = str.begin();
-  std::vector<Node> nodeList;
+	std::vector<Node> nodeList;
   if (qi::phrase_parse(it, str.end(), mt, qi::space, result) == false) return false;
-  int ret = extractNodeInfo(result);
-  if (ret < 0) return false;
-  if (memberList_.size() == 0) return false;
-  //
+	int ret = extractNodeInfo(result);
+	if (ret < 0) return false;
+	if (memberList_.size() == 0) return false;
+	//
   for (int index = memberList_.size() - 1; 0 <= index; index--) {
     MemberParam* member = memberList_[index];
 		DDEBUG_V("member %d, %s", member->nodeType_, member->source_.c_str());
@@ -505,16 +657,33 @@ bool Calculator::calculate(QString source, TaskModelParamPtr targetModel) {
 
       case TYPE_VECTOR:
       {
-        if (member->parseVector(memberList_[member->idxArg01_],
-          memberList_[member->idxArg02_],
-          memberList_[member->idxArg03_]) == false) {
-          return false;
-        }
-        valMode_ = member->valMode_;
-        break;
+				if (member->parseVector3d(
+								memberList_[member->idxArg01_],
+								memberList_[member->idxArg02_],
+								memberList_[member->idxArg03_]) == false) {
+					return false;
+				}
+				valMode_ = member->valMode_;
+				break;
       }
 
-      case TYPE_BIN_OPE:
+			case TYPE_VECTOR6:
+			{
+				if (member->parseVector6d(
+					memberList_[member->idxArg01_],
+					memberList_[member->idxArg02_],
+					memberList_[member->idxArg03_],
+					memberList_[member->idxArg04_],
+					memberList_[member->idxArg05_],
+					memberList_[member->idxArg06_]) == false) {
+					return false;
+				}
+				DDEBUG("Calculator::calculate Vector6");
+				valMode_ = member->valMode_;
+				break;
+			}
+
+			case TYPE_BIN_OPE:
       {
         if (member->calcBinOpe(memberList_[member->idxArg01_],
           memberList_[member->idxArg02_]) == false) {
@@ -546,9 +715,11 @@ bool Calculator::calculate(QString source, TaskModelParamPtr targetModel) {
   //
   if (valMode_ == VAL_SCALAR) {
     resultScalar_ = memberList_[0]->getValueScalar();
-  } else if (valMode_ == VAL_VECTOR) {
-    resultVector_ = memberList_[0]->getValueVector();
-  } else if (valMode_ == VAL_MATRIX) {
+  } else if (valMode_ == VAL_VECTOR_3D) {
+    resultVector3d_ = memberList_[0]->getValueVector3d();
+	} else if (valMode_ == VAL_VECTOR_6D) {
+		resultVector6d_ = memberList_[0]->getValueVector6d();
+	} else if (valMode_ == VAL_MATRIX) {
     resultMatrix_ = memberList_[0]->getValueMatrix();
   }
   return true;
