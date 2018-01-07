@@ -171,6 +171,25 @@ void FlowEditor::mouseReleaseEvent(QMouseEvent *event) {
 	}
 }
 
+void FlowEditor::mouseDoubleClickEvent(QMouseEvent * event) {
+	if (event->button() != Qt::LeftButton) return;
+  DDEBUG("FlowActivityEditor::mouseDoubleClickEvent");
+
+	QPointF pos = mapToScene(event->pos());
+	QTransform trans;
+	QGraphicsItem* item = _scene->itemAt(pos, trans);
+	if (item) {
+		if (auto n = qgraphicsitem_cast<NodeGraphicsObject*>(item)) {
+			//QGraphicsView::mouseReleaseEvent(event);
+			int targetId = n->node().getParamId();
+			std::vector<ElementStmParamPtr> stateList = targetParam_->getStmElementList();
+			vector<ElementStmParamPtr>::iterator targetElem = find_if(stateList.begin(), stateList.end(), ElementStmParamComparator(targetId));
+			if (targetElem == stateList.end()) return;
+			flowView_->editClicked();
+		}
+	}
+}
+
 void FlowEditor::dropEvent(QDropEvent* event) {
 	if (event->mimeData()->hasFormat("application/TaskInstanceItem") == false) return;
 	DDEBUG("FlowActivityEditor::dropEvent");

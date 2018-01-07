@@ -173,10 +173,10 @@ namespace teaching {
 
     lblTarget->setText(param->getName());
     //
-    if (isExec_ == false) {
-      lstItem->setEnabled(true);
-      grhStateMachine->setEnabled(true);
-      btnEdit->setEnabled(true);
+	  if (isExec_ == false) {
+		  lstItem->setEnabled(true);
+		  grhStateMachine->setEnabled(true);
+	    btnEdit->setEnabled(true);
 
 #ifdef __TASK_PARAM_ADJUSTER
       btnTrain->setEnabled(true);
@@ -190,9 +190,9 @@ namespace teaching {
     }
     //
     grhStateMachine->setTargetParam(param);
-		vector<ElementStmParamPtr> stateList = param->getActiveStateList();
-		vector<ConnectionStmParamPtr> transList = param->getActiveTransitionList();
-		grhStateMachine->createStateMachine(stateList, transList);
+    vector<ElementStmParamPtr> stateList = param->getActiveStateList();
+	  vector<ConnectionStmParamPtr> transList = param->getActiveTransitionList();
+	  grhStateMachine->createStateMachine(stateList, transList);
   }
 
   void StateMachineViewImpl::clearTaskParam() {

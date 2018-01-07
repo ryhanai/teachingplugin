@@ -31,6 +31,7 @@ protected:
 	void dropEvent(QDropEvent* event);
 
 	void mouseReleaseEvent(QMouseEvent* event) override;
+	void mouseDoubleClickEvent(QMouseEvent * event);
 
 private:
 	FlowViewImpl* flowView_;

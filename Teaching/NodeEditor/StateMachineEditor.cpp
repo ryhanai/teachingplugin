@@ -262,6 +262,7 @@ void StateMachineEditor::dropEvent(QDropEvent* event) {
 }
 
 void StateMachineEditor::createStateMachine(std::vector<ElementStmParamPtr>& elemList, std::vector<ConnectionStmParamPtr>& connList) {
+	DDEBUG_V("StateMachineEditor::createStateMachine %d, %d", elemList.size(), connList.size());
 	removeAll();
 
 	for (int index = 0; index < elemList.size(); index++) {
