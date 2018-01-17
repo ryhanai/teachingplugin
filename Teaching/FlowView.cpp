@@ -361,9 +361,12 @@ void FlowViewImpl::setStyle() {
 std::shared_ptr<DataModelRegistry> FlowViewImpl::registerDataModels() {
 	auto ret = std::make_shared<DataModelRegistry>();
 
+
 	ret->registerModel<TaskDataModel>("Tasks");
+  ret->registerModel<TransformDataModel>("3D Models");
 	ret->registerModel<ParamDataModel>("Variables");
-	ret->registerModel<DecisionDataModel>("Syntaxes");
+	ret->registerModel<MergeDataModel>("Syntaxes");
+  ret->registerModel<DecisionDataModel>("Syntaxes");
 	ret->registerModel<FinalDataModel>("Syntaxes");
 	ret->registerModel<InitialDataModel>("Syntaxes");
 

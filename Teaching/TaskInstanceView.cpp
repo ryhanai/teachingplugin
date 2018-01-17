@@ -50,6 +50,7 @@ TaskInstanceViewImpl::TaskInstanceViewImpl(QWidget* parent)
   lstResult->setSelectionMode(QAbstractItemView::SingleSelection);
   lstResult->setEditTriggers(QAbstractItemView::NoEditTriggers);
   lstResult->verticalHeader()->setVisible(false);
+  lstResult->horizontalHeader()->setSectionResizeMode(1, QHeaderView::Stretch);
   lstResult->setColumnWidth(0, 200);
   lstResult->setColumnWidth(1, 400);
   lstResult->setColumnWidth(2, 150);

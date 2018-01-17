@@ -23,55 +23,16 @@ using QtNodes::NodeValidationState;
 
 /// The class can potentially incapsulate any user data which
 /// need to be transferred within the Node Editor graph
-class ControlNextData : public NodeData
+class ControlData : public NodeData
 {
 public:
 
-  ControlNextData() 
+  ControlData() 
   {}
 
   NodeDataType type() const override
   {
-    return NodeDataType {"cntl", "next"};
-  }
-};
-
-class ControlPrevData : public NodeData
-{
-public:
-
-  ControlPrevData() 
-  {}
-
-  NodeDataType type() const override
-  {
-    return NodeDataType {"cntl", "prev"};
-  }
-};
-
-class ControlTrueData : public NodeData
-{
-public:
-
-  ControlTrueData() 
-  {}
-
-  NodeDataType type() const override
-  {
-    return NodeDataType {"cntl", "true"};
-  }
-};
-
-class ControlFalseData : public NodeData
-{
-public:
-
-  ControlFalseData() 
-  {}
-
-  NodeDataType type() const override
-  {
-    return NodeDataType {"cntl", "false"};
+    return NodeDataType {"cntl", "ctrl"};
   }
 };
 
@@ -115,20 +76,14 @@ public:
   }
 
   QString portCaption(PortType portType, PortIndex portIndex) const override {
-    if (portType == PortType::In) {
+    if (portType == PortType::In && portIndex >= 1) {
 			return portNames.at(portIndex - 1).name_;
 		}
 
     return QString("");
   }
 
-  bool portCaptionVisible(PortType portType, PortIndex portIndex) const override {
-    if (portType == PortType::In && portIndex > 0) {
-      return true;
-    } else {
-      return false;
-    }
-  }
+  bool portCaptionVisible(PortType portType, PortIndex portIndex) const override { return true; }
 
   QString name() const override {
     return QString("Task");
@@ -177,18 +132,14 @@ public:
 
   NodeDataType dataType(PortType portType, PortIndex portIndex) const override {
 		if (portIndex == 0) {
-			if (portType == PortType::In) {
-				return ControlPrevData().type();
-			} else {
-				return ControlNextData().type();
-			}
+  		return ControlData().type();
 		} else {
 			return ParamData().type();
 		}
   }
 
   std::shared_ptr<NodeData> outData(PortIndex) override {
-    return std::make_shared<ControlNextData>();
+    return std::make_shared<ControlData>();
   }
 
   void setInData(std::shared_ptr<NodeData>, int) override {
@@ -334,6 +285,9 @@ public:
   bool captionVisible() const override { return true; }
   QString name() const override { return QStringLiteral("Initial"); }
 
+  QString portCaption(PortType portType, PortIndex portIndex) const override { return QString(""); }
+  bool portCaptionVisible(PortType portType, PortIndex portIndex) const override { return true; }
+
   std::unique_ptr<NodeDataModel> clone() const override { 
     return std::make_unique<InitialDataModel>(); 
   }
@@ -357,11 +311,11 @@ public:
   }
 
   NodeDataType dataType(PortType, PortIndex) const override {
-    return ControlNextData().type();
+    return ControlData().type();
   }
 
   std::shared_ptr<NodeData> outData(PortIndex) override {
-    return std::make_shared<ControlNextData>();
+    return std::make_shared<ControlData>();
   }
 
   void setInData(std::shared_ptr<NodeData>, int) override { }
@@ -385,6 +339,10 @@ public:
   QString caption() const override { return QStringLiteral("Final"); }
   bool captionVisible() const override { return true; }
   QString name() const override { return QStringLiteral("Final"); }
+
+  QString portCaption(PortType portType, PortIndex portIndex) const override { return QString(""); }
+  bool portCaptionVisible(PortType portType, PortIndex portIndex) const override { return true; }
+
   std::unique_ptr<NodeDataModel> clone() const override { 
     return std::make_unique<FinalDataModel>(); 
   }
@@ -407,11 +365,11 @@ public:
   }
 
   NodeDataType dataType(PortType, PortIndex) const override {
-    return ControlPrevData().type();
+    return ControlData().type();
   }
 
   std::shared_ptr<NodeData> outData(PortIndex) override {
-    return std::make_shared<ControlPrevData>();
+    return std::make_shared<ControlData>();
   }
 
   void setInData(std::shared_ptr<NodeData>, int) override { }
@@ -435,6 +393,21 @@ public:
   QString caption() const override { return QStringLiteral("Decision"); }
   bool captionVisible() const override { return true; }
   QString name() const override { return QStringLiteral("Decision"); }
+
+  QString portCaption(PortType portType, PortIndex portIndex) const override { 
+    if (portType == PortType::In) {
+      return QString("");
+    } else {
+      if (portIndex == 0) {
+        return QString("true");
+      } else {
+        return QString("false");        
+      }
+    }
+  }
+
+  bool portCaptionVisible(PortType portType, PortIndex portIndex) const override { return true; }
+
   std::unique_ptr<NodeDataModel> clone() const override { 
     return std::make_unique<DecisionDataModel>(); 
   }
@@ -458,18 +431,18 @@ public:
 
   NodeDataType dataType(PortType portType, PortIndex portIndex) const override {
     if (portType == PortType::In) {
-      return ControlPrevData().type();
+      return ControlData().type();
     } else {
       if (portIndex == 0) {
-        return ControlTrueData().type();
+        return ControlData().type();
       } else {
-        return ControlFalseData().type();
+        return ControlData().type();
       }
     }
   }
 
 	std::shared_ptr<NodeData> outData(PortIndex) override {
-    return std::make_shared<ControlPrevData>();
+    return std::make_shared<ControlData>();
   }
 
   void setInData(std::shared_ptr<NodeData>, int) override { }
@@ -477,5 +450,128 @@ public:
   QWidget * embeddedWidget() override { return nullptr; }
 
 //private slots:
+
+};
+
+
+class MergeDataModel : public NodeDataModel {
+//Q_OBJECT
+
+public:
+	MergeDataModel() {
+		canMany_ = false;
+	}
+  virtual ~MergeDataModel() {}
+
+public:
+  QString caption() const override { return QStringLiteral("Merge"); }
+  bool captionVisible() const override { return true; }
+  QString name() const override { return QStringLiteral("Merge"); }
+
+  QString portCaption(PortType portType, PortIndex portIndex) const override { return QString(""); }
+  bool portCaptionVisible(PortType portType, PortIndex portIndex) const override { return true; }
+
+  std::unique_ptr<NodeDataModel> clone() const override { 
+    return std::make_unique<MergeDataModel>(); 
+  }
+
+public:
+
+  QJsonObject save() const override {
+    QJsonObject modelJson;
+    modelJson["name"] = name();
+    return modelJson;
+  }
+
+public:
+  unsigned int nPorts(PortType portType) const override {
+    if (portType == PortType::In) {
+      return 2;
+    } else {
+      return 1;
+    }
+  }
+
+  NodeDataType dataType(PortType portType, PortIndex portIndex) const override {
+    if (portType == PortType::In) {
+      return ControlData().type();
+    } else {
+      return ControlData().type();
+    }
+  }
+
+	std::shared_ptr<NodeData> outData(PortIndex) override {
+    return std::make_shared<ControlData>();
+  }
+
+  void setInData(std::shared_ptr<NodeData>, int) override { }
+
+  QWidget * embeddedWidget() override { return nullptr; }
+
+//private slots:
+
+};
+
+
+class TransformDataModel : public NodeDataModel {
+//  Q_OBJECT
+
+public:
+  
+  TransformDataModel() {
+    canMany_ = true;
+  }
+
+  virtual ~TransformDataModel() {}
+
+public:
+
+  QString caption() const override {
+    return QString("3D Model");
+  }
+
+  QString name() const override {
+    return QString("3D Model");
+  }
+
+  std::unique_ptr<NodeDataModel> clone() const override {
+    return std::make_unique<TransformDataModel>();
+  }
+
+public:
+
+  QJsonObject save() const override {
+    QJsonObject modelJson;
+
+    modelJson["name"] = name();
+
+    return modelJson;
+  }
+
+public:
+
+  unsigned int nPorts(PortType portType) const override {
+    if (portType == PortType::In) {
+      return 1;
+    } else {
+      return 2; 
+    }
+  }
+  
+  NodeDataType dataType(PortType, PortIndex) const override {
+    return ParamData().type();
+  }
+
+  std::shared_ptr<NodeData> outData(PortIndex) override {
+    return std::make_shared<ParamData>();
+  }
+
+  void setInData(std::shared_ptr<NodeData>, int) override {
+    //
+  }
+
+  QWidget * embeddedWidget() override { return nullptr; }
+
+private:
 
 };

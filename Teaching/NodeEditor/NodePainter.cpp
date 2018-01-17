@@ -160,8 +160,15 @@ void NodePainter::drawConnectionPoints(QPainter* painter,
 
 				if (dataType.id == "cntl") {
 					painter->setBrush(Qt::red);
-				}
-        painter->drawEllipse(p, reducedDiameter * r, reducedDiameter * r);
+          QPolygon poly;
+          auto r = diameter * 0.6;
+          poly << QPoint(p.x() + r, p.y())
+               << QPoint(p.x() - r / 2.0, p.y() + r * sqrt(3.0))
+               << QPoint(p.x() - r / 2.0, p.y() - r * sqrt(3.0));
+          painter->drawPolygon(poly);
+				} else {
+          painter->drawEllipse(p, reducedDiameter * r, reducedDiameter * r);
+        }
 			}
     };
 
@@ -186,6 +193,7 @@ void NodePainter::drawFilledConnectionPoints(QPainter * painter,
 
       for (size_t i = 0; i < n; ++i) {
         QPointF p = geom.portScenePosition(i, portType);
+        auto const & dataType = model->dataType(portType, i);
 
         if (!state.getEntries(portType)[i].empty()) {
           auto const & dataType = model->dataType(portType, i);
@@ -199,7 +207,16 @@ void NodePainter::drawFilledConnectionPoints(QPainter * painter,
             painter->setBrush(nodeStyle.FilledConnectionPointColor);
           }
 
-          painter->drawEllipse(p, diameter * 0.4, diameter * 0.4);
+				  if (dataType.id == "cntl") {
+            QPolygon poly;
+            auto r = diameter * 0.6;
+            poly << QPoint(p.x() + r, p.y())
+                << QPoint(p.x() - r / 2.0, p.y() + r * sqrt(3.0))
+                << QPoint(p.x() - r / 2.0, p.y() - r * sqrt(3.0));
+            painter->drawPolygon(poly);
+          } else {
+            painter->drawEllipse(p, diameter * 0.4, diameter * 0.4);
+          }
         }
       }
     };
