@@ -71,7 +71,7 @@ private:
   bool saveTaskParameterData(int taskId, ParameterParamPtr source);
   bool saveElementStmData(int parentId, ElementStmParamPtr source);
   bool saveElementStmActionData(int taskId, int stateId, ElementStmActionParamPtr source);
-  bool saveTransitionStmData(int parentId, vector<ConnectionStmParamPtr>& source);
+  bool saveTransitionStmData(int parentId, const vector<ConnectionStmParamPtr>& source);
   bool saveArgumentData(int taskId, int stateId, ArgumentParamPtr source);
 
   vector<ElementStmParamPtr> getFlowStateParams(int flow_id);

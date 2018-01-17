@@ -838,7 +838,7 @@ vector<ConnectionStmParamPtr> DatabaseManager::getTransParams(int instId) {
   return result;
 }
 
-bool DatabaseManager::saveTransitionStmData(int parentId, vector<ConnectionStmParamPtr>& source) {
+bool DatabaseManager::saveTransitionStmData(int parentId, const vector<ConnectionStmParamPtr>& source) {
 	DDEBUG("DatabaseManager::saveTransitionStmData");
 
 	string strQuery = "DELETE FROM T_TRANSITION WHERE task_inst_id = ?";
