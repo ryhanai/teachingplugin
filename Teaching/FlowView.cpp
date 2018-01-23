@@ -264,9 +264,6 @@ void FlowViewImpl::changeEnables(bool value) {
   //
   grhStateMachine->removeAll();
   grhStateMachine->setEnabled(value);
-  //rdTrue->setEnabled(false);
-  //rdFalse->setEnabled(false);
-  //btnSet->setEnabled(false);
   //
   btnDeleteTask->setEnabled(value);
   btnRunFlow->setEnabled(value);

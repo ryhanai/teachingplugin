@@ -97,129 +97,6 @@ bool DatabaseManager::saveFlowData(FlowParamPtr source) {
   return true;
 }
 
-/////T_FLOW_PARAMETER/////
-vector<ParameterParamPtr> DatabaseManager::getFlowParameterParams(int flowId) {
-	vector<ParameterParamPtr> result;
-
-	string strInstId = toStr(flowId);
-	string strInstQuery = "SELECT ";
-	strInstQuery += "flow_id, flow_param_id, elem_num, ";
-	strInstQuery += "name, rname, unit, type, model_name, elem_types, value, hide ";
-	strInstQuery += "FROM T_FLOW_PARAMETER ";
-	strInstQuery += "WHERE flow_id = " + strInstId + " ORDER BY flow_param_id";
-	QSqlQuery instQuery(db_);
-	instQuery.exec(strInstQuery.c_str());
-	while (instQuery.next()) {
-		int task_inst_id = instQuery.value(0).toInt();
-		int id = instQuery.value(1).toInt();
-		int elemNum = instQuery.value(2).toInt();
-		QString name = instQuery.value(3).toString();
-		QString rname = instQuery.value(4).toString();
-		QString unit = instQuery.value(5).toString();
-		int type = instQuery.value(6).toInt();
-		QString modelName = instQuery.value(7).toString();
-		QString elemTypes = instQuery.value(8).toString();
-		QString value = instQuery.value(9).toString();
-		int hide = instQuery.value(10).toInt();
-
-		ParameterParamPtr param = std::make_shared<ParameterParam>(id, type, modelName, elemNum, elemTypes, task_inst_id, name, rname, unit, hide);
-		param->setDBValues(value);
-		result.push_back(param);
-	}
-	return result;
-}
-
-bool DatabaseManager::saveFlowParameter(FlowParamPtr source) {
-	vector<ParameterParamPtr> paramList = source->getParameterList();
-	vector<ParameterParamPtr>::iterator itParam = paramList.begin();
-	while (itParam != paramList.end()) {
-		if (saveTaskParameterData(source->getId(), *itParam) == false) {
-			db_.rollback();
-			return false;
-		}
-		++itParam;
-	}
-
-	return true;
-}
-
-bool DatabaseManager::saveFlowParameterData(int flowId, ParameterParamPtr source) {
-	DDEBUG_V("saveFlowParameterData id=%d, flowId=%d, mode=%d", source->getId(), flowId, source->getMode())
-
-		if (source->getMode() == DB_MODE_INSERT) {
-			string strMaxQuery = "SELECT max(flow_param_id) FROM T_FLOW_PARAMETER WHERE flow_id = " + toStr(flowId);
-			QSqlQuery maxQuery(db_);
-			maxQuery.exec(strMaxQuery.c_str());
-			int maxId = -1;
-			if (maxQuery.next()) {
-				maxId = maxQuery.value(0).toInt();
-				maxId++;
-			}
-			source->setId(maxId);
-			source->setParentId(flowId);
-			//
-			string strQuery = "INSERT INTO T_FLOW_PARAMETER ";
-			strQuery += "(flow_id, flow_param_id, elem_num, name, rname, unit, type, model_name, elem_types, value, hide) ";
-			strQuery += "VALUES ( ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ? )";
-
-			QSqlQuery query(QString::fromStdString(strQuery));
-			query.addBindValue(flowId);
-			query.addBindValue(maxId);
-			query.addBindValue(source->getElemNum());
-			query.addBindValue(source->getName());
-			query.addBindValue(source->getRName());
-			query.addBindValue(source->getUnit());
-			query.addBindValue(source->getType());
-			query.addBindValue(source->getModelName());
-			query.addBindValue(source->getElemTypes());
-			query.addBindValue(source->getDBValues());
-			query.addBindValue(source->getHide());
-			if (!query.exec()) {
-				errorStr_ = "INSERT(T_FLOW_PARAMETER) error:" + query.lastError().databaseText() + "-" + QString::fromStdString(strQuery);
-				return false;
-			}
-
-		} else if (source->getMode() == DB_MODE_UPDATE) {
-			string strQuery = "UPDATE T_FLOW_PARAMETER ";
-			strQuery += "SET type = ?, model_name = ?, elem_num = ?, elem_types = ?, name = ?, ";
-			strQuery += "rname = ?, unit = ?, value = ?, hide = ? ";
-			strQuery += "WHERE flow_id = ? AND flow_param_id = ? ";
-
-			QSqlQuery query(QString::fromStdString(strQuery));
-			query.addBindValue(source->getType());
-			query.addBindValue(source->getModelName());
-			query.addBindValue(source->getElemNum());
-			query.addBindValue(source->getElemTypes());
-			query.addBindValue(source->getName());
-			query.addBindValue(source->getRName());
-			query.addBindValue(source->getUnit());
-			query.addBindValue(source->getDBValues());
-			query.addBindValue(source->getHide());
-			query.addBindValue(source->getParentId());
-			query.addBindValue(source->getId());
-			if (!query.exec()) {
-				errorStr_ = "UPDATE(T_FLOW_PARAMETER) error:" + query.lastError().databaseText() + "-" + QString::fromStdString(strQuery);
-				return false;
-			}
-			source->setNormal();
-
-		} else if (source->getMode() == DB_MODE_DELETE) {
-			string strQuery = "DELETE FROM T_FLOW_PARAMETER ";
-			strQuery += "WHERE flow_id = ? AND flow_param_id = ? ";
-
-			QSqlQuery query(QString::fromStdString(strQuery));
-			query.addBindValue(source->getParentId());
-			query.addBindValue(source->getId());
-
-			if (!query.exec()) {
-				errorStr_ = "DELETE(T_FLOW_PARAMETER) error:" + query.lastError().databaseText() + "-" + QString::fromStdString(strQuery);
-				return false;
-			}
-			//
-			source->setIgnore();
-		}
-		return true;
-}
 /////T_FLOW_STATE/////
 vector<ElementStmParamPtr> DatabaseManager::getFlowStateParams(int flowId) {
   DDEBUG_V("DatabaseManager::getFlowStateParams : %d", flowId);
@@ -879,7 +756,7 @@ vector<ParameterParamPtr> DatabaseManager::getParameterParams(int instId) {
   string strInstId = toStr(instId);
   string strInstQuery = "SELECT ";
   strInstQuery += "task_inst_id, task_param_id, elem_num, ";
-  strInstQuery += "name, rname, unit, type, model_name, elem_types, value, hide ";
+  strInstQuery += "name, rname, unit, value, hide ";
   strInstQuery += "FROM T_TASK_INST_PARAMETER ";
   strInstQuery += "WHERE task_inst_id = " + strInstId + " ORDER BY task_param_id";
   QSqlQuery instQuery(db_);
@@ -891,13 +768,10 @@ vector<ParameterParamPtr> DatabaseManager::getParameterParams(int instId) {
     QString name = instQuery.value(3).toString();
     QString rname = instQuery.value(4).toString();
     QString unit = instQuery.value(5).toString();
-    int type = instQuery.value(6).toInt();
-    QString modelName = instQuery.value(7).toString();
-    QString elemTypes = instQuery.value(8).toString();
-    QString value = instQuery.value(9).toString();
-		int hide = instQuery.value(10).toInt();
+    QString value = instQuery.value(6).toString();
+		int hide = instQuery.value(7).toInt();
 
-		ParameterParamPtr param = std::make_shared<ParameterParam>(id, type, modelName, elemNum, elemTypes, task_inst_id, name, rname, unit, hide);
+		ParameterParamPtr param = std::make_shared<ParameterParam>(id, elemNum, task_inst_id, name, rname, unit, hide);
     param->setDBValues(value);
     result.push_back(param);
   }
@@ -938,7 +812,7 @@ bool DatabaseManager::saveTaskParameterData(int taskId, ParameterParamPtr source
     source->setParentId(taskId);
     //
     string strQuery = "INSERT INTO T_TASK_INST_PARAMETER ";
-    strQuery += "(task_inst_id, task_param_id, elem_num, name, rname, unit, type, model_name, elem_types, value, hide) ";
+    strQuery += "(task_inst_id, task_param_id, elem_num, name, rname, unit, value, hide) ";
     strQuery += "VALUES ( ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ? )";
 
     QSqlQuery query(QString::fromStdString(strQuery));
@@ -948,9 +822,6 @@ bool DatabaseManager::saveTaskParameterData(int taskId, ParameterParamPtr source
     query.addBindValue(source->getName());
     query.addBindValue(source->getRName());
     query.addBindValue(source->getUnit());
-    query.addBindValue(source->getType());
-    query.addBindValue(source->getModelName());
-    query.addBindValue(source->getElemTypes());
     query.addBindValue(source->getDBValues());
 		query.addBindValue(source->getHide());
 		if (!query.exec()) {
@@ -960,15 +831,12 @@ bool DatabaseManager::saveTaskParameterData(int taskId, ParameterParamPtr source
 
   } else if (source->getMode() == DB_MODE_UPDATE) {
     string strQuery = "UPDATE T_TASK_INST_PARAMETER ";
-    strQuery += "SET type = ?, model_name = ?, elem_num = ?, elem_types = ?, name = ?, ";
+    strQuery += "SET elem_num = ?, name = ?, ";
     strQuery += "rname = ?, unit = ?, value = ?, hide = ? ";
     strQuery += "WHERE task_inst_id = ? AND task_param_id = ? ";
 
     QSqlQuery query(QString::fromStdString(strQuery));
-    query.addBindValue(source->getType());
-    query.addBindValue(source->getModelName());
     query.addBindValue(source->getElemNum());
-    query.addBindValue(source->getElemTypes());
     query.addBindValue(source->getName());
     query.addBindValue(source->getRName());
     query.addBindValue(source->getUnit());

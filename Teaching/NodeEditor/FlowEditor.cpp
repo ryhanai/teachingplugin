@@ -54,13 +54,13 @@ void FlowEditor::contextMenuEvent(QContextMenuEvent *event) {
   auto skipText = QStringLiteral("skip me");
 
   //Add filterbox to the context menu
-  //auto *txtBox = new QLineEdit(&modelMenu);
-  //txtBox->setPlaceholderText(QStringLiteral("Filter"));
-  //txtBox->setClearButtonEnabled(true);
+  auto *txtBox = new QLineEdit(&modelMenu);
+  txtBox->setPlaceholderText(QStringLiteral("Filter"));
+  txtBox->setClearButtonEnabled(true);
 
-  //auto *txtBoxAction = new QWidgetAction(&modelMenu);
-  //txtBoxAction->setDefaultWidget(txtBox);
-  //modelMenu.addAction(txtBoxAction);
+  auto *txtBoxAction = new QWidgetAction(&modelMenu);
+  txtBoxAction->setDefaultWidget(txtBox);
+  modelMenu.addAction(txtBoxAction);
 
   //Add result treeview to the context menu
   auto *treeView = new QTreeWidget(&modelMenu);
@@ -81,17 +81,27 @@ void FlowEditor::contextMenuEvent(QContextMenuEvent *event) {
   }
 
   for (auto const &assoc : _scene->registry().registeredModelsCategoryAssociation()) {
-		if (assoc.first == "Task") continue;
+		if (assoc.first == "Task" || assoc.first == "3D Model") continue;
     auto parent = topLevelItems[assoc.second];
     auto item   = new QTreeWidgetItem(parent);
     item->setText(0, assoc.first);
     item->setData(0, Qt::UserRole, assoc.first);
   }
 
+  auto parentModel = topLevelItems["3D Models"];
+  vector<ModelMasterParamPtr> masterList = TeachingDataHolder::instance()->getModelMasterList();
+  for (int index = 0; index < masterList.size(); index++) {
+    ModelMasterParamPtr master = masterList[index];
+    auto modelItem = new QTreeWidgetItem(parentModel);
+    modelItem->setText(0, master->getName());
+    modelItem->setData(0, Qt::UserRole, "3D Model");
+    modelItem->setData(1, Qt::UserRole, master->getId());
+  }
   treeView->expandAll();
 
   connect(treeView, &QTreeWidget::itemClicked, [&](QTreeWidgetItem *item, int) {
     QString modelName = item->data(0, Qt::UserRole).toString();
+    DDEBUG_V("modelName %s", modelName.toStdString().c_str());
 
     if (modelName == skipText) {
       return;
@@ -100,50 +110,75 @@ void FlowEditor::contextMenuEvent(QContextMenuEvent *event) {
     auto type = _scene->registry().create(modelName);
 
     if (type) {
-      auto& node = _scene->createNode(std::move(type));
-      QPoint pos = event->pos();
-      QPointF posView = this->mapToScene(pos);
-      node.nodeGraphicsObject().setPos(posView);
-			//
-			ElementType typeId = ELEMENT_COMMAND;
-			if (modelName == "Initial") {
-				typeId = ELEMENT_START;
-			} else if (modelName == "Final") {
-				typeId = ELEMENT_FINAL;
-			} else if (modelName == "Decision") {
-				typeId = ELEMENT_DECISION;
-			}
-			int newId = targetParam_->getMaxStateId();
-			ElementStmParamPtr newParam = std::make_shared<ElementStmParam>(newId, typeId, modelName, modelName, pos.x(), pos.y(), "");
-			newParam->setRealElem(&node);
-			newParam->setNew();
-			node.setParamId(newParam->getId());
-			targetParam_->addStmElement(newParam);
+      if (modelName == "3D Model") {
+        int masterId = item->data(1, Qt::UserRole).toInt();
+        DDEBUG_V("masterId %d", masterId);
+        ModelMasterParamPtr master = TeachingDataHolder::instance()->getModelMasterById(masterId);
+        if (!master) return;
+        DDEBUG_V("Master Name %s", master->getName().toStdString().c_str());
+        type->setTaskName(master->getName());
+        //
+        vector<ModelParameterParamPtr> paramList =  master->getActiveParamList();
+        vector<PortInfo> portList;
+        for (int index = 0; index < paramList.size(); index++) {
+          teaching::ModelParameterParamPtr param = paramList[index];
+          PortInfo info(param->getId(), param->getName());
+          portList.push_back(info);
+        }
+        type->portNames = portList;
+
+        auto& node = _scene->createNode(std::move(type));
+        QPoint pos = event->pos();
+        QPointF posView = this->mapToScene(pos);
+        node.nodeGraphicsObject().setPos(posView);
+
+      } else {
+        auto& node = _scene->createNode(std::move(type));
+        QPoint pos = event->pos();
+        QPointF posView = this->mapToScene(pos);
+        node.nodeGraphicsObject().setPos(posView);
+
+        ElementType typeId = ELEMENT_COMMAND;
+        if (modelName == "Initial") {
+          typeId = ELEMENT_START;
+        } else if (modelName == "Final") {
+          typeId = ELEMENT_FINAL;
+        } else if (modelName == "Decision") {
+          typeId = ELEMENT_DECISION;
+        }
+        int newId = targetParam_->getMaxStateId();
+        ElementStmParamPtr newParam = std::make_shared<ElementStmParam>(newId, typeId, modelName, modelName, pos.x(), pos.y(), "");
+        newParam->setRealElem(&node);
+        newParam->setNew();
+        node.setParamId(newParam->getId());
+        targetParam_->addStmElement(newParam);
+      }
 
     } else {
+      DDEBUG("Etc Node");
       qDebug() << "Model not found";
     }
 
     modelMenu.close();
   });
 
-  ////Setup filtering
-  //connect(txtBox, &QLineEdit::textChanged, [&](const QString &text) {
-  //  for (auto& topLvlItem : topLevelItems) {
-  //    for (int i = 0; i < topLvlItem->childCount(); ++i) {
-  //      auto child = topLvlItem->child(i);
-  //      auto modelName = child->data(0, Qt::UserRole).toString();
-  //      if (modelName.contains(text, Qt::CaseInsensitive)) {
-  //        child->setHidden(false);
-  //      } else {
-  //        child->setHidden(true);
-  //      }
-  //    }
-  //  }
-  //});
+  //Setup filtering
+  connect(txtBox, &QLineEdit::textChanged, [&](const QString &text) {
+    for (auto& topLvlItem : topLevelItems) {
+      for (int i = 0; i < topLvlItem->childCount(); ++i) {
+        auto child = topLvlItem->child(i);
+        auto modelName = child->data(0, Qt::UserRole).toString();
+        if (modelName.contains(text, Qt::CaseInsensitive)) {
+          child->setHidden(false);
+        } else {
+          child->setHidden(true);
+        }
+      }
+    }
+  });
 
   // make sure the text box gets focus so the user doesn't have to click on it
-  //txtBox->setFocus();
+  txtBox->setFocus();
 
   modelMenu.exec(event->globalPos());
 }

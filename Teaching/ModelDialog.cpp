@@ -262,8 +262,13 @@ void ModelDialog::deleteModelClicked() {
 void ModelDialog::okClicked() {
 	DDEBUG("ModelDialog::okClicked()");
 
+  QString strModelRName = leModelRName->text();
+  if (TeachingEventHandler::instance()->mdd_CheckModel(strModelRName) == false) {
+    QMessageBox::warning(this, _("Model"), _("Duplicate specified model ID."));
+    return;
+  }
+
 	QString strModel = leModel->text();
-	QString strModelRName = leModelRName->text();
 	int selectedType = cmbType->currentIndex();
 
 	string strPosX = leX->text().toUtf8().constData();

@@ -84,17 +84,13 @@ bool TeachingUtil::importTask(QString& strFName, std::vector<TaskModelParamPtr>&
         Listing* paramList = taskMap->get("parameters").toListing();
         for (int idxParam = 0; idxParam < paramList->size(); idxParam++) {
           Mapping* paramMap = paramList->at(idxParam)->toMapping();
-          int paramType;
-          QString paramModelName = "";
           QString paramName = "";
           QString paramRName = "";
           QString paramUnit = "";
           QString paramValue = "";
-          QString paramElemTypes = "";
           int paramNum;
 					int hide;
 
-          try { paramType = paramMap->get("type").toInt(); } catch (...) {}
           try { paramName = QString::fromStdString(paramMap->get("name").toString()); } catch (...) {}
           try {
             paramRName = QString::fromStdString(paramMap->get("rname").toString());
@@ -102,35 +98,12 @@ bool TeachingUtil::importTask(QString& strFName, std::vector<TaskModelParamPtr>&
             DDEBUG_V("Parameter RName NOT EXIST : %s", paramName.toStdString().c_str());
             return false;
           }
-          try { paramModelName = QString::fromStdString(paramMap->get("model_name").toString()); } catch (...) {}
           try { paramUnit = QString::fromStdString(paramMap->get("units").toString()); } catch (...) {}
           try { paramNum = paramMap->get("elem_num").toInt(); } catch (...) {}
-          try { paramElemTypes = QString::fromStdString(paramMap->get("elem_type").toString()); } catch (...) {}
           try { paramValue = QString::fromStdString(paramMap->get("values").toString()); } catch (...) {}
 					try { hide = paramMap->get("hide").toInt(); } catch (...) {}
 
-          if (paramType == PARAM_KIND_MODEL) {
-            paramNum = 6;
-            if (paramModelName.length() == 0) {
-              DDEBUG("model_name is REQUREIED");
-              return false;
-            }
-            bool isExist = false;
-            for (int index = 0; index < taskParam->getModelList().size(); index++) {
-							ModelParamPtr model = taskParam->getModelList()[index];
-              if (paramModelName == model->getRName()) {
-                isExist = true;
-                break;
-              }
-            }
-            if (isExist == false) {
-              DDEBUG_V("Target Model[%s] NOT EXIST", paramModelName.toStdString().c_str());
-              return false;
-            }
-          }
-          DDEBUG_V("paramName : %s, elem_type : %s", paramName.toStdString().c_str(), paramElemTypes.toStdString().c_str());
-					ParameterParamPtr param = std::make_shared<ParameterParam>(NULL_ID, paramType, paramModelName, paramNum, paramElemTypes, -1, paramName, paramRName, paramUnit, hide);
-          param->setElemTypes(paramElemTypes);
+					ParameterParamPtr param = std::make_shared<ParameterParam>(NULL_ID, paramNum, -1, paramName, paramRName, paramUnit, hide);
           param->setDBValues(paramValue);
           param->setNewForce();
           taskParam->addParameter(param);
@@ -484,11 +457,8 @@ bool TeachingUtil::exportTask(QString& strFName, TaskModelParamPtr targetTask) {
       MappingPtr paramNode = paramsNode->newMapping();
       paramNode->write("name", param->getName().toUtf8(), DOUBLE_QUOTED);
       paramNode->write("rname", param->getRName().toUtf8(), DOUBLE_QUOTED);
-      paramNode->write("type", param->getType());
-      paramNode->write("model_name", param->getModelName().toUtf8(), DOUBLE_QUOTED);
       paramNode->write("units", param->getUnit().toUtf8(), DOUBLE_QUOTED);
       paramNode->write("elem_num", param->getElemNum());
-      paramNode->write("elem_type", param->getElemTypeNo());
       paramNode->write("values", param->getDBValues().toUtf8(), DOUBLE_QUOTED);
 			paramNode->write("hide", param->getHide());
 		}

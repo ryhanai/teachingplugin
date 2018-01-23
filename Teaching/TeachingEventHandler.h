@@ -3,6 +3,7 @@
 
 #include <cnoid/LazyCaller>
 #include <cnoid/ConnectionSet>
+#include <cnoid/SceneView>
 
 #include "TeachingTypes.h"
 #include "TeachingDataHolder.h"
@@ -95,10 +96,10 @@ public:
 
 	//ParameterDialog
 	void prd_Loaded(ParameterDialog* dialog);
-	void prd_ParamSelectionChanged(int newId, QString name, QString id, int type, QString unit, QString num, int elemType, QString model, int hide);
-	void prd_AddParamClicked(QString name, QString id, int type, QString unit, QString num, int elemType, QString model, int hide);
+	void prd_ParamSelectionChanged(int newId, QString name, QString id, QString unit, QString num, int hide);
+	void prd_AddParamClicked(QString name, QString id, QString unit, QString num, int hide);
 	bool prd_DeleteParamClicked();
-	bool prd_OkClicked(QString name, QString id, int type, QString unit, QString num, int elemType, QString model, int hide);
+	bool prd_OkClicked(QString name, QString id, QString unit, QString num, int hide);
 
 	//ModelDialog
 	bool mdd_Loaded(ModelDialog* dialog);
@@ -109,7 +110,8 @@ public:
 	void mdd_ModelPositionChanged(double posX, double posY, double posZ, double rotX, double rotY, double rotZ);
 	bool mdd_AddModelClicked();
 	bool mdd_DeleteModelClicked();
-	void mdd_OkClicked(QString name, QString rname, int type, double posX, double posY, double posZ, double rotX, double rotY, double rotZ);
+  bool mdd_CheckModel(QString target);
+  void mdd_OkClicked(QString name, QString rname, int type, double posX, double posY, double posZ, double rotX, double rotY, double rotZ);
 	void mdd_CancelClicked();
 
 	//ModelMasterDialog
@@ -147,7 +149,6 @@ private:
 			mdv_(0), m_FigDialog_(0),
 			stv_(0),
 			prv_(0),
-			//tev_currentTask_(0),
 			fsd_(0),
 			mdd_(0), mdd_CurrentId_(NULL_ID), mdd_CurrentModel_(0),
 			mdd_CurrentMasterId_(NULL_ID), mdd_CurrentModelMaster_(0),
@@ -155,8 +156,10 @@ private:
 			prd_(0), prd_CurrentParam_(0),
 			mmd_(0), mmd_CurrentId_(NULL_ID), mmd_CurrentModel_(0), mmd_CurrentParam_(0),
 			agd_(0), agd_Current_Stm_(0), agd_Current_Arg_(0), agd_Current_Action_(0),
-		  executor_(0) {
-	};
+		  executor_(0),
+      updateEditStateLater(bind(&TeachingEventHandler::updateEditState, this, true), IDLE_PRIORITY_LOW) {
+    connectionToEditStateChanged = SceneView::instance()->sceneWidget()->sigStateChanged().connect(updateEditStateLater);
+  };
 
 	bool eventSkip_ = false;
 
@@ -207,12 +210,14 @@ private:
 	TaskExecuteManager* executor_;
 
 	//ParameterDialog
-	void prd_UpdateParam(QString name, QString id, int type, QString unit, QString num, int elemType, QString model, int hide);
+	void prd_UpdateParam(QString name, QString id, QString unit, QString num, int hide);
 
 	void unloadTaskModelItems();
 	void updateComViews(TaskModelParamPtr targetTask);
 
-
+  cnoid::Connection connectionToEditStateChanged;
+  cnoid::LazyCaller updateEditStateLater;
+  void updateEditState(bool blockSignals);
 };
 
 }

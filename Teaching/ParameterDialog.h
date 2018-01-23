@@ -22,7 +22,6 @@ public:
 
 private Q_SLOTS:
   void paramSelectionChanged();
-  void typeSelectionChanged(int index);
   void addParamClicked();
   void deleteParamClicked();
   void oKClicked();
@@ -36,16 +35,11 @@ private:
   //
   QLineEdit* leName;
   QLineEdit* leId;
-  QComboBox* cmbType;
-  QLineEdit* leModelName;
   QLineEdit* leUnit;
   QLineEdit* leNum;
-  QComboBox* cmbElemType;
 	QComboBox* cmbHide;
 
   int currentRowIndex_;
-
-  QString getTypeName(int source);
 };
 
 }

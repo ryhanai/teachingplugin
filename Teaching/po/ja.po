@@ -326,6 +326,10 @@ msgstr "マスタモデルを選択してください"
 msgid "Please select target Model"
 msgstr "モデルを選択してください"
 
+#: ModelDialog.cpp:267
+msgid "Duplicate specified model ID."
+msgstr "設定したモデルIDが重複しています"
+
 #: ParameterDialog.cpp:28
 msgid "Add New Parameter"
 msgstr "新規パラメータを追加する"
@@ -402,6 +406,14 @@ msgstr "編集"
 #: ParameterView.cpp:140
 msgid "Edit Parameters"
 msgstr "タスクパラメータを編集する"
+
+#: TeachingEventHandler.cpp:1065
+msgid "Duplicate specified ID."
+msgstr "指定されたIDが重複しています"
+
+#: TeachingEventHandler.cpp:1072
+msgid "The specified ID is duplicated with the model ID."
+msgstr "指定されたIDがモデルIDと重複しています"
 
 #: SettingDialog.cpp:17
 msgid "Database:"

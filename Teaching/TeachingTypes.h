@@ -240,7 +240,10 @@ public:
   inline int getType() const { return this->type_; }
   inline void setType(int value) { this->type_ = value; setUpdate(); }
 
-  inline double getPosX() const { return this->posX_; }
+  inline double getPosX() const {
+    //return this->master_->getModelItem().get()->body()->rootLink()->p()[0];
+    return this->posX_;
+  }
   inline void setPosX(double value) { this->posX_ = value; setUpdate(); }
   inline double getPosY() const { return this->posY_; }
   inline void setPosY(double value) { this->posY_ = value; setUpdate(); }
@@ -252,13 +255,6 @@ public:
   inline void setRotRy(double value) { this->rotRy_ = value; setUpdate(); }
   inline double getRotRz() const { return this->rotRz_; }
   inline void setRotRz(double value) { this->rotRz_ = value; setUpdate(); }
-
-  inline double getOrgPosX() const { return this->orgPosX_; }
-  inline double getOrgPosY() const { return this->orgPosY_; }
-  inline double getOrgPosZ() const { return this->orgPosZ_; }
-  inline double getOrgRotRx() const { return this->orgRotRx_; }
-  inline double getOrgRotRy() const { return this->orgRotRy_; }
-  inline double getOrgRotRz() const { return this->orgRotRz_; }
 
 	inline void setModelMaster(ModelMasterParamPtr value) { this->master_ = value; }
 	inline ModelMasterParamPtr getModelMaster() const { return this->master_; }
@@ -474,29 +470,17 @@ private:
 
 class ParameterParam : public DatabaseParam {
 public:
-  ParameterParam(int id, int type, QString model_name, int elem_num, QString elem_types, int task_inst_id, QString name, QString rname, QString unit, int hide)
-    : id_(id), type_(type), model_name_(model_name), elem_num_(elem_num), elem_types_(elem_types),
-    parent_id_(task_inst_id), name_(name), rname_(rname), unit_(unit), hide_(hide)
-  {
-    buildElemTypeList();
-  };
+  ParameterParam(int id, int elem_num, int task_inst_id, QString name, QString rname, QString unit, int hide)
+    : id_(id), elem_num_(elem_num), parent_id_(task_inst_id), name_(name), rname_(rname), unit_(unit), hide_(hide)
+  {};
   ParameterParam(ParameterParam* source);
 	~ParameterParam();
 
   inline int getId() const { return this->id_; }
   inline void setId(int value) { this->id_ = value; }
 
-  inline int getType() const { return this->type_; }
-  inline void setType(int value) { this->type_ = value; setUpdate(); }
-
-  inline QString getModelName() const { return this->model_name_; }
-  inline void setModelName(QString value) { this->model_name_ = value; setUpdate(); }
-
   inline int getElemNum() const { return this->elem_num_; }
   inline void setElemNum(int value) { this->elem_num_ = value; setUpdate(); }
-
-  inline QString getElemTypes() const { return this->elem_types_; }
-  void setElemTypes(QString value);
 
   inline int getParentId() const { return this->parent_id_; }
   inline void setParentId(int value) { this->parent_id_ = value; }
@@ -522,26 +506,18 @@ public:
   void setDBValues(QString source);
   QString getDBValues();
   void clearControlList() { this->controlList_.clear(); }
-  QString getElemTypeStr();
-  int getElemTypeNo();
 
 private:
   int id_;
-  int type_;
   int elem_num_;
   int parent_id_;
-  QString model_name_;
   QString name_;
   QString rname_;
   QString unit_;
-  QString elem_types_;
 	int hide_;
 
-  std::vector<int> elemTypeList_;
   std::vector<QLineEdit*> controlList_;
   std::vector<QString> valueList_;
-
-  void buildElemTypeList();
 };
 typedef std::shared_ptr<ParameterParam> ParameterParamPtr;
 ////

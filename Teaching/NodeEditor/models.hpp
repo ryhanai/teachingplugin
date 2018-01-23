@@ -527,8 +527,18 @@ public:
 public:
 
   QString caption() const override {
-    return QString("3D Model");
+    return _nodeName;
   }
+
+  QString portCaption(PortType portType, PortIndex portIndex) const override {
+    if (portType == PortType::Out) {
+      return portNames.at(portIndex).name_;
+    }
+
+    return QString("");
+  }
+
+  bool portCaptionVisible(PortType portType, PortIndex portIndex) const override { return true; }
 
   QString name() const override {
     return QString("3D Model");
@@ -552,9 +562,9 @@ public:
 
   unsigned int nPorts(PortType portType) const override {
     if (portType == PortType::In) {
-      return 1;
+      return 0;
     } else {
-      return 2; 
+      return portNames.size();
     }
   }
   
@@ -572,6 +582,15 @@ public:
 
   QWidget * embeddedWidget() override { return nullptr; }
 
+public:
+  void setTaskName(QString const &taskName) override {
+    _nodeName = taskName;
+  }
+  QString taskName() const override {
+    return _nodeName;
+  }
+
 private:
+  QString _nodeName = "unknown model";
 
 };

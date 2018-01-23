@@ -144,57 +144,6 @@ ConnectionStmParam::ConnectionStmParam(const ConnectionStmParamPtr source)
 ConnectionStmParam::~ConnectionStmParam() {
 }
 /////
-void ParameterParam::setElemTypes(QString value) {
-  this->elem_types_ = value;
-  int elemTypeNo = getElemTypeNo();
-  this->elem_types_ = QString::number(elemTypeNo);
-  setUpdate();
-}
-
-QString ParameterParam::getElemTypeStr() {
-  QString result = "";
-
-  if (elem_types_.length() == 0) {
-    result = "double";
-
-  } else if (elem_types_.toLower() == "int" || elem_types_.toLower() == "double" || elem_types_.toLower() == "string") {
-    result = elem_types_.toLower();
-
-  } else {
-    switch (elem_types_.toInt()) {
-      case 0:
-      result = "double";
-      break;
-      case 1:
-      result = "int";
-      break;
-      case 2:
-      result = "string";
-      break;
-    }
-  }
-  return result;
-}
-
-int ParameterParam::getElemTypeNo() {
-  int result = 0;
-
-  if (elem_types_.length() == 0) {
-    result = 0;
-
-  } else if (elem_types_.toLower() == "double") {
-    result = 0;
-  } else if (elem_types_.toLower() == "int") {
-    result = 1;
-  } else if (elem_types_.toLower() == "string") {
-    result = 2;
-
-  } else {
-    result = elem_types_.toInt();
-  }
-  return result;
-}
-
 std::string ParameterParam::getValues(int index) {
   if (index < 0 || valueList_.size() <= index) return "";
   return valueList_[index].toUtf8().constData();
@@ -251,29 +200,11 @@ void ParameterParam::setValues(int index, QString source) {
   controlList_[index]->setText(source);
 }
 
-void ParameterParam::buildElemTypeList() {
-	//DDEBUG("ParameterParam::buildElemTypeList");
-	elemTypeList_.clear();
-  for (int index = 0; index < elem_num_; index++) {
-    elemTypeList_.push_back(0);
-  }
-  //
-  QStringList targetList = elem_types_.split(",");
-  for (unsigned int index = 0; index < targetList.size(); index++) {
-    QString each = targetList[index].trimmed();
-    elemTypeList_[index] = each.toInt();
-  }
-}
-
 ParameterParam::ParameterParam(ParameterParam* source)
-  : id_(source->id_), type_(source->type_),
-		elem_num_(source->elem_num_), parent_id_(source->parent_id_),
-		model_name_(source->model_name_), name_(source->name_),
-		rname_(source->rname_), unit_(source->unit_), 
-		elem_types_(source->elem_types_), hide_(source->hide_),
+  : id_(source->id_), elem_num_(source->elem_num_), parent_id_(source->parent_id_),
+		name_(source->name_),	rname_(source->rname_), unit_(source->unit_), hide_(source->hide_),
 	  DatabaseParam(source) {
 	DDEBUG("ParameterParam copy");
-	buildElemTypeList();
   for (unsigned int index = 0; index < source->valueList_.size(); index++) {
     this->valueList_.push_back(source->valueList_[index]);
   }

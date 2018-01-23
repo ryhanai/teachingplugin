@@ -14,19 +14,18 @@ ArgumentDialog::ArgumentDialog(QWidget* parent)
   lstModel = UIUtil::makeTableWidget(2, true);
   lstModel->setColumnWidth(0, 120);
   lstModel->setColumnWidth(1, 100);
-  lstModel->setHorizontalHeaderLabels(QStringList() << "ID" << "Name");
+  lstModel->setHorizontalHeaderLabels(QStringList() << "Name" << "ID");
 	//
 	lstModelParam = UIUtil::makeTableWidget(2, true);
 	lstModelParam->setColumnWidth(0, 100);
 	lstModelParam->setColumnWidth(1, 130);
 	lstModelParam->setHorizontalHeaderLabels(QStringList() << "Name" << "Definition");
 	//
-  lstParam = UIUtil::makeTableWidget(4, true);
-  lstParam->setColumnWidth(0, 150);
+  lstParam = UIUtil::makeTableWidget(3, true);
+  lstParam->setColumnWidth(0, 200);
   lstParam->setColumnWidth(1, 200);
   lstParam->setColumnWidth(2, 50);
-  lstParam->setColumnWidth(3, 50);
-  lstParam->setHorizontalHeaderLabels(QStringList() << "ID" << "Name" << "Type" << "");
+  lstParam->setHorizontalHeaderLabels(QStringList() << "Name" << "ID" << "Num");
   //
   QFrame* frmRef = new QFrame;
 	QGridLayout* refLayout = new QGridLayout;
@@ -168,8 +167,8 @@ void ArgumentDialog::showModelInfo(vector<ModelParamPtr>& modelList) {
 
 		int row = lstModel->rowCount();
 		lstModel->insertRow(row);
-		UIUtil::makeTableItemWithData(lstModel, row, 0, param->getRName(), param->getMasterId());
-		UIUtil::makeTableItemWithData(lstModel, row, 1, param->getName(), param->getMasterId());
+		UIUtil::makeTableItemWithData(lstModel, row, 0, param->getName(), param->getMasterId());
+    UIUtil::makeTableItemWithData(lstModel, row, 1, param->getRName(), param->getMasterId());
 
 		cmbModel->addItem(param->getRName());
 	}
@@ -196,15 +195,9 @@ void ArgumentDialog::showParamInfo(vector<ParameterParamPtr>& paramList) {
 
 		int row = lstParam->rowCount();
 		lstParam->insertRow(row);
-		UIUtil::makeTableItem(lstParam, row, 0, param->getRName());
-		UIUtil::makeTableItem(lstParam, row, 1, param->getName());
-		if (param->getType() == 0) {
-			UIUtil::makeTableItem(lstParam, row, 2, param->getElemTypeStr());
-			UIUtil::makeTableItem(lstParam, row, 3, QString::number(param->getElemNum()));
-		} else {
-			UIUtil::makeTableItem(lstParam, row, 2, "");
-			UIUtil::makeTableItem(lstParam, row, 3, param->getModelName());
-		}
+		UIUtil::makeTableItem(lstParam, row, 0, param->getName());
+    UIUtil::makeTableItem(lstParam, row, 1, param->getRName());
+		UIUtil::makeTableItem(lstParam, row, 2, QString::number(param->getElemNum()));
 
 		cmbTarget->addItem(param->getRName());
 	}

@@ -231,7 +231,7 @@ ParameterParamPtr TeachingDataHolder::addParameter(TaskModelParamPtr& source) {
 	}
 	maxId++;
 	DDEBUG_V("TeachingDataHolder::addParameter %d", maxId);
-	ParameterParamPtr newParam = std::make_shared<ParameterParam>(maxId, 0, "", 1, "", source->getId(), "New Param", "", "", 0);
+	ParameterParamPtr newParam = std::make_shared<ParameterParam>(maxId, 1, source->getId(), "New Param", "", "", 0);
 	newParam->setNew();
 	source->addParameter(newParam);
 
@@ -256,6 +256,8 @@ vector<ModelMasterParamPtr> TeachingDataHolder::getModelMasterList() {
 };
 
 ModelMasterParamPtr TeachingDataHolder::getModelMasterById(int id) {
+  //DDEBUG_V("TeachingDataHolder::getModelMasterById %d", id);
+
 	std::vector<ModelMasterParamPtr>::iterator modelItr = std::find_if(modelMasterList_.begin(), modelMasterList_.end(), ModelMasterComparatorByID(id));
 	if (modelItr == modelMasterList_.end()) return 0;
 	return *modelItr;

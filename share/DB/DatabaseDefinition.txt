@@ -57,10 +57,7 @@ CREATE TABLE T_FILE (
 CREATE TABLE T_TASK_INST_PARAMETER (
 	task_inst_id	integer not null,
 	task_param_id	integer not null,
-	type			integer not null,
-	model_name		text,
 	elem_num		integer not null,
-	elem_types		text,
 	name			text,
 	rname			text,
 	unit			text,
