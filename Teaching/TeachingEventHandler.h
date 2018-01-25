@@ -48,7 +48,7 @@ public:
 	//FlowView
 	void flv_Loaded(FlowViewImpl* view);
 	void flv_NewFlowClicked();
-	void flv_SearchClicked();
+	void flv_SearchClicked(bool canEdit);
 	void flv_SelectionChanged(TaskModelParamPtr target);
 	void flv_RegistFlowClicked(QString name, QString comment);
 	void flv_DeleteTaskClicked();

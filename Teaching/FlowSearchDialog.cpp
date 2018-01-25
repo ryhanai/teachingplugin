@@ -7,7 +7,8 @@
 
 namespace teaching {
 
-FlowSearchDialog::FlowSearchDialog(QWidget* parent): QDialog(parent, Qt::CustomizeWindowHint | Qt::WindowTitleHint) {
+FlowSearchDialog::FlowSearchDialog(bool canEdit, QWidget* parent)
+  : QDialog(parent, Qt::CustomizeWindowHint | Qt::WindowTitleHint) {
   QFrame* condFrame = new QFrame;
   QLabel* lblCond = new QLabel(_("Condition:"));
   leCond = new QLineEdit;
@@ -70,6 +71,8 @@ FlowSearchDialog::FlowSearchDialog(QWidget* parent): QDialog(parent, Qt::Customi
   setWindowTitle(_("Flow List"));
   setMinimumHeight(sizeHint().height());
   setMinimumWidth(600);
+  //
+  btnDelete->setEnabled(canEdit);
   //
 	TeachingEventHandler::instance()->fsd_Loaded(this);
 }

@@ -46,6 +46,7 @@ public:
 
 	inline void updateTargetParam() { grhStateMachine->updateTargetParam(); };
 	void updatingParamInfo(TaskModelParamPtr targetTask, ElementStmParamPtr targetState) { grhStateMachine->updatingParamInfo(targetTask, targetState); };
+  void setEditMode(bool canEdit);
 
 public Q_SLOTS:
   void editClicked();
@@ -80,6 +81,8 @@ private:
   QPushButton* btnAbort;
 
   FlowEditor* grhStateMachine;
+
+  bool canEdit_;
 
   void changeEnables(bool value);
 

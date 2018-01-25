@@ -16,6 +16,7 @@ public:
   ParameterViewImpl(QWidget* parent = 0);
 	void setTaskParam(TaskModelParamPtr param);
 	void clearTaskParam();
+  void setEditMode(bool canEdit);
 
 private Q_SLOTS:
   void editClicked();
@@ -25,6 +26,8 @@ private:
   QPushButton* btnEdit;
   vector<QFrame*> frameList_;
   vector<QLineEdit*> textList_;
+
+  bool canEdit_;
 
   void clearView();
 };

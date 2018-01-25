@@ -45,6 +45,7 @@ public:
 	void setTaskParam(TaskModelParamPtr param);
   void updateTaskParam();
   void clearTaskParam();
+  void setEditMode(bool canEdit);
 
 private Q_SLOTS:
   void modelClicked();
@@ -75,6 +76,7 @@ private:
 
   QProcess* m_proc_;
   vector<QString> writtenFiles_;
+  bool canEdit_;
 
   void setAllEnable();
   void setAllDisable();

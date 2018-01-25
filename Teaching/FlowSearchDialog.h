@@ -11,7 +11,7 @@ using namespace std;
 class FlowSearchDialog : public QDialog {
   Q_OBJECT
 public:
-  FlowSearchDialog(QWidget* parent = 0);
+  FlowSearchDialog(bool canEdit, QWidget* parent = 0);
 
   void showGrid(const vector<FlowParamPtr>& flowList);
 

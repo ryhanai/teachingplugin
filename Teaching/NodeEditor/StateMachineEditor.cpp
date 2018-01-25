@@ -235,10 +235,13 @@ void StateMachineEditor::dropEvent(QDropEvent* event) {
 	} else if (strDispName == "Final") {
 		typeName = "Final";
 		typeId = ELEMENT_FINAL;
-	} else if (strDispName == "Decision/Merge") {
+	} else if (strDispName == "Decision") {
 		typeName = "Decision";
 		typeId = ELEMENT_DECISION;
-	}
+  } else if (strDispName == "Merge") {
+    typeName = "Merge";
+    typeId = ELEMENT_MERGE;
+  }
 	auto type = _scene->registry().create(typeName);
 
 	if (type) {
@@ -277,7 +280,9 @@ void StateMachineEditor::createStateMachine(std::vector<ElementStmParamPtr>& ele
 			typeName = "Final";
 		} else if (typeId == ELEMENT_DECISION) {
 			typeName = "Decision";
-		} else {
+    } else if (typeId == ELEMENT_MERGE) {
+      typeName = "Merge";
+    } else {
 			typeName = "Task";
 		}
 		auto type = _scene->registry().create(typeName);
@@ -306,7 +311,11 @@ void StateMachineEditor::createStateMachine(std::vector<ElementStmParamPtr>& ele
 		Node* sourceNode = (*sourceElem)->getRealElem();
 		Node* targetNode = (*targetElem)->getRealElem();
 
-		_scene->createConnection(*targetNode, 0, *sourceNode, target->getSourceIndex());
+    if ((*targetElem)->getType() == ELEMENT_MERGE) {
+      _scene->createConnection(*targetNode, target->getSourceIndex(), *sourceNode, 0);
+    } else {
+      _scene->createConnection(*targetNode, 0, *sourceNode, target->getSourceIndex());
+    }
 	}
 }
 
@@ -326,11 +335,17 @@ void StateMachineEditor::updateTargetParam() {
 		shared_ptr<Connection> target = it->second;
 		Node* sourceNode = target->getNode(PortType::Out);
 		int sourceId = sourceNode->getParamId();
-		int sourceIndex = target->getPortIndex(PortType::Out);
-		//
+    int sourceIndex = target->getPortIndex(PortType::Out);
+    //
 		Node* targetNode = target->getNode(PortType::In);
 		int targetId = targetNode->getParamId();
-
+    //
+    QString nodeName = targetNode->nodeDataModel()->name();
+    if (nodeName == "Merge") {
+      sourceIndex = target->getPortIndex(PortType::In);
+      DDEBUG_V("sourceIndex %d", sourceIndex);
+    }
+    //
 		ConnectionStmParamPtr connParam = std::make_shared<ConnectionStmParam>(connId, sourceId, targetId, sourceIndex);
 		connId++;
 		connParam->setNew();

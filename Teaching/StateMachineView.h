@@ -24,6 +24,7 @@ public:
 	void createInitialNodeTarget();
 	void createFinalNodeTarget();
 	void createDecisionNodeTarget();
+  void createMergeNodeTarget();
 
 protected:
 	void mousePressEvent(QMouseEvent* event);
@@ -49,6 +50,7 @@ public:
   void setButtonEnableMode(bool isEnable);
 
 	inline void updateTargetParam() { grhStateMachine->updateTargetParam(); };
+  void setEditMode(bool canEdit);
 
 public Q_SLOTS:
   void editClicked();
@@ -67,6 +69,8 @@ private Q_SLOTS :
   void bpToggled();
 
 private:
+  QFrame* frmItem_;
+
   QLabel* lblTarget;
   ItemList* lstItem;
 
@@ -90,6 +94,7 @@ private:
   ParameterView* parameterView_;
 
   bool isExec_;
+  bool canEdit_;
   void createCommandNodeTarget(int id, QString name);
 
 	void setStyle();

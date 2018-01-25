@@ -175,7 +175,6 @@ void ConnectionGraphicsObject::mouseMoveEvent(QGraphicsSceneMouseEvent* event) {
   state.interactWithNode(node);
   if (node) {
 		node->reactToPossibleConnection(state.requiredPort(), _connection.dataType(), event->scenePos());
-		DDEBUG_V("source:%s", node->id().toString().toStdString().c_str());
   }
 
   //-------------------

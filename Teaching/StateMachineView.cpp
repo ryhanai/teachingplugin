@@ -33,7 +33,7 @@
 
 namespace teaching {
 
-  StateMachineViewImpl::StateMachineViewImpl(QWidget* parent) : isExec_(false) {
+  StateMachineViewImpl::StateMachineViewImpl(QWidget* parent) : isExec_(false), canEdit_(false){
     lblTarget = new QLabel;
     lblTarget->setText("");
 
@@ -99,6 +99,7 @@ namespace teaching {
     lstItem->createInitialNodeTarget();
     lstItem->createFinalNodeTarget();
     lstItem->createDecisionNodeTarget();
+    lstItem->createMergeNodeTarget();
 
 		setStyle();
 		FlowScene* scene = new FlowScene(registerDataModels());
@@ -111,11 +112,11 @@ namespace teaching {
     QVBoxLayout* itemLayout = new QVBoxLayout;
     itemLayout->setContentsMargins(0, 0, 0, 0);
     itemLayout->addWidget(lstItem);
-    QFrame* frmItem = new QFrame;
-    frmItem->setLayout(itemLayout);
+    frmItem_ = new QFrame;
+    frmItem_->setLayout(itemLayout);
 
     QSplitter* splBase = new QSplitter(Qt::Horizontal);
-    splBase->addWidget(frmItem);
+    splBase->addWidget(frmItem_);
     splBase->addWidget(grhStateMachine);
     splBase->setStretchFactor(0, 0);
     splBase->setStretchFactor(1, 1);
@@ -152,6 +153,8 @@ namespace teaching {
     btnEdit->setEnabled(isEnable);
     btnRun->setEnabled(isEnable);
     isExec_ = !isEnable;
+
+    setEditMode(canEdit_);
   }
 
   void StateMachineViewImpl::setBPStatus(bool isActive, bool isSet) {
@@ -176,14 +179,14 @@ namespace teaching {
 	  if (isExec_ == false) {
 		  lstItem->setEnabled(true);
 		  grhStateMachine->setEnabled(true);
-	    btnEdit->setEnabled(true);
+//	    btnEdit->setEnabled(true);
 
 #ifdef __TASK_PARAM_ADJUSTER
       btnTrain->setEnabled(true);
 #endif
 
-      btnDelete->setEnabled(true);
-      btnRun->setEnabled(true);
+//      btnDelete->setEnabled(true);
+//      btnRun->setEnabled(true);
 
       btnStep->setEnabled(false);
       btnCont->setEnabled(false);
@@ -484,10 +487,29 @@ std::shared_ptr<DataModelRegistry> StateMachineViewImpl::registerDataModels() {
 	ret->registerModel<TaskDataModel>("Tasks");
 	ret->registerModel<ParamDataModel>("Variables");
 	ret->registerModel<DecisionDataModel>("Syntaxes");
-	ret->registerModel<FinalDataModel>("Syntaxes");
+  ret->registerModel<MergeDataModel>("Syntaxes");
+  ret->registerModel<FinalDataModel>("Syntaxes");
 	ret->registerModel<InitialDataModel>("Syntaxes");
 
 	return ret;
+}
+
+void StateMachineViewImpl::setEditMode(bool canEdit) {
+  this->canEdit_ = canEdit;
+
+  btnRun->setEnabled(!canEdit);
+  btnBP->setEnabled(!canEdit);
+  //btnStep->setEnabled(!canEdit);
+  //btnCont->setEnabled(!canEdit);
+  //
+  btnDelete->setEnabled(canEdit);
+  btnEdit->setEnabled(canEdit);
+
+  if (canEdit) {
+    frmItem_->setHidden(false);
+  } else {
+    frmItem_->setHidden(true);
+  }
 }
 /////
 StateMachineView::StateMachineView() : viewImpl(0) {
@@ -581,8 +603,23 @@ void ItemList::createDecisionNodeTarget() {
 		<< QPoint(15.0, 25.0) << QPoint(30.0, 15.0) << QPoint(15.0, 5.0);
 	painter->drawPolygon(polygon);
 	this->setIconSize(QSize(30, 30));
-	QListWidgetItem* item = new QListWidgetItem("Decision/Merge", this);
+	QListWidgetItem* item = new QListWidgetItem("Decision", this);
 	item->setIcon(QIcon(*pix));
+}
+
+void ItemList::createMergeNodeTarget() {
+  QPixmap *pix = new QPixmap(30, 30);
+  pix->fill(QColor(212, 206, 199));
+  QPainter* painter = new QPainter(pix);
+  painter->setRenderHint(QPainter::Antialiasing, true);
+  painter->setBrush(QBrush(Qt::black, Qt::SolidPattern));
+  QPolygon polygon;
+  polygon << QPoint(15.0, 5.0) << QPoint(0.0, 15.0)
+    << QPoint(15.0, 25.0) << QPoint(30.0, 15.0) << QPoint(15.0, 5.0);
+  painter->drawPolygon(polygon);
+  this->setIconSize(QSize(30, 30));
+  QListWidgetItem* item = new QListWidgetItem("Merge", this);
+  item->setIcon(QIcon(*pix));
 }
 
 }

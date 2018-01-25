@@ -145,6 +145,8 @@ void FlowEditor::contextMenuEvent(QContextMenuEvent *event) {
           typeId = ELEMENT_FINAL;
         } else if (modelName == "Decision") {
           typeId = ELEMENT_DECISION;
+        } else if (modelName == "Merge") {
+          typeId = ELEMENT_MERGE;
         }
         int newId = targetParam_->getMaxStateId();
         ElementStmParamPtr newParam = std::make_shared<ElementStmParam>(newId, typeId, modelName, modelName, pos.x(), pos.y(), "");
@@ -288,7 +290,9 @@ void FlowEditor::createStateMachine(std::vector<ElementStmParamPtr>& elemList, s
 			typeName = "Final";
 		} else if (typeId == ELEMENT_DECISION) {
 			typeName = "Decision";
-		} else {
+    } else if (typeId == ELEMENT_MERGE) {
+      typeName = "Merge";
+    } else {
 			typeName = "Task";
 		}
 		auto type = _scene->registry().create(typeName);
@@ -333,8 +337,12 @@ void FlowEditor::createStateMachine(std::vector<ElementStmParamPtr>& elemList, s
 		Node* sourceNode = (*sourceElem)->getRealElem();
 		Node* targetNode = (*targetElem)->getRealElem();
 
-		_scene->createConnection(*targetNode, 0, *sourceNode, target->getSourceIndex());
-	}
+    if ((*targetElem)->getType() == ELEMENT_MERGE) {
+      _scene->createConnection(*targetNode, target->getSourceIndex(), *sourceNode, 0);
+    } else {
+      _scene->createConnection(*targetNode, 0, *sourceNode, target->getSourceIndex());
+    }
+  }
 }
 
 void FlowEditor::updateTargetParam() {
@@ -358,7 +366,13 @@ void FlowEditor::updateTargetParam() {
 		//
 		Node* targetNode = target->getNode(PortType::In);
 		int targetId = targetNode->getParamId();
-
+    //
+    QString nodeName = targetNode->nodeDataModel()->name();
+    if (nodeName == "Merge") {
+      sourceIndex = target->getPortIndex(PortType::In);
+      DDEBUG_V("sourceIndex %d", sourceIndex);
+    }
+    //
 		ConnectionStmParamPtr connParam = std::make_shared<ConnectionStmParam>(connId, sourceId, targetId, sourceIndex);
 		connId++;
 		connParam->setNew();

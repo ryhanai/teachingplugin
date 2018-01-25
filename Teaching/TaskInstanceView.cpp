@@ -15,7 +15,7 @@ using namespace cnoid;
 namespace teaching {
 
 TaskInstanceViewImpl::TaskInstanceViewImpl(QWidget* parent)
-  : currentTaskIndex_(-1), isSkip_(false) {
+  : currentTaskIndex_(-1), isSkip_(false), canEdit_(false){
 
   QFrame* condFrame = new QFrame;
   QLabel* lblCond = new QLabel(_("Condition:"));
@@ -152,6 +152,8 @@ void TaskInstanceViewImpl::setButtonEnableMode(bool isEnable) {
   btnRegistNewTask->setEnabled(isEnable);
   btnRegistTask->setEnabled(isEnable);
   btnAbort->setEnabled(!isEnable);
+
+  setEditMode(canEdit_);
 }
 
 void TaskInstanceViewImpl::taskSelectionChanged() {
@@ -300,6 +302,21 @@ void TaskInstanceViewImpl::updateGrid(TaskModelParamPtr& target) {
 
 void TaskInstanceViewImpl::widgetClose() {
   DatabaseManager::getInstance().closeDB();
+}
+
+void TaskInstanceViewImpl::setEditMode(bool canEdit) {
+  this->canEdit_ = canEdit;
+
+  btnRunTask->setEnabled(!canEdit);
+  btnInitPos->setEnabled(!canEdit);
+  btnAbort->setEnabled(!canEdit);
+  //
+  leTask->setEnabled(canEdit);
+  btnLoadTask->setEnabled(canEdit);
+  btnOutputTask->setEnabled(canEdit);
+  btnDeleteTask->setEnabled(canEdit);
+  btnRegistNewTask->setEnabled(canEdit);
+  btnRegistTask->setEnabled(canEdit);
 }
 /////
 TaskInstanceView::TaskInstanceView() : viewImpl(0) {

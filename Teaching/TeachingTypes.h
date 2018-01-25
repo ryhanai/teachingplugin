@@ -44,7 +44,8 @@ enum ElementType {
   ELEMENT_FINAL,
   ELEMENT_DECISION,
   ELEMENT_FORK,
-  ELEMENT_COMMAND
+  ELEMENT_COMMAND,
+  ELEMENT_MERGE
 };
 
 enum ParameterType {

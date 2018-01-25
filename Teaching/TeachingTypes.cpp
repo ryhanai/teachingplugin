@@ -50,7 +50,7 @@ void ElementStmParam::clearActionList() {
 }
 
 void ElementStmParam::updatePos() {
-	DDEBUG("ElementStmParam::updatePos");
+	//DDEBUG("ElementStmParam::updatePos");
 	if (mode_ == DB_MODE_DELETE || mode_ == DB_MODE_IGNORE) return;
 
 	posX_ = realElem_->nodeGraphicsObject().pos().x();
@@ -231,7 +231,7 @@ std::vector<ModelParameterParamPtr> ModelMasterParam::getActiveParamList() {
 }
 /////
 bool ModelParam::isChangedPosition() {
-	DDEBUG_V("ModelParam::isChangedPosition x:%f, %f, y:%f, %f, z:%f, %f, Rx:%f, %f, Ry:%f, %f, Rz:%f, %f", posX_, orgPosX_, posY_, orgPosY_, posZ_, orgPosZ_, rotRx_, orgRotRx_, rotRy_, orgRotRy_, rotRz_, orgRotRz_);
+	//DDEBUG_V("ModelParam::isChangedPosition x:%f, %f, y:%f, %f, z:%f, %f, Rx:%f, %f, Ry:%f, %f, Rz:%f, %f", posX_, orgPosX_, posY_, orgPosY_, posZ_, orgPosZ_, rotRx_, orgRotRx_, rotRy_, orgRotRy_, rotRz_, orgRotRz_);
 
 	if (dbl_eq(posX_, orgPosX_) && dbl_eq(posY_, orgPosY_) && dbl_eq(posZ_,orgPosZ_)
     && dbl_eq(rotRx_, orgRotRx_) && dbl_eq(rotRy_, orgRotRy_) && dbl_eq(rotRz_, orgRotRz_) ) return false;

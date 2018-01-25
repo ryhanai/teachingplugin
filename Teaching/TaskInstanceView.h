@@ -21,6 +21,7 @@ public:
 
 	void showGrid(vector<TaskModelParamPtr>& taskList);
 	void updateGrid(TaskModelParamPtr& target);
+  void setEditMode(bool canEdit);
 
 
 private Q_SLOTS:
@@ -57,6 +58,7 @@ private:
   int currentTaskIndex_;
 
   bool isSkip_;
+  bool canEdit_;
 };
 
 class TaskInstanceView : public cnoid::View {

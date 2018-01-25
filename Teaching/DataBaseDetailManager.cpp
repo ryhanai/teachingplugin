@@ -99,7 +99,7 @@ bool DatabaseManager::saveFlowData(FlowParamPtr source) {
 
 /////T_FLOW_STATE/////
 vector<ElementStmParamPtr> DatabaseManager::getFlowStateParams(int flowId) {
-  DDEBUG_V("DatabaseManager::getFlowStateParams : %d", flowId);
+  //DDEBUG_V("DatabaseManager::getFlowStateParams : %d", flowId);
 
   vector<ElementStmParamPtr> result;
 
@@ -793,11 +793,7 @@ bool DatabaseManager::saveTaskParameter(TaskModelParamPtr source) {
 }
 
 bool DatabaseManager::saveTaskParameterData(int taskId, ParameterParamPtr source) {
-  DDEBUG_V("saveTaskParameterData id=%d, taskInstId=%d, mode=%d", source->getId(), taskId, source->getMode())
-    //DDEBUG_V("elem_num=%d, name=%s", source->getElemNum(), source->getName().toStdString().c_str())
-    //DDEBUG_V("rname=%s", source->getRName().toStdString().c_str())
-    //DDEBUG_V("unit=%s, type=%d, ", source->getUnit().toStdString().c_str(), source->getType() )
-    //DDEBUG_V("model_name=%s, elem_types=%s, value=%s", source->getModelName().toStdString().c_str(), source->getElemTypes().toStdString().c_str(), source->getDBValues().toStdString().c_str())
+  //DDEBUG_V("saveTaskParameterData id=%d, taskInstId=%d, mode=%d", source->getId(), taskId, source->getMode())
 
   if (source->getMode() == DB_MODE_INSERT) {
     string strMaxQuery = "SELECT max(task_param_id) FROM T_TASK_INST_PARAMETER WHERE task_inst_id = " + toStr(taskId);
@@ -813,7 +809,7 @@ bool DatabaseManager::saveTaskParameterData(int taskId, ParameterParamPtr source
     //
     string strQuery = "INSERT INTO T_TASK_INST_PARAMETER ";
     strQuery += "(task_inst_id, task_param_id, elem_num, name, rname, unit, value, hide) ";
-    strQuery += "VALUES ( ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ? )";
+    strQuery += "VALUES ( ?, ?, ?, ?, ?, ?, ?, ? )";
 
     QSqlQuery query(QString::fromStdString(strQuery));
 		query.addBindValue(taskId);

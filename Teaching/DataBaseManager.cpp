@@ -188,7 +188,7 @@ vector<TaskModelParamPtr> DatabaseManager::searchTaskModels(vector<string>& cond
 }
 
 TaskModelParamPtr DatabaseManager::getTaskModelById(const int taskId) {
-	DDEBUG_V("DatabaseManager::getTaskModelById %d", taskId);
+	//DDEBUG_V("DatabaseManager::getTaskModelById %d", taskId);
 
 	TaskModelParamPtr result = NULL;
 
@@ -289,6 +289,7 @@ bool DatabaseManager::saveFlowModel(FlowParamPtr source) {
   vector<ElementStmParamPtr> stateList = source->getStmElementList();
   vector<ElementStmParamPtr>::iterator itState = stateList.begin();
   while (itState != stateList.end()) {
+    DDEBUG_V("saveFlowModel type=%d", (*itState)->getType());
     if ((*itState)->getType() == ELEMENT_COMMAND) {
 			TaskModelParamPtr param = (*itState)->getTaskParam();
       param->setFlowId(source->getId());

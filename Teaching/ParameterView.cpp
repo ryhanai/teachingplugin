@@ -12,7 +12,7 @@ using namespace boost;
 
 namespace teaching {
 
-ParameterViewImpl::ParameterViewImpl(QWidget* parent) : QWidget(parent) {
+ParameterViewImpl::ParameterViewImpl(QWidget* parent) : btnEdit(0), canEdit_(false), QWidget(parent) {
 	TeachingEventHandler::instance()->prv_Loaded(this);
 }
 
@@ -33,6 +33,7 @@ void ParameterViewImpl::setTaskParam(TaskModelParamPtr param) {
   btnEdit = new QPushButton(_("Edit"));
   btnEdit->setIcon(QIcon(":/Teaching/icons/Settings.png"));
   btnEdit->setToolTip(_("Edit Parameters"));
+  btnEdit->setEnabled(canEdit_);
 
   topLayout->addWidget(btnEdit);
   connect(btnEdit, SIGNAL(clicked()), this, SLOT(editClicked()));
@@ -88,6 +89,7 @@ void ParameterViewImpl::clearView() {
 		delete lblName;
 		layout()->removeWidget(btnEdit);
 		delete btnEdit;
+    btnEdit = 0;
 		//
     vector<QLineEdit*>::iterator itText = textList_.begin();
 		while (itText != textList_.end()) {
@@ -120,6 +122,12 @@ void ParameterViewImpl::editClicked() {
   dialog.exec();
 }
 
+void ParameterViewImpl::setEditMode(bool canEdit) {
+  if (btnEdit) {
+    btnEdit->setEnabled(canEdit);
+  }
+  canEdit_ = canEdit;
+}
 /////
 ParameterView::ParameterView() : viewImpl(0) {
   setName(_("Parameter"));

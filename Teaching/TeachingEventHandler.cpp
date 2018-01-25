@@ -278,13 +278,13 @@ void TeachingEventHandler::flv_NewFlowClicked() {
 	flv_->dispView(flv_CurrentFlow_);
 }
 
-void TeachingEventHandler::flv_SearchClicked() {
+void TeachingEventHandler::flv_SearchClicked(bool canEdit) {
 	DDEBUG("TeachingEventHandler::flv_SearchClicked");
 	if (checkPaused()) return;
 
 	stv_->setStepStatus(false);
 
-	FlowSearchDialog dialog(flv_);
+	FlowSearchDialog dialog(canEdit, flv_);
 	int ret = dialog.exec();
 	//
 	if (isFlowDeleted_) {
@@ -1485,6 +1485,11 @@ void TeachingEventHandler::updateEditState(bool blockSignals) {
   DDEBUG("TeachingEventHandler::updateEditState");
   bool mode = SceneView::instance()->sceneWidget()->isEditMode();
   DDEBUG_V("isEditMode %d", mode);
+  tiv_->setEditMode(mode);
+  stv_->setEditMode(mode);
+  prv_->setEditMode(mode);
+  mdv_->setEditMode(mode);
+  flv_->setEditMode(mode);
 }
 
 }
