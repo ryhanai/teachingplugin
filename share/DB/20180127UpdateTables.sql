@@ -39,3 +39,6 @@ FROM tmp_T_FLOW_TRANSITION;
 UPDATE T_FLOW_TRANSITION set source_index = 0;
 
 drop table tmp_T_FLOW_TRANSITION;
+
+
+ALTER TABLE M_MODEL ADD COLUMN hash text;
