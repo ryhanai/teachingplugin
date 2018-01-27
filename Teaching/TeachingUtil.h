@@ -8,6 +8,9 @@
 #include <QTableWidget>
 #include "ArgumentEstimator.h"
 
+#include <boost/uuid/sha1.hpp>
+#include <boost/array.hpp>
+
 namespace teaching {
 
 static const std::string PARAMETER_FILE = "Setting.prm";
@@ -33,6 +36,8 @@ public:
 
   static bool exportFlow(QString& strFName, FlowParamPtr targetFlow);
   static bool importFlow(QString& strFName, std::vector<FlowParamPtr>& flowModelList, vector<ModelMasterParamPtr>& modelMasterList);
+
+  static QString getSha1Hash(const void *data, const std::size_t byte_count);
 
 private:
   static int getModelType(QString& source);

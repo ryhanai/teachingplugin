@@ -183,7 +183,10 @@ public:
 	inline void setData(QByteArray value) { this->data_ = value; }
 	inline QByteArray getData() const { return this->data_; }
 
-	inline std::vector<ModelDetailParamPtr> getModelDetailList() const { return this->modelDetailList_; }
+  inline QString getHash() const { return this->hash_; }
+  inline void setHash(QString value) { this->hash_ = value; setUpdate(); }
+
+  inline std::vector<ModelDetailParamPtr> getModelDetailList() const { return this->modelDetailList_; }
 	inline void addModelDetail(ModelDetailParamPtr target) { this->modelDetailList_.push_back(target); }
 
 	inline std::vector<ModelParameterParamPtr> getModelParameterList() const { return this->modelParameterList_; }
@@ -201,6 +204,8 @@ private:
 	QString name_;
 	QString fileName_;
 	QByteArray data_;
+  QString hash_;
+
 	std::vector<ModelDetailParamPtr> modelDetailList_;
 	std::vector<ModelParameterParamPtr> modelParameterList_;
 	cnoid::BodyItemPtr item_;
@@ -444,8 +449,8 @@ private:
 
 class ConnectionStmParam : public DatabaseParam {
 public:
-	ConnectionStmParam(int id, int sourceId, int targetId, int sourceIndex)
-		: id_(id), sourceId_(sourceId), targetId_(targetId), sourceIndex_(sourceIndex) {
+	ConnectionStmParam(int id, int sourceId, int sourceIndex, int targetId, int targetIndex)
+		: id_(id), sourceId_(sourceId), sourceIndex_(sourceIndex), targetId_(targetId), targetIndex_(targetIndex) {
 	};
 	ConnectionStmParam(const ConnectionStmParamPtr source);
 	virtual ~ConnectionStmParam();
@@ -456,17 +461,21 @@ public:
 	inline int getSourceId() const { return this->sourceId_; }
 	inline void setSourceId(int value) { this->sourceId_ = value; }
 
-	inline int getTargetId() const { return this->targetId_; }
+  inline int getSourceIndex() const { return this->sourceIndex_; }
+  inline void setSourceIndex(int value) { this->sourceIndex_ = value; }
+ 
+  inline int getTargetId() const { return this->targetId_; }
 	inline void setTargetId(int value) { this->targetId_ = value; }
 
-	inline int getSourceIndex() const { return this->sourceIndex_; }
-	inline void setSourceIndex(int value) { this->sourceIndex_ = value; }
+	inline int getTargetIndex() const { return this->targetIndex_; }
+	inline void setTargetIndex(int value) { this->targetIndex_ = value; }
 
 private:
 	int id_;
 	int sourceId_;
-	int targetId_;
-	int sourceIndex_;
+  int sourceIndex_;
+  int targetId_;
+	int targetIndex_;
 };
 
 class ParameterParam : public DatabaseParam {

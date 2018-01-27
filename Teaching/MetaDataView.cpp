@@ -82,7 +82,7 @@ TextDialog::TextDialog(QString& source, QWidget* parent) : QDialog(parent) {
   resize(800, 600);
 }
 ////
-MetaDataViewImpl::MetaDataViewImpl(QWidget* parent) : canEdit_(false), QWidget(parent) {
+MetaDataViewImpl::MetaDataViewImpl(QWidget* parent) : QWidget(parent) {
   //
   btnModel = new QPushButton(_("Model Inforamtion"));
   btnModel->setIcon(QIcon(":/Teaching/icons/About.png"));
@@ -224,7 +224,7 @@ void MetaDataViewImpl::setTaskParam(TaskModelParamPtr param) {
   setAllEnable();
   //
   textEdit->setText(param->getComment());
-  setEditMode(canEdit_);
+  setEditMode(TeachingEventHandler::instance()->canEdit());
   //
 	vector<FileDataParamPtr> fileList = param->getActiveFileList();
   for (int index = 0; index < fileList.size(); index++) {
@@ -312,7 +312,7 @@ void MetaDataViewImpl::processFinished() {
 
 void MetaDataViewImpl::fileShowClicked() {
   DDEBUG("MetaDataViewImpl::fileShowClicked");
-  if (canEdit_ == false) return;
+  if (TeachingEventHandler::instance()->canEdit() == false) return;
 
   QList<QListWidgetItem*> itemList = this->lstFileName->selectedItems();
   if (itemList.size() <= 0) return;
@@ -375,7 +375,7 @@ void MetaDataViewImpl::imageOutputClicked() {
 
 void MetaDataViewImpl::imageShowClicked() {
   DDEBUG("MetaDataViewImpl::imageShowClicked");
-  if (canEdit_ == false) return;
+  if (TeachingEventHandler::instance()->canEdit() == false) return;
 
   QList<QListWidgetItem*> itemList = this->lstImage->selectedItems();
   if (itemList.size() <= 0) return;
@@ -434,8 +434,6 @@ void MetaDataViewImpl::setAllClear() {
 }
 
 void MetaDataViewImpl::setEditMode(bool canEdit) {
-  canEdit_ = canEdit;
-
   btnModel->setEnabled(canEdit);
   textEdit->setEnabled(canEdit);
 

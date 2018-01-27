@@ -82,8 +82,6 @@ private:
 
   FlowEditor* grhStateMachine;
 
-  bool canEdit_;
-
   void changeEnables(bool value);
 
 	void setStyle();

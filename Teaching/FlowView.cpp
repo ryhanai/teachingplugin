@@ -75,7 +75,7 @@ void TaskInfoDialog::cancelClicked() {
   close();
 }
 //////////
-FlowViewImpl::FlowViewImpl(QWidget* parent) : canEdit_(false){
+FlowViewImpl::FlowViewImpl(QWidget* parent) {
   QFrame* flowFrame = new QFrame;
   QLabel* lblName = new QLabel(_("Flow Name:"));
   leName = new QLineEdit;
@@ -199,12 +199,12 @@ void FlowViewImpl::setButtonEnableMode(bool isEnable) {
   btnExport->setEnabled(isEnable);
   btnAbort->setEnabled(!isEnable);
 
-  setEditMode(canEdit_);
+  setEditMode(TeachingEventHandler::instance()->canEdit());
 }
 
 void FlowViewImpl::dispView(FlowParamPtr& target) {
 	changeEnables(true);
-  setEditMode(canEdit_);
+  setEditMode(TeachingEventHandler::instance()->canEdit());
 	leName->setText(target->getName());
 	leComment->setText(target->getComment());
 	createStateMachine(target);
@@ -226,7 +226,7 @@ void FlowViewImpl::clearView() {
 }
 /////
 void FlowViewImpl::searchClicked() {
-	TeachingEventHandler::instance()->flv_SearchClicked(canEdit_);
+	TeachingEventHandler::instance()->flv_SearchClicked(TeachingEventHandler::instance()->canEdit());
 }
 
 void FlowViewImpl::newFlowClicked() {
@@ -374,8 +374,6 @@ std::shared_ptr<DataModelRegistry> FlowViewImpl::registerDataModels() {
 }
 
 void FlowViewImpl::setEditMode(bool canEdit) {
-  this->canEdit_ = canEdit;
-
   btnRunFlow->setEnabled(!canEdit);
   btnRunTask->setEnabled(!canEdit);
   btnInitPos->setEnabled(!canEdit);

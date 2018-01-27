@@ -52,6 +52,7 @@ public:
   int getModelMaxIndex();
 
 	vector<ModelMasterParamPtr> getModelMasterList();
+  int checkModelMaster(QString target);
 	bool saveModelMasterList(vector<ModelMasterParamPtr> target);
 
   inline QString getErrorStr() const { return this->errorStr_; }

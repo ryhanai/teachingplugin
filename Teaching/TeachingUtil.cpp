@@ -14,6 +14,8 @@
 using namespace std;
 using namespace cnoid;
 
+typedef boost::array<boost::uint8_t, 20> hash_data_t;
+
 namespace teaching {
 
 bool TeachingUtil::importTask(QString& strFName, std::vector<TaskModelParamPtr>& taskInstList, vector<ModelMasterParamPtr>& modelMasterList) {
@@ -192,14 +194,15 @@ bool TeachingUtil::importTask(QString& strFName, std::vector<TaskModelParamPtr>&
         }
         for (int idxTrans = 0; idxTrans < transList->size(); idxTrans++) {
           Mapping* transMap = transList->at(idxTrans)->toMapping();
-          int sourceId, targetId, sourceIndex;
+          int sourceId, targetId, sourceIndex, targetIndex;
 
           try { sourceId = transMap->get("source_id").toInt(); } catch (...) { continue; }
           try { targetId = transMap->get("target_id").toInt(); } catch (...) { continue; }
-          try { sourceIndex = transMap->get("source_index").toInt(); } catch (...) {}
-					int newSourceId = stateIdMap[sourceId];
+          try { sourceIndex = transMap->get("source_index").toInt(); } catch (...) { continue; }
+          try { targetIndex = transMap->get("target_index").toInt(); } catch (...) { continue; }
+          int newSourceId = stateIdMap[sourceId];
 					int newTargetId = stateIdMap[targetId];
-					ConnectionStmParamPtr connParam = std::make_shared<ConnectionStmParam>(NULL_ID, newSourceId, newTargetId, sourceIndex);
+					ConnectionStmParamPtr connParam = std::make_shared<ConnectionStmParam>(NULL_ID, newSourceId, sourceIndex, newTargetId, targetIndex);
           connParam->setNew();
           taskParam->addStmConnection(connParam);
         }
@@ -446,6 +449,7 @@ bool TeachingUtil::exportTask(QString& strFName, TaskModelParamPtr targetTask) {
       connNode->write("source_id", param->getSourceId());
       connNode->write("target_id", param->getTargetId());
       connNode->write("source_index", param->getSourceIndex());
+      connNode->write("target_index", param->getTargetIndex());
     }
   }
   //
@@ -572,6 +576,7 @@ bool TeachingUtil::exportFlow(QString& strFName, FlowParamPtr targetFlow) {
       connNode->write("source_id", param->getSourceId());
       connNode->write("target_id", param->getTargetId());
       connNode->write("source_index", param->getSourceIndex());
+      connNode->write("target_index", param->getTargetIndex());
     }
   }
   //
@@ -669,15 +674,13 @@ bool TeachingUtil::importFlow(QString& strFName, std::vector<FlowParamPtr>& flow
         }
         for (int idxTrans = 0; idxTrans < transList->size(); idxTrans++) {
           Mapping* transMap = transList->at(idxTrans)->toMapping();
-          int sourceId, targetId, sourceIndex;
+          int sourceId, targetId, sourceIndex, targetIndex;
 
-          try { sourceId = transMap->get("source_id").toInt(); }
-          catch (...) { continue; }
-          try { targetId = transMap->get("target_id").toInt(); }
-          catch (...) { continue; }
-          try { sourceIndex = transMap->get("source_index").toInt(); }
-          catch (...) {}
-					ConnectionStmParamPtr connParam = std::make_shared<ConnectionStmParam>(NULL_ID, sourceId, targetId, sourceIndex);
+          try { sourceId = transMap->get("source_id").toInt(); } catch (...) { continue; }
+          try { targetId = transMap->get("target_id").toInt(); } catch (...) { continue; }
+          try { sourceIndex = transMap->get("source_index").toInt(); } catch (...) { continue; }
+          try { targetIndex = transMap->get("target_index").toInt(); } catch (...) { continue; }
+          ConnectionStmParamPtr connParam = std::make_shared<ConnectionStmParam>(NULL_ID, sourceId, sourceIndex, targetId, targetIndex);
           connParam->setNew();
           flowParam->addStmConnection(connParam);
         }
@@ -703,6 +706,32 @@ int TeachingUtil::getModelType(QString& source) {
   } else if (source == "Work") {
     result = 2;
   }
+  return result;
+}
+
+QString TeachingUtil::getSha1Hash(const void *data, const std::size_t byte_count) {
+  boost::uuids::detail::sha1 sha1;
+  sha1.process_bytes(data, byte_count);
+  unsigned int digest[5];
+  sha1.get_digest(digest);
+  const boost::uint8_t *p_digest = reinterpret_cast<const boost::uint8_t *>(digest);
+  hash_data_t hash_data;
+  for (int index = 0; index < 5; ++index) {
+    hash_data[index * 4] = p_digest[index * 4 + 3];
+    hash_data[index * 4 + 1] = p_digest[index * 4 + 2];
+    hash_data[index * 4 + 2] = p_digest[index * 4 + 1];
+    hash_data[index * 4 + 3] = p_digest[index * 4];
+  }
+  //
+  hash_data_t::const_iterator itr = hash_data.begin();
+  const hash_data_t::const_iterator end_itr = hash_data.end();
+  QString result;
+  for (; itr != end_itr; ++itr) {
+    result = result + QString("%02X").arg(*itr);
+  }
+  //QString txtData = QString::fromLatin1(ba);
+  DDEBUG_V("%s", result.toStdString().c_str());
+
   return result;
 }
 /////

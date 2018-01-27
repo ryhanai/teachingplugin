@@ -33,7 +33,7 @@
 
 namespace teaching {
 
-  StateMachineViewImpl::StateMachineViewImpl(QWidget* parent) : isExec_(false), canEdit_(false){
+  StateMachineViewImpl::StateMachineViewImpl(QWidget* parent) : isExec_(false) {
     lblTarget = new QLabel;
     lblTarget->setText("");
 
@@ -154,7 +154,7 @@ namespace teaching {
     btnRun->setEnabled(isEnable);
     isExec_ = !isEnable;
 
-    setEditMode(canEdit_);
+    setEditMode(TeachingEventHandler::instance()->canEdit());
   }
 
   void StateMachineViewImpl::setBPStatus(bool isActive, bool isSet) {
@@ -495,8 +495,6 @@ std::shared_ptr<DataModelRegistry> StateMachineViewImpl::registerDataModels() {
 }
 
 void StateMachineViewImpl::setEditMode(bool canEdit) {
-  this->canEdit_ = canEdit;
-
   btnRun->setEnabled(!canEdit);
   btnBP->setEnabled(!canEdit);
   //btnStep->setEnabled(!canEdit);

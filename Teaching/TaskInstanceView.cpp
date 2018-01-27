@@ -15,7 +15,7 @@ using namespace cnoid;
 namespace teaching {
 
 TaskInstanceViewImpl::TaskInstanceViewImpl(QWidget* parent)
-  : currentTaskIndex_(-1), isSkip_(false), canEdit_(false){
+  : currentTaskIndex_(-1), isSkip_(false) {
 
   QFrame* condFrame = new QFrame;
   QLabel* lblCond = new QLabel(_("Condition:"));
@@ -153,7 +153,7 @@ void TaskInstanceViewImpl::setButtonEnableMode(bool isEnable) {
   btnRegistTask->setEnabled(isEnable);
   btnAbort->setEnabled(!isEnable);
 
-  setEditMode(canEdit_);
+  setEditMode(TeachingEventHandler::instance()->canEdit());
 }
 
 void TaskInstanceViewImpl::taskSelectionChanged() {
@@ -305,8 +305,6 @@ void TaskInstanceViewImpl::widgetClose() {
 }
 
 void TaskInstanceViewImpl::setEditMode(bool canEdit) {
-  this->canEdit_ = canEdit;
-
   btnRunTask->setEnabled(!canEdit);
   btnInitPos->setEnabled(!canEdit);
   btnAbort->setEnabled(!canEdit);

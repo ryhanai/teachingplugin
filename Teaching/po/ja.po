@@ -330,6 +330,14 @@ msgstr "モデルを選択してください"
 msgid "Duplicate specified model ID."
 msgstr "設定したモデルIDが重複しています"
 
+#: ModelMasterDialog.cpp:270
+msgid "Model Master"
+msgstr "モデルマスタ"
+
+#: ModelMasterDialog.cpp:270
+msgid "The same model has already been registered."
+msgstr "同一のモデルが登録済みです"
+
 #: ParameterDialog.cpp:28
 msgid "Add New Parameter"
 msgstr "新規パラメータを追加する"

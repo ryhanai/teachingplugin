@@ -337,11 +337,7 @@ void FlowEditor::createStateMachine(std::vector<ElementStmParamPtr>& elemList, s
 		Node* sourceNode = (*sourceElem)->getRealElem();
 		Node* targetNode = (*targetElem)->getRealElem();
 
-    if ((*targetElem)->getType() == ELEMENT_MERGE) {
-      _scene->createConnection(*targetNode, target->getSourceIndex(), *sourceNode, 0);
-    } else {
-      _scene->createConnection(*targetNode, 0, *sourceNode, target->getSourceIndex());
-    }
+    _scene->createConnection(*targetNode, target->getTargetIndex(), *sourceNode, target->getSourceIndex());
   }
 }
 
@@ -360,20 +356,16 @@ void FlowEditor::updateTargetParam() {
 	unordered_map<QUuid, shared_ptr<Connection> > connMap = _scene->connections();
 	for (auto it = connMap.begin(); it != connMap.end(); ++it) {
 		shared_ptr<Connection> target = it->second;
+
 		Node* sourceNode = target->getNode(PortType::Out);
 		int sourceId = sourceNode->getParamId();
 		int sourceIndex = target->getPortIndex(PortType::Out);
 		//
 		Node* targetNode = target->getNode(PortType::In);
 		int targetId = targetNode->getParamId();
+    int targetIndex = target->getPortIndex(PortType::In);
     //
-    QString nodeName = targetNode->nodeDataModel()->name();
-    if (nodeName == "Merge") {
-      sourceIndex = target->getPortIndex(PortType::In);
-      DDEBUG_V("sourceIndex %d", sourceIndex);
-    }
-    //
-		ConnectionStmParamPtr connParam = std::make_shared<ConnectionStmParam>(connId, sourceId, targetId, sourceIndex);
+		ConnectionStmParamPtr connParam = std::make_shared<ConnectionStmParam>(connId, sourceId, sourceIndex, targetId, targetIndex);
 		connId++;
 		connParam->setNew();
 		targetParam_->addStmConnection(connParam);

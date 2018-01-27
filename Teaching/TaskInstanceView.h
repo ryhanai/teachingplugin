@@ -58,7 +58,6 @@ private:
   int currentTaskIndex_;
 
   bool isSkip_;
-  bool canEdit_;
 };
 
 class TaskInstanceView : public cnoid::View {

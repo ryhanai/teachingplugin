@@ -208,7 +208,7 @@ vector<ConnectionStmParamPtr> DatabaseManager::getFlowTransParams(int flowId) {
 
   string strStmId = toStr(flowId);
   string strStmQuery = "SELECT ";
-  strStmQuery += "trans_id, flow_id, source_id, target_id, source_index ";
+  strStmQuery += "trans_id, flow_id, source_id, source_index, target_id, target_index ";
   strStmQuery += "FROM T_FLOW_TRANSITION ";
   strStmQuery += "WHERE flow_id = " + strStmId + " ORDER BY trans_id";
   QSqlQuery stmQuery(db_);
@@ -216,10 +216,11 @@ vector<ConnectionStmParamPtr> DatabaseManager::getFlowTransParams(int flowId) {
   while (stmQuery.next()) {
     int trans_id = stmQuery.value(0).toInt();
     int source_id = stmQuery.value(2).toInt();
-    int target_id = stmQuery.value(3).toInt();
-    int source_index = stmQuery.value(4).toInt();
+    int source_index = stmQuery.value(3).toInt();
+    int target_id = stmQuery.value(4).toInt();
+    int target_index = stmQuery.value(5).toInt();
     //
-		ConnectionStmParamPtr param = std::make_shared<ConnectionStmParam>(trans_id, source_id, target_id, source_index);
+		ConnectionStmParamPtr param = std::make_shared<ConnectionStmParam>(trans_id, source_id, source_index, target_id, target_index);
     result.push_back(param);
   }
   return result;
@@ -242,15 +243,16 @@ bool DatabaseManager::saveFlowTransactionStmData(int parentId, vector<Connection
 		ConnectionStmParamPtr param = source[index];
 
 		string strQuery = "INSERT INTO T_FLOW_TRANSITION ";
-		strQuery += "(flow_id, trans_id, source_id, target_id, source_index) ";
-		strQuery += "VALUES ( ?, ?, ?, ?, ? )";
+		strQuery += "(flow_id, trans_id, source_id, source_index, target_id, target_index) ";
+		strQuery += "VALUES ( ?, ?, ?, ?, ?, ? )";
 
 		QSqlQuery queryTra(QString::fromStdString(strQuery));
 		queryTra.addBindValue(parentId);
 		queryTra.addBindValue(index + 1);
 		queryTra.addBindValue(param->getSourceId());
-		queryTra.addBindValue(param->getTargetId());
-		queryTra.addBindValue(param->getSourceIndex());
+    queryTra.addBindValue(param->getSourceIndex());
+    queryTra.addBindValue(param->getTargetId());
+		queryTra.addBindValue(param->getTargetIndex());
 
 		if (!queryTra.exec()) {
 		  errorStr_ = "INSERT(T_FLOW_TRANSITION) error:" + queryTra.lastError().databaseText();
@@ -698,7 +700,7 @@ vector<ConnectionStmParamPtr> DatabaseManager::getTransParams(int instId) {
 
   string strStmId = toStr(instId);
   string strStmQuery = "SELECT ";
-  strStmQuery += "trans_id, task_inst_id, source_id, target_id, source_index ";
+  strStmQuery += "trans_id, task_inst_id, source_id, source_index, target_id, target_index ";
   strStmQuery += "FROM T_TRANSITION ";
   strStmQuery += "WHERE task_inst_id = " + strStmId + " ORDER BY trans_id";
 	QSqlQuery stmQuery(db_);
@@ -706,10 +708,11 @@ vector<ConnectionStmParamPtr> DatabaseManager::getTransParams(int instId) {
   while (stmQuery.next()) {
     int trans_id = stmQuery.value(0).toInt();
     int source_id = stmQuery.value(2).toInt();
-    int target_id = stmQuery.value(3).toInt();
-		int source_index = stmQuery.value(4).toInt();
+    int source_index = stmQuery.value(3).toInt();
+    int target_id = stmQuery.value(4).toInt();
+		int target_index = stmQuery.value(5).toInt();
     //
-		ConnectionStmParamPtr param = std::make_shared<ConnectionStmParam>(trans_id, source_id, target_id, source_index);
+		ConnectionStmParamPtr param = std::make_shared<ConnectionStmParam>(trans_id, source_id, source_index, target_id, target_index);
     result.push_back(param);
   }
   return result;
@@ -730,15 +733,16 @@ bool DatabaseManager::saveTransitionStmData(int parentId, const vector<Connectio
 		ConnectionStmParamPtr param = source[index];
 
 		string strQuery = "INSERT INTO T_TRANSITION ";
-		strQuery += "(task_inst_id, trans_id, source_id, target_id, source_index) ";
-		strQuery += "VALUES ( ?, ?, ?, ?, ? )";
+		strQuery += "(task_inst_id, trans_id, source_id, source_index, target_id, target_index) ";
+		strQuery += "VALUES ( ?, ?, ?, ?, ?, ? )";
 
 		QSqlQuery queryTra(QString::fromStdString(strQuery));
 		queryTra.addBindValue(parentId);
 		queryTra.addBindValue(index+1);
 		queryTra.addBindValue(param->getSourceId());
-		queryTra.addBindValue(param->getTargetId());
-		queryTra.addBindValue(param->getSourceIndex());
+    queryTra.addBindValue(param->getSourceIndex());
+    queryTra.addBindValue(param->getTargetId());
+		queryTra.addBindValue(param->getTargetIndex());
 
 		if (!queryTra.exec()) {
 		  errorStr_ = "INSERT(T_TRANSITION) error:" + queryTra.lastError().databaseText();
@@ -750,7 +754,7 @@ bool DatabaseManager::saveTransitionStmData(int parentId, const vector<Connectio
 }
 /////T_TASK_INST_PARAMETER/////
 vector<ParameterParamPtr> DatabaseManager::getParameterParams(int instId) {
-	DDEBUG_V("DatabaseManager::getParameterParams: %d", instId);
+	//DDEBUG_V("DatabaseManager::getParameterParams: %d", instId);
 	vector<ParameterParamPtr> result;
 
   string strInstId = toStr(instId);
@@ -989,7 +993,7 @@ vector<ModelMasterParamPtr> DatabaseManager::getModelMasterList() {
 	vector<ModelMasterParamPtr> result;
 
 	string strQuery = "SELECT ";
-	strQuery += "model_id, name, file_name, model_data ";
+	strQuery += "model_id, name, file_name, model_data, hash ";
 	strQuery += "FROM M_MODEL ORDER BY model_id";
 
 	QSqlQuery query(db_);
@@ -1038,11 +1042,33 @@ vector<ModelMasterParamPtr> DatabaseManager::getModelMasterList() {
 	return result;
 }
 
+int DatabaseManager::checkModelMaster(QString target) {
+  DDEBUG_V("DatabaseManager::checkModelMaster : %s", target.toStdString().c_str());
+  int result = -1;
+  string strQuery = "SELECT ";
+  strQuery += "model_id ";
+  strQuery += "FROM M_MODEL ";
+  strQuery += "WHERE hash = '" + target.toStdString() + "'";
+
+  QSqlQuery query(db_);
+  query.exec(strQuery.c_str());
+  if (query.next()) {
+    result = query.value(0).toInt();
+  }
+  return result;
+}
+
 bool DatabaseManager::saveModelMasterList(vector<ModelMasterParamPtr> target) {
 	for (int index = 0; index < target.size(); index++) {
 		ModelMasterParamPtr source = target[index];
 		source->setOrgId(source->getId());
 		DDEBUG_V("saveModelMasterList : %d, Mode=%d", source->getId(), source->getMode());
+    //TODO for Convert
+    //QString txtData = QString::fromUtf8(source->getData());
+    //QString strHash = TeachingUtil::getSha1Hash(txtData.toStdString().c_str(), txtData.toStdString().length());
+    //source->setHash(strHash);
+    //source->setUpdate();
+    //TODO for Convert
 
 		if (source->getMode() == DB_MODE_INSERT) {
 			string strMaxQuery = "SELECT max(model_id) FROM M_MODEL";
@@ -1056,15 +1082,16 @@ bool DatabaseManager::saveModelMasterList(vector<ModelMasterParamPtr> target) {
 			source->setId(maxId);
 			//
 			string strQuery = "INSERT INTO M_MODEL ";
-			strQuery += "(model_id, name, file_name, model_data) ";
-			strQuery += "VALUES ( ?, ?, ?, ? )";
+			strQuery += "(model_id, name, file_name, model_data, hash) ";
+			strQuery += "VALUES ( ?, ?, ?, ?, ? )";
 
 			QSqlQuery query(QString::fromStdString(strQuery));
 			query.addBindValue(maxId);
 			query.addBindValue(source->getName());
 			query.addBindValue(source->getFileName());
 			query.addBindValue(source->getData());
-			if (!query.exec()) {
+      query.addBindValue(source->getHash());
+      if (!query.exec()) {
 				errorStr_ = "INSERT(M_MODEL) error:" + query.lastError().databaseText();
 				DDEBUG_V("INSERT Err : %s", errorStr_.toStdString().c_str());
 				return false;
@@ -1073,14 +1100,15 @@ bool DatabaseManager::saveModelMasterList(vector<ModelMasterParamPtr> target) {
 
 		}	else if (source->getMode() == DB_MODE_UPDATE) {
 			string strQuery = "UPDATE M_MODEL ";
-			strQuery += "SET name = ?, file_name = ?, model_data = ? ";
+			strQuery += "SET name = ?, file_name = ?, model_data = ?, hash = ? ";
 			strQuery += "WHERE model_id = ? ";
 
 			QSqlQuery query(QString::fromStdString(strQuery));
 			query.addBindValue(source->getName());
 			query.addBindValue(source->getFileName());
 			query.addBindValue(source->getData());
-			query.addBindValue(source->getId());
+      query.addBindValue(source->getHash());
+      query.addBindValue(source->getId());
 
 			if (!query.exec()) {
 				errorStr_ = "UPDATE(M_MODEL) error:" + query.lastError().databaseText() + "-" + QString::fromStdString(strQuery);

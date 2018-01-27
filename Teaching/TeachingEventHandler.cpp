@@ -13,6 +13,7 @@
 #include "ExecEnvDialog.h"
 #include "TaskExecutor.h"
 #include "ControllerManager.h"
+#include "DataBaseManager.h"
 
 #include "LoggerUtil.h"
 #include "gettext.h"
@@ -145,6 +146,25 @@ bool TeachingEventHandler::tiv_TaskImportClicked() {
 		QMessageBox::warning(tiv_, _("Task Load Error"), "Load Error (Task Def)");
 		return false;
 	}
+  //モデルマスタのチェック
+  for (int index = 0; index < masterList.size(); index++) {
+    ModelMasterParamPtr master = masterList[index];
+    QString txtData = QString::fromUtf8(master->getData());
+    QString strHash = TeachingUtil::getSha1Hash(txtData.toStdString().c_str(), txtData.toStdString().length());
+    int ret = DatabaseManager::getInstance().checkModelMaster(strHash);
+    if (0 < ret) {
+      master->setDelete();
+      for (int idxTask = 0; idxTask < taskInstList.size(); idxTask++) {
+        TaskModelParamPtr task = taskInstList[idxTask];
+        for (int idxModel = 0; idxModel < task->getModelList().size(); idxModel++) {
+          ModelParamPtr model = task->getModelList()[idxTask];
+          if (model->getMasterId() == master->getId()) {
+            model->setMasterId(ret);
+          }
+        }
+      }
+    }
+  }
 	//タスクの保存
 	if (TeachingDataHolder::instance()->saveImportedTaskModel(taskInstList, masterList) == false) {
 		QMessageBox::warning(tiv_, _("Task Import"), TeachingDataHolder::instance()->getErrorStr());
@@ -1268,6 +1288,13 @@ bool TeachingEventHandler::mmd_OkClicked(QString name, QString fileName, QString
 	return TeachingDataHolder::instance()->saveModelMaster(errMessage);
 }
 
+bool TeachingEventHandler::mmd_Check() {
+  QString txtData = QString::fromUtf8(mmd_CurrentModel_->getData());
+  QString strHash = TeachingUtil::getSha1Hash(txtData.toStdString().c_str(), txtData.toStdString().length());
+  int ret = DatabaseManager::getInstance().checkModelMaster(strHash);
+  return 0 <= ret;
+}
+
 //ArgumentDialog
 void TeachingEventHandler::agd_ModelSelectionChanged(int selectedId) {
 	vector<ModelParamPtr> modelList = com_CurrentTask_->getActiveModelList();
@@ -1483,13 +1510,13 @@ void TeachingEventHandler::updateComViews(TaskModelParamPtr targetTask) {
 
 void TeachingEventHandler::updateEditState(bool blockSignals) {
   DDEBUG("TeachingEventHandler::updateEditState");
-  bool mode = SceneView::instance()->sceneWidget()->isEditMode();
-  DDEBUG_V("isEditMode %d", mode);
-  tiv_->setEditMode(mode);
-  stv_->setEditMode(mode);
-  prv_->setEditMode(mode);
-  mdv_->setEditMode(mode);
-  flv_->setEditMode(mode);
+  canEdit_ = SceneView::instance()->sceneWidget()->isEditMode();
+  DDEBUG_V("isEditMode %d", canEdit_);
+  tiv_->setEditMode(canEdit_);
+  stv_->setEditMode(canEdit_);
+  prv_->setEditMode(canEdit_);
+  mdv_->setEditMode(canEdit_);
+  flv_->setEditMode(canEdit_);
 }
 
 }

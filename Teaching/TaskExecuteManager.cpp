@@ -60,7 +60,7 @@ void TaskExecuteManager::runFlow(FlowParamPtr targetFlow) {
     }
     TeachingUtil::loadTaskDetailData(targetTask);
     if (targetTask->checkAndOrderStateMachine()) {
-      QMessageBox::warning(0, _("Run Flow"), currentTask_->getErrStr());
+      QMessageBox::warning(0, _("Flow"), targetTask->getErrStr() + " [" + targetTask->getName() + "]");
       return;
     }
     targetTask->setNextTask(targetState->getNextElem()->getTaskParam());

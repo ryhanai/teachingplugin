@@ -27,8 +27,6 @@ private:
   vector<QFrame*> frameList_;
   vector<QLineEdit*> textList_;
 
-  bool canEdit_;
-
   void clearView();
 };
 

@@ -94,7 +94,6 @@ private:
   ParameterView* parameterView_;
 
   bool isExec_;
-  bool canEdit_;
   void createCommandNodeTarget(int id, QString name);
 
 	void setStyle();

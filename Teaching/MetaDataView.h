@@ -76,7 +76,6 @@ private:
 
   QProcess* m_proc_;
   vector<QString> writtenFiles_;
-  bool canEdit_;
 
   void setAllEnable();
   void setAllDisable();

@@ -266,6 +266,11 @@ void ModelMasterDialog::okClicked() {
 		modelParamSelectionChanged();
 	}
 
+  if (TeachingEventHandler::instance()->mmd_Check()) {
+    QMessageBox::warning(this, _("Model Master"), "The same model has already been registered.");
+    return;
+  }
+
 	QString strName = leModel->text();
 	QString strFile = leFile->text();
 	QString errMessage;

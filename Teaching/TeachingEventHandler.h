@@ -31,6 +31,8 @@ public:
   static TeachingEventHandler* instance();
 	~TeachingEventHandler() {};
 
+  inline bool canEdit() const { return this->canEdit_; }
+
 	//TaskInstanceView
 	void tiv_Loaded(TaskInstanceViewImpl* view);
 	void tiv_TaskSelectionChanged(int selectedId, QString strTask);
@@ -124,6 +126,7 @@ public:
 	void mmd_AddModelParamClicked();
 	void mmd_DeleteModelParamClicked();
 	bool mmd_OkClicked(QString name, QString fileName, QString& errMessage);
+  bool mmd_Check();
 
 	//ArgumentDialog
 	void agd_ModelSelectionChanged(int selectedId);
@@ -143,7 +146,8 @@ public:
 
 private:
 	TeachingEventHandler() 
-		: flv_(0), flv_CurrentId_(NULL_ID), flv_CurrentFlow_(0), isFlowDeleted_(false),
+		: canEdit_(false), 
+      flv_(0), flv_CurrentId_(NULL_ID), flv_CurrentFlow_(0), isFlowDeleted_(false),
 			tiv_(0), tiv_CurrentTask_(0),
 			com_CurrentTask_(0), com_CurrParam_(0),
 			mdv_(0), m_FigDialog_(0),
@@ -208,6 +212,7 @@ private:
 	ElementStmActionParamPtr agd_Current_Action_;
 
 	TaskExecuteManager* executor_;
+  bool canEdit_;
 
 	//ParameterDialog
 	void prd_UpdateParam(QString name, QString id, QString unit, QString num, int hide);

@@ -136,8 +136,9 @@ ElementStmParam::~ElementStmParam() {
 
 ConnectionStmParam::ConnectionStmParam(const ConnectionStmParamPtr source)
   : id_(source->id_),
-  sourceId_(source->sourceId_), targetId_(source->targetId_),
-	sourceIndex_(source->sourceIndex_), DatabaseParam(source.get())
+  sourceId_(source->sourceId_), sourceIndex_(source->sourceIndex_),
+  targetId_(source->targetId_), targetIndex_(source->targetIndex_),
+	DatabaseParam(source.get())
 {
 };
 
@@ -457,6 +458,7 @@ void ActivityParam::clearTransitionList() {
 }
 
 bool ActivityParam::checkAndOrderStateMachine() {
+  DDEBUG("ActivityParam::checkAndOrderStateMachine");
   errContents_ = "";
   //
   int startCnt = 0;
@@ -523,7 +525,7 @@ bool ActivityParam::checkAndOrderStateMachine() {
   /////
   //Às‡˜‚Ì‘g‚İ—§‚Ä
   std::vector<ElementStmParamPtr>::iterator itElem = stmElemList_.begin();
-	DDEBUG_V("states:%d, trans:%d", stmElemList_.size(), stmConnectionList_.size());
+	DDEBUG_V("Build Order states:%d, trans:%d", stmElemList_.size(), stmConnectionList_.size());
 
   while (itElem != stmElemList_.end()) {
     if ((*itElem)->getMode() == DB_MODE_DELETE || (*itElem)->getMode() == DB_MODE_IGNORE) {
@@ -542,7 +544,7 @@ bool ActivityParam::checkAndOrderStateMachine() {
         ++itConn;
         continue;
       }
-      DDEBUG_V("id:%d, source:%d, target:%d",(*itConn)->getId(), (*itConn)->getSourceId(), (*itConn)->getTargetId())
+      //DDEBUG_V("id:%d, source:%d, target:%d",(*itConn)->getId(), (*itConn)->getSourceId(), (*itConn)->getTargetId())
       if ((*itConn)->getSourceId() == sourceId) {
         int targetId = (*itConn)->getTargetId();
         std::vector<ElementStmParamPtr>::iterator targetElem = std::find_if(stmElemList_.begin(), stmElemList_.end(), ElementStmParamComparator(targetId));
@@ -563,8 +565,8 @@ bool ActivityParam::checkAndOrderStateMachine() {
               return true;
             }
             (*itElem)->setTrueElem(*targetElem);
-					} else {
-						falseCnt++;
+          } else {
+            falseCnt++;
 						if (1 < falseCnt) {
 							errContents_ = "Several FALSE flows exist from Node.";
 							return true;
@@ -593,6 +595,7 @@ bool ActivityParam::checkAndOrderStateMachine() {
     ++itElem;
   }
   //
+  DDEBUG("ActivityParam::checkAndOrderStateMachine End");
   return false;
 }
 

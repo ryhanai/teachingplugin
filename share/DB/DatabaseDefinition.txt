@@ -21,8 +21,9 @@ CREATE TABLE T_FLOW_TRANSITION (
 	flow_id			integer not null,
 	trans_id		integer not null,
 	source_id		integer not null,
+	source_index	integer not null,
 	target_id		integer not null,
-	source_index		integer,
+	target_index	integer not null,
 	primary key(flow_id, trans_id)
 );
 
@@ -103,8 +104,9 @@ CREATE TABLE T_TRANSITION (
 	task_inst_id	integer not null,
 	trans_id		integer not null,
 	source_id		integer not null,
+	source_index	integer not null,
 	target_id		integer not null,
-	source_index		integer
+	target_index	integer not null,
 	primary key(task_inst_id, trans_id)
 );
 
@@ -128,6 +130,7 @@ CREATE TABLE M_MODEL (
 	model_id		integer primary key,
 	name 			text not null,
 	file_name		text,
+	hash			text,
 	model_data		blob,
 );
 
@@ -135,7 +138,7 @@ CREATE TABLE M_MODEL_DETAIL (
 	model_id			integer not null,
 	model_detail_id		integer not null,
 	file_name			text,
-	model_data			blob
+	model_data			blob,
 	primary key(model_id, model_detail_id)
 );
 
