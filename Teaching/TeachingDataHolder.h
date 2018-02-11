@@ -47,7 +47,8 @@ public:
 	bool saveTaskParameter(TaskModelParamPtr& target);
 
 	vector<ModelMasterParamPtr> getModelMasterList();
-	ModelMasterParamPtr getModelMasterById(int id);
+  vector<ModelMasterParamPtr> getModelMasterListFromDB();
+  ModelMasterParamPtr getModelMasterById(int id);
 	void updateModelMaster(int id, QString name, QString fileName);
 	ModelMasterParamPtr addModelMaster();
 	void addModelMasterParam(ModelMasterParamPtr target);

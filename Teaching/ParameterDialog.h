@@ -14,7 +14,8 @@ public:
   ParameterDialog(QWidget* parent = 0);
 
   void showModelInfo(const std::vector<ModelParamPtr>& modelList);
-	void showParamInfo(const std::vector<ParameterParamPtr>& paramList);
+  void showModelParamInfo(std::vector<ModelParameterParamPtr>& paramList);
+  void showParamInfo(const std::vector<ParameterParamPtr>& paramList);
 	void setTaskName(QString taskName);
 
 	void updateContents(const ParameterParamPtr& param);
@@ -22,6 +23,9 @@ public:
 
 private Q_SLOTS:
   void paramSelectionChanged();
+  void modelTableSelectionChanged();
+  void typeSelectionChanged(int index);
+  void modelSelectionChanged(int index);
   void addParamClicked();
   void deleteParamClicked();
   void oKClicked();
@@ -31,10 +35,14 @@ private:
 	QLabel* lblTaskName;
 
   QTableWidget* lstModel;
+  QTableWidget* lstModelParam;
   QTableWidget* lstParam;
   //
   QLineEdit* leName;
   QLineEdit* leId;
+  QComboBox* cmbType;
+  QComboBox* cmbModelName;
+  QComboBox* cmbModelParamName;
   QLineEdit* leUnit;
   QLineEdit* leNum;
 	QComboBox* cmbHide;

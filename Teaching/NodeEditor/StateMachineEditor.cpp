@@ -4,6 +4,7 @@
 //
 #include "../TaskExecutor.h"
 #include "../StateMachineView.h"
+#include "../TeachingEventHandler.h"
 
 #include "../LoggerUtil.h"
 
@@ -191,7 +192,8 @@ void StateMachineEditor::mouseReleaseEvent(QMouseEvent *event) {
 }
 
 void StateMachineEditor::mouseDoubleClickEvent(QMouseEvent * event) {
-	if (event->button() != Qt::LeftButton) return;
+  if (TeachingEventHandler::instance()->canEdit() == false) return;
+  if (event->button() != Qt::LeftButton) return;
 
 	QPointF pos = mapToScene(event->pos());
 	QTransform trans;
@@ -270,7 +272,8 @@ void StateMachineEditor::createStateMachine(std::vector<ElementStmParamPtr>& ele
 
 	for (int index = 0; index < elemList.size(); index++) {
 		ElementStmParamPtr target = elemList[index];
-		if (target->getMode() == DB_MODE_DELETE || target->getMode() == DB_MODE_IGNORE) continue;
+    DDEBUG_V("StateMachineEditor::createStateMachine %d, %d", target->getId(), target->getType());
+    if (target->getMode() == DB_MODE_DELETE || target->getMode() == DB_MODE_IGNORE) continue;
 
 		QString typeName = "";
 		int typeId = target->getType();

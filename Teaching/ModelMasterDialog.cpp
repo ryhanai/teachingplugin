@@ -28,6 +28,14 @@ namespace teaching {
   btnRef->setIcon(QApplication::style()->standardIcon(QStyle::SP_DialogOpenButton));
   btnRef->setToolTip(_("Ref..."));
 	btnRef->setEnabled(false);
+
+  QLabel* lblImage = new QLabel(_("Image File:"));
+  leImage = new QLineEdit;
+
+  btnRefImage = new QPushButton();
+  btnRefImage->setIcon(QApplication::style()->standardIcon(QStyle::SP_DialogOpenButton));
+  btnRefImage->setToolTip(_("Ref..."));
+  btnRefImage->setEnabled(false);
   //
 	QPushButton* btnAddModel = new QPushButton(_("Add"));
 	btnAddModel->setIcon(QIcon(":/Teaching/icons/Plus.png"));
@@ -46,8 +54,15 @@ namespace teaching {
   taskLayout->addWidget(lblFile, 2, 0, 1, 1, Qt::AlignRight);
   taskLayout->addWidget(leFile, 2, 1, 1, 3);
   taskLayout->addWidget(btnRef, 2, 4, 1, 1);
-	taskLayout->addWidget(btnAddModel, 3, 0, 1, 1);
-	taskLayout->addWidget(btnDeleteModel, 3, 4, 1, 1);
+  taskLayout->addWidget(lblImage, 3, 0, 1, 1, Qt::AlignRight);
+  taskLayout->addWidget(leImage, 3, 1, 1, 3);
+  taskLayout->addWidget(btnRefImage, 3, 4, 1, 1);
+  taskLayout->addWidget(btnAddModel, 4, 0, 1, 1);
+	taskLayout->addWidget(btnDeleteModel, 4, 4, 1, 1);
+  //
+  imageView = new QGraphicsView();
+  scene = new QGraphicsScene();
+  imageView->setScene(scene);
 	//
 	lstParam = UIUtil::makeTableWidget(2, false);
 	lstParam->setColumnWidth(0, 100);
@@ -80,8 +95,9 @@ namespace teaching {
 
 	QFrame* frmBase = new QFrame;
 	QHBoxLayout* baseLayout = new QHBoxLayout(frmBase);
-	baseLayout->addWidget(frmTask);
-	baseLayout->addWidget(frmParam);
+	baseLayout->addWidget(frmTask, 1);
+  baseLayout->addWidget(imageView, 1);
+  baseLayout->addWidget(frmParam, 1);
 
   QFrame* frmBotButtons = new QFrame;
   QPushButton* btnOK = new QPushButton(_("OK"));
@@ -105,12 +121,13 @@ namespace teaching {
   connect(lstModel, SIGNAL(itemSelectionChanged()), this, SLOT(modelSelectionChanged()));
 	connect(lstParam, SIGNAL(itemSelectionChanged()), this, SLOT(modelParamSelectionChanged()));
 	connect(btnRef, SIGNAL(clicked()), this, SLOT(refClicked()));
+  connect(btnRefImage, SIGNAL(clicked()), this, SLOT(refImageClicked()));
   connect(btnOK, SIGNAL(clicked()), this, SLOT(okClicked()));
 	connect(btnCancel, SIGNAL(clicked()), this, SLOT(cancelClicked()));
 	connect(this, SIGNAL(rejected()), this, SLOT(cancelClicked()));
 
   setWindowTitle(_("Models"));
-  resize(900, 350);
+  resize(1200, 350);
 
 	TeachingEventHandler::instance()->mmd_Loaded(this);
 }
@@ -146,12 +163,34 @@ void ModelMasterDialog::showParamGrid(const vector<ModelParameterParamPtr>& para
 	eventCancel_ = false;
 }
 
-void ModelMasterDialog::updateContents(QString name, QString fileName) {
+void ModelMasterDialog::updateContents(QString name, QString fileName, QString imageFileName, QImage* targetImage) {
 	DDEBUG_V("ModelMasterDialog::updateContents %s, %s",name.toStdString().c_str(), fileName.toStdString().c_str());
 
 	leModel->setText(name);
 	leFile->setText(fileName);
 	btnRef->setEnabled(true);
+
+  leImage->setText(imageFileName);
+  scene->clear();
+  if (targetImage) {
+    QPixmap pixmap = QPixmap::fromImage(*targetImage);
+    if (!pixmap.isNull()) {
+      pixmap = pixmap.scaled(imageView->width() - 5, imageView->height() - 5, Qt::KeepAspectRatio, Qt::FastTransformation);
+    }
+    scene->addPixmap(pixmap);
+  }
+  btnRefImage->setEnabled(true);
+}
+
+void ModelMasterDialog::updateImage(QString fileName, QImage targetImage) {
+  leImage->setText(fileName);
+
+  scene->clear();
+  QPixmap pixmap = QPixmap::fromImage(targetImage);
+  if (!pixmap.isNull()) {
+    pixmap = pixmap.scaled(imageView->width()-5, imageView->height()-5, Qt::KeepAspectRatio, Qt::FastTransformation);
+  }
+  scene->addPixmap(pixmap);
 }
 
 void ModelMasterDialog::updateParamContents(QString name, QString desc) {
@@ -224,6 +263,10 @@ void ModelMasterDialog::refClicked() {
 	TeachingEventHandler::instance()->mmd_RefClicked();
 }
 
+void ModelMasterDialog::refImageClicked() {
+  TeachingEventHandler::instance()->mmd_RefImageClicked();
+}
+
 void ModelMasterDialog::addModelClicked() {
 	DDEBUG("ModelMasterDialog::addModelClicked()");
 	TeachingEventHandler::instance()->mmd_AddModelClicked();
@@ -267,7 +310,7 @@ void ModelMasterDialog::okClicked() {
 	}
 
   if (TeachingEventHandler::instance()->mmd_Check()) {
-    QMessageBox::warning(this, _("Model Master"), "The same model has already been registered.");
+    QMessageBox::warning(this, _("Model Master"), _("The same model has already been registered."));
     return;
   }
 

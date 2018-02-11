@@ -34,7 +34,6 @@ private:
   QTableWidget* lstModel;
 	QTableWidget* lstModelMaster;
 
-  QLineEdit* leModel;
 	QLineEdit* leMaster;
 	QLineEdit* leModelRName;
   QComboBox* cmbType;

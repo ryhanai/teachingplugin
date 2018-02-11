@@ -212,7 +212,7 @@ void FlowViewImpl::dispView(FlowParamPtr& target) {
 
 void FlowViewImpl::createStateMachine(FlowParamPtr& target) {
 	grhStateMachine->setTargetParam(target);
-	vector<ElementStmParamPtr> stateList = target->getActiveStateList();
+  vector<ElementStmParamPtr> stateList = target->getActiveStateList();
 	vector<ConnectionStmParamPtr> transList = target->getActiveTransitionList();
 	grhStateMachine->createStateMachine(stateList, transList);
 }
@@ -221,7 +221,7 @@ void FlowViewImpl::clearView() {
 	  leName->setText("");
 	  leComment->setText("");
 	  grhStateMachine->setTargetParam(0);
-	  grhStateMachine->removeAll();
+    grhStateMachine->removeAll();
 	  changeEnables(false);
 }
 /////
@@ -377,7 +377,6 @@ void FlowViewImpl::setEditMode(bool canEdit) {
   btnRunFlow->setEnabled(!canEdit);
   btnRunTask->setEnabled(!canEdit);
   btnInitPos->setEnabled(!canEdit);
-  //btnAbort->setEnabled(!canEdit);
   //
   leName->setEnabled(canEdit);
   leComment->setEnabled(canEdit);

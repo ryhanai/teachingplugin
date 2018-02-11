@@ -3,6 +3,7 @@
 #include <memory>
 #include "StyleCollection.hpp"
 
+#include "../TeachingEventHandler.h"
 #include "../LoggerUtil.h"
 
 using namespace std;
@@ -23,7 +24,8 @@ QAction* ActivityEditorBase::deleteSelectionAction() const {
 }
 
 void ActivityEditorBase::deleteSelectedNodes() {
-	// delete the nodes, this will delete many of the connections
+  if (TeachingEventHandler::instance()->canEdit() == false) return;
+  // delete the nodes, this will delete many of the connections
 	for (QGraphicsItem * item : _scene->selectedItems()) {
 		if (auto n = qgraphicsitem_cast<NodeGraphicsObject*>(item)) {
 			int targetId = n->node().getParamId();

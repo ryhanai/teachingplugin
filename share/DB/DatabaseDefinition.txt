@@ -27,6 +27,15 @@ CREATE TABLE T_FLOW_TRANSITION (
 	primary key(flow_id, trans_id)
 );
 
+CREATE TABLE T_FLOW_MODEL_PARAM (
+	flow_id			integer not null,
+	model_id		integer not null,
+	master_id		integer not null,
+	pos_x			real not null,
+	pos_y			real not null,
+	primary key(flow_id, model_id)
+);
+
 CREATE TABLE T_TASK_MODEL_INST (
 	task_inst_id		integer primary key,
 	name 				text not null,
@@ -64,6 +73,9 @@ CREATE TABLE T_TASK_INST_PARAMETER (
 	unit			text,
 	value			text,
 	hide			integer,
+	type			integer not null,
+	model_id		integer,
+	model_param_id	integer,
 	primary key(task_inst_id, task_param_id)
 );
 
@@ -115,7 +127,6 @@ CREATE TABLE T_MODEL_INFO (
 	model_id		integer not null,
 	model_master_id integer not null,
 	model_type		integer not null,
-	name 			text not null,
 	rname 			text not null,
 	pos_x			real not null,
 	pos_y			real not null,
@@ -132,6 +143,8 @@ CREATE TABLE M_MODEL (
 	file_name		text,
 	hash			text,
 	model_data		blob,
+	image_file_name	text,
+	image_data		blob
 );
 
 CREATE TABLE M_MODEL_DETAIL (

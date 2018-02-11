@@ -2,6 +2,7 @@
 
 #include "StyleCollection.hpp"
 
+#include "../TeachingEventHandler.h"
 #include "../TeachingDataHolder.h"
 #include "../FlowView.h"
 
@@ -45,6 +46,7 @@ FlowEditor::FlowEditor(FlowScene *scene, FlowViewImpl* flowView)
 }
 
 void FlowEditor::contextMenuEvent(QContextMenuEvent *event) {
+  if (TeachingEventHandler::instance()->canEdit() == false) return;
   if (itemAt(event->pos())) {
     QGraphicsView::contextMenuEvent(event);
     return;
@@ -89,13 +91,24 @@ void FlowEditor::contextMenuEvent(QContextMenuEvent *event) {
   }
 
   auto parentModel = topLevelItems["3D Models"];
-  vector<ModelMasterParamPtr> masterList = TeachingDataHolder::instance()->getModelMasterList();
-  for (int index = 0; index < masterList.size(); index++) {
-    ModelMasterParamPtr master = masterList[index];
-    auto modelItem = new QTreeWidgetItem(parentModel);
-    modelItem->setText(0, master->getName());
-    modelItem->setData(0, Qt::UserRole, "3D Model");
-    modelItem->setData(1, Qt::UserRole, master->getId());
+  std::vector<ElementStmParamPtr> taskList = targetParam_->getActiveStateList();
+  for (int index = 0; index < taskList.size(); index++) {
+    TaskModelParamPtr task = taskList[index]->getTaskParam();
+    if (task == 0) continue;
+    vector<ModelParamPtr> modelList = task->getActiveModelList();
+    if (modelList.size() == 0) continue;
+    auto taskItem = new QTreeWidgetItem(parentModel);
+    taskItem->setText(0, task->getName());
+    for (int idxMode = 0; idxMode < modelList.size(); idxMode++) {
+      ModelParamPtr model = modelList[idxMode];
+      if (model->getRName().length() == 0) continue;
+      auto modelItem = new QTreeWidgetItem(taskItem);
+      modelItem->setText(0, model->getRName());
+      modelItem->setIcon(0, QIcon(QPixmap::fromImage(model->getModelMaster()->getImage())));
+      modelItem->setData(0, Qt::UserRole, "3D Model");
+      modelItem->setData(1, Qt::UserRole, task->getId());
+      modelItem->setData(2, Qt::UserRole, model->getId());
+    }
   }
   treeView->expandAll();
 
@@ -111,17 +124,44 @@ void FlowEditor::contextMenuEvent(QContextMenuEvent *event) {
 
     if (type) {
       if (modelName == "3D Model") {
-        int masterId = item->data(1, Qt::UserRole).toInt();
-        DDEBUG_V("masterId %d", masterId);
-        ModelMasterParamPtr master = TeachingDataHolder::instance()->getModelMasterById(masterId);
-        if (!master) return;
-        DDEBUG_V("Master Name %s", master->getName().toStdString().c_str());
-        type->setTaskName(master->getName());
+        int taskId = item->data(1, Qt::UserRole).toInt();
+        int modelId = item->data(2, Qt::UserRole).toInt();
+        DDEBUG_V("taskId %d, modelId %d", taskId, modelId);
+
+        ModelParamPtr targetModel;
+        bool isHit = false;
+        std::vector<ElementStmParamPtr> taskList = targetParam_->getActiveStateList();
+        ElementStmParamPtr targetNode;
+        TaskModelParamPtr targetTask;
+        for (int index = 0; index < taskList.size(); index++) {
+          targetTask = taskList[index]->getTaskParam();
+          if (targetTask == 0) continue;
+          if (targetTask->getId() != taskId) continue;
+          vector<ModelParamPtr> modelList = targetTask->getActiveModelList();
+          for (int idxMode = 0; idxMode < modelList.size(); idxMode++) {
+            ModelParamPtr model = modelList[idxMode];
+            if (model->getId() == modelId) {
+              targetModel = model;
+              targetNode = taskList[index];
+              isHit = true;
+              break;
+            }
+          }
+          if (isHit) break;
+        }
+        if (isHit == false) return;
         //
-        vector<ModelParameterParamPtr> paramList =  master->getActiveParamList();
+        ModelMasterParamPtr master = targetModel->getModelMaster();
+        DDEBUG_V("Master Name %s", master->getName().toStdString().c_str());
+        type->setTaskName(targetModel->getRName() + "::" + master->getName());
+        //
+        vector<ModelParameterParamPtr> modelParamList =  master->getActiveParamList();
+        ModelParameterParamPtr targetModelParam;
         vector<PortInfo> portList;
-        for (int index = 0; index < paramList.size(); index++) {
-          teaching::ModelParameterParamPtr param = paramList[index];
+        PortInfo originPort(0, "origin");
+        portList.push_back(originPort);
+        for (int index = 0; index < modelParamList.size(); index++) {
+          teaching::ModelParameterParamPtr param = modelParamList[index];
           PortInfo info(param->getId(), param->getName());
           portList.push_back(info);
         }
@@ -131,6 +171,46 @@ void FlowEditor::contextMenuEvent(QContextMenuEvent *event) {
         QPoint pos = event->pos();
         QPointF posView = this->mapToScene(pos);
         node.nodeGraphicsObject().setPos(posView);
+        //
+        FlowModelParamPtr fmParam = std::make_shared<FlowModelParam>(NULL_ID, master->getId());
+        fmParam->setRealElem(&node);
+        fmParam->setNew();
+        FlowParamPtr flowParam = std::dynamic_pointer_cast<FlowParam>(targetParam_);
+        flowParam->addModel(fmParam);
+        /////
+        //Port間の接続
+        Node* taskNode = targetNode->getRealElem();
+        std::vector<ParameterParamPtr> paramList = targetTask->getActiveParameterList();
+        DDEBUG_V("paramList:%d", paramList.size());
+        for (int index = 0; index < paramList.size(); index++) {
+          ParameterParamPtr param = paramList[index];
+          if (param->getType() == PARAM_KIND_NORMAL) continue;
+          if (param->getHide() == 1) continue;
+          DDEBUG_V("ModelId:%d ModelParamId:%d", param->getModelId(), param->getModelParamId());
+          if (param->getModelId() == targetModel->getId()) {
+            //タスク側の対象ポートの検索
+            int portNum = taskNode->nodeDataModel()->nPorts(PortType::In);
+            int taskPortIdx = 0;
+            int modelPortIdx = 0;
+            for (int idxPort = 0; idxPort < portNum; idxPort++) {
+              if (taskNode->nodeDataModel()->portCaption(PortType::In, idxPort) == param->getName()) {
+                taskPortIdx = idxPort;
+                break;
+              }
+            }
+            //モデル側対象ポートの検索
+            if (0 < param->getModelParamId()) {
+              for (int index = 0; index < modelParamList.size(); index++) {
+                teaching::ModelParameterParamPtr master = modelParamList[index];
+                if (master->getId() == param->getModelParamId()) {
+                  modelPortIdx = index + 1;
+                  break;
+                }
+              }
+            }
+            _scene->createConnection(*taskNode, taskPortIdx, node, modelPortIdx);
+          }
+        }
 
       } else {
         auto& node = _scene->createNode(std::move(type));
@@ -186,13 +266,15 @@ void FlowEditor::contextMenuEvent(QContextMenuEvent *event) {
 }
 ///////////
 void FlowEditor::dragEnterEvent(QDragEnterEvent* event) {
-	if (event->mimeData()->hasFormat("application/TaskInstanceItem")) {
+  if (TeachingEventHandler::instance()->canEdit() == false) return;
+  if (event->mimeData()->hasFormat("application/TaskInstanceItem")) {
 		event->acceptProposedAction();
 	}
 }
 
 void FlowEditor::dragMoveEvent(QDragMoveEvent *event) {
-	if (event->mimeData()->hasFormat("application/TaskInstanceItem")) {
+  if (TeachingEventHandler::instance()->canEdit() == false) return;
+  if (event->mimeData()->hasFormat("application/TaskInstanceItem")) {
 		event->acceptProposedAction();
 	}
 }
@@ -209,7 +291,8 @@ void FlowEditor::mouseReleaseEvent(QMouseEvent *event) {
 }
 
 void FlowEditor::mouseDoubleClickEvent(QMouseEvent * event) {
-	if (event->button() != Qt::LeftButton) return;
+  if (TeachingEventHandler::instance()->canEdit() == false) return;
+  if (event->button() != Qt::LeftButton) return;
   DDEBUG("FlowActivityEditor::mouseDoubleClickEvent");
 
 	QPointF pos = mapToScene(event->pos());
@@ -228,6 +311,7 @@ void FlowEditor::mouseDoubleClickEvent(QMouseEvent * event) {
 }
 
 void FlowEditor::dropEvent(QDropEvent* event) {
+  if (TeachingEventHandler::instance()->canEdit() == false) return;
 	if (event->mimeData()->hasFormat("application/TaskInstanceItem") == false) return;
 	DDEBUG("FlowActivityEditor::dropEvent");
 
@@ -349,6 +433,12 @@ void FlowEditor::updateTargetParam() {
 		ElementStmParamPtr target = stateList[index];
 		target->updatePos();
 	}
+  FlowParamPtr flowParam = std::dynamic_pointer_cast<FlowParam>(targetParam_);
+  vector<FlowModelParamPtr> modelList = flowParam->getModelList();
+  for (int index = 0; index < modelList.size(); index++) {
+    FlowModelParamPtr target = modelList[index];
+    target->updatePos();
+  }
 	//
 	//TODO Flow Parameter対応
 	targetParam_->clearTransitionList();

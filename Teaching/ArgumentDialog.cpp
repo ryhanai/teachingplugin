@@ -11,24 +11,27 @@ ArgumentDialog::ArgumentDialog(QWidget* parent)
   : QDialog(parent, Qt::CustomizeWindowHint | Qt::WindowTitleHint),
   curArgIdx_(NULL_ID), curActionIdx_(NULL_ID) {
   //
-  lstModel = UIUtil::makeTableWidget(2, true);
-  lstModel->setColumnWidth(0, 120);
-  lstModel->setColumnWidth(1, 100);
-  lstModel->setHorizontalHeaderLabels(QStringList() << "Name" << "ID");
+  lstModel = UIUtil::makeTableWidget(1, true);
+  lstModel->setColumnWidth(0, 200);
+  lstModel->setHorizontalHeaderLabels(QStringList() << "ID");
 	//
 	lstModelParam = UIUtil::makeTableWidget(2, true);
 	lstModelParam->setColumnWidth(0, 100);
 	lstModelParam->setColumnWidth(1, 130);
 	lstModelParam->setHorizontalHeaderLabels(QStringList() << "Name" << "Definition");
 	//
-  lstParam = UIUtil::makeTableWidget(3, true);
+  lstParam = UIUtil::makeTableWidget(6, true);
   lstParam->setColumnWidth(0, 200);
-  lstParam->setColumnWidth(1, 200);
+  lstParam->setColumnWidth(1, 140);
   lstParam->setColumnWidth(2, 50);
-  lstParam->setHorizontalHeaderLabels(QStringList() << "Name" << "ID" << "Num");
+  lstParam->setColumnWidth(3, 30);
+  lstParam->setColumnWidth(4, 80);
+  lstParam->setColumnWidth(5, 80);
+  lstParam->setHorizontalHeaderLabels(QStringList() << "Name" << "ID" << "Type" << "Num" << "Model" << "Model Param");
   //
   QFrame* frmRef = new QFrame;
-	QGridLayout* refLayout = new QGridLayout;
+  frmRef->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+  QGridLayout* refLayout = new QGridLayout;
   refLayout->setContentsMargins(0, 0, 0, 0);
   frmRef->setLayout(refLayout);
   refLayout->addWidget(lstModel, 0, 0, 1, 1);
@@ -36,9 +39,9 @@ ArgumentDialog::ArgumentDialog(QWidget* parent)
 	refLayout->addWidget(lstParam, 1, 0, 1, 2);
   /////
   lstHandling = UIUtil::makeTableWidget(3, false);
-  lstHandling->setColumnWidth(0, 100);
-  lstHandling->setColumnWidth(1, 150);
-  lstHandling->setColumnWidth(2, 150);
+  lstHandling->setColumnWidth(0, 200);
+  lstHandling->setColumnWidth(1, 200);
+  lstHandling->setColumnWidth(2, 200);
   lstHandling->setHorizontalHeaderLabels(QStringList() << "Action" << "Model" << "Parameter");
 
   QPushButton* btnUp = new QPushButton(_("Up"));
@@ -110,6 +113,7 @@ ArgumentDialog::ArgumentDialog(QWidget* parent)
   initSizes.append(500);
   initSizes.append(700);
   splitter->setSizes(initSizes);
+  splitter->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
   //
   QFrame* frmButtons = new QFrame;
   QPushButton* btnOK = new QPushButton(_("OK"));
@@ -156,7 +160,7 @@ ArgumentDialog::ArgumentDialog(QWidget* parent)
   connect(this, SIGNAL(rejected()), this, SLOT(rejected()));
 
   setWindowTitle(_("Command"));
-  resize(1200, 700);
+  resize(1250, 700);
   //
 	TeachingEventHandler::instance()->agd_Loaded(this);
 }
@@ -167,8 +171,7 @@ void ArgumentDialog::showModelInfo(vector<ModelParamPtr>& modelList) {
 
 		int row = lstModel->rowCount();
 		lstModel->insertRow(row);
-		UIUtil::makeTableItemWithData(lstModel, row, 0, param->getName(), param->getMasterId());
-    UIUtil::makeTableItemWithData(lstModel, row, 1, param->getRName(), param->getMasterId());
+    UIUtil::makeTableItemWithData(lstModel, row, 0, param->getRName(), param->getMasterId());
 
 		cmbModel->addItem(param->getRName());
 	}
@@ -187,7 +190,7 @@ void ArgumentDialog::showModelParamInfo(vector<ModelParameterParamPtr>& paramLis
 	}
 }
 
-void ArgumentDialog::showParamInfo(vector<ParameterParamPtr>& paramList) {
+void ArgumentDialog::showParamInfo(vector<ParameterParamPtr>& paramList, vector<ModelParamPtr>& modelList) {
 	cmbTarget->addItem("");
 
 	for (int index = 0; index < paramList.size(); index++) {
@@ -197,7 +200,26 @@ void ArgumentDialog::showParamInfo(vector<ParameterParamPtr>& paramList) {
 		lstParam->insertRow(row);
 		UIUtil::makeTableItem(lstParam, row, 0, param->getName());
     UIUtil::makeTableItem(lstParam, row, 1, param->getRName());
-		UIUtil::makeTableItem(lstParam, row, 2, QString::number(param->getElemNum()));
+    UIUtil::makeTableItem(lstParam, row, 2, UIUtil::getTypeName(param->getType()));
+    UIUtil::makeTableItem(lstParam, row, 3, QString::number(param->getElemNum()));
+
+    QString strModel = "";
+    QString strModelParam = "";
+    if (param->getType() == PARAM_KIND_MODEL) {
+      vector<ModelParamPtr>::iterator targetModel = find_if(modelList.begin(), modelList.end(), ModelParamComparator(param->getModelId()));
+      if (targetModel != modelList.end()) {
+        strModel = (*targetModel)->getRName();
+        vector<ModelParameterParamPtr> paramList = TeachingEventHandler::instance()->prd_ModelSelectionChanged(param->getModelId());
+        for (int index = 0; index < paramList.size(); index++) {
+          if (param->getModelParamId() == paramList[index]->getId()) {
+            strModelParam = paramList[index]->getName();
+            break;
+          }
+        }
+      }
+    }
+    UIUtil::makeTableItem(lstParam, row, 4, strModel);
+    UIUtil::makeTableItem(lstParam, row, 5, strModelParam);
 
 		cmbTarget->addItem(param->getRName());
 	}

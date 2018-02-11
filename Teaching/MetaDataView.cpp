@@ -262,29 +262,31 @@ void MetaDataViewImpl::dragEnterEvent(QDragEnterEvent* event) {
 void MetaDataViewImpl::dropEvent(QDropEvent* event) {
   DDEBUG("MetaDataViewImpl::dropEvent");
 
-  if (event->mimeData()->hasFormat("text/uri-list")) {
-    QList<QUrl> urls = event->mimeData()->urls();
-    if (urls.isEmpty()) return;
-    //
-    for (int index = 0; index < urls.length(); index++) {
-      QString fileName = urls[index].toLocalFile();
-      if (fileName.isEmpty()) continue;
+  if (TeachingEventHandler::instance()->canEdit()) {
+    if (event->mimeData()->hasFormat("text/uri-list")) {
+      QList<QUrl> urls = event->mimeData()->urls();
+      if (urls.isEmpty()) return;
       //
-      QString strName = QFileInfo(fileName).fileName();
-      if (fileName.endsWith("png") || fileName.endsWith("jpg") || fileName.endsWith("jpeg")) {
-        QListWidgetItem* item = new QListWidgetItem(strName);
-        item->setIcon(QIcon(fileName));
-        lstImage->addItem(item);
+      for (int index = 0; index < urls.length(); index++) {
+        QString fileName = urls[index].toLocalFile();
+        if (fileName.isEmpty()) continue;
         //
-				int newId = TeachingEventHandler::instance()->mdv_DropEventImage(strName, fileName);
-        item->setData(Qt::UserRole, newId);
+        QString strName = QFileInfo(fileName).fileName();
+        if (fileName.endsWith("png") || fileName.endsWith("jpg") || fileName.endsWith("jpeg")) {
+          QListWidgetItem* item = new QListWidgetItem(strName);
+          item->setIcon(QIcon(fileName));
+          lstImage->addItem(item);
+          //
+          int newId = TeachingEventHandler::instance()->mdv_DropEventImage(strName, fileName);
+          item->setData(Qt::UserRole, newId);
 
-      } else {
-        QListWidgetItem* item = new QListWidgetItem(strName);
-        lstFileName->addItem(item);
-        //
-				int newId = TeachingEventHandler::instance()->mdv_DropEventFile(strName, fileName);
-        item->setData(Qt::UserRole, newId);
+        } else {
+          QListWidgetItem* item = new QListWidgetItem(strName);
+          lstFileName->addItem(item);
+          //
+          int newId = TeachingEventHandler::instance()->mdv_DropEventFile(strName, fileName);
+          item->setData(Qt::UserRole, newId);
+        }
       }
     }
   }
@@ -312,8 +314,6 @@ void MetaDataViewImpl::processFinished() {
 
 void MetaDataViewImpl::fileShowClicked() {
   DDEBUG("MetaDataViewImpl::fileShowClicked");
-  if (TeachingEventHandler::instance()->canEdit() == false) return;
-
   QList<QListWidgetItem*> itemList = this->lstFileName->selectedItems();
   if (itemList.size() <= 0) return;
   try {
@@ -375,8 +375,6 @@ void MetaDataViewImpl::imageOutputClicked() {
 
 void MetaDataViewImpl::imageShowClicked() {
   DDEBUG("MetaDataViewImpl::imageShowClicked");
-  if (TeachingEventHandler::instance()->canEdit() == false) return;
-
   QList<QListWidgetItem*> itemList = this->lstImage->selectedItems();
   if (itemList.size() <= 0) return;
   QListWidgetItem *item = itemList.at(0);
@@ -438,11 +436,9 @@ void MetaDataViewImpl::setEditMode(bool canEdit) {
   textEdit->setEnabled(canEdit);
 
   btnFileOutput->setEnabled(canEdit);
-  btnFileShow->setEnabled(canEdit);
   btnFileDelete->setEnabled(canEdit);
 
   btnImageOutput->setEnabled(canEdit);
-  btnImageShow->setEnabled(canEdit);
   btnImageDelete->setEnabled(canEdit);
 }
 /////

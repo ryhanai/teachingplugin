@@ -108,8 +108,7 @@ SettingDialog::SettingDialog(QWidget* parent)
   showAppList();
 
   setWindowTitle(_("Setting"));
-  setFixedHeight(sizeHint().height());
-  setFixedWidth(600);
+  resize(600, 500);
 }
 
 void SettingDialog::showAppList() {

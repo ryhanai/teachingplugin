@@ -92,7 +92,7 @@ bool DatabaseManager::saveFlowData(FlowParamPtr source) {
       errorStr_ = "DELETE(T_FLOW) error:" + query.lastError().databaseText() + "-" + QString::fromStdString(strQuery);
       return false;
     }
-    source->setNormal();
+    source->setIgnore();
   }
   return true;
 }
@@ -197,7 +197,7 @@ bool DatabaseManager::saveFlowStmData(int parentId, ElementStmParamPtr source) {
       errorStr_ = "DELETE(T_FLOW_STATE) error:" + query.lastError().databaseText() + "-" + QString::fromStdString(strQuery);
       return false;
     }
-    source->setNormal();
+    source->setIgnore();
   }
   return true;
 }
@@ -467,7 +467,7 @@ bool DatabaseManager::saveElementStmData(int parentId, ElementStmParamPtr source
       errorStr_ = "DELETE(T_STATE) error:" + query.lastError().databaseText() + "-" + QString::fromStdString(strQuery);
       return false;
     }
-    source->setNormal();
+    source->setIgnore();
     //
     vector<ElementStmActionParamPtr> actionList = source->getActionList();
     vector<ElementStmActionParamPtr>::iterator itAction = actionList.begin();
@@ -598,7 +598,7 @@ bool DatabaseManager::saveElementStmActionData(int taskId, int stateId, ElementS
       errorStr_ = "DELETE(T_STATE_ACTION) error:" + query.lastError().databaseText() + "-" + QString::fromStdString(strQuery);
       return false;
     }
-    source->setNormal();
+    source->setIgnore();
   }
   return true;
 }
@@ -689,7 +689,7 @@ bool DatabaseManager::saveArgumentData(int taskId, int stateId, ArgumentParamPtr
       errorStr_ = "DELETE(T_ARGUMENT) error:" + query.lastError().databaseText() + "-" + QString::fromStdString(strQuery);
       return false;
     }
-    source->setNormal();
+    source->setIgnore();
   }
   return true;
 }
@@ -759,8 +759,8 @@ vector<ParameterParamPtr> DatabaseManager::getParameterParams(int instId) {
 
   string strInstId = toStr(instId);
   string strInstQuery = "SELECT ";
-  strInstQuery += "task_inst_id, task_param_id, elem_num, ";
-  strInstQuery += "name, rname, unit, value, hide ";
+  strInstQuery += "task_inst_id, task_param_id, type, elem_num, ";
+  strInstQuery += "name, rname, unit, value, hide, model_id, model_param_id ";
   strInstQuery += "FROM T_TASK_INST_PARAMETER ";
   strInstQuery += "WHERE task_inst_id = " + strInstId + " ORDER BY task_param_id";
   QSqlQuery instQuery(db_);
@@ -768,14 +768,17 @@ vector<ParameterParamPtr> DatabaseManager::getParameterParams(int instId) {
   while (instQuery.next()) {
     int task_inst_id = instQuery.value(0).toInt();
 		int id = instQuery.value(1).toInt();
-		int elemNum = instQuery.value(2).toInt();
-    QString name = instQuery.value(3).toString();
-    QString rname = instQuery.value(4).toString();
-    QString unit = instQuery.value(5).toString();
-    QString value = instQuery.value(6).toString();
-		int hide = instQuery.value(7).toInt();
+    int type = instQuery.value(2).toInt();
+    int elemNum = instQuery.value(3).toInt();
+    QString name = instQuery.value(4).toString();
+    QString rname = instQuery.value(5).toString();
+    QString unit = instQuery.value(6).toString();
+    QString value = instQuery.value(7).toString();
+		int hide = instQuery.value(8).toInt();
+    int model_id = instQuery.value(9).toInt();
+    int model_param_id = instQuery.value(10).toInt();
 
-		ParameterParamPtr param = std::make_shared<ParameterParam>(id, elemNum, task_inst_id, name, rname, unit, hide);
+		ParameterParamPtr param = std::make_shared<ParameterParam>(id, type, elemNum, task_inst_id, name, rname, unit, model_id, model_param_id, hide);
     param->setDBValues(value);
     result.push_back(param);
   }
@@ -812,18 +815,21 @@ bool DatabaseManager::saveTaskParameterData(int taskId, ParameterParamPtr source
     source->setParentId(taskId);
     //
     string strQuery = "INSERT INTO T_TASK_INST_PARAMETER ";
-    strQuery += "(task_inst_id, task_param_id, elem_num, name, rname, unit, value, hide) ";
-    strQuery += "VALUES ( ?, ?, ?, ?, ?, ?, ?, ? )";
+    strQuery += "(task_inst_id, task_param_id, type, elem_num, name, rname, unit, value, model_id, model_param_id, hide) ";
+    strQuery += "VALUES ( ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ? )";
 
     QSqlQuery query(QString::fromStdString(strQuery));
 		query.addBindValue(taskId);
 		query.addBindValue(maxId);
+    query.addBindValue(source->getType());
     query.addBindValue(source->getElemNum());
     query.addBindValue(source->getName());
     query.addBindValue(source->getRName());
     query.addBindValue(source->getUnit());
     query.addBindValue(source->getDBValues());
-		query.addBindValue(source->getHide());
+    query.addBindValue(source->getModelId());
+    query.addBindValue(source->getModelParamId());
+    query.addBindValue(source->getHide());
 		if (!query.exec()) {
       errorStr_ = "INSERT(T_TASK_INST_PARAMETER) error:" + query.lastError().databaseText() + "-" + QString::fromStdString(strQuery);
       return false;
@@ -831,18 +837,21 @@ bool DatabaseManager::saveTaskParameterData(int taskId, ParameterParamPtr source
 
   } else if (source->getMode() == DB_MODE_UPDATE) {
     string strQuery = "UPDATE T_TASK_INST_PARAMETER ";
-    strQuery += "SET elem_num = ?, name = ?, ";
-    strQuery += "rname = ?, unit = ?, value = ?, hide = ? ";
+    strQuery += "SET type = ?, elem_num = ?, name = ?, ";
+    strQuery += "rname = ?, unit = ?, value = ?, model_id = ?, model_param_id = ?, hide = ? ";
     strQuery += "WHERE task_inst_id = ? AND task_param_id = ? ";
 
     QSqlQuery query(QString::fromStdString(strQuery));
+    query.addBindValue(source->getType());
     query.addBindValue(source->getElemNum());
     query.addBindValue(source->getName());
     query.addBindValue(source->getRName());
     query.addBindValue(source->getUnit());
     query.addBindValue(source->getDBValues());
-		query.addBindValue(source->getHide());
-		query.addBindValue(source->getParentId());
+		query.addBindValue(source->getModelId());
+    query.addBindValue(source->getModelParamId());
+    query.addBindValue(source->getHide());
+    query.addBindValue(source->getParentId());
 		query.addBindValue(source->getId());
 		if (!query.exec()) {
       errorStr_ = "UPDATE(T_TASK_INST_PARAMETER) error:" + query.lastError().databaseText() + "-" + QString::fromStdString(strQuery);
@@ -874,7 +883,7 @@ vector<ModelParamPtr> DatabaseManager::getModelParams(int id) {
 
   string strId = toStr(id);
   string strQuery = "SELECT ";
-  strQuery += "model_id, model_master_id, model_type, name, rname, ";
+  strQuery += "model_id, model_master_id, model_type, rname, ";
   strQuery += "pos_x, pos_y, pos_z, rot_x, rot_y, rot_z ";
   strQuery += "FROM T_MODEL_INFO WHERE task_inst_id = " + strId + " ORDER BY model_id";
 
@@ -884,16 +893,15 @@ vector<ModelParamPtr> DatabaseManager::getModelParams(int id) {
     int model_id = query.value(0).toInt();
 		int master_id = query.value(1).toInt();
 		int model_type = query.value(2).toInt();
-    QString name = query.value(3).toString();
-    QString rname = query.value(4).toString();
-    double posX = query.value(5).toDouble();
-    double posY = query.value(6).toDouble();
-    double posZ = query.value(7).toDouble();
-    double rotX = query.value(8).toDouble();
-    double rotY = query.value(9).toDouble();
-    double rotZ = query.value(10).toDouble();
+    QString rname = query.value(3).toString();
+    double posX = query.value(4).toDouble();
+    double posY = query.value(5).toDouble();
+    double posZ = query.value(6).toDouble();
+    double rotX = query.value(7).toDouble();
+    double rotY = query.value(8).toDouble();
+    double rotZ = query.value(9).toDouble();
     //
-		ModelParamPtr param = std::make_shared<ModelParam>(model_id, master_id, model_type, name, rname, posX, posY, posZ, rotX, rotY, rotZ, false);
+		ModelParamPtr param = std::make_shared<ModelParam>(model_id, master_id, model_type, rname, posX, posY, posZ, rotX, rotY, rotZ, false);
 		ModelMasterParamPtr master = TeachingDataHolder::instance()->getModelMasterById(master_id);
 		if (!master) {
 			DDEBUG_V("Master NOT Exists: %d", master_id);
@@ -919,17 +927,16 @@ bool DatabaseManager::saveModelData(int parentId, ModelParamPtr source) {
     source->setId(maxId);
     //
     string strQuery = "INSERT INTO T_MODEL_INFO ";
-    strQuery += "(task_inst_id, model_id, model_master_id, model_type, name, rname, ";
+    strQuery += "(task_inst_id, model_id, model_master_id, model_type, rname, ";
     strQuery += "pos_x, pos_y, pos_z, rot_x, rot_y, rot_z) ";
     strQuery += "VALUES ( ?, ?, ?, ?, ?, ?, ";
-    strQuery += "?, ?, ?, ?, ?, ? )";
+    strQuery += "?, ?, ?, ?, ? )";
 
     QSqlQuery query(QString::fromStdString(strQuery));
 		query.addBindValue(parentId);
 		query.addBindValue(maxId);
 		query.addBindValue(source->getMasterId());
 		query.addBindValue(source->getType());
-    query.addBindValue(source->getName());
     query.addBindValue(source->getRName());
     query.addBindValue(source->getPosX());
     query.addBindValue(source->getPosY());
@@ -945,14 +952,13 @@ bool DatabaseManager::saveModelData(int parentId, ModelParamPtr source) {
 
   } else if (source->getMode() == DB_MODE_UPDATE) {
     string strQuery = "UPDATE T_MODEL_INFO ";
-    strQuery += "SET model_master_id = ?, model_type = ?, name = ?, rname = ?, ";
+    strQuery += "SET model_master_id = ?, model_type = ?, rname = ?, ";
     strQuery += "pos_x = ?, pos_y = ?, pos_z = ?, rot_x = ?, rot_y = ?, rot_z = ? ";
     strQuery += "WHERE task_inst_id = ? AND model_id = ? ";
 
     QSqlQuery query(QString::fromStdString(strQuery));
 		query.addBindValue(source->getMasterId());
 		query.addBindValue(source->getType());
-    query.addBindValue(source->getName());
     query.addBindValue(source->getRName());
     query.addBindValue(source->getPosX());
     query.addBindValue(source->getPosY());
@@ -982,7 +988,7 @@ bool DatabaseManager::saveModelData(int parentId, ModelParamPtr source) {
       errorStr_ = "DELETE(T_MODEL_INFO) error:" + query.lastError().databaseText() + "-" + QString::fromStdString(strQuery);
       return false;
     }
-    source->setNormal();
+    source->setIgnore();
   }
   //
   return true;
@@ -993,7 +999,7 @@ vector<ModelMasterParamPtr> DatabaseManager::getModelMasterList() {
 	vector<ModelMasterParamPtr> result;
 
 	string strQuery = "SELECT ";
-	strQuery += "model_id, name, file_name, model_data, hash ";
+	strQuery += "model_id, name, file_name, model_data, hash, image_file_name, image_data ";
 	strQuery += "FROM M_MODEL ORDER BY model_id";
 
 	QSqlQuery query(db_);
@@ -1005,7 +1011,11 @@ vector<ModelMasterParamPtr> DatabaseManager::getModelMasterList() {
 
 		ModelMasterParamPtr param = std::make_shared<ModelMasterParam>(model_id, name, fileName);
 		param->setData(query.value(3).toByteArray());
-		result.push_back(param);
+    param->setImageFileName(query.value(5).toByteArray());
+    param->setRawData(query.value(6).toByteArray());
+    param->loadData();
+    param->setNormal();
+    result.push_back(param);
 		//
 		{
 			string strSubQuery = "SELECT ";
@@ -1071,6 +1081,7 @@ bool DatabaseManager::saveModelMasterList(vector<ModelMasterParamPtr> target) {
     //TODO for Convert
 
 		if (source->getMode() == DB_MODE_INSERT) {
+      DDEBUG_V("saveModelMasterList INSERT %d", index);
 			string strMaxQuery = "SELECT max(model_id) FROM M_MODEL";
 			QSqlQuery maxQuery(db_);
 			maxQuery.exec(strMaxQuery.c_str());
@@ -1082,8 +1093,8 @@ bool DatabaseManager::saveModelMasterList(vector<ModelMasterParamPtr> target) {
 			source->setId(maxId);
 			//
 			string strQuery = "INSERT INTO M_MODEL ";
-			strQuery += "(model_id, name, file_name, model_data, hash) ";
-			strQuery += "VALUES ( ?, ?, ?, ?, ? )";
+			strQuery += "(model_id, name, file_name, model_data, hash, image_file_name, image_data) ";
+			strQuery += "VALUES ( ?, ?, ?, ?, ?, ? )";
 
 			QSqlQuery query(QString::fromStdString(strQuery));
 			query.addBindValue(maxId);
@@ -1091,6 +1102,8 @@ bool DatabaseManager::saveModelMasterList(vector<ModelMasterParamPtr> target) {
 			query.addBindValue(source->getFileName());
 			query.addBindValue(source->getData());
       query.addBindValue(source->getHash());
+      query.addBindValue(source->getImageFileName());
+      query.addBindValue(image2DB(source->getImageFileName(), source->getImage()));
       if (!query.exec()) {
 				errorStr_ = "INSERT(M_MODEL) error:" + query.lastError().databaseText();
 				DDEBUG_V("INSERT Err : %s", errorStr_.toStdString().c_str());
@@ -1099,8 +1112,9 @@ bool DatabaseManager::saveModelMasterList(vector<ModelMasterParamPtr> target) {
 			source->setNormal();
 
 		}	else if (source->getMode() == DB_MODE_UPDATE) {
-			string strQuery = "UPDATE M_MODEL ";
-			strQuery += "SET name = ?, file_name = ?, model_data = ?, hash = ? ";
+      DDEBUG_V("saveModelMasterList UPDATE %d", index);
+      string strQuery = "UPDATE M_MODEL ";
+			strQuery += "SET name = ?, file_name = ?, model_data = ?, hash = ?, image_file_name = ?, image_data = ? ";
 			strQuery += "WHERE model_id = ? ";
 
 			QSqlQuery query(QString::fromStdString(strQuery));
@@ -1108,6 +1122,8 @@ bool DatabaseManager::saveModelMasterList(vector<ModelMasterParamPtr> target) {
 			query.addBindValue(source->getFileName());
 			query.addBindValue(source->getData());
       query.addBindValue(source->getHash());
+      query.addBindValue(source->getImageFileName());
+      query.addBindValue(image2DB(source->getImageFileName(), source->getImage()));
       query.addBindValue(source->getId());
 
 			if (!query.exec()) {
@@ -1117,7 +1133,8 @@ bool DatabaseManager::saveModelMasterList(vector<ModelMasterParamPtr> target) {
 			source->setNormal();
 
 		}	else if (source->getMode() == DB_MODE_DELETE) {
-			string strQuery = "DELETE FROM M_MODEL WHERE model_id = ? ";
+      DDEBUG_V("saveModelMasterList DELETE %d", index);
+      string strQuery = "DELETE FROM M_MODEL WHERE model_id = ? ";
 			QSqlQuery query(QString::fromStdString(strQuery));
 			query.addBindValue(source->getId());
 
@@ -1125,7 +1142,7 @@ bool DatabaseManager::saveModelMasterList(vector<ModelMasterParamPtr> target) {
 				errorStr_ = "DELETE(M_MODEL) error:" + query.lastError().databaseText() + "-" + QString::fromStdString(strQuery);
 				return false;
 			}
-			source->setNormal();
+			source->setIgnore();
 		}
 		//
 		vector<ModelDetailParamPtr> detailList = source->getModelDetailList();
@@ -1193,7 +1210,7 @@ bool DatabaseManager::saveModelDetailData(int modelId, ModelDetailParamPtr sourc
       errorStr_ = "DELETE(M_MODEL_DETAIL) error:" + query.lastError().databaseText() + "-" + QString::fromStdString(strQuery);
       return false;
     }
-    source->setNormal();
+    source->setIgnore();
   }
   return true;
 }
@@ -1256,7 +1273,7 @@ bool DatabaseManager::saveModelParameter(int modelId, ModelParameterParamPtr sou
 			errorStr_ = "DELETE(M_MODEL_PARAMETER) error:" + query.lastError().databaseText() + "-" + QString::fromStdString(strQuery);
 			return false;
 		}
-		source->setNormal();
+		source->setIgnore();
 	}
 	return true;
 }
@@ -1343,7 +1360,7 @@ bool DatabaseManager::saveImageData(int parentId, ImageDataParamPtr source) {
       errorStr_ = "DELETE(T_FIGURE) error:" + query.lastError().databaseText() + "=" + QString::fromStdString(strQuery);
       return false;
     }
-    source->setNormal();
+    source->setIgnore();
   }
   return true;
 }
@@ -1424,9 +1441,9 @@ bool DatabaseManager::saveFileData(int parentId, FileDataParamPtr source) {
       errorStr_ = "DELETE(T_FILE) error:" + query.lastError().databaseText() + "=" + QString::fromStdString(strQuery);
       return false;
     }
-    source->setNormal();
+    source->setIgnore();
   }
   return true;
 }
-///////////////
+
 }

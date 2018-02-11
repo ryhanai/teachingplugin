@@ -14,14 +14,6 @@
 namespace teaching {
 
 static const std::string PARAMETER_FILE = "Setting.prm";
-static const double DBL_DELTA = 0.0000001;
-
-inline bool dbl_eq(double d1, double d2) {
-  if (-DBL_DELTA < (d1 - d2) && (d1 - d2) < DBL_DELTA)
-    return true;
-  else
-    return false;
-}
 
 template <typename T> std::string toStr(const T& t) {
   std::ostringstream os; os << t; return os.str();
@@ -49,6 +41,7 @@ public:
   static QTableWidget* makeTableWidget(int colNo, bool isExpanding);
   static QTableWidgetItem* makeTableItem(QTableWidget* table, int rowNo, int colNo, const QString& text);
   static QTableWidgetItem* makeTableItemWithData(QTableWidget* table, int rowNo, int colNo, const QString& text, int data);
+  static QString getTypeName(int source);
 };
 /////
 class SettingManager {

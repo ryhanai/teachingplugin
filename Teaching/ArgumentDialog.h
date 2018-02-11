@@ -17,7 +17,7 @@ public:
 
 	void showModelInfo(vector<ModelParamPtr>& modelList);
 	void showModelParamInfo(vector<ModelParameterParamPtr>& paramList);
-	void showParamInfo(vector<ParameterParamPtr>& paramList);
+	void showParamInfo(vector<ParameterParamPtr>& paramList, vector<ModelParamPtr>& modelList);
 	void showActionInfo(vector<ElementStmActionParamPtr>& actionList);
 	void showArgInfo(ElementStmParamPtr target, vector<ArgumentParamPtr>& argList);
 

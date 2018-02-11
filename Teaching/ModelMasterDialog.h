@@ -17,14 +17,16 @@ public:
 
 	void showGrid(const vector<ModelMasterParamPtr>& masterList);
 	void showParamGrid(const vector<ModelParameterParamPtr>& paramList);
-	void updateContents(QString name, QString fileName);
-	void updateParamContents(QString name, QString desc);
+	void updateContents(QString name, QString fileName, QString imageFileName, QImage* targetImage);
+  void updateImage(QString fileName, QImage targetImage);
+  void updateParamContents(QString name, QString desc);
 	void addModel(int id, QString name);
 
 private Q_SLOTS:
   void modelSelectionChanged();
 	void modelParamSelectionChanged();
 	void refClicked();
+  void refImageClicked();
   void addModelClicked();
 	void addModelParamClicked();
 	void deleteModelClicked();
@@ -39,6 +41,11 @@ private:
   QLineEdit* leModel;
   QLineEdit* leFile;
   QPushButton* btnRef;
+  QLineEdit* leImage;
+  QPushButton* btnRefImage;
+
+  QGraphicsView* imageView;
+  QGraphicsScene* scene;
 
 	QLineEdit* leParam;
 	QTextEdit* txtDef;

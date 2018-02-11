@@ -104,12 +104,12 @@ ElementStmActionParamPtr ElementStmParam::getStateActionById(int id) {
 }
 
 ElementStmParam::ElementStmParam(int id, int type, QString cmdName, QString cmdDspName, double posX, double posY, QString condition)
-  : id_(id), type_(type), cmdName_(cmdName), cmdDspName_(cmdDspName), posX_(posX), posY_(posY), condition_(condition),
-  nextElem_(0), trueElem_(0), falseElem_(0), realElem_(0), commandDef_(0), taskParam_(0), isBreak_(false) {
+  : type_(type), cmdName_(cmdName), cmdDspName_(cmdDspName), posX_(posX), posY_(posY), condition_(condition),
+  nextElem_(0), trueElem_(0), falseElem_(0), realElem_(0), commandDef_(0), taskParam_(0), isBreak_(false), DatabaseParam(id) {
 }
 
 ElementStmParam::ElementStmParam(const ElementStmParamPtr source)
-  : id_(source->id_), type_(source->type_),
+  : type_(source->type_),
   cmdName_(source->cmdName_), cmdDspName_(source->cmdDspName_),
   posX_(source->posX_), posY_(source->posY_), condition_(source->condition_),
   nextElem_(source->nextElem_), trueElem_(source->trueElem_), falseElem_(source->falseElem_),
@@ -135,10 +135,9 @@ ElementStmParam::~ElementStmParam() {
 }
 
 ConnectionStmParam::ConnectionStmParam(const ConnectionStmParamPtr source)
-  : id_(source->id_),
-  sourceId_(source->sourceId_), sourceIndex_(source->sourceIndex_),
-  targetId_(source->targetId_), targetIndex_(source->targetIndex_),
-	DatabaseParam(source.get())
+  : sourceId_(source->sourceId_), sourceIndex_(source->sourceIndex_),
+    targetId_(source->targetId_), targetIndex_(source->targetIndex_),
+	  DatabaseParam(source.get())
 {
 };
 
@@ -202,7 +201,7 @@ void ParameterParam::setValues(int index, QString source) {
 }
 
 ParameterParam::ParameterParam(ParameterParam* source)
-  : id_(source->id_), elem_num_(source->elem_num_), parent_id_(source->parent_id_),
+  : elem_num_(source->elem_num_), parent_id_(source->parent_id_),
 		name_(source->name_),	rname_(source->rname_), unit_(source->unit_), hide_(source->hide_),
 	  DatabaseParam(source) {
 	DDEBUG("ParameterParam copy");
@@ -229,6 +228,25 @@ std::vector<ModelParameterParamPtr> ModelMasterParam::getActiveParamList() {
 		result.push_back(param);
 	}
 	return result;
+}
+
+void ModelMasterParam::loadData() {
+  if (this->isLoaded_) return;
+
+  this->image_ = db2Image(name_, rawData_);
+  this->isLoaded_ = true;
+}
+
+QImage ModelMasterParam::db2Image(const QString& name, const QByteArray& source) {
+  string strType = "";
+  if (name.toUpper().endsWith("PNG")) {
+    strType = "PNG";
+  } else if (name.toUpper().endsWith("JPG")) {
+    strType = "JPG";
+  }
+  QImage result = QImage::fromData(source, strType.c_str());
+
+  return result;
 }
 /////
 bool ModelParam::isChangedPosition() {
@@ -418,8 +436,28 @@ QImage ImageDataParam::db2Image(const QString& name, const QByteArray& source) {
 	return result;
 }
 //////////
+FlowParam::FlowParam(const FlowParam* source) : ActivityParam(source) {
+  for (unsigned int index = 0; index < source->modelList_.size(); index++) {
+    FlowModelParamPtr param = std::make_shared<FlowModelParam>(source->modelList_[index].get());
+    param->setNewForce();
+    this->modelList_.push_back(param);
+  }
+}
+
+FlowParam::~FlowParam() {
+  modelList_.clear();
+}
+
+void FlowModelParam::updatePos() {
+  if (mode_ == DB_MODE_DELETE || mode_ == DB_MODE_IGNORE) return;
+
+  posX_ = realElem_->nodeGraphicsObject().pos().x();
+  posY_ = realElem_->nodeGraphicsObject().pos().y();
+  setUpdate();
+}
+//////////
 ActivityParam::ActivityParam(const ActivityParam* source)
-  : id_(source->id_), name_(source->name_), comment_(source->comment_),
+  : name_(source->name_), comment_(source->comment_),
 		created_date_(source->created_date_), last_updated_date_(source->last_updated_date_),
 		startParam_(source->startParam_), errContents_(source->errContents_), DatabaseParam(source)	{
 	for (unsigned int index = 0; index < source->parameterList_.size(); index++) {

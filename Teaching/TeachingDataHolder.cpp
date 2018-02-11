@@ -158,7 +158,7 @@ ModelParamPtr TeachingDataHolder::addModel(TaskModelParamPtr& source, ModelMaste
 	maxId++;
 	DDEBUG_V("TeachingDataHolder::addModel: %d", maxId);
 
-	ModelParamPtr param = std::make_shared<ModelParam>(maxId, master->getId(), 0, "New Model", "", 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, true);
+	ModelParamPtr param = std::make_shared<ModelParam>(maxId, master->getId(), 0, "New Model", 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, true);
 	param->setModelMaster(master);
 	source->addModel(param);
 
@@ -231,7 +231,7 @@ ParameterParamPtr TeachingDataHolder::addParameter(TaskModelParamPtr& source) {
 	}
 	maxId++;
 	DDEBUG_V("TeachingDataHolder::addParameter %d", maxId);
-	ParameterParamPtr newParam = std::make_shared<ParameterParam>(maxId, 1, source->getId(), "New Param", "", "", 0);
+	ParameterParamPtr newParam = std::make_shared<ParameterParam>(maxId, 0, 1, source->getId(), "New Param", "", "", NULL_ID, NULL_ID , 0);
 	newParam->setNew();
 	source->addParameter(newParam);
 
@@ -254,6 +254,11 @@ vector<ModelMasterParamPtr> TeachingDataHolder::getModelMasterList() {
 
 	return result;
 };
+
+vector<ModelMasterParamPtr> TeachingDataHolder::getModelMasterListFromDB() {
+  updateModelMaster();
+  return modelMasterList_;
+}
 
 ModelMasterParamPtr TeachingDataHolder::getModelMasterById(int id) {
   //DDEBUG_V("TeachingDataHolder::getModelMasterById %d", id);

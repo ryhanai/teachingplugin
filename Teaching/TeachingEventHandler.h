@@ -98,14 +98,16 @@ public:
 
 	//ParameterDialog
 	void prd_Loaded(ParameterDialog* dialog);
-	void prd_ParamSelectionChanged(int newId, QString name, QString id, QString unit, QString num, int hide);
-	void prd_AddParamClicked(QString name, QString id, QString unit, QString num, int hide);
+  void prd_ParamSelectionChanged(int newId, QString name, QString id, int type, QString unit, QString num, int model_id, int model_param_id, int hide);
+  void prd_AddParamClicked(QString name, QString id, int type, QString unit, QString num, int model_id, int model_param_id, int hide);
 	bool prd_DeleteParamClicked();
-	bool prd_OkClicked(QString name, QString id, QString unit, QString num, int hide);
+  bool prd_OkClicked(QString name, QString id, int type, QString unit, QString num, int model_id, int model_param_id, int hide);
+  void prd_ModelTableSelectionChanged(int selectedId);
+  vector<ModelParameterParamPtr> prd_ModelSelectionChanged(int selectedId);
 
 	//ModelDialog
 	bool mdd_Loaded(ModelDialog* dialog);
-	void mdd_ModelSelectionChanged(int newId, QString name, QString rname, int type, double posX, double posY, double posZ, double rotX, double rotY, double rotZ);
+	void mdd_ModelSelectionChanged(int newId, QString rname, int type, double posX, double posY, double posZ, double rotX, double rotY, double rotZ);
 	void mdd_ModelMasterSelectionChanged(int newId);
 	void mdd_CurrentBodyItemChanged(BodyItem* bodyItem);
 	void mdd_updateKinematicState(bool blockSignals);
@@ -113,7 +115,7 @@ public:
 	bool mdd_AddModelClicked();
 	bool mdd_DeleteModelClicked();
   bool mdd_CheckModel(QString target);
-  void mdd_OkClicked(QString name, QString rname, int type, double posX, double posY, double posZ, double rotX, double rotY, double rotZ);
+  void mdd_OkClicked(QString rname, int type, double posX, double posY, double posZ, double rotX, double rotY, double rotZ);
 	void mdd_CancelClicked();
 
 	//ModelMasterDialog
@@ -121,7 +123,8 @@ public:
 	void mmd_ModelSelectionChanged(int newId, QString name, QString fileName);
 	void mmd_ModelParameterSelectionChanged(int newId, QString name, QString desc);
 	void mmd_RefClicked();
-	void mmd_AddModelClicked();
+  void mmd_RefImageClicked();
+  void mmd_AddModelClicked();
 	void mmd_DeleteModelClicked(int id);
 	void mmd_AddModelParamClicked();
 	void mmd_DeleteModelParamClicked();
@@ -215,7 +218,7 @@ private:
   bool canEdit_;
 
 	//ParameterDialog
-	void prd_UpdateParam(QString name, QString id, QString unit, QString num, int hide);
+  void prd_UpdateParam(QString name, QString id, int type, QString unit, QString num, int model_id, int model_param_id, int hide);
 
 	void unloadTaskModelItems();
 	void updateComViews(TaskModelParamPtr targetTask);

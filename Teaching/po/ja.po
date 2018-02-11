@@ -270,6 +270,10 @@ msgstr "対象画像をファイルに保存しました"
 msgid "Model Name:"
 msgstr "モデル名称:"
 
+#: ParameterDialog.cpp:52
+msgid "Model Param Name:"
+msgstr "モデルパラメータ名:"
+
 #: ModelDialog.cpp:33
 msgid "Model ID:"
 msgstr "モデルID:"
@@ -336,7 +340,15 @@ msgstr "モデルマスタ"
 
 #: ModelMasterDialog.cpp:270
 msgid "The same model has already been registered."
-msgstr "同一のモデルが登録済みです"
+msgstr "同じモデルが登録されています"
+
+#: ModelMasterDialog.cpp:24
+msgid "Model File:"
+msgstr "モデルファイル:"
+
+#: ModelMasterDialog.cpp:32
+msgid "Image File:"
+msgstr "画像ファイル:"
 
 #: ParameterDialog.cpp:28
 msgid "Add New Parameter"

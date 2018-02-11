@@ -13,13 +13,12 @@ class FlowScene;
 
 class NODE_EDITOR_PUBLIC FlowEditor : public ActivityEditorBase {
 public:
-
 	FlowEditor(FlowScene *scene, FlowViewImpl* flowView);
 
 	FlowEditor(const FlowEditor&) = delete;
 	FlowEditor operator=(const FlowEditor&) = delete;
 
-	void createStateMachine(std::vector<ElementStmParamPtr>& elemList, std::vector<ConnectionStmParamPtr>& connList);
+  void createStateMachine(std::vector<ElementStmParamPtr>& elemList, std::vector<ConnectionStmParamPtr>& connList);
 	void updateTargetParam();
 	void updatingParamInfo(TaskModelParamPtr targetTask, ElementStmParamPtr targetState);
 

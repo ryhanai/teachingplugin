@@ -42,6 +42,9 @@ private Q_SLOTS:
   void widgetClose();
 
 private:
+  QPushButton* btnModelMaster;
+  QPushButton* btnSetting;
+
   QLineEdit* leCond;
   QLineEdit* leTask;
   SearchList* lstResult;

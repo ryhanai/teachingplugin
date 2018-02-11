@@ -16,14 +16,16 @@ ModelDialog::ModelDialog(QWidget* parent)
   : QDialog(parent, Qt::CustomizeWindowHint | Qt::WindowTitleHint),
 		currentIndex_(-1), currentMasterIndex_(-1) {
 
-  lstModel = UIUtil::makeTableWidget(2, false);
+  lstModel = UIUtil::makeTableWidget(2, true);
   lstModel->setColumnWidth(0, 50);
   lstModel->setColumnWidth(1, 200);
   lstModel->setHorizontalHeaderLabels(QStringList() << "Type" << "Name");
 
-	lstModelMaster = UIUtil::makeTableWidget(1, false);
-	lstModelMaster->setColumnWidth(0, 250);
-	lstModelMaster->setHorizontalHeaderLabels(QStringList() << "Master Name");
+	lstModelMaster = UIUtil::makeTableWidget(2, true);
+	lstModelMaster->setColumnWidth(0, 50);
+  lstModelMaster->setColumnWidth(1, 200);
+  lstModelMaster->setHorizontalHeaderLabels(QStringList() << "" << "Master Name");
+  lstModelMaster->setIconSize(QSize(48, 48));
 
 	QPushButton* btnAddModel = new QPushButton("<<");
 	btnAddModel->setToolTip(_("Add new Model"));
@@ -36,6 +38,7 @@ ModelDialog::ModelDialog(QWidget* parent)
 	btnDeleteModel->setAutoDefault(false);
 
 	QFrame* frmModelList= new QFrame;
+  frmModelList->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 	QGridLayout* modelLayout = new QGridLayout(frmModelList);
 	//modelLayout->setContentsMargins(2, 2, 2, 2);
 	modelLayout->addWidget(lstModel, 0, 0, 4, 1);
@@ -44,8 +47,6 @@ ModelDialog::ModelDialog(QWidget* parent)
 	modelLayout->addWidget(lstModelMaster, 0, 2, 4, 1);
 	//
   QFrame* frmTask = new QFrame;
-  QLabel* lblModel = new QLabel(_("Model Name:"));
-  leModel = new QLineEdit;
 	QLabel* lblMaster = new QLabel(_("Master Name:"));
 	leMaster = new QLineEdit;
 	leMaster->setEnabled(false);
@@ -73,27 +74,25 @@ ModelDialog::ModelDialog(QWidget* parent)
   QGridLayout* taskLayout = new QGridLayout;
   taskLayout->setContentsMargins(2, 0, 2, 0);
   frmTask->setLayout(taskLayout);
-  taskLayout->addWidget(lblModel, 1, 0, 1, 1, Qt::AlignRight);
-  taskLayout->addWidget(leModel, 1, 1, 1, 5);
-	taskLayout->addWidget(lblMaster, 2, 0, 1, 1, Qt::AlignRight);
-	taskLayout->addWidget(leMaster, 2, 1, 1, 5);
-	taskLayout->addWidget(lblModelRName, 3, 0, 1, 1, Qt::AlignRight);
-  taskLayout->addWidget(leModelRName, 3, 1, 1, 5);
-  taskLayout->addWidget(lblFile, 4, 0, 1, 1, Qt::AlignRight);
-  taskLayout->addWidget(cmbType, 4, 1, 1, 5);
+	taskLayout->addWidget(lblMaster, 0, 0, 1, 1, Qt::AlignRight);
+	taskLayout->addWidget(leMaster, 0, 1, 1, 5);
+	taskLayout->addWidget(lblModelRName, 1, 0, 1, 1, Qt::AlignRight);
+  taskLayout->addWidget(leModelRName, 1, 1, 1, 5);
+  taskLayout->addWidget(lblFile, 2, 0, 1, 1, Qt::AlignRight);
+  taskLayout->addWidget(cmbType, 2, 1, 1, 5);
 
-  taskLayout->addWidget(lblX, 5, 0, 1, 1, Qt::AlignRight);
-  taskLayout->addWidget(leX, 5, 1, 1, 1);
-  taskLayout->addWidget(lblY, 5, 2, 1, 1, Qt::AlignRight);
-  taskLayout->addWidget(leY, 5, 3, 1, 1);
-  taskLayout->addWidget(lblZ, 5, 4, 1, 1, Qt::AlignRight);
-  taskLayout->addWidget(leZ, 5, 5, 1, 1);
-  taskLayout->addWidget(lblRx, 6, 0, 1, 1, Qt::AlignRight);
-  taskLayout->addWidget(leRx, 6, 1, 1, 1);
-  taskLayout->addWidget(lblRy, 6, 2, 1, 1, Qt::AlignRight);
-  taskLayout->addWidget(leRy, 6, 3, 1, 1);
-  taskLayout->addWidget(lblRz, 6, 4, 1, 1, Qt::AlignRight);
-  taskLayout->addWidget(leRz, 6, 5, 1, 1);
+  taskLayout->addWidget(lblX, 3, 0, 1, 1, Qt::AlignRight);
+  taskLayout->addWidget(leX, 3, 1, 1, 1);
+  taskLayout->addWidget(lblY, 3, 2, 1, 1, Qt::AlignRight);
+  taskLayout->addWidget(leY, 3, 3, 1, 1);
+  taskLayout->addWidget(lblZ, 3, 4, 1, 1, Qt::AlignRight);
+  taskLayout->addWidget(leZ, 3, 5, 1, 1);
+  taskLayout->addWidget(lblRx, 4, 0, 1, 1, Qt::AlignRight);
+  taskLayout->addWidget(leRx, 4, 1, 1, 1);
+  taskLayout->addWidget(lblRy, 4, 2, 1, 1, Qt::AlignRight);
+  taskLayout->addWidget(leRy, 4, 3, 1, 1);
+  taskLayout->addWidget(lblRz, 4, 4, 1, 1, Qt::AlignRight);
+  taskLayout->addWidget(leRz, 4, 5, 1, 1);
   //
   QFrame* frmBotButtons = new QFrame;
   QPushButton* btnOK = new QPushButton(_("OK"));
@@ -129,7 +128,7 @@ ModelDialog::ModelDialog(QWidget* parent)
   connect(leRz, SIGNAL(editingFinished()), this, SLOT(modelPositionChanged()));
 
   setWindowTitle(_("Models"));
-  resize(600, 400);
+  resize(650, 400);
 
 	if (TeachingEventHandler::instance()->mdd_Loaded(this) == false) {
 		QMessageBox::warning(this, _("Model"), _("Please select target TASK"));
@@ -146,7 +145,7 @@ void ModelDialog::showModelGrid(const vector<ModelParamPtr>& source) {
 		int row = lstModel->rowCount();
 		lstModel->insertRow(row);
 		UIUtil::makeTableItemWithData(lstModel, row, 0, getTypeName(param->getType()), param->getId());
-		UIUtil::makeTableItemWithData(lstModel, row, 1, param->getName(), param->getId());
+		UIUtil::makeTableItemWithData(lstModel, row, 1, param->getRName(), param->getId());
 	}
 }
 
@@ -157,13 +156,19 @@ void ModelDialog::showModelMasterGrid(const vector<ModelMasterParamPtr>& source)
 		ModelMasterParamPtr param = source[index];
 		int row = lstModelMaster->rowCount();
 		lstModelMaster->insertRow(row);
-		UIUtil::makeTableItemWithData(lstModelMaster, row, 0, param->getName(), param->getId());
+    lstModelMaster->setRowHeight(row, 50);
+
+    QTableWidgetItem* imageItem = new QTableWidgetItem;
+    lstModelMaster->setItem(row, 0, imageItem);
+    imageItem->setData(Qt::UserRole, param->getId());
+    imageItem->setIcon(QIcon(QPixmap::fromImage(param->getImage())));
+
+		UIUtil::makeTableItemWithData(lstModelMaster, row, 1, param->getName(), param->getId());
 	}
 }
 
 void ModelDialog::updateContents(const ModelParamPtr& source) {
 	if (source) {
-		leModel->setText(source->getName());
 		leMaster->setText(source->getModelMaster()->getName());
 		leModelRName->setText(source->getRName());
 		cmbType->setCurrentIndex(source->getType());
@@ -174,7 +179,6 @@ void ModelDialog::updateContents(const ModelParamPtr& source) {
 		leRy->setText(QString::number(source->getRotRy(), 'f', 6));
 		leRz->setText(QString::number(source->getRotRz(), 'f', 6));
 	}	else {
-		leModel->setText("");
 		leMaster->setText("");
 		leModelRName->setText("");
 		leX->setText("");
@@ -189,7 +193,6 @@ void ModelDialog::updateContents(const ModelParamPtr& source) {
 void ModelDialog::modelSelectionChanged() {
 	DDEBUG("ModelDialog::modelSelectionChanged()");
 
-	QString strModel = leModel->text();
 	QString strModelRName = leModelRName->text();
 	int selectedType = cmbType->currentIndex();
 
@@ -209,7 +212,7 @@ void ModelDialog::modelSelectionChanged() {
 
 	if (currentIndex_ != NULL_ID) {
 		lstModel->item(currentIndex_, 0)->setText(getTypeName(selectedType));
-		lstModel->item(currentIndex_, 1)->setText(strModel);
+		lstModel->item(currentIndex_, 1)->setText(strModelRName);
 	}
 	currentIndex_ = lstModel->currentRow();
 
@@ -217,7 +220,7 @@ void ModelDialog::modelSelectionChanged() {
 	if (item) {
 		newId = item->data(Qt::UserRole).toInt();
 	}
-	TeachingEventHandler::instance()->mdd_ModelSelectionChanged(newId, strModel, strModelRName, selectedType, posX, posY, posZ, rotRx, rotRy, rotRz);
+	TeachingEventHandler::instance()->mdd_ModelSelectionChanged(newId, strModelRName, selectedType, posX, posY, posZ, rotRx, rotRy, rotRz);
 }
 
 void ModelDialog::modelMasterSelectionChanged() {
@@ -263,12 +266,13 @@ void ModelDialog::okClicked() {
 	DDEBUG("ModelDialog::okClicked()");
 
   QString strModelRName = leModelRName->text();
-  if (TeachingEventHandler::instance()->mdd_CheckModel(strModelRName) == false) {
-    QMessageBox::warning(this, _("Model"), _("Duplicate specified model ID."));
-    return;
+  if (0 < strModelRName.trimmed().length()) {
+    if (TeachingEventHandler::instance()->mdd_CheckModel(strModelRName) == false) {
+      QMessageBox::warning(this, _("Model"), _("Duplicate specified model ID."));
+      return;
+    }
   }
 
-	QString strModel = leModel->text();
 	int selectedType = cmbType->currentIndex();
 
 	string strPosX = leX->text().toUtf8().constData();
@@ -284,7 +288,7 @@ void ModelDialog::okClicked() {
 	string strRotRz = leRz->text().toUtf8().constData();
 	double rotRz = std::atof(strRotRz.c_str());
 
-	TeachingEventHandler::instance()->mdd_OkClicked(strModel, strModelRName, selectedType, posX, posY, posZ, rotRx, rotRy, rotRz);
+	TeachingEventHandler::instance()->mdd_OkClicked(strModelRName, selectedType, posX, posY, posZ, rotRx, rotRy, rotRz);
 }
 
 void ModelDialog::cancelClicked() {

@@ -314,7 +314,7 @@ private:
   bool calcBinOpe(MemberParam* lhs, MemberParam* rhs);
 	bool parseVector3d(MemberParam* elem01, MemberParam* elem02, MemberParam* elem03);
 	bool parseVector6d(MemberParam* elem01, MemberParam* elem02, MemberParam* elem03, MemberParam* elem04, MemberParam* elem05, MemberParam* elem06);
-  bool parseVariable();
+  bool parseVariable(bool isSub);
   bool calcFunc(MemberParam* args);
   bool calcTranslation(VectorXd& arg);
   bool calcRotation(VectorXd& arg);
@@ -353,7 +353,7 @@ private:
 
   inline ValueMode getValMode() const { return this->valMode_; }
 
-  bool calculate(QString source, TaskModelParamPtr targetModel);
+  bool calculate(QString source, TaskModelParamPtr targetModel, bool isSub = false);
 
   int extractNodeInfo(const Node& source);
 

@@ -24,11 +24,11 @@ TaskInstanceViewImpl::TaskInstanceViewImpl(QWidget* parent)
   btnSearch->setIcon(QIcon(":/Teaching/icons/Search.png"));
   btnSearch->setToolTip(_("Search Task"));
 
-	QPushButton* btnModelMaster = new QPushButton();
+	btnModelMaster = new QPushButton();
 	btnModelMaster->setIcon(QIcon(":/Teaching/icons/DB.png"));
 	btnModelMaster->setToolTip(_("Model Master"));
 
-	QPushButton* btnSetting = new QPushButton();
+	btnSetting = new QPushButton();
   btnSetting->setIcon(QIcon(":/Teaching/icons/Settings.png"));
   btnSetting->setToolTip(_("Setting"));
 
@@ -309,6 +309,9 @@ void TaskInstanceViewImpl::setEditMode(bool canEdit) {
   btnInitPos->setEnabled(!canEdit);
   btnAbort->setEnabled(!canEdit);
   //
+  btnModelMaster->setEnabled(canEdit);
+  btnSetting->setEnabled(canEdit);
+
   leTask->setEnabled(canEdit);
   btnLoadTask->setEnabled(canEdit);
   btnOutputTask->setEnabled(canEdit);

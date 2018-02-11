@@ -45,24 +45,21 @@ bool TeachingUtil::importTask(QString& strFName, std::vector<TaskModelParamPtr>&
         Listing* modelList = taskMap->get("models").toListing();
         for (int idxModel = 0; idxModel < modelList->size(); idxModel++) {
           Mapping* modelMap = modelList->at(idxModel)->toMapping();
-          QString modelName = "";
           QString modelRName = "";
 					int master_id = -1;
           QString modelType = "";
           double posX = 0.0; double posY = 0.0; double posZ = 0.0;
           double rotX = 0.0; double rotY = 0.0; double rotZ = 0.0;
 
-          try { modelName = QString::fromStdString(modelMap->get("name").toString()); } catch (...) {}
           try {
             modelRName = QString::fromStdString(modelMap->get("rname").toString());
           } catch (...) {
-            DDEBUG_V("Model RName NOT EXIST : %s", modelName.toStdString().c_str());
             return false;
           }
 					try {
 						master_id = modelMap->get("master_id").toInt();
 					} catch (...) {
-						DDEBUG_V("MasterId NOT EXIST : %s", modelName.toStdString().c_str());
+						DDEBUG_V("MasterId NOT EXIST : %s", modelRName.toStdString().c_str());
 						return false;
 					}
 					try { modelType = QString::fromStdString(modelMap->get("type").toString()); } catch (...) {}
@@ -74,7 +71,7 @@ bool TeachingUtil::importTask(QString& strFName, std::vector<TaskModelParamPtr>&
           try { rotZ = modelMap->get("rot_z").toDouble(); } catch (...) {}
 
           if (modelType.length() == 0) modelType = "Env";
-					ModelParamPtr modelParam = std::make_shared<ModelParam>(NULL_ID, master_id, getModelType(modelType), modelName, modelRName, posX, posY, posZ, rotX, rotY, rotZ, true);
+					ModelParamPtr modelParam = std::make_shared<ModelParam>(NULL_ID, master_id, getModelType(modelType), modelRName, posX, posY, posZ, rotX, rotY, rotZ, true);
           taskParam->addModel(modelParam);
         }
         DDEBUG("Load Model Finished");
@@ -90,8 +87,9 @@ bool TeachingUtil::importTask(QString& strFName, std::vector<TaskModelParamPtr>&
           QString paramRName = "";
           QString paramUnit = "";
           QString paramValue = "";
-          int paramNum;
-					int hide;
+          int type, paramNum, hide;
+          int model_id = NULL_ID;
+          int model_param_id = NULL_ID;
 
           try { paramName = QString::fromStdString(paramMap->get("name").toString()); } catch (...) {}
           try {
@@ -100,12 +98,20 @@ bool TeachingUtil::importTask(QString& strFName, std::vector<TaskModelParamPtr>&
             DDEBUG_V("Parameter RName NOT EXIST : %s", paramName.toStdString().c_str());
             return false;
           }
+          try {
+            type = paramMap->get("type").toInt();
+          } catch (...) {
+            DDEBUG_V("Parameter Type NOT EXIST : %s", paramName.toStdString().c_str());
+            return false;
+          }
           try { paramUnit = QString::fromStdString(paramMap->get("units").toString()); } catch (...) {}
           try { paramNum = paramMap->get("elem_num").toInt(); } catch (...) {}
           try { paramValue = QString::fromStdString(paramMap->get("values").toString()); } catch (...) {}
-					try { hide = paramMap->get("hide").toInt(); } catch (...) {}
+          try { model_id = paramMap->get("model_id").toInt(); } catch (...) {}
+          try { model_param_id = paramMap->get("model_param_id").toInt(); } catch (...) {}
+          try { hide = paramMap->get("hide").toInt(); } catch (...) {}
 
-					ParameterParamPtr param = std::make_shared<ParameterParam>(NULL_ID, paramNum, -1, paramName, paramRName, paramUnit, hide);
+					ParameterParamPtr param = std::make_shared<ParameterParam>(NULL_ID, type, paramNum, NULL_ID, paramName, paramRName, paramUnit, model_id, model_param_id, hide);
           param->setDBValues(paramValue);
           param->setNewForce();
           taskParam->addParameter(param);
@@ -363,7 +369,6 @@ bool TeachingUtil::exportTask(QString& strFName, TaskModelParamPtr targetTask) {
 			ModelParamPtr param = targetTask->getModelList()[index];
       if (param->getMode() == DB_MODE_DELETE || param->getMode() == DB_MODE_IGNORE) continue;
       MappingPtr modelNode = modelsNode->newMapping();
-      modelNode->write("name", param->getName().toUtf8(), DOUBLE_QUOTED);
 			modelNode->write("rname", param->getRName().toUtf8(), DOUBLE_QUOTED);
 			modelNode->write("master_id", param->getMasterId());
 			string strType = "";
@@ -459,13 +464,16 @@ bool TeachingUtil::exportTask(QString& strFName, TaskModelParamPtr targetTask) {
 			ParameterParamPtr param = targetTask->getParameterList()[index];
       if (param->getMode() == DB_MODE_DELETE || param->getMode() == DB_MODE_IGNORE) continue;
       MappingPtr paramNode = paramsNode->newMapping();
+      paramNode->write("type", param->getType());
       paramNode->write("name", param->getName().toUtf8(), DOUBLE_QUOTED);
       paramNode->write("rname", param->getRName().toUtf8(), DOUBLE_QUOTED);
       paramNode->write("units", param->getUnit().toUtf8(), DOUBLE_QUOTED);
       paramNode->write("elem_num", param->getElemNum());
       paramNode->write("values", param->getDBValues().toUtf8(), DOUBLE_QUOTED);
-			paramNode->write("hide", param->getHide());
-		}
+			paramNode->write("model_id", param->getModelId());
+      paramNode->write("model_param_id", param->getModelParamId());
+      paramNode->write("hide", param->getHide());
+    }
   }
   //
   if (0 < targetTask->getFileList().size()) {
@@ -760,6 +768,20 @@ QTableWidgetItem* UIUtil::makeTableItem(QTableWidget* table, int rowNo, int colN
   target->setData(Qt::UserRole, 1);
   target->setText(text);
   return target;
+}
+
+QString UIUtil::getTypeName(int source) {
+  QString result = "";
+
+  switch (source) {
+    case 0:
+      result = "Normal";
+      break;
+    case 1:
+      result = "Model";
+      break;
+  }
+  return result;
 }
 /////
 bool SettingManager::loadSetting() {

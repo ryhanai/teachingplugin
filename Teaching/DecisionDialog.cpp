@@ -14,19 +14,23 @@ DesisionDialog::DesisionDialog(TaskModelParamPtr param, ElementStmParamPtr stmPa
   this->targetTask_ = param;
   this->targetStm_ = stmParam;
   //
-  lstModel = UIUtil::makeTableWidget(2, true);
+  lstModel = UIUtil::makeTableWidget(1, true);
   lstModel->setColumnWidth(0, 200);
-  lstModel->setColumnWidth(1, 150);
-  lstModel->setHorizontalHeaderLabels(QStringList() << "Name" << "ID");
+  lstModel->setHorizontalHeaderLabels(QStringList() << "ID");
   //
-  lstParam = UIUtil::makeTableWidget(2, true);
+  lstParam = UIUtil::makeTableWidget(6, true);
   lstParam->setColumnWidth(0, 200);
-  lstParam->setColumnWidth(1, 150);
-  lstParam->setHorizontalHeaderLabels(QStringList() << "Name" << "ID");
+  lstParam->setColumnWidth(1, 140);
+  lstParam->setColumnWidth(2, 50);
+  lstParam->setColumnWidth(3, 30);
+  lstParam->setColumnWidth(4, 80);
+  lstParam->setColumnWidth(5, 80);
+  lstParam->setHorizontalHeaderLabels(QStringList() << "Name" << "ID" << "Type" << "Num" << "Model" << "Model Param");
   //
   txtCondition = new QTextEdit;
 
   QFrame* frmRef = new QFrame;
+  frmRef->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
   QVBoxLayout* refLayout = new QVBoxLayout;
   refLayout->setContentsMargins(0, 0, 0, 0);
   frmRef->setLayout(refLayout);
@@ -37,9 +41,10 @@ DesisionDialog::DesisionDialog(TaskModelParamPtr param, ElementStmParamPtr stmPa
   splitter->addWidget(frmRef);
   splitter->addWidget(txtCondition);
   QList<int> initSizes;
-  initSizes.append(400);
-  initSizes.append(800);
+  initSizes.append(650);
+  initSizes.append(550);
   splitter->setSizes(initSizes);
+  splitter->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
   //
   QFrame* frmButtons = new QFrame;
   QPushButton* btnOK = new QPushButton(_("OK"));
@@ -69,12 +74,31 @@ DesisionDialog::DesisionDialog(TaskModelParamPtr param, ElementStmParamPtr stmPa
 
 void DesisionDialog::showParamInfo() {
 	vector<ParameterParamPtr> paramList = targetTask_->getActiveParameterList();
+  vector<ModelParamPtr> modelList = targetTask_->getActiveModelList();
   for (int index = 0; index < paramList.size(); index++) {
 		ParameterParamPtr param = paramList[index];
     int row = lstParam->rowCount();
     lstParam->insertRow(row);
     UIUtil::makeTableItem(lstParam, row, 0, param->getName());
     UIUtil::makeTableItem(lstParam, row, 1, param->getRName());
+    UIUtil::makeTableItem(lstParam, row, 2, UIUtil::getTypeName(param->getType()));
+    UIUtil::makeTableItem(lstParam, row, 3, QString::number(param->getElemNum()));
+
+    QString strModel = "";
+    QString strModelParam = "";
+    if (param->getType() == PARAM_KIND_MODEL) {
+      vector<ModelParamPtr>::iterator targetModel = find_if(modelList.begin(), modelList.end(), ModelParamComparator(param->getModelId()));
+      if (targetModel != modelList.end()) {
+        strModel = (*targetModel)->getRName();
+        vector<ModelParameterParamPtr> modelParamList = (*targetModel)->getModelMaster()->getActiveParamList();
+        vector<ModelParameterParamPtr>::iterator targetModelParam = find_if(modelParamList.begin(), modelParamList.end(), ModelMasterParamComparator(param->getModelParamId()));
+        if (targetModelParam != modelParamList.end()) {
+          strModelParam = (*targetModelParam)->getName();
+        }
+      }
+    }
+    UIUtil::makeTableItem(lstParam, row, 4, strModel);
+    UIUtil::makeTableItem(lstParam, row, 5, strModelParam);
   }
 }
 
@@ -84,8 +108,7 @@ void DesisionDialog::showModelInfo() {
 		ModelParamPtr param = modelList[index];
     int row = lstModel->rowCount();
     lstModel->insertRow(row);
-    UIUtil::makeTableItem(lstModel, row, 0, param->getName());
-    UIUtil::makeTableItem(lstModel, row, 1, param->getRName());
+    UIUtil::makeTableItem(lstModel, row, 0, param->getRName());
   }
 }
 
