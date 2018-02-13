@@ -1011,6 +1011,7 @@ vector<ModelMasterParamPtr> DatabaseManager::getModelMasterList() {
 
 		ModelMasterParamPtr param = std::make_shared<ModelMasterParam>(model_id, name, fileName);
 		param->setData(query.value(3).toByteArray());
+    param->setHash(query.value(4).toString());
     param->setImageFileName(query.value(5).toByteArray());
     param->setRawData(query.value(6).toByteArray());
     param->loadData();
@@ -1073,12 +1074,6 @@ bool DatabaseManager::saveModelMasterList(vector<ModelMasterParamPtr> target) {
 		ModelMasterParamPtr source = target[index];
 		source->setOrgId(source->getId());
 		DDEBUG_V("saveModelMasterList : %d, Mode=%d", source->getId(), source->getMode());
-    //TODO for Convert
-    //QString txtData = QString::fromUtf8(source->getData());
-    //QString strHash = TeachingUtil::getSha1Hash(txtData.toStdString().c_str(), txtData.toStdString().length());
-    //source->setHash(strHash);
-    //source->setUpdate();
-    //TODO for Convert
 
 		if (source->getMode() == DB_MODE_INSERT) {
       DDEBUG_V("saveModelMasterList INSERT %d", index);
@@ -1444,6 +1439,62 @@ bool DatabaseManager::saveFileData(int parentId, FileDataParamPtr source) {
     source->setIgnore();
   }
   return true;
+}
+
+void DatabaseManager::reNewModelMaster(ModelMasterParamPtr target) {
+  //対象データの存在チェック
+  {
+    string strQuery = "SELECT name FROM M_MODEL WHERE model_id = '" + toStr(target->getId()) + "'";
+    QSqlQuery query(db_);
+    if (query.exec(strQuery.c_str()) == false) return;
+    if (!query.next()) return;
+  }
+  //同一ハッシュデータの取得
+  {
+    vector<int> idList;
+    string strQuery = "SELECT model_id FROM M_MODEL WHERE hash = '" + target->getHash().toStdString() + "'";
+    QSqlQuery query(db_);
+    if (query.exec(strQuery.c_str()) == false) return;
+    while (query.next()) {
+      int id = query.value(0).toInt();
+      idList.push_back(id);
+    }
+    if (idList.size() <= 1) return;
+
+    int baseId = idList[0];
+    for (int index = 1; index < idList.size(); index++) {
+      int targetId = idList[index];
+      db_.rollback();
+      {
+        string strQuery = "UPDATE T_MODEL_INFO ";
+        strQuery += "SET model_master_id = ? ";
+        strQuery += "WHERE model_master_id = ?";
+        QSqlQuery query(QString::fromStdString(strQuery));
+        query.addBindValue(baseId);
+        query.addBindValue(targetId);
+        query.exec();
+      }
+      {
+        string strQuery = "DELETE FROM M_MODEL_PARAMETER WHERE model_id = ?";
+        QSqlQuery query(QString::fromStdString(strQuery));
+        query.addBindValue(targetId);
+        query.exec();
+      }
+      {
+        string strQuery = "DELETE FROM M_MODEL_DETAIL WHERE model_id = ?";
+        QSqlQuery query(QString::fromStdString(strQuery));
+        query.addBindValue(targetId);
+        query.exec();
+      }
+      {
+        string strQuery = "DELETE FROM M_MODEL WHERE model_id = ?";
+        QSqlQuery query(QString::fromStdString(strQuery));
+        query.addBindValue(targetId);
+        query.exec();
+      }
+      db_.commit();
+    }
+  }
 }
 
 }

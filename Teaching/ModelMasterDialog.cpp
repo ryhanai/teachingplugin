@@ -5,6 +5,8 @@
 #include "gettext.h"
 #include "LoggerUtil.h"
 
+#include "DataBaseManager.h"
+
 using namespace std;
 using namespace boost;
 using namespace cnoid;
@@ -101,11 +103,14 @@ namespace teaching {
 
   QFrame* frmBotButtons = new QFrame;
   QPushButton* btnOK = new QPushButton(_("OK"));
-	QPushButton* btnCancel = new QPushButton(_("Cancel"));
+  QPushButton* btnReNew = new QPushButton(_("ReNew"));
+  QPushButton* btnCancel = new QPushButton(_("Cancel"));
 	QHBoxLayout* buttonBotLayout = new QHBoxLayout(frmBotButtons);
   buttonBotLayout->setContentsMargins(2, 2, 2, 2);
 	buttonBotLayout->addWidget(btnCancel);
-	buttonBotLayout->addStretch();
+  buttonBotLayout->addStretch();
+  buttonBotLayout->addWidget(btnReNew);
+  buttonBotLayout->addStretch();
   buttonBotLayout->addWidget(btnOK);
 
   QVBoxLayout* mainLayout = new QVBoxLayout;
@@ -125,6 +130,7 @@ namespace teaching {
   connect(btnOK, SIGNAL(clicked()), this, SLOT(okClicked()));
 	connect(btnCancel, SIGNAL(clicked()), this, SLOT(cancelClicked()));
 	connect(this, SIGNAL(rejected()), this, SLOT(cancelClicked()));
+  connect(btnReNew, SIGNAL(clicked()), this, SLOT(reNewClicked()));
 
   setWindowTitle(_("Models"));
   resize(1200, 350);
@@ -327,6 +333,27 @@ void ModelMasterDialog::okClicked() {
 
 void ModelMasterDialog::cancelClicked() {
 	close();
+}
+
+void ModelMasterDialog::reNewClicked() {
+  //ハッシュ値の生成
+  vector<ModelMasterParamPtr> modelList = DatabaseManager::getInstance().getModelMasterList();
+  for (int index = 0; index < modelList.size(); index++) {
+    ModelMasterParamPtr target = modelList[index];
+    if (0 < target->getHash().length()) continue;
+    QString txtData = QString::fromUtf8(target->getData());
+    QString strHash = TeachingUtil::getSha1Hash(txtData.toStdString().c_str(), txtData.toStdString().length());
+    target->setHash(strHash);
+    target->setUpdate();
+  }
+  DatabaseManager::getInstance().saveModelMasterList(modelList);
+  //重複データの削除
+  modelList = DatabaseManager::getInstance().getModelMasterList();
+  for (int index = 0; index < modelList.size(); index++) {
+    ModelMasterParamPtr target = modelList[index];
+    DatabaseManager::getInstance().reNewModelMaster(target);
+  }
+  QMessageBox::information(this, _("Database"), _("Database updated"));
 }
 
 }

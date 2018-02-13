@@ -33,6 +33,7 @@ private Q_SLOTS:
 	void deleteModelParamClicked();
 	void okClicked();
 	void cancelClicked();
+  void reNewClicked();
 
 private:
   QTableWidget* lstModel;

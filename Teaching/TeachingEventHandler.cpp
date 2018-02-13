@@ -1352,6 +1352,7 @@ bool TeachingEventHandler::mmd_OkClicked(QString name, QString fileName, QString
 }
 
 bool TeachingEventHandler::mmd_Check() {
+  if (mmd_CurrentModel_->getMode() != DB_MODE_INSERT) return false;
   QString txtData = QString::fromUtf8(mmd_CurrentModel_->getData());
   QString strHash = TeachingUtil::getSha1Hash(txtData.toStdString().c_str(), txtData.toStdString().length());
   int ret = DatabaseManager::getInstance().checkModelMaster(strHash);

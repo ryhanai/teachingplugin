@@ -56,6 +56,7 @@ public:
 	bool saveModelMasterList(vector<ModelMasterParamPtr> target);
 
   inline QString getErrorStr() const { return this->errorStr_; }
+  void reNewModelMaster(ModelMasterParamPtr target);
 
 private:
   QSqlDatabase db_;
