@@ -78,9 +78,13 @@ private:
 
   vector<ElementStmParamPtr> getFlowStateParams(int flow_id);
   vector<ConnectionStmParamPtr> getFlowTransParams(int flow_id);
+  vector<FlowModelParamPtr> getFlowModelParams(int flow_id);
+  vector<FlowParameterParamPtr> getFlowParamerer(int flow_id);
 
   bool saveFlowStmData(int parentId, ElementStmParamPtr source);
   bool saveFlowTransactionStmData(int parentId, vector<ConnectionStmParamPtr>& source);
+  bool saveFlowModelParam(int parentId, vector<FlowModelParamPtr>& source);
+  bool saveFlowParameter(int parentId, vector<FlowParameterParamPtr>& source);
 
   /////
   bool saveFlowData(FlowParamPtr source);

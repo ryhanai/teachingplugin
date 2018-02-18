@@ -18,12 +18,17 @@ public:
 	FlowEditor(const FlowEditor&) = delete;
 	FlowEditor operator=(const FlowEditor&) = delete;
 
-  void createStateMachine(std::vector<ElementStmParamPtr>& elemList, std::vector<ConnectionStmParamPtr>& connList);
+  void createStateMachine(FlowParamPtr target);
 	void updateTargetParam();
 	void updatingParamInfo(TaskModelParamPtr targetTask, ElementStmParamPtr targetState);
 
+public Q_SLOTS:
+  void deleteSelectedNodes();
+
 protected:
   void contextMenuEvent(QContextMenuEvent *event) override;
+
+  void keyReleaseEvent(QKeyEvent *event) override;
 
 	void dragEnterEvent(QDragEnterEvent* event);
 	void dragMoveEvent(QDragMoveEvent *event);

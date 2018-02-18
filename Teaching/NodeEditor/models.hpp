@@ -195,6 +195,12 @@ public:
 
   virtual ~ParamDataModel() {}
 
+  inline QString getName() const { return _paramEdit->getName(); }
+  inline QString getValue() const { return _paramEdit->getValue(); }
+  inline void setParamInfo(QString name, QString value) {
+    _paramEdit->setParamInfo(name, value);
+  }
+
 public:
 
   QString caption() const override {
@@ -518,7 +524,7 @@ class TransformDataModel : public NodeDataModel {
 
 public:
   
-  TransformDataModel() {
+  TransformDataModel() : _modelEdit(new ModelWidget()) {
     canMany_ = true;
   }
 
@@ -526,22 +532,22 @@ public:
 
 public:
 
+  void initialize() {
+    _modelEdit->showModelInfo();
+  }
+
+  inline int getMasterId() const { return _modelEdit->getMasterId(); }
+  inline int getMasterParamId() const { return _modelEdit->getMasterParamId(); }
+  inline void setMasterInfo(int masterId, int masterParamId) {
+    _modelEdit->setMasterInfo(masterId, masterParamId);
+  }
+
   QString caption() const override {
-    return _nodeName;
+    return QString("Model Param");
   }
-
-  QString portCaption(PortType portType, PortIndex portIndex) const override {
-    if (portType == PortType::Out) {
-      return portNames.at(portIndex).name_;
-    }
-
-    return QString("");
-  }
-
-  bool portCaptionVisible(PortType portType, PortIndex portIndex) const override { return true; }
 
   QString name() const override {
-    return QString("3D Model");
+    return QString("Model Param");
   }
 
   std::unique_ptr<NodeDataModel> clone() const override {
@@ -564,7 +570,7 @@ public:
     if (portType == PortType::In) {
       return 0;
     } else {
-      return portNames.size();
+      return 1;
     }
   }
   
@@ -580,17 +586,9 @@ public:
     //
   }
 
-  QWidget * embeddedWidget() override { return nullptr; }
-
-public:
-  void setTaskName(QString const &taskName) override {
-    _nodeName = taskName;
-  }
-  QString taskName() const override {
-    return _nodeName;
-  }
+  QWidget * embeddedWidget() override { return _modelEdit; }
 
 private:
-  QString _nodeName = "unknown model";
+  ModelWidget* _modelEdit;
 
 };

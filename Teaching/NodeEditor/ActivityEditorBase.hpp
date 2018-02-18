@@ -28,11 +28,9 @@ public:
 public Q_SLOTS:
 	void scaleUp();
 	void scaleDown();
-	void deleteSelectedNodes();
 
 protected:
 	void keyPressEvent(QKeyEvent *event) override;
-	void keyReleaseEvent(QKeyEvent *event) override;
 
 	void mousePressEvent(QMouseEvent *event) override;
 	void mouseMoveEvent(QMouseEvent *event) override;

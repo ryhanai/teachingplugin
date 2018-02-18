@@ -208,25 +208,26 @@ vector<ConnectionStmParamPtr> DatabaseManager::getFlowTransParams(int flowId) {
 
   string strStmId = toStr(flowId);
   string strStmQuery = "SELECT ";
-  strStmQuery += "trans_id, flow_id, source_id, source_index, target_id, target_index ";
+  strStmQuery += "trans_id, flow_id, type, source_id, source_index, target_id, target_index ";
   strStmQuery += "FROM T_FLOW_TRANSITION ";
   strStmQuery += "WHERE flow_id = " + strStmId + " ORDER BY trans_id";
   QSqlQuery stmQuery(db_);
   stmQuery.exec(strStmQuery.c_str());
   while (stmQuery.next()) {
     int trans_id = stmQuery.value(0).toInt();
-    int source_id = stmQuery.value(2).toInt();
-    int source_index = stmQuery.value(3).toInt();
-    int target_id = stmQuery.value(4).toInt();
-    int target_index = stmQuery.value(5).toInt();
+    int type = stmQuery.value(2).toInt();
+    int source_id = stmQuery.value(3).toInt();
+    int source_index = stmQuery.value(4).toInt();
+    int target_id = stmQuery.value(5).toInt();
+    int target_index = stmQuery.value(6).toInt();
     //
-		ConnectionStmParamPtr param = std::make_shared<ConnectionStmParam>(trans_id, source_id, source_index, target_id, target_index);
+		ConnectionStmParamPtr param = std::make_shared<ConnectionStmParam>(trans_id, type, source_id, source_index, target_id, target_index);
     result.push_back(param);
   }
   return result;
 }
 
-bool DatabaseManager::saveFlowTransactionStmData(int parentId, vector<ConnectionStmParamPtr>&  source) {
+bool DatabaseManager::saveFlowTransactionStmData(int parentId, vector<ConnectionStmParamPtr>& source) {
 	DDEBUG_V("DatabaseManager::saveFlowTransactionStmData : %d", parentId);
 
 	string strQuery = "DELETE FROM T_FLOW_TRANSITION ";
@@ -243,13 +244,14 @@ bool DatabaseManager::saveFlowTransactionStmData(int parentId, vector<Connection
 		ConnectionStmParamPtr param = source[index];
 
 		string strQuery = "INSERT INTO T_FLOW_TRANSITION ";
-		strQuery += "(flow_id, trans_id, source_id, source_index, target_id, target_index) ";
-		strQuery += "VALUES ( ?, ?, ?, ?, ?, ? )";
+		strQuery += "(flow_id, trans_id, type, source_id, source_index, target_id, target_index) ";
+		strQuery += "VALUES ( ?, ?, ?, ?, ?, ?, ? )";
 
 		QSqlQuery queryTra(QString::fromStdString(strQuery));
 		queryTra.addBindValue(parentId);
 		queryTra.addBindValue(index + 1);
-		queryTra.addBindValue(param->getSourceId());
+    queryTra.addBindValue(param->getType());
+    queryTra.addBindValue(param->getSourceId());
     queryTra.addBindValue(param->getSourceIndex());
     queryTra.addBindValue(param->getTargetId());
 		queryTra.addBindValue(param->getTargetIndex());
@@ -260,6 +262,135 @@ bool DatabaseManager::saveFlowTransactionStmData(int parentId, vector<Connection
 		}
 		param->setNormal();
 	}
+  //
+  return true;
+}
+/////T_FLOW_MODEL_PARAM/////
+vector<FlowModelParamPtr> DatabaseManager::getFlowModelParams(int flowId) {
+  DDEBUG_V("DatabaseManager::getFlowModelParams : %d", flowId);
+  vector<FlowModelParamPtr> result;
+
+  string strStmId = toStr(flowId);
+  string strStmQuery = "SELECT ";
+  strStmQuery += "flow_id, model_id, master_id, master_param_id, pos_x, pos_y ";
+  strStmQuery += "FROM T_FLOW_MODEL_PARAM ";
+  strStmQuery += "WHERE flow_id = " + strStmId + " ORDER BY model_id";
+  QSqlQuery stmQuery(db_);
+  stmQuery.exec(strStmQuery.c_str());
+  while (stmQuery.next()) {
+    int model_id = stmQuery.value(1).toInt();
+    int master_id = stmQuery.value(2).toInt();
+    int master_param_id = stmQuery.value(3).toInt();
+    double pos_x = stmQuery.value(4).toDouble();
+    double pos_y = stmQuery.value(5).toDouble();
+    //
+    FlowModelParamPtr param = std::make_shared<FlowModelParam>(model_id, master_id, master_param_id);
+    param->setPosX(pos_x);
+    param->setPosY(pos_y);
+    result.push_back(param);
+  }
+  return result;
+}
+
+bool DatabaseManager::saveFlowModelParam(int parentId, vector<FlowModelParamPtr>& source) {
+  DDEBUG_V("DatabaseManager::saveFlowModelParam : %d", parentId);
+
+  string strQuery = "DELETE FROM T_FLOW_MODEL_PARAM ";
+  strQuery += "WHERE flow_id = ?";
+  QSqlQuery query(QString::fromStdString(strQuery));
+  query.addBindValue(parentId);
+  if (!query.exec()) {
+    errorStr_ = "DELETE(T_FLOW_MODEL_PARAM) error:" + query.lastError().databaseText() + "-" + QString::fromStdString(strQuery);
+    return false;
+  }
+  //
+  for (int index = 0; index < source.size(); index++) {
+    FlowModelParamPtr param = source[index];
+    if (param->getMode() == DB_MODE_DELETE || param->getMode() == DB_MODE_IGNORE) continue;
+
+    string strQuery = "INSERT INTO T_FLOW_MODEL_PARAM ";
+    strQuery += "(flow_id, model_id, master_id, master_param_id, pos_x, pos_y) ";
+    strQuery += "VALUES ( ?, ?, ?, ?, ?, ? )";
+
+    QSqlQuery queryTra(QString::fromStdString(strQuery));
+    queryTra.addBindValue(parentId);
+    queryTra.addBindValue(index + 1);
+    queryTra.addBindValue(param->getMasterId());
+    queryTra.addBindValue(param->getMasterParamId());
+    queryTra.addBindValue(param->getPosX());
+    queryTra.addBindValue(param->getPosY());
+
+    if (!queryTra.exec()) {
+      errorStr_ = "INSERT(T_FLOW_MODEL_PARAM) error:" + queryTra.lastError().databaseText();
+      return false;
+    }
+    param->setNormal();
+  }
+  //
+  return true;
+}
+
+/////T_FLOW_PARAMETER/////
+vector<FlowParameterParamPtr> DatabaseManager::getFlowParamerer(int flowId) {
+  DDEBUG_V("DatabaseManager::getFlowParamerer : %d", flowId);
+  vector<FlowParameterParamPtr> result;
+
+  string strStmId = toStr(flowId);
+  string strStmQuery = "SELECT ";
+  strStmQuery += "flow_id, param_id, name, value, pos_x, pos_y ";
+  strStmQuery += "FROM T_FLOW_PARAMETER ";
+  strStmQuery += "WHERE flow_id = " + strStmId + " ORDER BY param_id";
+  QSqlQuery stmQuery(db_);
+  stmQuery.exec(strStmQuery.c_str());
+  while (stmQuery.next()) {
+    int param_id = stmQuery.value(1).toInt();
+    QString name = stmQuery.value(2).toString();
+    QString vallue = stmQuery.value(3).toString();
+    double pos_x = stmQuery.value(4).toDouble();
+    double pos_y = stmQuery.value(5).toDouble();
+    //
+    FlowParameterParamPtr param = std::make_shared<FlowParameterParam>(param_id, name, vallue);
+    param->setPosX(pos_x);
+    param->setPosY(pos_y);
+    result.push_back(param);
+  }
+  return result;
+}
+
+bool DatabaseManager::saveFlowParameter(int parentId, vector<FlowParameterParamPtr>& source) {
+  DDEBUG_V("DatabaseManager::FlowParameterParamPtr : %d", parentId);
+
+  string strQuery = "DELETE FROM T_FLOW_PARAMETER ";
+  strQuery += "WHERE flow_id = ?";
+  QSqlQuery query(QString::fromStdString(strQuery));
+  query.addBindValue(parentId);
+  if (!query.exec()) {
+    errorStr_ = "DELETE(T_FLOW_PARAMETER) error:" + query.lastError().databaseText() + "-" + QString::fromStdString(strQuery);
+    return false;
+  }
+  //
+  for (int index = 0; index < source.size(); index++) {
+    FlowParameterParamPtr param = source[index];
+    if (param->getMode() == DB_MODE_DELETE || param->getMode() == DB_MODE_IGNORE) continue;
+
+    string strQuery = "INSERT INTO T_FLOW_PARAMETER ";
+    strQuery += "(flow_id, param_id, name, value, pos_x, pos_y) ";
+    strQuery += "VALUES ( ?, ?, ?, ?, ?, ? )";
+
+    QSqlQuery queryTra(QString::fromStdString(strQuery));
+    queryTra.addBindValue(parentId);
+    queryTra.addBindValue(index + 1);
+    queryTra.addBindValue(param->getName());
+    queryTra.addBindValue(param->getValue());
+    queryTra.addBindValue(param->getPosX());
+    queryTra.addBindValue(param->getPosY());
+
+    if (!queryTra.exec()) {
+      errorStr_ = "INSERT(T_FLOW_PARAMETER) error:" + queryTra.lastError().databaseText();
+      return false;
+    }
+    param->setNormal();
+  }
   //
   return true;
 }
@@ -712,7 +843,7 @@ vector<ConnectionStmParamPtr> DatabaseManager::getTransParams(int instId) {
     int target_id = stmQuery.value(4).toInt();
 		int target_index = stmQuery.value(5).toInt();
     //
-		ConnectionStmParamPtr param = std::make_shared<ConnectionStmParam>(trans_id, source_id, source_index, target_id, target_index);
+		ConnectionStmParamPtr param = std::make_shared<ConnectionStmParam>(trans_id, 0, source_id, source_index, target_id, target_index);
     result.push_back(param);
   }
   return result;

@@ -23,28 +23,6 @@ QAction* ActivityEditorBase::deleteSelectionAction() const {
 	return _deleteSelectionAction;
 }
 
-void ActivityEditorBase::deleteSelectedNodes() {
-  if (TeachingEventHandler::instance()->canEdit() == false) return;
-  // delete the nodes, this will delete many of the connections
-	for (QGraphicsItem * item : _scene->selectedItems()) {
-		if (auto n = qgraphicsitem_cast<NodeGraphicsObject*>(item)) {
-			int targetId = n->node().getParamId();
-			std::vector<ElementStmParamPtr> stateList = targetParam_->getStmElementList();
-			vector<ElementStmParamPtr>::iterator targetElem = find_if(stateList.begin(), stateList.end(), ElementStmParamComparator(targetId));
-			if (targetElem != stateList.end()) {
-				(*targetElem)->setDelete();
-			}
-
-			_scene->removeNode(n->node());
-		}
-	}
-
-	for (QGraphicsItem * item : _scene->selectedItems()) {
-		if (auto c = qgraphicsitem_cast<ConnectionGraphicsObject*>(item))
-			_scene->deleteConnection(c->connection());
-	}
-}
-
 void ActivityEditorBase::wheelEvent(QWheelEvent *event) {
 	QPoint delta = event->angleDelta();
 
@@ -92,22 +70,6 @@ void ActivityEditorBase::keyPressEvent(QKeyEvent *event) {
 	}
 
 	QGraphicsView::keyPressEvent(event);
-}
-
-void ActivityEditorBase::keyReleaseEvent(QKeyEvent *event) {
-	switch (event->key()) {
-	case Qt::Key_Shift:
-		setDragMode(QGraphicsView::ScrollHandDrag);
-		break;
-		
-	case Qt::Key_Delete:
-		deleteSelectedNodes();
-		break;
-
-	default:
-		break;
-	}
-	QGraphicsView::keyReleaseEvent(event);
 }
 
 void ActivityEditorBase::mousePressEvent(QMouseEvent *event) {

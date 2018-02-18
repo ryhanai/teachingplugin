@@ -419,7 +419,34 @@ void TeachingEventHandler::flv_FlowImportClicked() {
 		return;
 	}
 
-	if (TeachingDataHolder::instance()->saveModelMasterList(masterList) == false) {
+  //モデルマスタのチェック
+  for (int index = 0; index < masterList.size(); index++) {
+    ModelMasterParamPtr master = masterList[index];
+    QString txtData = QString::fromUtf8(master->getData());
+    QString strHash = TeachingUtil::getSha1Hash(txtData.toStdString().c_str(), txtData.toStdString().length());
+    int ret = DatabaseManager::getInstance().checkModelMaster(strHash);
+    if (0 < ret) {
+      master->setDelete();
+      for (int idxFlow = 0; idxFlow < flowModelList.size(); idxFlow++) {
+        DDEBUG_V("idxFlow : %d", idxFlow);
+        FlowParamPtr targetFlow = flowModelList[idxFlow];
+        for (int idxTask = 0; idxTask < targetFlow->getStmElementList().size(); idxTask++) {
+          DDEBUG_V("idxTask : %d", idxTask);
+          TaskModelParamPtr task = targetFlow->getStmElementList()[idxTask]->getTaskParam();;
+          if (task) {
+            for (int idxModel = 0; idxModel < task->getModelList().size(); idxModel++) {
+              DDEBUG_V("idxModel : %d", idxModel);
+              ModelParamPtr model = task->getModelList()[idxModel];
+              if (model->getMasterId() == master->getId()) {
+                model->setMasterId(ret);
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+  if (TeachingDataHolder::instance()->saveModelMasterList(masterList) == false) {
 		QMessageBox::warning(flv_, _("Import Flow"), _("FLOW save FAILED"));
 		return;
 	}
@@ -1313,6 +1340,16 @@ void TeachingEventHandler::mmd_RefImageClicked() {
   mmd_CurrentModel_->setImageFileName(strName);
 
   this->mmd_->updateImage(strName, targetImage);
+}
+
+void TeachingEventHandler::mmd_DeleteImageClicked() {
+  if (!mmd_CurrentModel_) return;
+
+  QImage targetImage;
+  mmd_CurrentModel_->setImage(targetImage);
+  mmd_CurrentModel_->setImageFileName("");
+
+  this->mmd_->updateImage("", targetImage);
 }
 
 void TeachingEventHandler::mmd_AddModelClicked() {

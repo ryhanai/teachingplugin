@@ -51,48 +51,12 @@ ModelParameterGroup::ModelParameterGroup(ParameterParamPtr source, ModelParamPtr
   leRz_->setText(QString::number(model->getRotRz(), 'f', 4));
   layout->addWidget(leRz_);
   source->addControl(leRz_);
-  //
-  connect(leX_, SIGNAL(editingFinished()), this, SLOT(modelPositionChanged()));
-  connect(leY_, SIGNAL(editingFinished()), this, SLOT(modelPositionChanged()));
-  connect(leZ_, SIGNAL(editingFinished()), this, SLOT(modelPositionChanged()));
-  connect(leRx_, SIGNAL(editingFinished()), this, SLOT(modelPositionChanged()));
-  connect(leRy_, SIGNAL(editingFinished()), this, SLOT(modelPositionChanged()));
-  connect(leRz_, SIGNAL(editingFinished()), this, SLOT(modelPositionChanged()));
 
   if (targetModel_->getModelMaster()->getModelItem() == NULL) {
     return;
   }
   currentBodyItem_ = targetModel_->getModelMaster()->getModelItem().get();
   connectionToKinematicStateChanged = targetModel_->getModelMaster()->getModelItem().get()->sigKinematicStateChanged().connect(updateKinematicStateLater);
-}
-
-void ModelParameterGroup::modelPositionChanged() {
-  DDEBUG("ModelParameterGroup::modelPositionChanged()");
-
-  if (targetModel_) {
-    if (targetModel_->getModelMaster()->getModelItem()) {
-      double newX = leX_->text().toDouble();
-      double newY = leY_->text().toDouble();
-      double newZ = leZ_->text().toDouble();
-      double newRx = leRx_->text().toDouble();
-      double newRy = leRy_->text().toDouble();
-      double newRz = leRz_->text().toDouble();
-      if (dbl_eq(newX, targetModel_->getPosX()) == false
-        || dbl_eq(newY, targetModel_->getPosY()) == false
-        || dbl_eq(newZ, targetModel_->getPosZ()) == false
-        || dbl_eq(newRx, targetModel_->getRotRx()) == false
-        || dbl_eq(newRy, targetModel_->getRotRy()) == false
-        || dbl_eq(newRz, targetModel_->getRotRz()) == false) {
-        ChoreonoidUtil::updateModelItemPosition(targetModel_->getModelMaster()->getModelItem(), newX, newY, newZ, newRx, newRy, newRz);
-        targetModel_->setPosX(newX);
-        targetModel_->setPosY(newY);
-        targetModel_->setPosZ(newZ);
-        targetModel_->setRotRx(newRx);
-        targetModel_->setRotRy(newRy);
-        targetModel_->setRotRz(newRz);
-      }
-    }
-  }
 }
 
 void ModelParameterGroup::updateKinematicState(bool blockSignals) {
@@ -158,6 +122,7 @@ void ParameterViewImpl::setTaskParam(TaskModelParamPtr param) {
   while (itParam != paramList.end()) {
     (*itParam)->clearControlList();
     QFrame* eachFrame = new QFrame(this);
+    if ((*itParam)->getType() == PARAM_KIND_MODEL) eachFrame->setVisible(false);
     frameList_.push_back(eachFrame);
     QHBoxLayout* eachLayout = new QHBoxLayout;
     eachLayout->setContentsMargins(0, 0, 0, 0);

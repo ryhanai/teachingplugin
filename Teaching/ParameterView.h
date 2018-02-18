@@ -19,9 +19,6 @@ class ModelParameterGroup : public QWidget {
     ModelParameterGroup(ParameterParamPtr source, ModelParamPtr model, QHBoxLayout* layout, QWidget* parent = 0);
     void disconnectKinematics();
 
-    private Q_SLOTS:
-    void modelPositionChanged();
-
   private:
     QLineEdit * leX_;
     QLineEdit* leY_;

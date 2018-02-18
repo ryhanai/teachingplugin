@@ -2,6 +2,8 @@
 #include "ChoreonoidUtil.h"
 #include "TeachingUtil.h"
 //
+#include "NodeEditor/models.hpp"
+
 #include "LoggerUtil.h"
 
 namespace teaching {
@@ -135,7 +137,8 @@ ElementStmParam::~ElementStmParam() {
 }
 
 ConnectionStmParam::ConnectionStmParam(const ConnectionStmParamPtr source)
-  : sourceId_(source->sourceId_), sourceIndex_(source->sourceIndex_),
+  : type_(source->type_),
+    sourceId_(source->sourceId_), sourceIndex_(source->sourceIndex_),
     targetId_(source->targetId_), targetIndex_(source->targetIndex_),
 	  DatabaseParam(source.get())
 {
@@ -442,17 +445,41 @@ FlowParam::FlowParam(const FlowParam* source) : ActivityParam(source) {
     param->setNewForce();
     this->modelList_.push_back(param);
   }
+  for (unsigned int index = 0; index < source->paramList_.size(); index++) {
+    FlowParameterParamPtr param = std::make_shared<FlowParameterParam>(source->paramList_[index].get());
+    param->setNewForce();
+    this->paramList_.push_back(param);
+  }
 }
 
 FlowParam::~FlowParam() {
   modelList_.clear();
+  paramList_.clear();
 }
 
 void FlowModelParam::updatePos() {
+  DDEBUG_V("FlowModelParam::updatePos:%d=%d", id_, mode_);
   if (mode_ == DB_MODE_DELETE || mode_ == DB_MODE_IGNORE) return;
 
   posX_ = realElem_->nodeGraphicsObject().pos().x();
   posY_ = realElem_->nodeGraphicsObject().pos().y();
+
+  masterId_ = ((TransformDataModel*)realElem_->nodeDataModel())->getMasterId();
+  masterParamId_ = ((TransformDataModel*)realElem_->nodeDataModel())->getMasterParamId();
+
+  setUpdate();
+}
+
+void FlowParameterParam::updatePos() {
+  DDEBUG_V("FlowParameterParam::updatePos:%d=%d", id_, mode_);
+  if (mode_ == DB_MODE_DELETE || mode_ == DB_MODE_IGNORE) return;
+
+  posX_ = realElem_->nodeGraphicsObject().pos().x();
+  posY_ = realElem_->nodeGraphicsObject().pos().y();
+
+  name_ = ((ParamDataModel*)realElem_->nodeDataModel())->getName();
+  value_ = ((ParamDataModel*)realElem_->nodeDataModel())->getValue();
+
   setUpdate();
 }
 //////////
@@ -675,6 +702,30 @@ vector<ConnectionStmParamPtr> ActivityParam::getActiveTransitionList() {
 		result.push_back(param);
 	}
 	return result;
+}
+
+int FlowParam::getMaxModelId() {
+  int result = 0;
+  for (int index = 0; index < modelList_.size(); index++) {
+    FlowModelParamPtr target = modelList_[index];
+    if (result < target->getId()) {
+      result = target->getId();
+    }
+  }
+  result++;
+  return result;
+}
+
+int FlowParam::getMaxParamId() {
+  int result = 0;
+  for (int index = 0; index < paramList_.size(); index++) {
+    FlowParameterParamPtr target = paramList_[index];
+    if (result < target->getId()) {
+      result = target->getId();
+    }
+  }
+  result++;
+  return result;
 }
 
 }

@@ -61,11 +61,22 @@ namespace teaching {
   taskLayout->addWidget(btnRefImage, 3, 4, 1, 1);
   taskLayout->addWidget(btnAddModel, 4, 0, 1, 1);
 	taskLayout->addWidget(btnDeleteModel, 4, 4, 1, 1);
-  //
+  ///////
   imageView = new QGraphicsView();
   scene = new QGraphicsScene();
   imageView->setScene(scene);
-	//
+
+  QPushButton* btnDeleteImage = new QPushButton(_("Delete"));
+  btnDeleteImage->setIcon(QIcon(":/Teaching/icons/Delete.png"));
+  btnDeleteImage->setToolTip(_("Delete Model Image."));
+
+  QFrame* frmImage = new QFrame;
+  QGridLayout* imageLayout = new QGridLayout;
+  imageLayout->setContentsMargins(2, 0, 2, 0);
+  frmImage->setLayout(imageLayout);
+  imageLayout->addWidget(imageView, 0, 0, 1, 3);
+  imageLayout->addWidget(btnDeleteImage, 1, 1, 1, 1);
+  ///////
 	lstParam = UIUtil::makeTableWidget(2, false);
 	lstParam->setColumnWidth(0, 100);
 	lstParam->setColumnWidth(1, 300);
@@ -98,7 +109,7 @@ namespace teaching {
 	QFrame* frmBase = new QFrame;
 	QHBoxLayout* baseLayout = new QHBoxLayout(frmBase);
 	baseLayout->addWidget(frmTask, 1);
-  baseLayout->addWidget(imageView, 1);
+  baseLayout->addWidget(frmImage, 1);
   baseLayout->addWidget(frmParam, 1);
 
   QFrame* frmBotButtons = new QFrame;
@@ -127,13 +138,14 @@ namespace teaching {
 	connect(lstParam, SIGNAL(itemSelectionChanged()), this, SLOT(modelParamSelectionChanged()));
 	connect(btnRef, SIGNAL(clicked()), this, SLOT(refClicked()));
   connect(btnRefImage, SIGNAL(clicked()), this, SLOT(refImageClicked()));
+  connect(btnDeleteImage, SIGNAL(clicked()), this, SLOT(deleteImageClicked()));
   connect(btnOK, SIGNAL(clicked()), this, SLOT(okClicked()));
 	connect(btnCancel, SIGNAL(clicked()), this, SLOT(cancelClicked()));
 	connect(this, SIGNAL(rejected()), this, SLOT(cancelClicked()));
   connect(btnReNew, SIGNAL(clicked()), this, SLOT(reNewClicked()));
 
   setWindowTitle(_("Models"));
-  resize(1200, 350);
+  resize(1200, 500);
 
 	TeachingEventHandler::instance()->mmd_Loaded(this);
 }
@@ -271,6 +283,10 @@ void ModelMasterDialog::refClicked() {
 
 void ModelMasterDialog::refImageClicked() {
   TeachingEventHandler::instance()->mmd_RefImageClicked();
+}
+
+void ModelMasterDialog::deleteImageClicked() {
+  TeachingEventHandler::instance()->mmd_DeleteImageClicked();
 }
 
 void ModelMasterDialog::addModelClicked() {

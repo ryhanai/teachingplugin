@@ -31,7 +31,8 @@ private Q_SLOTS:
 	void addModelParamClicked();
 	void deleteModelClicked();
 	void deleteModelParamClicked();
-	void okClicked();
+  void deleteImageClicked();
+  void okClicked();
 	void cancelClicked();
   void reNewClicked();
 

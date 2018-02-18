@@ -82,6 +82,12 @@ enum LogLevel {
   LOG_DEBUG
 };
 
+enum FlowCoonectionType {
+  TYPE_TRANSITION = 0,
+  TYPE_MODEL_PARAM,
+  TYPE_FLOW_PARAM
+};
+
 class DatabaseParam {
 public:
   DatabaseParam(int id) : mode_(DB_MODE_NORMAL), id_(id) {};
@@ -589,8 +595,8 @@ private:
 
 class ConnectionStmParam : public DatabaseParam {
 public:
-	ConnectionStmParam(int id, int sourceId, int sourceIndex, int targetId, int targetIndex)
-		: sourceId_(sourceId), sourceIndex_(sourceIndex), targetId_(targetId), targetIndex_(targetIndex), DatabaseParam(id) {
+	ConnectionStmParam(int id, int type, int sourceId, int sourceIndex, int targetId, int targetIndex)
+		: type_(type), sourceId_(sourceId), sourceIndex_(sourceIndex), targetId_(targetId), targetIndex_(targetIndex), DatabaseParam(id) {
 	};
 	ConnectionStmParam(const ConnectionStmParamPtr source);
 	virtual ~ConnectionStmParam();
@@ -599,6 +605,14 @@ public:
 	inline void setSourceId(int value) {
     if (this->sourceId_ != value) {
       this->sourceId_ = value;
+      setUpdate();
+    }
+  }
+
+  inline int getType() const { return this->type_; }
+  inline void setType(int value) {
+    if (this->type_ != value) {
+      this->type_ = value;
       setUpdate();
     }
   }
@@ -628,7 +642,8 @@ public:
   }
 
 private:
-	int sourceId_;
+  int type_;
+  int sourceId_;
   int sourceIndex_;
   int targetId_;
 	int targetIndex_;
@@ -788,15 +803,25 @@ typedef std::shared_ptr<ImageDataParam> ImageDataParamPtr;
 /////
 class FlowModelParam : public DatabaseParam {
 public:
-  FlowModelParam(int id, int masterId) : masterId_(masterId), DatabaseParam(id) {};
+  FlowModelParam(int id, int masterId, int masterParamId)
+    : masterId_(masterId), masterParamId_(masterParamId), DatabaseParam(id) {};
   FlowModelParam(FlowModelParam* source)
-    : masterId_(source->masterId_), posX_(source->posX_), posY_(source->posY_), realElem_(source->realElem_), DatabaseParam(source) {};
+    : masterId_(source->masterId_), masterParamId_(source->masterParamId_),
+      posX_(source->posX_), posY_(source->posY_), realElem_(source->realElem_), DatabaseParam(source) {};
   ~FlowModelParam() {};
 
   inline int getMasterId() const { return this->masterId_; }
   inline void setMasterId(int value) {
     if (this->masterId_ != value) {
       this->masterId_ = value;
+      setUpdate();
+    }
+  }
+
+  inline int getMasterParamId() const { return this->masterParamId_; }
+  inline void setMasterParamId(int value) {
+    if (this->masterParamId_ != value) {
+      this->masterParamId_ = value;
       setUpdate();
     }
   }
@@ -823,12 +848,68 @@ public:
 
 private:
   int masterId_;
+  int masterParamId_;
   double posX_;
   double posY_;
 
   QtNodes::Node* realElem_;
 };
 typedef std::shared_ptr<FlowModelParam> FlowModelParamPtr;
+/////
+class FlowParameterParam : public DatabaseParam {
+public:
+  FlowParameterParam(int id, QString name, QString value)
+    : name_(name), value_(value), DatabaseParam(id) {};
+  FlowParameterParam(FlowParameterParam* source)
+    : name_(source->name_), value_(source->value_),
+    posX_(source->posX_), posY_(source->posY_), realElem_(source->realElem_), DatabaseParam(source) {};
+  ~FlowParameterParam() {};
+
+  inline QString getName() const { return this->name_; }
+  inline void setName(QString value) {
+    if (this->name_ != value) {
+      this->name_ = value;
+      setUpdate();
+    }
+  }
+
+  inline QString getValue() const { return this->value_; }
+  inline void setValue(QString value) {
+    if (this->value_ != value) {
+      this->value_ = value;
+      setUpdate();
+    }
+  }
+
+  inline double getPosX() const { return this->posX_; }
+  inline void setPosX(double value) {
+    if (dbl_eq(this->posX_, value) == false) {
+      this->posX_ = value;
+      setUpdate();
+    }
+  }
+  inline double getPosY() const { return this->posY_; }
+  inline void setPosY(double value) {
+    if (dbl_eq(this->posY_, value) == false) {
+      this->posY_ = value;
+      setUpdate();
+    }
+  }
+
+  inline void setRealElem(QtNodes::Node* elem) { this->realElem_ = elem; }
+  inline QtNodes::Node* getRealElem() const { return this->realElem_; }
+
+  void updatePos();
+
+private:
+  QString name_;
+  QString value_;
+  double posX_;
+  double posY_;
+
+  QtNodes::Node* realElem_;
+};
+typedef std::shared_ptr<FlowParameterParam> FlowParameterParamPtr;
 /////
 class ActivityParam : public DatabaseParam {
 public:
@@ -964,8 +1045,15 @@ public:
   inline std::vector<FlowModelParamPtr> getModelList() const { return this->modelList_; }
   inline void addModel(FlowModelParamPtr target) { this->modelList_.push_back(target); }
 
+  inline std::vector<FlowParameterParamPtr> getFlowParamList() const { return this->paramList_; }
+  inline void addFlowParam(FlowParameterParamPtr target) { this->paramList_.push_back(target); }
+
+  int getMaxModelId();
+  int getMaxParamId();
+
 private:
   std::vector<FlowModelParamPtr> modelList_;
+  std::vector<FlowParameterParamPtr> paramList_;
 
 };
 typedef std::shared_ptr<FlowParam> FlowParamPtr;
@@ -992,6 +1080,16 @@ struct ModelParamComparatorByRName {
   }
 };
 
+struct ModelMasterComparator {
+  int id_;
+  ModelMasterComparator(int value) {
+    id_ = value;
+  }
+  bool operator()(const ModelMasterParamPtr elem) const {
+    return elem->getId() == id_;
+  }
+};
+
 struct ModelMasterParamComparator {
 	int id_;
   ModelMasterParamComparator(int value) {
@@ -1008,6 +1106,26 @@ struct ElementStmParamComparator {
     id_ = value;
   }
   bool operator()(const ElementStmParamPtr elem) const {
+    return elem->getId() == id_;
+  }
+};
+
+struct FlowModelParamComparator {
+  int id_;
+  FlowModelParamComparator(int value) {
+    id_ = value;
+  }
+  bool operator()(const FlowModelParamPtr elem) const {
+    return elem->getId() == id_;
+  }
+};
+
+struct FlowParameterParamComparator {
+  int id_;
+  FlowParameterParamComparator(int value) {
+    id_ = value;
+  }
+  bool operator()(const FlowParameterParamPtr elem) const {
     return elem->getId() == id_;
   }
 };

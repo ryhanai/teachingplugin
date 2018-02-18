@@ -24,8 +24,12 @@ public:
 
 	void setBreakPoint(bool isBreak);
 
+public Q_SLOTS:
+  void deleteSelectedNodes();
+
 protected:
   //void contextMenuEvent(QContextMenuEvent *event) override;
+  void keyReleaseEvent(QKeyEvent *event) override;
 
 	void dragEnterEvent(QDragEnterEvent* event);
 	void dragMoveEvent(QDragMoveEvent *event);

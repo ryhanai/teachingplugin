@@ -340,7 +340,7 @@ void StateMachineEditor::updateTargetParam() {
 		int targetId = targetNode->getParamId();
     int targetIndex = target->getPortIndex(PortType::In);
     //
-		ConnectionStmParamPtr connParam = std::make_shared<ConnectionStmParam>(connId, sourceId, sourceIndex, targetId, targetIndex);
+		ConnectionStmParamPtr connParam = std::make_shared<ConnectionStmParam>(connId, 0, sourceId, sourceIndex, targetId, targetIndex);
 		connId++;
 		connParam->setNew();
 		targetParam_->addStmConnection(connParam);
@@ -355,4 +355,41 @@ void StateMachineEditor::setBreakPoint(bool isBreak) {
 			target->getRealElem()->setBreak(isBreak);
 		}
 	}
+}
+
+void StateMachineEditor::deleteSelectedNodes() {
+  if (TeachingEventHandler::instance()->canEdit() == false) return;
+  // delete the nodes, this will delete many of the connections
+  for (QGraphicsItem * item : _scene->selectedItems()) {
+    if (auto n = qgraphicsitem_cast<NodeGraphicsObject*>(item)) {
+      int targetId = n->node().getParamId();
+      std::vector<ElementStmParamPtr> stateList = targetParam_->getStmElementList();
+      vector<ElementStmParamPtr>::iterator targetElem = find_if(stateList.begin(), stateList.end(), ElementStmParamComparator(targetId));
+      if (targetElem != stateList.end()) {
+        (*targetElem)->setDelete();
+      }
+      _scene->removeNode(n->node());
+    }
+  }
+
+  for (QGraphicsItem * item : _scene->selectedItems()) {
+    if (auto c = qgraphicsitem_cast<ConnectionGraphicsObject*>(item))
+      _scene->deleteConnection(c->connection());
+  }
+}
+
+void StateMachineEditor::keyReleaseEvent(QKeyEvent *event) {
+  switch (event->key()) {
+    case Qt::Key_Shift:
+      setDragMode(QGraphicsView::ScrollHandDrag);
+      break;
+
+    case Qt::Key_Delete:
+      deleteSelectedNodes();
+      break;
+
+    default:
+      break;
+  }
+  QGraphicsView::keyReleaseEvent(event);
 }

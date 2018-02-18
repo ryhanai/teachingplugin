@@ -350,6 +350,18 @@ msgstr "モデルファイル:"
 msgid "Image File:"
 msgstr "画像ファイル:"
 
+#: ModelMasterDialog.cpp:71
+msgid "Delete Model Image."
+msgstr "画像を削除する"
+
+#: ModelMasterDialog.cpp:91
+msgid "Add new Model Parameter"
+msgstr "モデルパラメータを追加する"
+
+#: ModelMasterDialog.cpp:95
+msgid "Delete selected Model Parameter"
+msgstr "選択したモデルパラメータを削除する"
+
 #: ParameterDialog.cpp:28
 msgid "Add New Parameter"
 msgstr "新規パラメータを追加する"

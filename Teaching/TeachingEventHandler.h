@@ -124,6 +124,7 @@ public:
 	void mmd_ModelParameterSelectionChanged(int newId, QString name, QString desc);
 	void mmd_RefClicked();
   void mmd_RefImageClicked();
+  void mmd_DeleteImageClicked();
   void mmd_AddModelClicked();
 	void mmd_DeleteModelClicked(int id);
 	void mmd_AddModelParamClicked();

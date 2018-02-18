@@ -24,6 +24,7 @@ CREATE TABLE T_FLOW_TRANSITION (
 	source_index	integer not null,
 	target_id		integer not null,
 	target_index	integer not null,
+	type			integer not null,
 	primary key(flow_id, trans_id)
 );
 
@@ -31,9 +32,20 @@ CREATE TABLE T_FLOW_MODEL_PARAM (
 	flow_id			integer not null,
 	model_id		integer not null,
 	master_id		integer not null,
+	master_param_id	integer not null,
 	pos_x			real not null,
 	pos_y			real not null,
 	primary key(flow_id, model_id)
+);
+
+CREATE TABLE T_FLOW_PARAMETER (
+	flow_id			integer  not null,
+	param_id		integer  not null,
+	name			text	 not null,
+	value			text	 not null,
+	pos_x			real	 not null,
+	pos_y			real	 not null,
+	primary key(flow_id, param_id)
 );
 
 CREATE TABLE T_TASK_MODEL_INST (

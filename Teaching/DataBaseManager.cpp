@@ -113,6 +113,18 @@ FlowParamPtr DatabaseManager::getFlowParamById(const int id) {
       result->addStmConnection(*itTrans);
       ++itTrans;
     }
+    vector<FlowModelParamPtr> modelList = getFlowModelParams(id);
+    std::vector<FlowModelParamPtr>::iterator itModel = modelList.begin();
+    while (itModel != modelList.end()) {
+      result->addModel(*itModel);
+      ++itModel;
+    }
+    vector<FlowParameterParamPtr> paramlList = getFlowParamerer(id);
+    std::vector<FlowParameterParamPtr>::iterator itParam = paramlList.begin();
+    while (itParam != paramlList.end()) {
+      result->addFlowParam(*itParam);
+      ++itParam;
+    }
   } catch (const std::exception& ex) {
     return NULL;
   }
@@ -311,6 +323,16 @@ bool DatabaseManager::saveFlowModel(FlowParamPtr source) {
 		db_.rollback();
 		return false;
 	}
+  vector<FlowModelParamPtr> modelParamList = source->getModelList();
+  if (saveFlowModelParam(source->getId(), modelParamList) == false) {
+    db_.rollback();
+    return false;
+  }
+  vector<FlowParameterParamPtr> flowParamList = source->getFlowParamList();
+  if (saveFlowParameter(source->getId(), flowParamList) == false) {
+    db_.rollback();
+    return false;
+  }
   //
   db_.commit();
   return true;

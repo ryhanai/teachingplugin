@@ -212,9 +212,7 @@ void FlowViewImpl::dispView(FlowParamPtr& target) {
 
 void FlowViewImpl::createStateMachine(FlowParamPtr& target) {
 	grhStateMachine->setTargetParam(target);
-  vector<ElementStmParamPtr> stateList = target->getActiveStateList();
-	vector<ConnectionStmParamPtr> transList = target->getActiveTransitionList();
-	grhStateMachine->createStateMachine(stateList, transList);
+	grhStateMachine->createStateMachine(target);
 }
 
 void FlowViewImpl::clearView() {

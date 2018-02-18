@@ -208,7 +208,7 @@ bool TeachingUtil::importTask(QString& strFName, std::vector<TaskModelParamPtr>&
           try { targetIndex = transMap->get("target_index").toInt(); } catch (...) { continue; }
           int newSourceId = stateIdMap[sourceId];
 					int newTargetId = stateIdMap[targetId];
-					ConnectionStmParamPtr connParam = std::make_shared<ConnectionStmParam>(NULL_ID, newSourceId, sourceIndex, newTargetId, targetIndex);
+					ConnectionStmParamPtr connParam = std::make_shared<ConnectionStmParam>(NULL_ID, 0, newSourceId, sourceIndex, newTargetId, targetIndex);
           connParam->setNew();
           taskParam->addStmConnection(connParam);
         }
@@ -573,6 +573,33 @@ bool TeachingUtil::exportFlow(QString& strFName, FlowParamPtr targetFlow) {
     }
   }
   //
+  if (0 < targetFlow->getModelList().size()) {
+    Listing* modelsNode = flowNode->createListing("models");
+    for (int index = 0; index < targetFlow->getModelList().size(); index++) {
+      FlowModelParamPtr param = targetFlow->getModelList()[index];
+      if (param->getMode() == DB_MODE_DELETE || param->getMode() == DB_MODE_IGNORE) continue;
+      MappingPtr modelNode = modelsNode->newMapping();
+      modelNode->write("id", param->getId());
+      modelNode->write("master_id", param->getMasterId());
+      modelNode->write("master_param_id", param->getMasterParamId());
+      modelNode->write("pos_x", param->getPosX());
+      modelNode->write("pos_y", param->getPosY());
+    }
+  }
+  //
+  if (0 < targetFlow->getFlowParamList().size()) {
+    Listing* paramsNode = flowNode->createListing("parameters");
+    for (int index = 0; index < targetFlow->getFlowParamList().size(); index++) {
+      FlowParameterParamPtr param = targetFlow->getFlowParamList()[index];
+      if (param->getMode() == DB_MODE_DELETE || param->getMode() == DB_MODE_IGNORE) continue;
+      MappingPtr paramNode = paramsNode->newMapping();
+      paramNode->write("id", param->getId());
+      paramNode->write("name", param->getName().toUtf8(), DOUBLE_QUOTED);
+      paramNode->write("value", param->getValue().toUtf8(), DOUBLE_QUOTED);
+      paramNode->write("pos_x", param->getPosX());
+      paramNode->write("pos_y", param->getPosY());
+    }
+  }
   //
   if (0 < targetFlow->getStmConnectionList().size()) {
     Listing* connsNode = flowNode->createListing("transitions");
@@ -581,6 +608,7 @@ bool TeachingUtil::exportFlow(QString& strFName, FlowParamPtr targetFlow) {
       if (param->getMode() == DB_MODE_DELETE || param->getMode() == DB_MODE_IGNORE) continue;
       if (param->getSourceId() == param->getTargetId()) continue;
       MappingPtr connNode = connsNode->newMapping();
+      connNode->write("type", param->getType());
       connNode->write("source_id", param->getSourceId());
       connNode->write("target_id", param->getTargetId());
       connNode->write("source_index", param->getSourceIndex());
@@ -673,6 +701,55 @@ bool TeachingUtil::importFlow(QString& strFName, std::vector<FlowParamPtr>& flow
       }
       //
       try {
+        Listing* modelList = flowMap->get("models").toListing();
+        for (int idxModel = 0; idxModel < modelList->size(); idxModel++) {
+          Mapping* modelMap = modelList->at(idxModel)->toMapping();
+          int id, master_id, master_param_id;
+          double posX, posY;
+
+          try { id = modelMap->get("id").toInt(); } catch (...) { continue; }
+          try { master_id = modelMap->get("master_id").toInt(); } catch (...) { continue; }
+          try { master_param_id = modelMap->get("master_param_id").toInt(); } catch (...) { continue; }
+          try { posX = modelMap->get("pos_x").toDouble(); } catch (...) { continue; }
+          try { posY = modelMap->get("pos_y").toDouble(); } catch (...) { continue; }
+
+          FlowModelParamPtr modelParam = std::make_shared<FlowModelParam>(id, master_id, master_param_id);
+          modelParam->setPosX(posX);
+          modelParam->setPosY(posY);
+          modelParam->setNew();
+          flowParam->addModel(modelParam);
+        }
+        DDEBUG("Load Models Finished");
+      } catch (...) {
+        DDEBUG("Load Models Failed");
+      }
+      //
+      try {
+        Listing* paramList = flowMap->get("parameters").toListing();
+        for (int idxParam = 0; idxParam < paramList->size(); idxParam++) {
+          Mapping* paramMap = paramList->at(idxParam)->toMapping();
+          int id;
+          QString name, value;
+          double posX, posY;
+
+          try { id = paramMap->get("id").toInt(); } catch (...) { continue; }
+          try { name = QString::fromStdString(paramMap->get("name").toString()); } catch (...) { continue; }
+          try { value = QString::fromStdString(paramMap->get("value").toString()); } catch (...) { continue; }
+          try { posX = paramMap->get("pos_x").toDouble(); } catch (...) { continue; }
+          try { posY = paramMap->get("pos_y").toDouble(); } catch (...) { continue; }
+
+          FlowParameterParamPtr paramParam = std::make_shared<FlowParameterParam>(id, name, value);
+          paramParam->setPosX(posX);
+          paramParam->setPosY(posY);
+          paramParam->setNew();
+          flowParam->addFlowParam(paramParam);
+        }
+        DDEBUG("Load Params Finished");
+      } catch (...) {
+        DDEBUG("Load Params Failed");
+      }
+      //
+      try {
         Listing* transList;
         try {
           transList = flowMap->get("transactions").toListing();
@@ -682,13 +759,14 @@ bool TeachingUtil::importFlow(QString& strFName, std::vector<FlowParamPtr>& flow
         }
         for (int idxTrans = 0; idxTrans < transList->size(); idxTrans++) {
           Mapping* transMap = transList->at(idxTrans)->toMapping();
-          int sourceId, targetId, sourceIndex, targetIndex;
+          int type, sourceId, targetId, sourceIndex, targetIndex;
 
+          try { type = transMap->get("type").toInt(); } catch (...) { continue; }
           try { sourceId = transMap->get("source_id").toInt(); } catch (...) { continue; }
           try { targetId = transMap->get("target_id").toInt(); } catch (...) { continue; }
           try { sourceIndex = transMap->get("source_index").toInt(); } catch (...) { continue; }
           try { targetIndex = transMap->get("target_index").toInt(); } catch (...) { continue; }
-          ConnectionStmParamPtr connParam = std::make_shared<ConnectionStmParam>(NULL_ID, sourceId, sourceIndex, targetId, targetIndex);
+          ConnectionStmParamPtr connParam = std::make_shared<ConnectionStmParam>(NULL_ID, type, sourceId, sourceIndex, targetId, targetIndex);
           connParam->setNew();
           flowParam->addStmConnection(connParam);
         }
@@ -737,8 +815,6 @@ QString TeachingUtil::getSha1Hash(const void *data, const std::size_t byte_count
   for (; itr != end_itr; ++itr) {
     result = result + QString("%02X").arg(*itr);
   }
-  //QString txtData = QString::fromLatin1(ba);
-  DDEBUG_V("%s", result.toStdString().c_str());
 
   return result;
 }
