@@ -447,6 +447,10 @@ msgstr "指定されたIDが重複しています"
 msgid "The specified ID is duplicated with the model ID."
 msgstr "指定されたIDがモデルIDと重複しています"
 
+#: TeachingEventHandler.cpp:786
+msgid "Incorrect flow parameter connection."
+msgstr "フローパラメータの接続が不適切です"
+
 #: SettingDialog.cpp:17
 msgid "Database:"
 msgstr "データベース:"

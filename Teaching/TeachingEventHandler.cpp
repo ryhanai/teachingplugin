@@ -516,7 +516,7 @@ void TeachingEventHandler::flv_RegistFlowClicked(QString name, QString comment) 
 	}
 
 	stv_->updateTargetParam();
-	flv_->updateTargetParam();
+	flv_->updateTargetFlowParam();
 
 	if (TeachingDataHolder::instance()->saveFlowModel(flv_CurrentFlow_)) {
 		flv_CurrentFlow_ = TeachingDataHolder::instance()->reGetFlowById(flv_CurrentFlow_->getId());
@@ -781,7 +781,14 @@ void TeachingEventHandler::tev_AbortClicked() {
 
 void TeachingEventHandler::flv_RunFlowClicked() {
 	DDEBUG("TeachingEventHandler::flv_RunFlowClicked()");
-	executor_->setCurrentTask(com_CurrentTask_);
+  stv_->updateTargetParam();
+  if (flv_->updateTargetFlowParam() == false) {
+    QMessageBox::warning(prd_, _("FlowView"), _("Incorrect flow parameter connection."));
+    return;
+
+  }
+
+  executor_->setCurrentTask(com_CurrentTask_);
 	executor_->runFlow(flv_CurrentFlow_);
 	com_CurrentTask_ = executor_->getCurrentTask();
 }
@@ -1271,7 +1278,7 @@ void TeachingEventHandler::mmd_ModelSelectionChanged(int newId, QString name, QS
 	ChoreonoidUtil::showAllModelItem();
 	mmd_CurrentModel_ = model;
 
-	this->mmd_->updateContents(model->getName(), model->getFileName(), model->getImageFileName(), &model->getImage());
+  QImage targetImage = model->getImage();	this->mmd_->updateContents(model->getName(), model->getFileName(), model->getImageFileName(), &targetImage);
 	this->mmd_->showParamGrid(model->getActiveParamList());
 	mmd_CurrentParam_ = 0;
 }
@@ -1322,8 +1329,7 @@ void TeachingEventHandler::mmd_RefClicked() {
 	}
 	//ŽQÆƒ‚ƒfƒ‹‚Ì“Ç‚Ýž‚Ý
 	TeachingUtil::loadModelDetail(strFName, mmd_CurrentModel_);
-
-	this->mmd_->updateContents(mmd_CurrentModel_->getName(), mmd_CurrentModel_->getFileName(), mmd_CurrentModel_->getImageFileName(), &mmd_CurrentModel_->getImage());
+  QImage targetImage = mmd_CurrentModel_->getImage();	this->mmd_->updateContents(mmd_CurrentModel_->getName(), mmd_CurrentModel_->getFileName(), mmd_CurrentModel_->getImageFileName(), &targetImage);
 }
 
 void TeachingEventHandler::mmd_RefImageClicked() {

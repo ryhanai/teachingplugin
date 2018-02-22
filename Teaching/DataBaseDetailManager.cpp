@@ -198,6 +198,11 @@ bool DatabaseManager::saveFlowStmData(int parentId, ElementStmParamPtr source) {
       return false;
     }
     source->setIgnore();
+
+    TaskModelParamPtr task = source->getTaskParam();
+    if (task) {
+      deleteTaskModel(task->getId());
+    }
   }
   return true;
 }
@@ -1626,6 +1631,19 @@ void DatabaseManager::reNewModelMaster(ModelMasterParamPtr target) {
       db_.commit();
     }
   }
+}
+//////////////////
+bool DatabaseManager::checkFlowState(int taskId) {
+  string strQuery = "SELECT flow_id ";
+  strQuery += "FROM T_FLOW_STATE WHERE task_inst_id = " + toStr(taskId);
+  QSqlQuery query(db_);
+  if (query.exec(strQuery.c_str()) == false) {
+    DDEBUG_V("error: %s", query.lastError().databaseText().toUtf8().constData());
+  }
+  if (query.next()) {
+    return true;
+  }
+  return false;
 }
 
 }

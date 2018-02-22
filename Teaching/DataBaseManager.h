@@ -58,6 +58,8 @@ public:
   inline QString getErrorStr() const { return this->errorStr_; }
   void reNewModelMaster(ModelMasterParamPtr target);
 
+  bool checkFlowState(int taskId);
+
 private:
   QSqlDatabase db_;
   vector<TaskModelParamPtr> taskModelList_;
@@ -98,7 +100,7 @@ private:
 
 	bool deleteDataById(QString tableName, QString strKey, int id);
 
-  QByteArray image2DB(QString& name, const QImage& source);
+  QByteArray image2DB(const QString& name, const QImage& source);
 };
 
 }

@@ -209,8 +209,8 @@ bool MemberParam::parseVariable(bool isSub) {
     valMode_ = VAL_VECTOR_3D;
 
   } else if ((*targetParam)->getElemNum() == 6) {
-    DDEBUG_V("ElemNum(6) %d,%d,%d", (*targetParam)->getType(), (*targetParam)->getModelParamId(), isSub);
-    if ((*targetParam)->getType()== PARAM_KIND_NORMAL || (*targetParam)->getModelParamId() <= 0 || isSub) {
+    DDEBUG_V("ElemNum(6) %d,%d,%d,%d", (*targetParam)->getType(), (*targetParam)->getExecModelId(), (*targetParam)->getExecModelParamId(), isSub);
+    if ((*targetParam)->getType()== PARAM_KIND_NORMAL || (*targetParam)->getExecModelParamId() <= 0 || isSub) {
       valueVector6d_[0] = (*targetParam)->getNumValues(0);
       valueVector6d_[1] = (*targetParam)->getNumValues(1);
       valueVector6d_[2] = (*targetParam)->getNumValues(2);
@@ -220,12 +220,12 @@ bool MemberParam::parseVariable(bool isSub) {
 
     } else {
       vector<ModelParamPtr> modelList = targetModel_->getModelList();
-      vector<ModelParamPtr>::iterator targetModelItr = find_if(modelList.begin(), modelList.end(), ModelParamComparator((*targetParam)->getModelId()));
+      vector<ModelParamPtr>::iterator targetModelItr = find_if(modelList.begin(), modelList.end(), ModelParamComparator((*targetParam)->getExecModelId()));
       if (targetModelItr == modelList.end()) return false;
 
       ModelMasterParamPtr master = (*targetModelItr)->getModelMaster();
       vector<ModelParameterParamPtr> masterParamList = master->getModelParameterList();
-      vector<ModelParameterParamPtr>::iterator masterParamItr = find_if(masterParamList.begin(), masterParamList.end(), ModelMasterParamComparator((*targetParam)->getModelParamId()));
+      vector<ModelParameterParamPtr>::iterator masterParamItr = find_if(masterParamList.begin(), masterParamList.end(), ModelMasterParamComparator((*targetParam)->getExecModelParamId()));
       if (masterParamItr == masterParamList.end()) return false;
 
       QString desc = (*masterParamItr)->getValueDesc();

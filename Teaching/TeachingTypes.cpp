@@ -175,6 +175,20 @@ void ParameterParam::saveValues() {
   }
 }
 
+void ParameterParam::setFlowValues(QString source) {
+  DDEBUG("ParameterParam::setFlowValues");
+  if (source.size() == 0) return;
+  QStringList valList = source.split(",");
+  valueList_.clear();
+  for (int index = 0; index < valList.size(); index++) {
+    QString each = valList.at(index);
+    valueList_.push_back(each.toUtf8().constData());
+    if (index < controlList_.size()) {
+      controlList_[index]->setText(each);
+    }
+  }
+}
+
 void ParameterParam::setDBValues(QString source) {
   if (source.size() == 0) return;
   QStringList valList = source.split(",");
@@ -204,8 +218,11 @@ void ParameterParam::setValues(int index, QString source) {
 }
 
 ParameterParam::ParameterParam(ParameterParam* source)
-  : elem_num_(source->elem_num_), parent_id_(source->parent_id_),
-		name_(source->name_),	rname_(source->rname_), unit_(source->unit_), hide_(source->hide_),
+  : type_(source->type_), elem_num_(source->elem_num_), parent_id_(source->parent_id_),
+		name_(source->name_),	rname_(source->rname_), unit_(source->unit_),
+    model_id_(source->model_id_), model_param_id_(source->model_param_id_),
+    exec_model_id_(source->exec_model_id_), exec_model_param_id_(source->exec_model_param_id_),
+    hide_(source->hide_),
 	  DatabaseParam(source) {
 	DDEBUG("ParameterParam copy");
   for (unsigned int index = 0; index < source->valueList_.size(); index++) {
@@ -419,6 +436,14 @@ ImageDataParamPtr TaskModelParam::getImageById(int id) {
 	}
 	return 0;
 }
+
+void TaskModelParam::updateExecParam() {
+  for (int index = 0; index < parameterList_.size(); index++) {
+    ParameterParamPtr target = parameterList_[index];
+    if (target->getType() == PARAM_KIND_NORMAL) continue;
+    target->updateExecParam();
+  }
+}
 //////////
 void ImageDataParam::loadData() {
 	if (this->isLoaded_) return;
@@ -564,7 +589,7 @@ bool ActivityParam::checkAndOrderStateMachine() {
   int startFlowCnt = 0;
   std::vector<ConnectionStmParamPtr>::iterator itConnChk = stmConnectionList_.begin();
   while (itConnChk != stmConnectionList_.end()) {
-    if ((*itConnChk)->getMode() == DB_MODE_DELETE || (*itConnChk)->getMode() == DB_MODE_IGNORE) {
+    if ((*itConnChk)->getMode() == DB_MODE_DELETE || (*itConnChk)->getMode() == DB_MODE_IGNORE || (*itConnChk)->getType() != TYPE_TRANSITION) {
       ++itConnChk;
       continue;
     }
@@ -605,11 +630,11 @@ bool ActivityParam::checkAndOrderStateMachine() {
     int falseCnt = 0;
     bool isSet = false;
     while (itConn != stmConnectionList_.end()) {
-      if ((*itConn)->getMode() == DB_MODE_DELETE || (*itConn)->getMode() == DB_MODE_IGNORE) {
+      if ((*itConn)->getMode() == DB_MODE_DELETE || (*itConn)->getMode() == DB_MODE_IGNORE || (*itConn)->getType() != TYPE_TRANSITION) {
         ++itConn;
         continue;
       }
-      //DDEBUG_V("id:%d, source:%d, target:%d",(*itConn)->getId(), (*itConn)->getSourceId(), (*itConn)->getTargetId())
+      //DDEBUG_V("id:%d, source:%d, target:%d, type:%d",(*itConn)->getId(), (*itConn)->getSourceId(), (*itConn)->getTargetId(), (*itConn)->getType())
       if ((*itConn)->getSourceId() == sourceId) {
         int targetId = (*itConn)->getTargetId();
         std::vector<ElementStmParamPtr>::iterator targetElem = std::find_if(stmElemList_.begin(), stmElemList_.end(), ElementStmParamComparator(targetId));
@@ -726,6 +751,16 @@ int FlowParam::getMaxParamId() {
   }
   result++;
   return result;
+}
+
+void FlowParam::updateExecParam() {
+  for (int index = 0; index < stmElemList_.size(); index++) {
+    ElementStmParamPtr target = stmElemList_[index];
+    TaskModelParamPtr targetTask = target->getTaskParam();
+    if (targetTask) {
+      targetTask->updateExecParam();
+    }
+  }
 }
 
 }

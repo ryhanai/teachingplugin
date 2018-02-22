@@ -491,7 +491,7 @@ bool DatabaseManager::deleteDataById(QString tableName, QString strKey, int id) 
 	return true;
 }
 //////////
-QByteArray DatabaseManager::image2DB(QString& name, const QImage& source) {
+QByteArray DatabaseManager::image2DB(const QString& name, const QImage& source) {
   QByteArray result;
   QBuffer buffer(&result);
   buffer.open(QBuffer::WriteOnly);

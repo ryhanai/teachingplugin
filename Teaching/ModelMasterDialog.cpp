@@ -369,6 +369,16 @@ void ModelMasterDialog::reNewClicked() {
     ModelMasterParamPtr target = modelList[index];
     DatabaseManager::getInstance().reNewModelMaster(target);
   }
+  //T_TASK_MODEL_INST‚Ì®—
+  vector<TaskModelParamPtr> taskList = DatabaseManager::getInstance().getAllTask();
+  for (int index = 0; index < taskList.size(); index++) {
+    TaskModelParamPtr targetTask = taskList[index];
+    int flowId = targetTask->getFlowId();
+    if (flowId < 0) continue;
+    if (DatabaseManager::getInstance().checkFlowState(targetTask->getId())) continue;
+    //
+    DatabaseManager::getInstance().deleteTaskModel(targetTask->getId());
+  }
   QMessageBox::information(this, _("Database"), _("Database updated"));
 }
 

@@ -384,9 +384,9 @@ void FlowEditor::createStateMachine(FlowParamPtr target) {
   }
 }
 
-void FlowEditor::updateTargetParam() {
+bool FlowEditor::updateTargetFlowParam() {
   DDEBUG("FlowEditor::updateTargetParam");
-  if (targetParam_ == 0) return;
+  if (targetParam_ == 0) return true;
 
 	vector<ElementStmParamPtr> stateList = targetParam_->getStmElementList();
 	for (int index = 0; index < stateList.size(); index++) {
@@ -394,6 +394,7 @@ void FlowEditor::updateTargetParam() {
 		target->updatePos();
 	}
   FlowParamPtr flowParam = std::dynamic_pointer_cast<FlowParam>(targetParam_);
+  //flowParam
   vector<FlowModelParamPtr> modelList = flowParam->getModelList();
   for (int index = 0; index < modelList.size(); index++) {
     FlowModelParamPtr target = modelList[index];
@@ -429,8 +430,43 @@ void FlowEditor::updateTargetParam() {
     connId++;
     connParam->setNew();
     targetParam_->addStmConnection(connParam);
+    ////////
+    flowParam->updateExecParam();
+    if (type == TYPE_MODEL_PARAM) {
+      //FlowModelParameterÇÃåüçı
+      vector<FlowModelParamPtr>::iterator modelElem = find_if(modelList.begin(), modelList.end(), FlowModelParamComparator(sourceId));
+      if (modelElem == modelList.end()) continue;
+      //TaskParameterÇÃåüçı
+      vector<ElementStmParamPtr>::iterator targetElem = find_if(stateList.begin(), stateList.end(), ElementStmParamComparator(targetId));
+      if (targetElem == stateList.end()) continue;
+
+      Node* orgNode = (*targetElem)->getRealElem();
+      int targetId = orgNode->nodeDataModel()->portNames.at(targetIndex - 1).id_;
+      ParameterParamPtr targetParam = (*targetElem)->getTaskParam()->getParameterById(targetId);
+      targetParam->setExecParamId((*modelElem)->getMasterId(), (*modelElem)->getMasterParamId());
+
+    } else if (type == TYPE_FLOW_PARAM) {
+      //FlowParameterÇÃåüçı
+      vector<FlowParameterParamPtr>::iterator paramElem = find_if(paramList.begin(), paramList.end(), FlowParameterParamComparator(sourceId));
+      if (paramElem == paramList.end()) continue;
+      //TaskParameterÇÃåüçı
+      vector<ElementStmParamPtr>::iterator targetElem = find_if(stateList.begin(), stateList.end(), ElementStmParamComparator(targetId));
+      if (targetElem == stateList.end()) continue;
+
+      Node* orgNode = (*targetElem)->getRealElem();
+      int targetId = orgNode->nodeDataModel()->portNames.at(targetIndex - 1).id_;
+      ParameterParamPtr targetParam = (*targetElem)->getTaskParam()->getParameterById(targetId);
+
+      QString paramValue = (*paramElem)->getValue();
+      if (paramValue.size() == 0) return false;
+      QStringList valList = paramValue.split(",");
+      int size = targetParam->getElemNum();
+      if (valList.size() != size) return false;
+      targetParam->setFlowValues(paramValue);
+      DDEBUG_V("param Value: %s", paramValue.toStdString().c_str());
+    }
 	}
-  DDEBUG("FlowEditor::updateTargetParam End");
+  return true;
 }
 
 void FlowEditor::updatingParamInfo(TaskModelParamPtr targetTask, ElementStmParamPtr targetState) {

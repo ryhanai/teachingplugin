@@ -721,6 +721,17 @@ public:
     }
   }
 
+  inline int getExecModelId() const { return this->exec_model_id_; }
+  inline int getExecModelParamId() const { return this->exec_model_param_id_; }
+  void setExecParamId(int modelId, int model_param_id) {
+    this->exec_model_id_ = modelId;
+    this->exec_model_param_id_ = model_param_id;
+  }
+  void updateExecParam() {
+    this->exec_model_id_ = model_id_;
+    this->exec_model_param_id_ = model_param_id_;
+  }
+
   inline void addControl(QLineEdit* target) { this->controlList_.push_back(target); }
 	inline int getControlNum() const { return this->controlList_.size(); }
 	inline QLineEdit* getControl(int index) { return this->controlList_[index]; }
@@ -732,6 +743,7 @@ public:
   void setDBValues(QString source);
   QString getDBValues();
   void clearControlList() { this->controlList_.clear(); }
+  void setFlowValues(QString source);
 
 private:
   int type_;
@@ -743,6 +755,9 @@ private:
   QString rname_;
   QString unit_;
 	int hide_;
+
+  int exec_model_id_;
+  int exec_model_param_id_;
 
   std::vector<QLineEdit*> controlList_;
   std::vector<QString> valueList_;
@@ -1019,6 +1034,8 @@ public:
   inline bool IsModelLoaded() const { return this->isModelLoaded_; }
   inline void setModelLoaded(bool value) { this->isModelLoaded_ = value; }
 
+  void updateExecParam();
+
 private:
   int flow_id_;
   QString exec_env_;
@@ -1050,6 +1067,7 @@ public:
 
   int getMaxModelId();
   int getMaxParamId();
+  void updateExecParam();
 
 private:
   std::vector<FlowModelParamPtr> modelList_;

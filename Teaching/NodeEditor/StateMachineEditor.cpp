@@ -345,6 +345,8 @@ void StateMachineEditor::updateTargetParam() {
 		connParam->setNew();
 		targetParam_->addStmConnection(connParam);
 	}
+  TaskModelParamPtr taskParam = std::dynamic_pointer_cast<TaskModelParam>(targetParam_);
+  taskParam->updateExecParam();
 }
 
 void StateMachineEditor::setBreakPoint(bool isBreak) {

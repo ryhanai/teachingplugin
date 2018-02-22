@@ -44,7 +44,7 @@ public:
 	void dispView(FlowParamPtr& target);
 	void createStateMachine(FlowParamPtr& target);
 
-	inline void updateTargetParam() { grhStateMachine->updateTargetParam(); };
+	inline bool updateTargetFlowParam() { return grhStateMachine->updateTargetFlowParam(); };
 	void updatingParamInfo(TaskModelParamPtr targetTask, ElementStmParamPtr targetState) { grhStateMachine->updatingParamInfo(targetTask, targetState); };
   void setEditMode(bool canEdit);
 
@@ -94,7 +94,7 @@ public:
   ~FlowView();
 
   inline void setButtonEnableMode(bool isEnable) { viewImpl->setButtonEnableMode(isEnable); }
-	inline void updateTargetParam() { viewImpl->updateTargetParam(); };
+	inline bool updateTargetFlowParam() { return viewImpl->updateTargetFlowParam(); };
 	inline void updatingParamInfo(TaskModelParamPtr targetTask, ElementStmParamPtr targetState) { viewImpl->updatingParamInfo(targetTask, targetState); };
 
 private:

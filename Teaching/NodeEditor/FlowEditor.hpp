@@ -19,7 +19,7 @@ public:
 	FlowEditor operator=(const FlowEditor&) = delete;
 
   void createStateMachine(FlowParamPtr target);
-	void updateTargetParam();
+	bool updateTargetFlowParam();
 	void updatingParamInfo(TaskModelParamPtr targetTask, ElementStmParamPtr targetState);
 
 public Q_SLOTS:
