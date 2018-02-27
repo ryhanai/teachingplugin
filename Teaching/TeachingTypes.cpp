@@ -57,6 +57,11 @@ void ElementStmParam::updatePos() {
 
 	posX_ = realElem_->nodeGraphicsObject().pos().x();
 	posY_ = realElem_->nodeGraphicsObject().pos().y();
+
+  if (taskParam_) {
+    taskParam_->initFlowParam();
+  }
+
 	setUpdate();
 }
 
@@ -176,17 +181,18 @@ void ParameterParam::saveValues() {
 }
 
 void ParameterParam::setFlowValues(QString source) {
-  DDEBUG("ParameterParam::setFlowValues");
+  DDEBUG_V("ParameterParam::setFlowValues: %s,%d", source.toStdString().c_str(), controlList_.size());
   if (source.size() == 0) return;
   QStringList valList = source.split(",");
-  valueList_.clear();
   for (int index = 0; index < valList.size(); index++) {
     QString each = valList.at(index);
-    valueList_.push_back(each.toUtf8().constData());
+    valueList_[index] = each.toUtf8().constData();
     if (index < controlList_.size()) {
+      controlList_[index] = new QLineEdit();
       controlList_[index]->setText(each);
     }
   }
+  DDEBUG("ParameterParam::setFlowValues End");
 }
 
 void ParameterParam::setDBValues(QString source) {
@@ -212,9 +218,24 @@ QString ParameterParam::getDBValues() {
   return result;
 }
 
-void ParameterParam::setValues(int index, QString source) {
+void ParameterParam::setOutValues(int index, QString source) {
   valueList_[index] = source;
   controlList_[index]->setText(source);
+}
+
+void ParameterParam::updateOutValues() {
+  if (flowParam_) {
+    QString strValues = getDBValues();
+    flowParam_->setValue(strValues);
+    QtNodes::Node* node = flowParam_->getRealElem();
+    if (node) {
+      QWidget* widget = node->nodeDataModel()->embeddedWidget();
+      if (widget) {
+        ParamWidget* target = (ParamWidget*)widget;
+        target->setValue(strValues);
+      }
+    }
+  }
 }
 
 ParameterParam::ParameterParam(ParameterParam* source)
@@ -222,7 +243,7 @@ ParameterParam::ParameterParam(ParameterParam* source)
 		name_(source->name_),	rname_(source->rname_), unit_(source->unit_),
     model_id_(source->model_id_), model_param_id_(source->model_param_id_),
     exec_model_id_(source->exec_model_id_), exec_model_param_id_(source->exec_model_param_id_),
-    hide_(source->hide_),
+    hide_(source->hide_), flowParam_(source->flowParam_),
 	  DatabaseParam(source) {
 	DDEBUG("ParameterParam copy");
   for (unsigned int index = 0; index < source->valueList_.size(); index++) {
@@ -339,7 +360,7 @@ void TaskModelParam::setAllNewData() {
 
 TaskModelParam::TaskModelParam(int id, QString name, QString comment, QString execEnv, int flow_id, QString created_date, QString last_updated_date)
   : exec_env_(execEnv), flow_id_(flow_id),
-  isLoaded_(false), isModelLoaded_(false), nextTask_(0), stateParam_(0),
+  isLoaded_(false), isModelLoaded_(false), nextTask_(0), trueTask_(0), falseTask_(0), stateParam_(0),
 	ActivityParam(id, name, comment, created_date, last_updated_date) {
 }
 
@@ -347,6 +368,7 @@ TaskModelParam::TaskModelParam(const TaskModelParam* source)
   :	exec_env_(source->exec_env_), flow_id_(source->flow_id_),
   isLoaded_(source->isLoaded_), isModelLoaded_(source->isModelLoaded_),
   nextTask_(source->nextTask_), stateParam_(source->stateParam_),
+  trueTask_(source->trueTask_), falseTask_(source->falseTask_), flowCondition_(source->flowCondition_),
 	ActivityParam(source) {
 	DDEBUG("TaskModelParam::CopyConstructor");
 
@@ -444,6 +466,14 @@ void TaskModelParam::updateExecParam() {
     target->updateExecParam();
   }
 }
+
+void TaskModelParam::initFlowParam() {
+  DDEBUG("TaskModelParam::initFlowParam");
+  for (int index = 0; index < parameterList_.size(); index++) {
+    ParameterParamPtr target = parameterList_[index];
+    target->clearFlowParam();
+  }
+}
 //////////
 void ImageDataParam::loadData() {
 	if (this->isLoaded_) return;
@@ -506,6 +536,17 @@ void FlowParameterParam::updatePos() {
   value_ = ((ParamDataModel*)realElem_->nodeDataModel())->getValue();
 
   setUpdate();
+}
+
+void FlowParameterParam::setInitialValue() {
+  value_ = orgValue_;
+  if (realElem_) {
+    QWidget* widget = realElem_->nodeDataModel()->embeddedWidget();
+    if (widget) {
+      ParamWidget* target = (ParamWidget*)widget;
+      target->setValue(value_);
+    }
+  }
 }
 //////////
 ActivityParam::ActivityParam(const ActivityParam* source)

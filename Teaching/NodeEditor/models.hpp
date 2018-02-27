@@ -56,6 +56,21 @@ private:
   double _value;
 };
 
+class ModelParamData : public NodeData {
+public:
+
+  ModelParamData() : _value(0.0) {}
+
+  ModelParamData(double const value) : _value(value) {}
+
+  NodeDataType type() const override {
+    return NodeDataType{ "modeldata", "" };
+  }
+
+private:
+
+  double _value;
+};
 //------------------------------------------------------------------------------
 
 /// The model dictates the number of inputs and outputs for the Node.
@@ -134,7 +149,11 @@ public:
 		if (portIndex == 0) {
   		return ControlData().type();
 		} else {
-			return ParamData().type();
+      if (portNames[portIndex - 1].type_ == 1) {
+        return ModelParamData().type();
+      } else {
+        return ParamData().type();
+      }
 		}
   }
 
@@ -575,11 +594,11 @@ public:
   }
   
   NodeDataType dataType(PortType, PortIndex) const override {
-    return ParamData().type();
+    return ModelParamData().type();
   }
 
   std::shared_ptr<NodeData> outData(PortIndex) override {
-    return std::make_shared<ParamData>();
+    return std::make_shared<ModelParamData>();
   }
 
   void setInData(std::shared_ptr<NodeData>, int) override {

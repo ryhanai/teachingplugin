@@ -64,7 +64,7 @@ void TaskExecutor::setRootName(std::string value) {
   handler_->setRootName(value);
 }
 
-bool TaskExecutor::executeCommand(const std::string& commandName, const std::vector<CompositeParamType>& params, bool simulation) {
+bool TaskExecutor::executeCommand(const std::string& commandName, std::vector<CompositeParamType>& params, bool simulation) {
   try {
     return handler_->executeCommand(commandName, params, simulation);
   }

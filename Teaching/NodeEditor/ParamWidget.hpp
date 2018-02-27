@@ -11,7 +11,9 @@ public:
     explicit ParamWidget(QWidget* parent = 0);
 
     inline QString getName() const { return nameEdit->text(); }
+
     inline QString getValue() const { return valueEdit->text(); }
+    inline void setValue(QString value) { valueEdit->setText(value); }
 
     void setParamInfo(QString name, QString value);
 

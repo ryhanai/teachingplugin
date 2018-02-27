@@ -121,9 +121,18 @@ void FlowEditor::contextMenuEvent(QContextMenuEvent *event) {
         flowParam->addModel(fmParam);
 
       } else if (modelName == "Flow Param") {
+        QString nodeName = "";
+        QString nodeValue = "";
+        QWidget* widget = node.nodeDataModel()->embeddedWidget();
+        if (widget) {
+          ParamWidget* target = (ParamWidget*)widget;
+          nodeName = target->getName();
+          nodeValue = target->getValue();
+        }
+        //
         FlowParamPtr flowParam = std::dynamic_pointer_cast<FlowParam>(targetParam_);
         int newId = flowParam->getMaxParamId();
-        FlowParameterParamPtr fmParam = std::make_shared<FlowParameterParam>(newId, "", "");
+        FlowParameterParamPtr fmParam = std::make_shared<FlowParameterParam>(newId, nodeName, nodeValue);
         fmParam->setRealElem(&node);
         fmParam->setNew();
         node.setParamId(fmParam->getId());
@@ -243,7 +252,7 @@ void FlowEditor::dropEvent(QDropEvent* event) {
 			for (int index = 0; index < paramList.size(); index++) {
 				teaching::ParameterParamPtr param = paramList[index];
 				if (param->getHide()) continue;
-				PortInfo info(param->getId(), param->getName());
+				PortInfo info(param->getId(), param->getName(), param->getType());
 				portList.push_back(info);
 			}
 			type->portNames = portList;
@@ -304,7 +313,7 @@ void FlowEditor::createStateMachine(FlowParamPtr target) {
           for (int index = 0; index < paramList.size(); index++) {
             teaching::ParameterParamPtr param = paramList[index];
             if (param->getHide()) continue;
-            PortInfo info(param->getId(), param->getName());
+            PortInfo info(param->getId(), param->getName(), param->getType());
             portList.push_back(info);
           }
           type->portNames = portList;
@@ -456,6 +465,7 @@ bool FlowEditor::updateTargetFlowParam() {
       Node* orgNode = (*targetElem)->getRealElem();
       int targetId = orgNode->nodeDataModel()->portNames.at(targetIndex - 1).id_;
       ParameterParamPtr targetParam = (*targetElem)->getTaskParam()->getParameterById(targetId);
+      targetParam->setFlowParam(*paramElem);
 
       QString paramValue = (*paramElem)->getValue();
       if (paramValue.size() == 0) return false;
@@ -466,18 +476,19 @@ bool FlowEditor::updateTargetFlowParam() {
       DDEBUG_V("param Value: %s", paramValue.toStdString().c_str());
     }
 	}
+  DDEBUG("FlowEditor::updateTargetParam End");
   return true;
 }
 
-void FlowEditor::updatingParamInfo(TaskModelParamPtr targetTask, ElementStmParamPtr targetState) {
-	DDEBUG("FlowEditor::updatingParamInfo");
+void FlowEditor::paramInfoUpdated(TaskModelParamPtr targetTask, ElementStmParamPtr targetState) {
+	DDEBUG("FlowEditor::paramInfoUpdated");
 
 	std::vector<teaching::ParameterParamPtr> paramList = targetTask->getActiveParameterList();
 	vector<PortInfo> portList;
 	for (int index = 0; index < paramList.size(); index++) {
 		teaching::ParameterParamPtr param = paramList[index];
 		if (param->getHide()) continue;
-		PortInfo info(param->getId(), param->getName());
+		PortInfo info(param->getId(), param->getName(), param->getType());
 		portList.push_back(info);
 	}
 

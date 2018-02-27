@@ -1184,8 +1184,6 @@ vector<ModelMasterParamPtr> DatabaseManager::getModelMasterList() {
 			}
 		}
 	}
-
-	DDEBUG_V("getModelMasterList : %d", result.size());
 	return result;
 }
 

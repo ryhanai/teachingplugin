@@ -15,6 +15,7 @@ class TaskInstanceViewImpl : public QWidget {
   Q_OBJECT
 public:
   TaskInstanceViewImpl(QWidget* parent = 0);
+  ~TaskInstanceViewImpl();
 
   void loadTaskInfo();
   void setButtonEnableMode(bool isEnable);
@@ -61,6 +62,8 @@ private:
   int currentTaskIndex_;
 
   bool isSkip_;
+
+  int getSelectedId();
 };
 
 class TaskInstanceView : public cnoid::View {

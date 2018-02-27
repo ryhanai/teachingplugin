@@ -177,7 +177,8 @@ bool PythonWrapper::checkSyntax(TaskModelParamPtr taskParam, QString script, str
     PyObject* excType, *excValue, *excTraceback;
     PyErr_Fetch(&excType, &excValue, &excTraceback);
     PyObject *pystr = PyObject_Str(excValue);
-    errStr = PyString_AsString(pystr);
+    //TODO
+    //errStr = PyString_AsString(pystr);
     return false;
   }
   Py_DECREF(pCodeObj);
@@ -261,17 +262,19 @@ int PythonWrapper::execFunction(string script, vector<string>& result) {
   if (0 <= retSize) {
     for (unsigned int index = 0; index < retSize; index++) {
       PyObject *each = PyList_GetItem(ans_, index);
-      result.push_back(PyString_AsString(each));
+      //TODO
+      //result.push_back(PyString_AsString(each));
       Py_DECREF(each);
     }
   } else {
     PyErr_Clear();
-    string val = PyString_AsString(ans_);
-    if (PyErr_Occurred()) {
-      Py_DECREF(ans_);
-      return ERROR_FUNC_CALL;
-    }
-    result.push_back(val);
+    //TODO 
+    //string val = PyString_AsString(ans_);
+    //if (PyErr_Occurred()) {
+    //  Py_DECREF(ans_);
+    //  return ERROR_FUNC_CALL;
+    //}
+    //result.push_back(val);
   }
   Py_DECREF(ans_);
 
@@ -333,7 +336,8 @@ string PythonWrapper::checkError() {
     PyObject* excType, *excValue, *excTraceback;
     PyErr_Fetch(&excType, &excValue, &excTraceback);
     PyObject *pystr = PyObject_Str(excValue);
-    result = PyString_AsString(pystr);
+    //TODO
+    //result = PyString_AsString(pystr);
   }
   return result;
 }

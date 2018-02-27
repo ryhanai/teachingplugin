@@ -22,6 +22,10 @@ TaskExecuteManager::TaskExecuteManager()
   isBreak_(false), isAbort_(false){
 }
 
+TaskExecuteManager::~TaskExecuteManager() {
+  DDEBUG("TaskExecuteManager Destructor");
+}
+
 void TaskExecuteManager::setButtonEnableMode(bool isEnable) {
   taskInstView->setButtonEnableMode(isEnable);
   flowView_->setButtonEnableMode(isEnable);
@@ -37,33 +41,50 @@ void TaskExecuteManager::runFlow(FlowParamPtr targetFlow) {
     QMessageBox::warning(0, _("Run Flow"), _("Select Target Flow"));
     return;
   }
+  currentFlow_ = targetFlow;
   if (currentTask_) {
     ChoreonoidUtil::unLoadTaskModelItem(currentTask_);
   }
 
 	TeachingEventHandler::instance()->prv_SetInputValues();
 
+  DDEBUG("FlowParam checkAndOrderStateMachine");
   if (targetFlow->checkAndOrderStateMachine()) {
     QMessageBox::warning(0, _("Run Flow"), targetFlow->getErrStr());
     return;
   }
   vector<ElementStmParamPtr> stateList = targetFlow->getStmElementList();
+  TaskModelParamPtr currentTask;
   for (int index = 0; index < stateList.size(); index++) {
 		ElementStmParamPtr targetState = stateList[index];
     if (targetState->getType() != ELEMENT_COMMAND) continue;
     //
-		TaskModelParamPtr targetTask = targetState->getTaskParam();
-    ChoreonoidUtil::unLoadTaskModelItem(targetTask);
+    currentTask = targetState->getTaskParam();
+    ChoreonoidUtil::unLoadTaskModelItem(currentTask);
 
     if (targetState->getMode() == DB_MODE_DELETE || targetState->getMode() == DB_MODE_IGNORE) {
       continue;
     }
-    TeachingUtil::loadTaskDetailData(targetTask);
-    if (targetTask->checkAndOrderStateMachine()) {
-      QMessageBox::warning(0, _("Flow"), targetTask->getErrStr() + " [" + targetTask->getName() + "]");
+    TeachingUtil::loadTaskDetailData(currentTask);
+    DDEBUG("TaskParam checkAndOrderStateMachine");
+    if (currentTask->checkAndOrderStateMachine()) {
+      QMessageBox::warning(0, _("Flow"), currentTask->getErrStr() + " [" + currentTask->getName() + "]");
       return;
     }
-    targetTask->setNextTask(targetState->getNextElem()->getTaskParam());
+
+    if (targetState->getNextElem()->getType() == ELEMENT_DECISION) {
+      ElementStmParamPtr decisionElem = targetState->getNextElem();
+      currentTask->setFlowCondition(decisionElem->getCondition());
+      currentTask->setTrueTask(decisionElem->getTrueElem()->getTaskParam());
+      currentTask->setFalseTask(decisionElem->getFalseElem()->getTaskParam());
+
+    } else if (targetState->getNextElem()->getType() == ELEMENT_MERGE) {
+      ElementStmParamPtr mergeElem = targetState->getNextElem();
+      currentTask->setNextTask(mergeElem->getNextElem()->getTaskParam());
+
+    } else {
+      currentTask->setNextTask(targetState->getNextElem()->getTaskParam());
+    }
   }
   //
   setButtonEnableMode(false);
@@ -311,7 +332,23 @@ ExecResult TaskExecuteManager::doTaskOperation(bool updateCurrentTask) {
       // R.Hanai
 
       prevTask_ = currentTask_;
-      currentTask_ = currentTask_->getNextTask();
+      if (currentTask_->getNextTask()) {
+        currentTask_ = currentTask_->getNextTask();
+      } else {
+        QString cond = currentTask_->getFlowCondition();
+        DDEBUG_V("FlowCondition : %s", cond.toStdString().c_str());
+        if (0 == cond.length()) {
+          currentTask_ = 0;
+        } else {
+          if (checkCondition(cond)) {
+            DDEBUG("TaskExecuteManager::doTaskOperation TRUE");
+            currentTask_ = currentTask_->getTrueTask();
+          } else {
+            DDEBUG("TaskExecuteManager::doTaskOperation FALSE");
+            currentTask_ = currentTask_->getFalseTask();
+          }
+        }
+      }
       //
       if (currentTask_) {
         prepareTask();
@@ -458,6 +495,71 @@ bool TaskExecuteManager::doModelAction() {
   return true;
 }
 
+bool TaskExecuteManager::checkCondition(QString cond) {
+  //TODO
+  if (cond == "true") return true;
+
+  QString strVal;
+  QString strParam;
+  int type;
+  if (cond.contains("==")) {
+    QStringList elems = cond.split("==");
+    strParam = elems[0];
+    strVal = elems[1];
+    type = 1;
+
+  } else if (cond.contains("<=")) {
+    QStringList elems = cond.split("<=");
+    strParam = elems[0];
+    strVal = elems[1];
+    type = 2;
+
+  } else if (cond.contains("<")) {
+    QStringList elems = cond.split("<");
+    strParam = elems[0];
+    strVal = elems[1];
+    type = 3;
+
+  } else if (cond.contains(">=")) {
+    QStringList elems = cond.split(">=");
+    strParam = elems[0];
+    strVal = elems[1];
+    type = 4;
+
+  } else if (cond.contains(">")) {
+    QStringList elems = cond.split(">");
+    strParam = elems[0];
+    strVal = elems[1];
+    type = 5;
+  }
+  DDEBUG_V("strParam:%s", strParam.toStdString().c_str());
+  DDEBUG_V("strVal:%s", strVal.toStdString().c_str());
+  //
+  double targetVal = strVal.toDouble();
+  vector<FlowParameterParamPtr> paramList = currentFlow_->getFlowParamList();
+  vector<FlowParameterParamPtr>::iterator flowParam = find_if(paramList.begin(), paramList.end(), FlowParameterParamByNameComparator(strParam));
+  if (flowParam == paramList.end()) return false;
+  DDEBUG_V("paramVal:%s", (*flowParam)->getValue().toStdString().c_str());
+  double paramVal = (*flowParam)->getValue().toDouble();
+  //
+  switch (type) {
+    case 1:
+      return (paramVal == targetVal);
+    case 2:
+      return (paramVal <= targetVal);
+    case 3:
+      return (paramVal < targetVal);
+    case 4:
+      return (paramVal >= targetVal);
+    case 5:
+      return (paramVal > targetVal);
+    default:
+      return false;
+  }
+  //
+  return false;
+}
+
 void TaskExecuteManager::prepareTask() {
 	DDEBUG("TaskExecuteManager::prepareTask");
 
@@ -483,12 +585,14 @@ void TaskExecuteManager::prepareTask() {
 }
 
 void TaskExecuteManager::setOutArgument(std::vector<CompositeParamType>& parameterList) {
+  DDEBUG("TaskExecuteManager::setOutArgument");
   for (int idxArg = 0; idxArg < currParam_->getArgList().size(); idxArg++) {
     ArgumentDefParam* argDef = currParam_->getCommadDefParam()->getArgList()[idxArg];
     if (argDef->getDirection() != 1) continue;
 
     QString targetStr = currParam_->getArgList()[idxArg]->getValueDesc();
-		ParameterParamPtr targetParam = NULL;
+    DDEBUG_V("targetStr : %s", targetStr.toStdString().c_str());
+    ParameterParamPtr targetParam = NULL;
     for (int idxParam = 0; idxParam < currentTask_->getParameterList().size(); idxParam++) {
 			ParameterParamPtr parmParm = currentTask_->getParameterList()[idxParam];
       if (parmParm->getRName() == targetStr) {
@@ -501,25 +605,26 @@ void TaskExecuteManager::setOutArgument(std::vector<CompositeParamType>& paramet
       if (argDef->getLength() == 1) {
         double result = boost::get<double>(parameterList[idxArg]);
         DDEBUG_V("result : %f, %s", result, targetStr.toStdString().c_str());
-        targetParam->setValues(0, QString::number(result));
+        targetParam->setOutValues(0, QString::number(result));
       } else {
         VectorX result = boost::get<VectorX>(parameterList[idxArg]);
         DDEBUG_V("result size: %d, %s", result.size(), targetStr.toStdString().c_str());
         for (int index = 0; index < result.size(); index++) {
-          targetParam->setValues(index, QString::number(result[index]));
+          targetParam->setOutValues(index, QString::number(result[index]));
         }
       }
 
     } else if (argDef->getType() == "int") {
       int result = boost::get<int>(parameterList[idxArg]);
       DDEBUG_V("result : %d, %s", result, targetStr.toStdString().c_str());
-      targetParam->setValues(0, QString::number(result));
+      targetParam->setOutValues(0, QString::number(result));
 
     } else if (argDef->getType() == "string") {
       string result = boost::get<string>(parameterList[idxArg]);
       DDEBUG_V("result : %s, %s", result.c_str(), targetStr.toStdString().c_str());
-      targetParam->setValues(0, QString::fromStdString(result));
+      targetParam->setOutValues(0, QString::fromStdString(result));
     }
+    targetParam->updateOutValues();
   }
 }
 

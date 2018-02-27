@@ -22,6 +22,10 @@ using namespace std;
 
 namespace teaching {
 
+TeachingEventHandler::~TeachingEventHandler() {
+  DDEBUG("TeachingEventHandler Destruct");
+}
+
 TeachingEventHandler* TeachingEventHandler::instance() {
   static TeachingEventHandler* holder = new TeachingEventHandler();
   return holder;
@@ -68,12 +72,18 @@ void TeachingEventHandler::tiv_TaskSelectionChanged(int selectedId, QString strT
 	DDEBUG("TeachingEventHandler::tiv_TaskSelectionChanged End");
 }
 
-bool TeachingEventHandler::tiv_DeleteTaskClicked() {
+bool TeachingEventHandler::tiv_DeleteTaskClicked(int selectedId) {
 	DDEBUG("TeachingEventHandler::tiv_DeleteTaskClicked");
 	if (checkPaused()) return false;
 
 	stv_->setStepStatus(false);
-	if (!tiv_CurrentTask_) return false;
+
+  if (0 <= selectedId) {
+    tiv_CurrentTask_ = TeachingDataHolder::instance()->getTaskInstanceById(selectedId);
+    com_CurrentTask_ = tiv_CurrentTask_;
+    updateComViews(tiv_CurrentTask_);
+  }
+  if (!tiv_CurrentTask_) return false;
 
 	unloadTaskModelItems();
 
@@ -96,12 +106,18 @@ bool TeachingEventHandler::tiv_DeleteTaskClicked() {
 	return true;
 }
 
-void TeachingEventHandler::tiv_TaskExportClicked(QString strTask) {
+void TeachingEventHandler::tiv_TaskExportClicked(int selectedId, QString strTask) {
 	if (checkPaused()) return;
 	DDEBUG("TeachingEventHandler::tiv_TaskExportClicked()");
 
 	stv_->setStepStatus(false);
-	if (!tiv_CurrentTask_) {
+
+  if (0 <= selectedId) {
+    tiv_CurrentTask_ = TeachingDataHolder::instance()->getTaskInstanceById(selectedId);
+    com_CurrentTask_ = tiv_CurrentTask_;
+    updateComViews(tiv_CurrentTask_);
+  }
+  if (!tiv_CurrentTask_) {
 		QMessageBox::warning(tiv_, _("Output Task"), _("Please select target TASK"));
 		return;
 	}
@@ -221,12 +237,18 @@ void TeachingEventHandler::tiv_SearchTaskInstance(QString cond) {
 	tiv_->showGrid(taskList);
 }
 
-void TeachingEventHandler::tiv_RegistTaskClicked(QString strTask) {
+void TeachingEventHandler::tiv_RegistTaskClicked(int selectedId, QString strTask) {
 	if (checkPaused()) return;
 	DDEBUG("TeachingEventHandler::tiv_RegistTaskClicked()");
 
 	stv_->setStepStatus(false);
-	if (tiv_CurrentTask_ == 0) return;
+
+  if (0 <= selectedId) {
+    tiv_CurrentTask_ = TeachingDataHolder::instance()->getTaskInstanceById(selectedId);
+    com_CurrentTask_ = tiv_CurrentTask_;
+    updateComViews(tiv_CurrentTask_);
+  }
+  if (tiv_CurrentTask_ == 0) return;
 
 	for (int index = 0; index < tiv_CurrentTask_->getModelList().size(); index++) {
 		ModelParamPtr model = tiv_CurrentTask_->getModelList()[index];
@@ -257,13 +279,18 @@ void TeachingEventHandler::tiv_RegistTaskClicked(QString strTask) {
 	}
 }
 
-void TeachingEventHandler::tiv_RegistNewTaskClicked(QString strTask, QString strCond) {
+void TeachingEventHandler::tiv_RegistNewTaskClicked(int selectedId, QString strTask, QString strCond) {
 	if (checkPaused()) return;
 	DDEBUG("TeachingEventHandler::tiv_RegistNewTaskClicked()");
 
 	stv_->setStepStatus(false);
 
-	if (tiv_CurrentTask_ == 0) return;
+  if (0 <= selectedId) {
+    tiv_CurrentTask_ = TeachingDataHolder::instance()->getTaskInstanceById(selectedId);
+    com_CurrentTask_ = tiv_CurrentTask_;
+    updateComViews(tiv_CurrentTask_);
+  }
+  if (tiv_CurrentTask_ == 0) return;
 
 	if (tiv_CurrentTask_->getName() != strTask) {
 		tiv_CurrentTask_->setName(strTask);
@@ -516,7 +543,10 @@ void TeachingEventHandler::flv_RegistFlowClicked(QString name, QString comment) 
 	}
 
 	stv_->updateTargetParam();
-	flv_->updateTargetFlowParam();
+  if (flv_->updateTargetFlowParam() == false) {
+    QMessageBox::warning(prd_, _("FlowView"), _("Incorrect flow parameter connection."));
+    return;
+  }
 
 	if (TeachingDataHolder::instance()->saveFlowModel(flv_CurrentFlow_)) {
 		flv_CurrentFlow_ = TeachingDataHolder::instance()->reGetFlowById(flv_CurrentFlow_->getId());
@@ -765,9 +795,15 @@ void TeachingEventHandler::tev_stm_ContClicked() {
 	flv_->setButtonEnableMode(true);
 }
 
-void TeachingEventHandler::tev_RunTaskClicked() {
+void TeachingEventHandler::tev_RunTaskClicked(int selectedId) {
 	DDEBUG("TeachingEventHandler::tev_RunTaskClicked()");
 	stv_->updateTargetParam();
+
+  if (0 <= selectedId) {
+    tiv_CurrentTask_ = TeachingDataHolder::instance()->getTaskInstanceById(selectedId);
+    com_CurrentTask_ = tiv_CurrentTask_;
+    updateComViews(tiv_CurrentTask_);
+  }
 
 	executor_->setCurrentTask(com_CurrentTask_);
 	executor_->setCurrentElement(com_CurrParam_);
@@ -785,7 +821,6 @@ void TeachingEventHandler::flv_RunFlowClicked() {
   if (flv_->updateTargetFlowParam() == false) {
     QMessageBox::warning(prd_, _("FlowView"), _("Incorrect flow parameter connection."));
     return;
-
   }
 
   executor_->setCurrentTask(com_CurrentTask_);
@@ -800,6 +835,10 @@ void TeachingEventHandler::flv_InitPosClicked() {
 	if (!flv_CurrentFlow_) return;
 	stv_->setStepStatus(false);
 
+  for (int idxParam = 0; idxParam < flv_CurrentFlow_->getFlowParamList().size(); idxParam++) {
+    FlowParameterParamPtr targetParam = flv_CurrentFlow_->getFlowParamList()[idxParam];
+    targetParam->setInitialValue();
+  }
 	for (int idxState = 0; idxState < flv_CurrentFlow_->getStmElementList().size(); idxState++) {
 		ElementStmParamPtr targetState = flv_CurrentFlow_->getStmElementList()[idxState];
 		if (targetState->getType() == ELEMENT_COMMAND) {
@@ -810,6 +849,22 @@ void TeachingEventHandler::flv_InitPosClicked() {
 		}
 	}
 	executor_->detachAllModelItem();
+}
+
+void TeachingEventHandler::flv_EditClicked(ElementStmParamPtr target) {
+  if (target) {
+    if ((target->getType() == ELEMENT_COMMAND || target->getType() == ELEMENT_DECISION) == false) {
+      QMessageBox::warning(flv_, _("TaskInstance"), _("Please select Task Instance Node or Decision Node. : ") + QString::number(target->getType()));
+      return;
+    }
+    if (target->getType() == ELEMENT_DECISION) {
+      FlowDesisionDialog dialog(flv_CurrentFlow_, target, flv_);
+      dialog.exec();
+    } else {
+      TaskInfoDialog dialog(target, flv_);
+      dialog.exec();
+    }
+  }
 }
 
 void TeachingEventHandler::tiv_InitPosClicked() {
@@ -1160,8 +1215,7 @@ bool TeachingEventHandler::prd_OkClicked(QString name, QString id, int type, QSt
       }
     }
     if (targetState) {
-      DDEBUG("Call updatingParamInfo");
-      flv_->updatingParamInfo(com_CurrentTask_, targetState);
+      flv_->paramInfoUpdated(com_CurrentTask_, targetState);
     }
   }
   //
@@ -1278,7 +1332,8 @@ void TeachingEventHandler::mmd_ModelSelectionChanged(int newId, QString name, QS
 	ChoreonoidUtil::showAllModelItem();
 	mmd_CurrentModel_ = model;
 
-  QImage targetImage = model->getImage();	this->mmd_->updateContents(model->getName(), model->getFileName(), model->getImageFileName(), &targetImage);
+  QImage targetImage = model->getImage();
+	this->mmd_->updateContents(model->getName(), model->getFileName(), model->getImageFileName(), &targetImage);
 	this->mmd_->showParamGrid(model->getActiveParamList());
 	mmd_CurrentParam_ = 0;
 }
@@ -1329,7 +1384,9 @@ void TeachingEventHandler::mmd_RefClicked() {
 	}
 	//ŽQÆƒ‚ƒfƒ‹‚Ì“Ç‚Ýž‚Ý
 	TeachingUtil::loadModelDetail(strFName, mmd_CurrentModel_);
-  QImage targetImage = mmd_CurrentModel_->getImage();	this->mmd_->updateContents(mmd_CurrentModel_->getName(), mmd_CurrentModel_->getFileName(), mmd_CurrentModel_->getImageFileName(), &targetImage);
+
+  QImage targetImage = mmd_CurrentModel_->getImage();
+	this->mmd_->updateContents(mmd_CurrentModel_->getName(), mmd_CurrentModel_->getFileName(), mmd_CurrentModel_->getImageFileName(), &targetImage);
 }
 
 void TeachingEventHandler::mmd_RefImageClicked() {

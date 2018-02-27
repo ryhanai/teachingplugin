@@ -147,6 +147,10 @@ namespace teaching {
 		TeachingEventHandler::instance()->stv_Loaded(this);
 	}
 
+  StateMachineViewImpl::~StateMachineViewImpl() {
+    DDEBUG("StateMachineViewImpl Destruct");
+  }
+
   void StateMachineViewImpl::setButtonEnableMode(bool isEnable) {
     DDEBUG("StateMachineViewImpl::setExecuteMode");
     btnDelete->setEnabled(isEnable);

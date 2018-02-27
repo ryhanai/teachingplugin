@@ -134,8 +134,13 @@ TaskInstanceViewImpl::TaskInstanceViewImpl(QWidget* parent)
 	TeachingEventHandler::instance()->tiv_Loaded(this);
 }
 
+TaskInstanceViewImpl::~TaskInstanceViewImpl() {
+  DDEBUG("TaskInstanceViewImpl Destruct");
+  DatabaseManager::getInstance().closeDB();
+}
+
 void TaskInstanceViewImpl::loadTaskInfo() {
-	DDEBUG("TaskInstanceViewImpl::loadTaskInfo");
+	//DDEBUG("TaskInstanceViewImpl::loadTaskInfo");
 	if (DatabaseManager::getInstance().connectDB()) {
 		TeachingDataHolder::instance()->loadData();
 		vector<TaskModelParamPtr> taskList = TeachingDataHolder::instance()->getTaskList();
@@ -166,11 +171,7 @@ void TaskInstanceViewImpl::taskSelectionChanged() {
 		isSkip_ = false;
 		return;
   }
-	int selectedId = NULL_ID;
-	QTableWidgetItem* item = lstResult->currentItem();
-	if (item) {
-		selectedId = item->data(Qt::UserRole).toInt();
-	}
+	int selectedId = getSelectedId();
 	TeachingEventHandler::instance()->tiv_TaskSelectionChanged(selectedId, leTask->text());
 
 //	if (isSkip_) return;
@@ -209,7 +210,8 @@ void TaskInstanceViewImpl::settingClicked() {
 }
 
 void TaskInstanceViewImpl::runTaskClicked() {
-	TeachingEventHandler::instance()->tev_RunTaskClicked();
+  int selectedId = getSelectedId();
+  TeachingEventHandler::instance()->tev_RunTaskClicked(selectedId);
 }
 
 void TaskInstanceViewImpl::initPosClicked() {
@@ -229,28 +231,32 @@ void TaskInstanceViewImpl::loadTaskClicked() {
 }
 
 void TaskInstanceViewImpl::outputTaskClicked() {
-	TeachingEventHandler::instance()->tiv_TaskExportClicked(leTask->text());
+  int selectedId = getSelectedId();
+  TeachingEventHandler::instance()->tiv_TaskExportClicked(selectedId, leTask->text());
 }
 
 void TaskInstanceViewImpl::registNewTaskClicked() {
-	TeachingEventHandler::instance()->tiv_RegistNewTaskClicked(leTask->text(), leCond->text());
+  int selectedId = getSelectedId();
+  TeachingEventHandler::instance()->tiv_RegistNewTaskClicked(selectedId, leTask->text(), leCond->text());
 	lstResult->setCurrentCell(currentTaskIndex_, 0);
 }
 
 void TaskInstanceViewImpl::registTaskClicked() {
-	TeachingEventHandler::instance()->tiv_RegistTaskClicked(leTask->text());
+  int selectedId = getSelectedId();
+  TeachingEventHandler::instance()->tiv_RegistTaskClicked(selectedId, leTask->text());
 	currentTaskIndex_ = lstResult->currentRow();
 }
 
 void TaskInstanceViewImpl::deleteTaskClicked() {
-	if (TeachingEventHandler::instance()->tiv_DeleteTaskClicked() == false) return;
+  int selectedId = getSelectedId();
+  if (TeachingEventHandler::instance()->tiv_DeleteTaskClicked(selectedId) == false) return;
 
 	leTask->setText("");
 	currentTaskIndex_ = -1;
 }
 
 void TaskInstanceViewImpl::showGrid(vector<TaskModelParamPtr>& taskList) {
-	DDEBUG("TaskInstanceViewImpl::showGrid");
+	//DDEBUG("TaskInstanceViewImpl::showGrid");
 	isSkip_ = true;
 
   lstResult->clear();
@@ -318,6 +324,15 @@ void TaskInstanceViewImpl::setEditMode(bool canEdit) {
   btnDeleteTask->setEnabled(canEdit);
   btnRegistNewTask->setEnabled(canEdit);
   btnRegistTask->setEnabled(canEdit);
+}
+
+int TaskInstanceViewImpl::getSelectedId() {
+  int result = NULL_ID;
+  QTableWidgetItem* item = lstResult->currentItem();
+  if (item) {
+    result = item->data(Qt::UserRole).toInt();
+  }
+  return result;
 }
 /////
 TaskInstanceView::TaskInstanceView() : viewImpl(0) {

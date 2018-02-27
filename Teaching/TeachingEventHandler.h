@@ -29,19 +29,19 @@ namespace teaching {
 class TeachingEventHandler {
 public:
   static TeachingEventHandler* instance();
-	~TeachingEventHandler() {};
+	~TeachingEventHandler();
 
   inline bool canEdit() const { return this->canEdit_; }
 
 	//TaskInstanceView
 	void tiv_Loaded(TaskInstanceViewImpl* view);
 	void tiv_TaskSelectionChanged(int selectedId, QString strTask);
-	bool tiv_DeleteTaskClicked();
-	void tiv_TaskExportClicked(QString strTask);
+	bool tiv_DeleteTaskClicked(int selectedId);
+	void tiv_TaskExportClicked(int selectedId, QString strTask);
 	bool tiv_TaskImportClicked();
 	void tiv_SearchClicked(QString cond);
-	void tiv_RegistTaskClicked(QString strTask);
-	void tiv_RegistNewTaskClicked(QString strTask, QString strCond);
+	void tiv_RegistTaskClicked(int selectedId, QString strTask);
+	void tiv_RegistNewTaskClicked(int selectedId, QString strTask, QString strCond);
 
 	void tiv_InitPosClicked();
 
@@ -58,6 +58,7 @@ public:
 	void flv_FlowImportClicked();
 	void flv_RunFlowClicked();
 	void flv_InitPosClicked();
+  void flv_EditClicked(ElementStmParamPtr target);
 
 	//MetaDataView
 	void mdv_Loaded(MetaDataViewImpl* view);
@@ -87,7 +88,7 @@ public:
 	void tev_stm_RunClicked(bool isReal, ElementStmParamPtr target);
 	void tev_stm_StepClicked();
 	void tev_stm_ContClicked();
-	void tev_RunTaskClicked();
+	void tev_RunTaskClicked(int selectedId);
 	void tev_AbortClicked();
 
 	//FlowSearchDialog
