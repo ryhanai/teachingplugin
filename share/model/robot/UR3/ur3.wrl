@@ -1,0 +1,608 @@
+#VRML V2.0 utf8
+
+PROTO Joint [
+  exposedField     SFVec3f      center              0 0 0
+  exposedField     MFNode       children            []
+  exposedField     MFFloat      llimit              []
+  exposedField     MFFloat      lvlimit             []
+  exposedField     SFRotation   limitOrientation    0 0 1 0
+  exposedField     SFString     name                ""
+  exposedField     SFRotation   rotation            0 0 1 0
+  exposedField     SFVec3f      scale               1 1 1
+  exposedField     SFRotation   scaleOrientation    0 0 1 0
+  exposedField     MFFloat      stiffness           [ 0 0 0 ]
+  exposedField     SFVec3f      translation         0 0 0
+  exposedField     MFFloat      ulimit              []
+  exposedField     MFFloat      uvlimit             []
+  exposedField     SFString     jointType           ""
+  exposedField     SFInt32      jointId             -1
+  exposedField     SFVec3f      jointAxis           0 0 1
+
+  exposedField     SFFloat      gearRatio           1
+  exposedField     SFFloat      rotorInertia        0
+  exposedField     SFFloat      rotorResistor       0
+  exposedField     SFFloat      torqueConst         1
+  exposedField     SFFloat      encoderPulse        1
+  exposedField     MFFloat      climit              []
+]
+{
+  Transform {
+    center           IS center
+    children         IS children
+    rotation         IS rotation
+    scale            IS scale
+    scaleOrientation IS scaleOrientation
+    translation      IS translation
+  }
+}
+
+PROTO Segment [
+  field           SFVec3f     bboxCenter        0 0 0
+  field           SFVec3f     bboxSize          -1 -1 -1
+  exposedField    SFVec3f     centerOfMass      0 0 0
+  exposedField    MFNode      children          [ ]
+  exposedField    SFNode      coord             NULL
+  exposedField    MFNode      displacers        [ ]
+  exposedField    SFFloat     mass              0
+  exposedField    MFFloat     momentsOfInertia  [ 0 0 0 0 0 0 0 0 0 ]
+  exposedField    SFString    name              ""
+  eventIn         MFNode      addChildren
+  eventIn         MFNode      removeChildren
+]
+{
+  Group {
+    addChildren    IS addChildren
+    bboxCenter     IS bboxCenter
+    bboxSize       IS bboxSize
+    children       IS children
+    removeChildren IS removeChildren
+  }
+}
+
+PROTO Surface [
+ field   SFVec3f bboxCenter 0 0 0
+ field   SFVec3f bboxSize   -1 -1 -1
+ field   MFNode  visual     [ ]
+ field   MFNode  collision  [ ]
+ eventIn MFNode  addChildren
+ eventIn MFNode  removeChildren
+]
+{
+  Group {
+    addChildren    IS addChildren
+    bboxCenter     IS bboxCenter
+    bboxSize       IS bboxSize
+    children       IS visual
+    removeChildren IS removeChildren
+  }
+}
+
+PROTO Humanoid [
+  field           SFVec3f    bboxCenter            0 0 0
+  field           SFVec3f    bboxSize              -1 -1 -1
+  exposedField    SFVec3f    center                0 0 0
+  exposedField    MFNode     humanoidBody          [ ]
+  exposedField    MFString   info                  [ ]
+  exposedField    MFNode     joints                [ ]
+  exposedField    SFString   name                  ""
+  exposedField    SFRotation rotation              0 0 1 0
+  exposedField    SFVec3f    scale                 1 1 1
+  exposedField    SFRotation scaleOrientation      0 0 1 0
+  exposedField    MFNode     segments              [ ]
+  exposedField    MFNode     sites                 [ ]
+  exposedField    SFVec3f    translation           0 0 0
+  exposedField    SFString   version               "1.1"
+  exposedField    MFNode     viewpoints            [ ]
+]
+{
+  Transform {
+    bboxCenter       IS bboxCenter
+    bboxSize         IS bboxSize
+    center           IS center
+    rotation         IS rotation
+    scale            IS scale
+    scaleOrientation IS scaleOrientation
+    translation      IS translation
+    children [
+      Group {
+        children IS viewpoints
+      }
+    ]
+  }
+}
+
+PROTO ExtraJoint [
+  exposedField SFString link1Name ""
+  exposedField SFString link2Name ""
+  exposedField SFVec3f  link1LocalPos 0 0 0
+  exposedField SFVec3f  link2LocalPos 0 0 0
+  exposedField SFString jointType "xyz"
+  exposedField SFVec3f  jointAxis 1 0 0
+]
+{
+}
+
+
+
+DEF pedestal_link Humanoid {
+  humanoidBody [
+    DEF pedestal_link Joint {
+      jointType "fixed"
+      translation 0.0 0.0 0.0
+      rotation 0 1 0 0
+
+      children [
+        DEF pedestal_link Segment {
+          mass 0.0
+          centerOfMass 0.0 0.0 0.0
+          momentsOfInertia [0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0]
+          children [
+            Transform {
+              scale 1.0 1.0 1.0
+              translation 0.0 0.0 0.0
+              rotation 0 1 0 0
+              children [
+                Inline {
+                  url "UR5_stage.wrl"
+                }
+              ]
+            }
+          ]
+        }
+
+        DEF rbase_link Joint {
+          jointType "fixed"
+          translation 0.0 -0.135 1.15
+          rotation 0.91248696 0.37796447 -0.15655801 2.41885840
+          children [
+            DEF rbase_link Segment {
+              mass 2.0
+              centerOfMass 0.0 0.0 0.0
+              momentsOfInertia [0.00305317 0.0 0.0 0.0 0.00305317 0.0 0.0 0.0 0.005625]
+              children [
+                Transform {
+                  scale 1.0 1.0 1.0
+                  translation 0.0 0.0 0.0
+                  rotation 0 1 0 0
+                  children [
+                    Inline {
+                      url "ur3-base_link-ur3-base_link_visual.wrl"
+                    }
+                  ]
+                }
+              ]
+            }
+                   
+            DEF rshoulder_pan_joint Joint {
+              jointType "rotate"
+              jointAxis 0.0 0.0 1.0
+              jointId 0
+              translation 0.0 0.0 0.1519
+              rotation 0 1 0 0
+              ulimit 6.28319
+              llimit -6.28319
+              uvlimit 2.16
+              lvlimit -2.16
+              climit [330.0]
+              children [
+                DEF rshoulder_link Segment {
+                  mass 2.0
+                  centerOfMass 0.0 0.0 0.0
+                  momentsOfInertia [0.00809316 0.0 0.0 0.0 0.00809316 0.0 0.0 0.0 0.005625]
+                  children [
+                    Transform {
+                      scale 1.0 1.0 1.0
+                      translation 0.0 0.0 0.0
+                      rotation 0 1 0 0
+                      children [
+                        Inline {
+                          url "ur3-shoulder_link-ur3-shoulder_link_visual.wrl"
+                        }
+                      ]
+                    }
+                  ]
+                }
+                    
+                DEF rshoulder_lift_joint Joint {
+                  jointType "rotate"
+                  jointAxis 0.0 1.0 0.0
+                  jointId 1
+                  translation 0.0 0.1198 5.55111512313e-17
+                  rotation 8.39433262669e-12 1.0 8.39433262669e-12 1.57080265359
+                  ulimit 6.28319
+                  llimit -6.28319
+                  uvlimit 2.16
+                  lvlimit -2.16
+                  climit [330.0]
+                  children [
+                    DEF rupper_arm_link Segment {
+                      mass 3.42
+                      centerOfMass 0.0 0.0 0.121825
+                      momentsOfInertia [0.0217285 0.0 0.0 0.0 0.0217285 0.0 0.0 0.0 0.00961875]
+                      children [
+                        Transform {
+                          scale 1.0 1.0 1.0
+                          translation 0.0 0.0 0.0
+                          rotation 0 1 0 0
+                          children [
+                            Inline {
+                              url "ur3-upper_arm_link-ur3-upper_arm_link_visual.wrl"
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                        
+                    DEF relbow_joint Joint {
+                      jointType "rotate"
+                      jointAxis 1.67887183581e-11 1.0 1.80438722191e-16
+                      jointId 2
+                      translation -1.54152512982e-06 -0.0925 0.243649999995
+                      rotation 0 1 0 0
+                      ulimit 6.28319
+                      llimit -6.28319
+                      uvlimit 3.15
+                      lvlimit -3.15
+                      climit [150.0]
+                      children [
+                        DEF rforearm_link Segment {
+                          mass 1.26
+                          centerOfMass 0.0 0.0 0.106625
+                          momentsOfInertia [0.00654681 0.0 0.0 0.0 0.00654681 0.0 0.0 0.0 0.00354375]
+                          children [
+                            Transform {
+                              scale 1.0 1.0 1.0
+                              translation 0.0 0.0 0.0
+                              rotation 0 1 0 0
+                              children [
+                                Inline {
+                                  url "ur3-forearm_link-ur3-forearm_link_visual.wrl"
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                            
+                        DEF rwrist_1_joint Joint {
+                          jointType "rotate"
+                          jointAxis 1.67887183581e-11 1.0 1.80438722191e-16
+                          jointId 3
+                          translation -1.34918901187e-06 1.31838984174e-16 0.213249999996
+                          rotation 6.9533358158e-17 0.999999999996 2.65358979341e-06 1.57079
+                          ulimit 6.28319
+                          llimit -6.28319
+                          uvlimit 3.2
+                          lvlimit -3.2
+                          climit [54.0]
+                          children [
+                            DEF rwrist_1_link Segment {
+                              mass 0.8
+                              centerOfMass 0.0 0.0 0.0
+                              momentsOfInertia [0.002085 0.0 0.0 0.0 0.002085 0.0 0.0 0.0 0.00225]
+                              children [
+                                Transform {
+                                  scale 1.0 1.0 1.0
+                                  translation 0.0 0.0 0.0
+                                  rotation 0 1 0 0
+                                  children [
+                                    Inline {
+                                      url "ur3-wrist_1_link-ur3-wrist_1_link_visual.wrl"
+                                    }
+                                  ]
+                                }
+                              ]
+                            }
+                                
+                            DEF rwrist_2_joint Joint {
+                              jointType "rotate"
+                              jointAxis -3.52105845973e-12 -2.65357843512e-06 0.999999999996
+                              jointId 4
+                              translation 2.25687810496e-07 0.0850499999994 2.25687815686e-07
+                              rotation 0 1 0 0
+                              ulimit 6.28319
+                              llimit -6.28319
+                              uvlimit 3.2
+                              lvlimit -3.2
+                              climit [54.0]
+                              children [
+                                DEF rwrist_2_link Segment {
+                                  mass 0.8
+                                  centerOfMass 0.0 0.0 0.0
+                                  momentsOfInertia [0.002085 0.0 0.0 0.0 0.002085 0.0 0.0 0.0 0.00225]
+                                  children [
+                                    Transform {
+                                      scale 1.0 1.0 1.0
+                                      translation 0.0 0.0 0.0
+                                      rotation 0 1 0 0
+                                      children [
+                                        Inline {
+                                          url "ur3-wrist_2_link-ur3-wrist_2_link_visual.wrl"
+                                        }
+                                      ]
+                                    }
+                                  ]
+                                }
+                                    
+                                DEF rwrist_3_joint Joint {
+                                  jointType "rotate"
+                                  jointAxis 2.65357843512e-06 0.999999999993 2.65357843512e-06
+                                  jointId 5
+                                  translation 5.55111512313e-17 -2.26483888727e-07 0.0853499999997
+                                  rotation 0 1 0 0
+                                  ulimit 6.28319
+                                  llimit -6.28319
+                                  uvlimit 3.2
+                                  lvlimit -3.2
+                                  climit [54.0]
+                                  children [
+                                    DEF rwrist_3_link Segment {
+                                      mass 0.35
+                                      centerOfMass 0.0 0.0 0.0
+                                      momentsOfInertia [0.000912187 0.0 0.0 0.0 0.000912187 0.0 0.0 0.0 0.000984375]
+                                      children [
+                                        Transform {
+                                          scale 1.0 1.0 1.0
+                                          translation 0.0 0.0 0.0
+                                          rotation 0 1 0 0
+                                          children [
+                                            Inline {
+                                              url "ur3-wrist_3_link-ur3-wrist_3_link_visual.wrl"
+                                            }
+                                          ]
+                                        }
+                                      ]
+                                    }
+                                  ]
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+
+        DEF lbase_link Joint {
+          jointType "fixed"
+          translation 0.0 0.135 1.15
+          rotation 0.35740674 0.86285621 0.35740674 -2.84764227
+          children [
+            DEF lbase_link Segment {
+              mass 2.0
+              centerOfMass 0.0 0.0 0.0
+              momentsOfInertia [0.00305317 0.0 0.0 0.0 0.00305317 0.0 0.0 0.0 0.005625]
+              children [
+                Transform {
+                  scale 1.0 1.0 1.0
+                  translation 0.0 0.0 0.0
+                  rotation 0 1 0 0
+                  children [
+                    Inline {
+                      url "ur3-base_link-ur3-base_link_visual.wrl"
+                    }
+                  ]
+                }
+              ]
+            }
+                   
+            DEF lshoulder_pan_joint Joint {
+              jointType "rotate"
+              jointAxis 0.0 0.0 1.0
+              jointId 6
+              translation 0.0 0.0 0.1519
+              rotation 0 1 0 0
+              ulimit 6.28319
+              llimit -6.28319
+              uvlimit 2.16
+              lvlimit -2.16
+              climit [330.0]
+              children [
+                DEF lshoulder_link Segment {
+                  mass 2.0
+                  centerOfMass 0.0 0.0 0.0
+                  momentsOfInertia [0.00809316 0.0 0.0 0.0 0.00809316 0.0 0.0 0.0 0.005625]
+                  children [
+                    Transform {
+                      scale 1.0 1.0 1.0
+                      translation 0.0 0.0 0.0
+                      rotation 0 1 0 0
+                      children [
+                        Inline {
+                          url "ur3-shoulder_link-ur3-shoulder_link_visual.wrl"
+                        }
+                      ]
+                    }
+                  ]
+                }
+                    
+                DEF lshoulder_lift_joint Joint {
+                  jointType "rotate"
+                  jointAxis 0.0 1.0 0.0
+                  jointId 7
+                  translation 0.0 0.1198 5.55111512313e-17
+                  rotation 8.39433262669e-12 1.0 8.39433262669e-12 1.57080265359
+                  ulimit 6.28319
+                  llimit -6.28319
+                  uvlimit 2.16
+                  lvlimit -2.16
+                  climit [330.0]
+                  children [
+                    DEF lupper_arm_link Segment {
+                      mass 3.42
+                      centerOfMass 0.0 0.0 0.121825
+                      momentsOfInertia [0.0217285 0.0 0.0 0.0 0.0217285 0.0 0.0 0.0 0.00961875]
+                      children [
+                        Transform {
+                          scale 1.0 1.0 1.0
+                          translation 0.0 0.0 0.0
+                          rotation 0 1 0 0
+                          children [
+                            Inline {
+                              url "ur3-upper_arm_link-ur3-upper_arm_link_visual.wrl"
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                        
+                    DEF lelbow_joint Joint {
+                      jointType "rotate"
+                      jointAxis 1.67887183581e-11 1.0 1.80438722191e-16
+                      jointId 8
+                      translation -1.54152512982e-06 -0.0925 0.243649999995
+                      rotation 0 1 0 0
+                      ulimit 6.28319
+                      llimit -6.28319
+                      uvlimit 3.15
+                      lvlimit -3.15
+                      climit [150.0]
+                      children [
+                        DEF lforearm_link Segment {
+                          mass 1.26
+                          centerOfMass 0.0 0.0 0.106625
+                          momentsOfInertia [0.00654681 0.0 0.0 0.0 0.00654681 0.0 0.0 0.0 0.00354375]
+                          children [
+                            Transform {
+                              scale 1.0 1.0 1.0
+                              translation 0.0 0.0 0.0
+                              rotation 0 1 0 0
+                              children [
+                                Inline {
+                                  url "ur3-forearm_link-ur3-forearm_link_visual.wrl"
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                            
+                        DEF lwrist_1_joint Joint {
+                          jointType "rotate"
+                          jointAxis 1.67887183581e-11 1.0 1.80438722191e-16
+                          jointId 9
+                          translation -1.34918901187e-06 1.31838984174e-16 0.213249999996
+                          rotation 6.9533358158e-17 0.999999999996 2.65358979341e-06 1.57079
+                          ulimit 6.28319
+                          llimit -6.28319
+                          uvlimit 3.2
+                          lvlimit -3.2
+                          climit [54.0]
+                          children [
+                            DEF lwrist_1_link Segment {
+                              mass 0.8
+                              centerOfMass 0.0 0.0 0.0
+                              momentsOfInertia [0.002085 0.0 0.0 0.0 0.002085 0.0 0.0 0.0 0.00225]
+                              children [
+                                Transform {
+                                  scale 1.0 1.0 1.0
+                                  translation 0.0 0.0 0.0
+                                  rotation 0 1 0 0
+                                  children [
+                                    Inline {
+                                      url "ur3-wrist_1_link-ur3-wrist_1_link_visual.wrl"
+                                    }
+                                  ]
+                                }
+                              ]
+                            }
+                                
+                            DEF lwrist_2_joint Joint {
+                              jointType "rotate"
+                              jointAxis -3.52105845973e-12 -2.65357843512e-06 0.999999999996
+                              jointId 10
+                              translation 2.25687810496e-07 0.0850499999994 2.25687815686e-07
+                              rotation 0 1 0 0
+                              ulimit 6.28319
+                              llimit -6.28319
+                              uvlimit 3.2
+                              lvlimit -3.2
+                              climit [54.0]
+                              children [
+                                DEF lwrist_2_link Segment {
+                                  mass 0.8
+                                  centerOfMass 0.0 0.0 0.0
+                                  momentsOfInertia [0.002085 0.0 0.0 0.0 0.002085 0.0 0.0 0.0 0.00225]
+                                  children [
+                                    Transform {
+                                      scale 1.0 1.0 1.0
+                                      translation 0.0 0.0 0.0
+                                      rotation 0 1 0 0
+                                      children [
+                                        Inline {
+                                          url "ur3-wrist_2_link-ur3-wrist_2_link_visual.wrl"
+                                        }
+                                      ]
+                                    }
+                                  ]
+                                }
+                                    
+                                DEF lwrist_3_joint Joint {
+                                  jointType "rotate"
+                                  jointAxis 2.65357843512e-06 0.999999999993 2.65357843512e-06
+                                  jointId 11
+                                  translation 5.55111512313e-17 -2.26483888727e-07 0.0853499999997
+                                  rotation 0 1 0 0
+                                  ulimit 6.28319
+                                  llimit -6.28319
+                                  uvlimit 3.2
+                                  lvlimit -3.2
+                                  climit [54.0]
+                                  children [
+                                    DEF lwrist_3_link Segment {
+                                      mass 0.35
+                                      centerOfMass 0.0 0.0 0.0
+                                      momentsOfInertia [0.000912187 0.0 0.0 0.0 0.000912187 0.0 0.0 0.0 0.000984375]
+                                      children [
+                                        Transform {
+                                          scale 1.0 1.0 1.0
+                                          translation 0.0 0.0 0.0
+                                          rotation 0 1 0 0
+                                          children [
+                                            Inline {
+                                              url "ur3-wrist_3_link-ur3-wrist_3_link_visual.wrl"
+                                            }
+                                          ]
+                                        }
+                                      ]
+                                    }
+                                        
+                                  ]
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+	
+      ]
+    }
+  ]
+  joints [
+    USE rwrist_3_joint,
+    USE rwrist_2_joint,
+    USE rwrist_1_joint,
+    USE relbow_joint,
+    USE rshoulder_lift_joint,
+    USE rshoulder_pan_joint
+    USE lwrist_3_joint,
+    USE lwrist_2_joint,
+    USE lwrist_1_joint,
+    USE lelbow_joint,
+    USE lshoulder_lift_joint,
+    USE lshoulder_pan_joint
+  ]
+
+  name "pedestal_link"
+  version "1.0"
+}
