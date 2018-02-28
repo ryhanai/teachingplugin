@@ -138,5 +138,85 @@ void DesisionDialog::cancelClicked() {
 
   close();
 }
+////////////////
+FlowDesisionDialog::FlowDesisionDialog(FlowParamPtr param, ElementStmParamPtr stmParam, QWidget* parent)
+  : QDialog(parent, Qt::CustomizeWindowHint | Qt::WindowTitleHint) {
+  targetFlow_ = param;
+  this->targetStm_ = stmParam;
+
+  lstParam = UIUtil::makeTableWidget(2, true);
+  lstParam->setColumnWidth(0, 100);
+  lstParam->setColumnWidth(1, 100);
+  lstParam->setHorizontalHeaderLabels(QStringList() << "Name" << "Value");
+
+  txtCondition = new QTextEdit;
+  //
+  QFrame* frmRef = new QFrame;
+  frmRef->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+  QVBoxLayout* refLayout = new QVBoxLayout;
+  refLayout->setContentsMargins(0, 0, 0, 0);
+  frmRef->setLayout(refLayout);
+  refLayout->addWidget(lstParam);
+  //
+  QSplitter* splitter = new QSplitter(Qt::Horizontal);
+  splitter->addWidget(frmRef);
+  splitter->addWidget(txtCondition);
+  QList<int> initSizes;
+  initSizes.append(250);
+  initSizes.append(350);
+  splitter->setSizes(initSizes);
+  splitter->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+  //
+  QFrame* frmButtons = new QFrame;
+  QPushButton* btnOK = new QPushButton(_("OK"));
+  QPushButton* btnCancel = new QPushButton(_("Cancel"));
+  QHBoxLayout* buttonLayout = new QHBoxLayout(frmButtons);
+  buttonLayout->setContentsMargins(2, 2, 2, 2);
+  buttonLayout->addWidget(btnCancel);
+  buttonLayout->addStretch();
+  buttonLayout->addWidget(btnOK);
+  //
+  QVBoxLayout* mainLayout = new QVBoxLayout;
+  mainLayout->addWidget(splitter);
+  mainLayout->addWidget(frmButtons);
+  setLayout(mainLayout);
+  //
+  connect(btnOK, SIGNAL(clicked()), this, SLOT(oKClicked()));
+  connect(btnCancel, SIGNAL(clicked()), this, SLOT(cancelClicked()));
+  connect(this, SIGNAL(rejected()), this, SLOT(cancelClicked()));
+
+  setWindowTitle(_("Decision condition setting"));
+  resize(600, 300);
+  //
+  txtCondition->setText(targetStm_->getCondition());
+  showParamInfo();
+}
+
+void FlowDesisionDialog::showParamInfo() {
+  vector<FlowParameterParamPtr> paramList = targetFlow_->getFlowParamList();
+  for (int index = 0; index < paramList.size(); index++) {
+    FlowParameterParamPtr param = paramList[index];
+    int row = lstParam->rowCount();
+    lstParam->insertRow(row);
+    UIUtil::makeTableItem(lstParam, row, 0, param->getName());
+    UIUtil::makeTableItem(lstParam, row, 1, param->getValue());
+  }
+}
+
+void FlowDesisionDialog::oKClicked() {
+  DDEBUG("FlowDesisionDialog::cancelClicked()");
+
+  QString strCond = txtCondition->toPlainText();
+  targetStm_->setCondition(strCond);
+  targetStm_->setUpdate();
+  //
+  close();
+}
+
+void FlowDesisionDialog::cancelClicked() {
+  DDEBUG("FlowDesisionDialog::cancelClicked()");
+
+  close();
+}
 
 }

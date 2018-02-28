@@ -42,6 +42,8 @@ typedef std::shared_ptr<ModelParameterGroup> ModelParameterGroupPtr;
   Q_OBJECT
 public:
   ParameterViewImpl(QWidget* parent = 0);
+  ~ParameterViewImpl();
+
 	void setTaskParam(TaskModelParamPtr param);
 	void clearTaskParam();
   void setEditMode(bool canEdit);

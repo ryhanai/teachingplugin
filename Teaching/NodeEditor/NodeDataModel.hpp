@@ -32,9 +32,10 @@ class StyleCollection;
 
 class PortInfo {
 public:
-	PortInfo(int id, QString name) : id_(id), name_(name) {};
+	PortInfo(int id, QString name, int type) : id_(id), name_(name), type_(type) {};
 	int id_;
 	QString name_;
+  int type_;
 };
 
 class NODE_EDITOR_PUBLIC NodeDataModel : public QObject, public Serializable {

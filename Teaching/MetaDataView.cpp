@@ -195,11 +195,13 @@ void MetaDataViewImpl::modelClicked() {
 }
 
 MetaDataViewImpl::~MetaDataViewImpl() {
+  DDEBUG("MetaDataViewImpl Destruct");
   if (m_proc_->state() == QProcess::Running) {
     m_proc_->kill();
     m_proc_->waitForFinished();
   }
   delete m_proc_;
+  DDEBUG("MetaDataViewImpl Destruct End");
 }
 
 void MetaDataViewImpl::updateTaskParam() {

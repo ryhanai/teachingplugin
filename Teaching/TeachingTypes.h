@@ -28,6 +28,7 @@ inline bool dbl_eq(double d1, double d2) {
 class ElementStmParam;
 class ConnectionStmParam;
 class TaskModelParam;
+class FlowParameterParam;
 
 static const double PI = 3.14159265358979323846;
 static const int NULL_ID = -1;
@@ -36,6 +37,7 @@ static const int MESSAGE_PERIOD = 3000;
 typedef std::shared_ptr<ElementStmParam> ElementStmParamPtr;
 typedef std::shared_ptr<ConnectionStmParam> ConnectionStmParamPtr;
 typedef std::shared_ptr<TaskModelParam> TaskModelParamPtr;
+typedef std::shared_ptr<FlowParameterParam> FlowParameterParamPtr;
 
 enum ModelType {
   MODEL_ENV = 0,
@@ -652,7 +654,9 @@ private:
 class ParameterParam : public DatabaseParam {
 public:
   ParameterParam(int id, int type, int elem_num, int task_inst_id, QString name, QString rname, QString unit, int model_id, int model_param_id, int hide)
-    : type_(type), elem_num_(elem_num), parent_id_(task_inst_id), name_(name), rname_(rname), unit_(unit), model_id_(model_id), model_param_id_(model_param_id), hide_(hide), DatabaseParam(id)
+    : type_(type), elem_num_(elem_num), parent_id_(task_inst_id), name_(name), rname_(rname),
+      unit_(unit), model_id_(model_id), model_param_id_(model_param_id), hide_(hide), flowParam_(0),
+      DatabaseParam(id)
   {};
   ParameterParam(ParameterParam* source);
 	~ParameterParam();
@@ -723,13 +727,17 @@ public:
 
   inline int getExecModelId() const { return this->exec_model_id_; }
   inline int getExecModelParamId() const { return this->exec_model_param_id_; }
-  void setExecParamId(int modelId, int model_param_id) {
+  inline void setExecParamId(int modelId, int model_param_id) {
     this->exec_model_id_ = modelId;
     this->exec_model_param_id_ = model_param_id;
   }
-  void updateExecParam() {
+  inline void updateExecParam() {
     this->exec_model_id_ = model_id_;
     this->exec_model_param_id_ = model_param_id_;
+  }
+
+  inline void setFlowParam(FlowParameterParamPtr value) {
+    this->flowParam_ = value;
   }
 
   inline void addControl(QLineEdit* target) { this->controlList_.push_back(target); }
@@ -737,13 +745,15 @@ public:
 	inline QLineEdit* getControl(int index) { return this->controlList_[index]; }
 
   std::string getValues(int index);
-  void setValues(int index, QString source);
+  void setOutValues(int index, QString source);
+  void updateOutValues();
   double getNumValues(int index);
   void saveValues();
   void setDBValues(QString source);
   QString getDBValues();
   void clearControlList() { this->controlList_.clear(); }
   void setFlowValues(QString source);
+  inline void clearFlowParam() { flowParam_ = 0; }
 
 private:
   int type_;
@@ -761,6 +771,7 @@ private:
 
   std::vector<QLineEdit*> controlList_;
   std::vector<QString> valueList_;
+  FlowParameterParamPtr flowParam_;
 };
 typedef std::shared_ptr<ParameterParam> ParameterParamPtr;
 ////
@@ -874,7 +885,7 @@ typedef std::shared_ptr<FlowModelParam> FlowModelParamPtr;
 class FlowParameterParam : public DatabaseParam {
 public:
   FlowParameterParam(int id, QString name, QString value)
-    : name_(name), value_(value), DatabaseParam(id) {};
+    : name_(name), value_(value), orgValue_(value), DatabaseParam(id) {};
   FlowParameterParam(FlowParameterParam* source)
     : name_(source->name_), value_(source->value_),
     posX_(source->posX_), posY_(source->posY_), realElem_(source->realElem_), DatabaseParam(source) {};
@@ -915,16 +926,17 @@ public:
   inline QtNodes::Node* getRealElem() const { return this->realElem_; }
 
   void updatePos();
+  void setInitialValue();
 
 private:
   QString name_;
   QString value_;
+  QString orgValue_;
   double posX_;
   double posY_;
 
   QtNodes::Node* realElem_;
 };
-typedef std::shared_ptr<FlowParameterParam> FlowParameterParamPtr;
 /////
 class ActivityParam : public DatabaseParam {
 public:
@@ -1020,6 +1032,12 @@ public:
 
   inline TaskModelParamPtr getNextTask() const { return this->nextTask_; }
   inline void setNextTask(TaskModelParamPtr value) { this->nextTask_ = value; }
+  inline TaskModelParamPtr getTrueTask() const { return this->trueTask_; }
+  inline void setTrueTask(TaskModelParamPtr value) { this->trueTask_ = value; }
+  inline TaskModelParamPtr getFalseTask() const { return this->falseTask_; }
+  inline void setFalseTask(TaskModelParamPtr value) { this->falseTask_ = value; }
+  inline QString getFlowCondition() const { return this->flowCondition_; }
+  inline void setFlowCondition(QString value) { this->flowCondition_ = value; }
 
   inline ElementStmParamPtr getStateParam() const { return this->stateParam_; }
   inline void setStateParam(ElementStmParamPtr value) { this->stateParam_ = value; }
@@ -1035,6 +1053,7 @@ public:
   inline void setModelLoaded(bool value) { this->isModelLoaded_ = value; }
 
   void updateExecParam();
+  void initFlowParam();
 
 private:
   int flow_id_;
@@ -1048,7 +1067,11 @@ private:
   std::vector<ImageDataParamPtr> imageList_;
 
 	TaskModelParamPtr nextTask_;
-	ElementStmParamPtr stateParam_;
+  TaskModelParamPtr trueTask_;
+  TaskModelParamPtr falseTask_;
+  QString flowCondition_;
+
+  ElementStmParamPtr stateParam_;
 };
 
 class FlowParam : public ActivityParam {
@@ -1145,6 +1168,16 @@ struct FlowParameterParamComparator {
   }
   bool operator()(const FlowParameterParamPtr elem) const {
     return elem->getId() == id_;
+  }
+};
+
+struct FlowParameterParamByNameComparator {
+  QString name_;
+  FlowParameterParamByNameComparator(QString value) {
+    name_ = value;
+  }
+  bool operator()(const FlowParameterParamPtr elem) const {
+    return elem->getName() == name_;
   }
 };
 

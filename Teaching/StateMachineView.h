@@ -39,6 +39,7 @@ class StateMachineViewImpl : public QWidget {
   Q_OBJECT
 public:
   StateMachineViewImpl(QWidget* parent = 0);
+  ~StateMachineViewImpl();
   inline void setParameterView(ParameterView* view) { this->parameterView_ = view; }
 
   void setTaskParam(TaskModelParamPtr param);

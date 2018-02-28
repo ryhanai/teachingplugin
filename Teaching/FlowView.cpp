@@ -3,6 +3,7 @@
 #include "FlowView.h"
 
 #include "TeachingEventHandler.h"
+#include "DecisionDialog.h"
 
 #include "NodeEditor/NodeStyle.hpp"
 #include "NodeEditor/ConnectionStyle.hpp"
@@ -185,6 +186,10 @@ FlowViewImpl::FlowViewImpl(QWidget* parent) {
 
 	TeachingEventHandler::instance()->flv_Loaded(this);
 }
+
+FlowViewImpl::~FlowViewImpl() {
+  DDEBUG("FlowViewImpl Destruct");
+}
 //
 void FlowViewImpl::setButtonEnableMode(bool isEnable) {
   btnSearch->setEnabled(isEnable);
@@ -248,14 +253,7 @@ void FlowViewImpl::editClicked() {
 	DDEBUG("FlowViewImpl::editClicked()");
 
 	ElementStmParamPtr target = grhStateMachine->getCurrentNode();
-	if (target) {
-		if (target->getType() != ELEMENT_COMMAND) {
-			QMessageBox::warning(this, _("TaskInstance"), _("Please select Task Instance Node. : ") + QString::number(target->getType()));
-			return;
-		}
-		TaskInfoDialog dialog(target, this);
-		dialog.exec();
-	}
+  TeachingEventHandler::instance()->flv_EditClicked(target);
 }
 
 void FlowViewImpl::changeEnables(bool value) {
@@ -287,7 +285,11 @@ void FlowViewImpl::runFlowClicked() {
 }
 
 void FlowViewImpl::runTaskClicked() {
-	TeachingEventHandler::instance()->tev_RunTaskClicked();
+  if (updateTargetFlowParam() == false) {
+    QMessageBox::warning(this, _("FlowView"), _("Incorrect flow parameter connection."));
+    return;
+  }
+	TeachingEventHandler::instance()->tev_RunTaskClicked(NULL_ID);
 }
 
 void FlowViewImpl::abortClicked() {

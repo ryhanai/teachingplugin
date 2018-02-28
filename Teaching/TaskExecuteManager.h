@@ -20,6 +20,7 @@ class TaskInstanceView;
 class TaskExecuteManager {
 public:
   TaskExecuteManager();
+  ~TaskExecuteManager();
 
   inline void setFlowView(FlowView* view) { this->flowView_ = view; }
   inline void setTaskInstanceView(TaskInstanceView* view) { this->taskInstView = view; }
@@ -53,7 +54,8 @@ private:
   bool isBreak_;
   bool isAbort_;
 
-	TaskModelParamPtr currentTask_;
+  FlowParamPtr currentFlow_;
+  TaskModelParamPtr currentTask_;
 	TaskModelParamPtr prevTask_;
 	ElementStmParamPtr currParam_;
 
@@ -67,6 +69,7 @@ private:
 
   void parseModelInfo();
   bool doModelAction();
+  bool checkCondition(QString cond);
   void prepareTask();
   void setOutArgument(std::vector<CompositeParamType>& parameterList);
   void setButtonEnableMode(bool isEnable);

@@ -37,6 +37,7 @@ class FlowViewImpl : public QWidget {
   Q_OBJECT
 public:
   FlowViewImpl(QWidget* parent = 0);
+  ~FlowViewImpl();
 
   void flowSelectionChanged(TaskModelParamPtr target);
   void setButtonEnableMode(bool isEnable);
@@ -45,7 +46,7 @@ public:
 	void createStateMachine(FlowParamPtr& target);
 
 	inline bool updateTargetFlowParam() { return grhStateMachine->updateTargetFlowParam(); };
-	void updatingParamInfo(TaskModelParamPtr targetTask, ElementStmParamPtr targetState) { grhStateMachine->updatingParamInfo(targetTask, targetState); };
+	void paramInfoUpdated(TaskModelParamPtr targetTask, ElementStmParamPtr targetState) { grhStateMachine->paramInfoUpdated(targetTask, targetState); };
   void setEditMode(bool canEdit);
 
 public Q_SLOTS:
@@ -95,7 +96,7 @@ public:
 
   inline void setButtonEnableMode(bool isEnable) { viewImpl->setButtonEnableMode(isEnable); }
 	inline bool updateTargetFlowParam() { return viewImpl->updateTargetFlowParam(); };
-	inline void updatingParamInfo(TaskModelParamPtr targetTask, ElementStmParamPtr targetState) { viewImpl->updatingParamInfo(targetTask, targetState); };
+	inline void paramInfoUpdated(TaskModelParamPtr targetTask, ElementStmParamPtr targetState) { viewImpl->paramInfoUpdated(targetTask, targetState); };
 
 private:
   FlowViewImpl* viewImpl;

@@ -91,8 +91,12 @@ void ModelParameterGroup::disconnectKinematics() {
  ParameterViewImpl::ParameterViewImpl(QWidget* parent) : btnEdit(0), QWidget(parent) {
 	TeachingEventHandler::instance()->prv_Loaded(this);
 }
+ 
+ ParameterViewImpl::~ParameterViewImpl() {
+   DDEBUG("ParameterViewImpl Destruct");
+ }
 
-void ParameterViewImpl::setTaskParam(TaskModelParamPtr param) {
+ void ParameterViewImpl::setTaskParam(TaskModelParamPtr param) {
   DDEBUG_V("ParameterViewImpl::setTaskParam() %d", param->getId());
 
 	clearView();
