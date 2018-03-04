@@ -1,0 +1,390 @@
+#VRML V2.0 utf8
+
+PROTO Joint [
+  exposedField     SFVec3f      center              0 0 0
+  exposedField     MFNode       children            []
+  exposedField     MFFloat      llimit              []
+  exposedField     MFFloat      lvlimit             []
+  exposedField     SFRotation   limitOrientation    0 0 1 0
+  exposedField     SFString     name                ""
+  exposedField     SFRotation   rotation            0 0 1 0
+  exposedField     SFVec3f      scale               1 1 1
+  exposedField     SFRotation   scaleOrientation    0 0 1 0
+  exposedField     MFFloat      stiffness           [ 0 0 0 ]
+  exposedField     SFVec3f      translation         0 0 0
+  exposedField     MFFloat      ulimit              []
+  exposedField     MFFloat      uvlimit             []
+  exposedField     SFString     jointType           ""
+  exposedField     SFInt32      jointId             -1
+  exposedField     SFVec3f      jointAxis           0 0 1
+
+  exposedField     SFFloat      gearRatio           1
+  exposedField     SFFloat      rotorInertia        0
+  exposedField     SFFloat      rotorResistor       0
+  exposedField     SFFloat      torqueConst         1
+  exposedField     SFFloat      encoderPulse        1
+  exposedField     MFFloat      climit              []
+]
+{
+  Transform {
+    center           IS center
+    children         IS children
+    rotation         IS rotation
+    scale            IS scale
+    scaleOrientation IS scaleOrientation
+    translation      IS translation
+  }
+}
+
+PROTO Segment [
+  field           SFVec3f     bboxCenter        0 0 0
+  field           SFVec3f     bboxSize          -1 -1 -1
+  exposedField    SFVec3f     centerOfMass      0 0 0
+  exposedField    MFNode      children          [ ]
+  exposedField    SFNode      coord             NULL
+  exposedField    MFNode      displacers        [ ]
+  exposedField    SFFloat     mass              0
+  exposedField    MFFloat     momentsOfInertia  [ 0 0 0 0 0 0 0 0 0 ]
+  exposedField    SFString    name              ""
+  eventIn         MFNode      addChildren
+  eventIn         MFNode      removeChildren
+]
+{
+  Group {
+    addChildren    IS addChildren
+    bboxCenter     IS bboxCenter
+    bboxSize       IS bboxSize
+    children       IS children
+    removeChildren IS removeChildren
+  }
+}
+
+PROTO Surface [
+ field   SFVec3f bboxCenter 0 0 0
+ field   SFVec3f bboxSize   -1 -1 -1
+ field   MFNode  visual     [ ]
+ field   MFNode  collision  [ ]
+ eventIn MFNode  addChildren
+ eventIn MFNode  removeChildren
+]
+{
+  Group {
+    addChildren    IS addChildren
+    bboxCenter     IS bboxCenter
+    bboxSize       IS bboxSize
+    children       IS visual
+    removeChildren IS removeChildren
+  }
+}
+
+PROTO Humanoid [
+  field           SFVec3f    bboxCenter            0 0 0
+  field           SFVec3f    bboxSize              -1 -1 -1
+  exposedField    SFVec3f    center                0 0 0
+  exposedField    MFNode     humanoidBody          [ ]
+  exposedField    MFString   info                  [ ]
+  exposedField    MFNode     joints                [ ]
+  exposedField    SFString   name                  ""
+  exposedField    SFRotation rotation              0 0 1 0
+  exposedField    SFVec3f    scale                 1 1 1
+  exposedField    SFRotation scaleOrientation      0 0 1 0
+  exposedField    MFNode     segments              [ ]
+  exposedField    MFNode     sites                 [ ]
+  exposedField    SFVec3f    translation           0 0 0
+  exposedField    SFString   version               "1.1"
+  exposedField    MFNode     viewpoints            [ ]
+]
+{
+  Transform {
+    bboxCenter       IS bboxCenter
+    bboxSize         IS bboxSize
+    center           IS center
+    rotation         IS rotation
+    scale            IS scale
+    scaleOrientation IS scaleOrientation
+    translation      IS translation
+    children [
+      Group {
+        children IS viewpoints
+      }
+    ]
+  }
+}
+
+PROTO ExtraJoint [
+  exposedField SFString link1Name ""
+  exposedField SFString link2Name ""
+  exposedField SFVec3f  link1LocalPos 0 0 0
+  exposedField SFVec3f  link2LocalPos 0 0 0
+  exposedField SFString jointType "xyz"
+  exposedField SFVec3f  jointAxis 1 0 0
+]
+{
+}
+
+
+
+DEF gripper_root_link Humanoid {
+  humanoidBody [
+    DEF gripper_root_link Joint {
+      jointType "fixed"
+      translation 0.0 0.0 0.0
+      rotation 0 1 0 0
+      children [
+        DEF gripper_root_link Segment {
+          mass 100.637
+          centerOfMass 0.000316 0.0 0.00538
+          momentsOfInertia [0.457665 0.0 -0.0268991 0.0 0.459978 0.0 -0.0268991 0.0 0.0027543]
+          children [
+            Transform {
+              scale 1.0 1.0 1.0
+              translation 0.0 0.0 0.5
+              rotation 0 1 0 0
+              children [
+                Shape {
+                  geometry Box {
+                    size 0.1 0.1 1.0
+                  }
+                }
+              ]
+            }
+            Transform {
+              scale 1.0 1.0 1.0
+              translation 0.05 0.0 0.85
+              rotation 0 1 0 0
+              children [
+                Inline {
+                  url "robotiq_85_gripper-gripper_root_link-robotiq_85_gripper-gripper_root_link_fixed_joint_lump__gripper_base_link_visual_1.wrl"
+                }
+              ]
+            }
+          ]
+        }
+            
+        DEF gripper_finger1_inner_knuckle_joint Joint {
+          jointType "rotate"
+          jointAxis 0.0 0.0 -1.0
+          jointId 1
+          translation 0.11142 0.0127 0.85
+          rotation -1.0 -0.0 -0.0 3.14160344686
+          ulimit 1e+16
+          llimit -1e+16
+          uvlimit inf
+          lvlimit -inf
+          climit [100.0]
+          children [
+            DEF gripper_finger1_inner_knuckle_link Segment {
+              mass 0.029951
+              centerOfMass 0.0 0.0 0.0
+              momentsOfInertia [3.9e-05 0.0 0.0 0.0 5e-06 0.0 0.0 0.0 3.5e-05]
+              children [
+                Transform {
+                  scale 1.0 1.0 1.0
+                  translation 0.0 0.0 0.0
+                  rotation 0 1 0 0
+                  children [
+                    Inline {
+                      url "robotiq_85_gripper-gripper_finger1_inner_knuckle_link-robotiq_85_gripper-gripper_finger1_inner_knuckle_link_visual.wrl"
+                    }
+                  ]
+                }
+              ]
+            }
+                
+            DEF gripper_finger1_finger_tip_joint Joint {
+              jointType "rotate"
+              jointAxis 0.0 -1.0793267253e-05 0.999999999942
+              jointId 0
+              translation 0.04304 -0.0375989999999 9.97723224039e-08
+              rotation 0 1 0 0
+              ulimit 1e+16
+              llimit -1e+16
+              uvlimit inf
+              lvlimit -inf
+              climit [100.0]
+              children [
+                DEF gripper_finger1_finger_tip_link Segment {
+                  mass 0.019555
+                  centerOfMass 0.0 0.0 0.0
+                  momentsOfInertia [2e-06 0.0 0.0 0.0 5e-06 0.0 0.0 0.0 6e-06]
+                  children [
+                    Transform {
+                      scale 1.0 1.0 1.0
+                      translation 0.0 0.0 0.0
+                      rotation 0 1 0 0
+                      children [
+                        Inline {
+                          url "robotiq_85_gripper-gripper_finger1_finger_tip_link-robotiq_85_gripper-gripper_finger1_finger_tip_link_visual.wrl"
+                        }
+                      ]
+                    }
+                  ]
+                }
+                    
+              ]
+            }
+          ]
+        }
+        DEF gripper_finger1_joint Joint {
+          jointType "rotate"
+          jointAxis 0.0 0.0 -1.0
+          jointId 2
+          translation 0.104905 0.030601 0.85
+          rotation -1.0 -0.0 -0.0 3.14160344686
+          ulimit 0.804
+          llimit 0.0
+          uvlimit 2.0
+          lvlimit -2.0
+          climit [1000.0]
+          children [
+            DEF gripper_finger1_knuckle_link Segment {
+              mass 0.0458
+              centerOfMass -0.002436 -0.018774 0.0
+              momentsOfInertia [2.29304e-05 -4.4183e-06 0.0 -4.4183e-06 2.2184e-05 0.0 0.0 0.0 4.11145e-05]
+              children [
+                Transform {
+                  scale 1.0 1.0 1.0
+                  translation 0.0 0.0 0.0
+                  rotation 0 1 0 0
+                  children [
+                    Inline {
+                      url "robotiq_85_gripper-gripper_finger1_knuckle_link-robotiq_85_gripper-gripper_finger1_knuckle_link_visual.wrl"
+                    }
+                  ]
+                }
+                Transform {
+                  scale 1.0 1.0 1.0
+                  translation -0.004086 -0.031486 0.0
+                  rotation 0 1 0 0
+                  children [
+                    Inline {
+                      url "robotiq_85_gripper-gripper_finger1_knuckle_link-robotiq_85_gripper-gripper_finger1_knuckle_link_fixed_joint_lump__gripper_finger1_finger_link_visual_1.wrl"
+                    }
+                  ]
+                }
+              ]
+            }
+                
+          ]
+        }
+        DEF gripper_finger2_inner_knuckle_joint Joint {
+          jointType "rotate"
+          jointAxis 0.0 0.0 1.0
+          jointId 4
+          translation 0.11142 -0.0127 0.85
+          rotation 0 1 0 0
+          ulimit 1e+16
+          llimit -1e+16
+          uvlimit inf
+          lvlimit -inf
+          climit [100.0]
+          children [
+            DEF gripper_finger2_inner_knuckle_link Segment {
+              mass 0.029951
+              centerOfMass 0.0 0.0 0.0
+              momentsOfInertia [3.9e-05 0.0 0.0 0.0 5e-06 0.0 0.0 0.0 3.5e-05]
+              children [
+                Transform {
+                  scale 1.0 1.0 1.0
+                  translation 0.0 0.0 0.0
+                  rotation 0 1 0 0
+                  children [
+                    Inline {
+                      url "robotiq_85_gripper-gripper_finger2_inner_knuckle_link-robotiq_85_gripper-gripper_finger2_inner_knuckle_link_visual.wrl"
+                    }
+                  ]
+                }
+              ]
+            }
+                
+            DEF gripper_finger2_finger_tip_joint Joint {
+              jointType "rotate"
+              jointAxis 0.0 0.0 1.0
+              jointId 3
+              translation 0.04304 -0.037599 4.4408920985e-16
+              rotation 0 1 0 0
+              ulimit 1e+16
+              llimit -1e+16
+              uvlimit inf
+              lvlimit -inf
+              climit [100.0]
+              children [
+                DEF gripper_finger2_finger_tip_link Segment {
+                  mass 0.019555
+                  centerOfMass 0.0 0.0 0.0
+                  momentsOfInertia [2e-06 0.0 0.0 0.0 5e-06 0.0 0.0 0.0 6e-06]
+                  children [
+                    Transform {
+                      scale 1.0 1.0 1.0
+                      translation 0.0 0.0 0.0
+                      rotation 0 1 0 0
+                      children [
+                        Inline {
+                          url "robotiq_85_gripper-gripper_finger2_finger_tip_link-robotiq_85_gripper-gripper_finger2_finger_tip_link_visual.wrl"
+                        }
+                      ]
+                    }
+                  ]
+                }
+                    
+              ]
+            }
+          ]
+        }
+        DEF gripper_finger2_joint Joint {
+          jointType "rotate"
+          jointAxis 0.0 0.0 1.0
+          jointId 5
+          translation 0.104905 -0.030601 0.85
+          rotation 0 1 0 0
+          ulimit 3.14
+          llimit -3.14
+          uvlimit 100.0
+          lvlimit -100.0
+          climit [1000.0]
+          children [
+            DEF gripper_finger2_knuckle_link Segment {
+              mass 0.0458
+              centerOfMass -0.002436 -0.018774 0.0
+              momentsOfInertia [2.29304e-05 -4.4183e-06 0.0 -4.4183e-06 2.2184e-05 0.0 0.0 0.0 4.11145e-05]
+              children [
+                Transform {
+                  scale 1.0 1.0 1.0
+                  translation 0.0 0.0 0.0
+                  rotation 0 1 0 0
+                  children [
+                    Inline {
+                      url "robotiq_85_gripper-gripper_finger2_knuckle_link-robotiq_85_gripper-gripper_finger2_knuckle_link_visual.wrl"
+                    }
+                  ]
+                }
+                Transform {
+                  scale 1.0 1.0 1.0
+                  translation -0.004086 -0.031486 0.0
+                  rotation 0 1 0 0
+                  children [
+                    Inline {
+                      url "robotiq_85_gripper-gripper_finger2_knuckle_link-robotiq_85_gripper-gripper_finger2_knuckle_link_fixed_joint_lump__gripper_finger2_finger_link_visual_1.wrl"
+                    }
+                  ]
+                }
+              ]
+            }
+                
+          ]
+        }
+      ]
+    }
+  ]
+  joints [
+    USE gripper_finger1_finger_tip_joint,
+    USE gripper_finger1_inner_knuckle_joint,
+    USE gripper_finger1_joint,
+    USE gripper_finger2_finger_tip_joint,
+    USE gripper_finger2_inner_knuckle_joint,
+    USE gripper_finger2_joint
+  ]
+  
+  name "gripper_root_link"
+  version "1.0"
+}
