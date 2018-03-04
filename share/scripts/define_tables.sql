@@ -7,29 +7,45 @@ CREATE TABLE T_FLOW (
 );
 
 CREATE TABLE T_FLOW_STATE (
-	state_id		integer primary key,
 	flow_id			integer not null,
+	state_id		integer not null,
 	type			integer not null,
 	task_inst_id	integer,
 	pos_x			real not null,
 	pos_y			real not null,
-	condition		text
+	condition		text,
+	primary key(flow_id, state_id)
 );
 
 CREATE TABLE T_FLOW_TRANSITION (
-	trans_id		integer primary key,
 	flow_id			integer not null,
+	trans_id		integer not null,
 	source_id		integer not null,
+	source_index	integer not null,
 	target_id		integer not null,
-	condition		text
+	target_index	integer not null,
+	type			integer not null,
+	primary key(flow_id, trans_id)
 );
 
-CREATE TABLE T_FLOW_VIA_POINT (
-	trans_id		integer,
-	seq				integer,
+CREATE TABLE T_FLOW_MODEL_PARAM (
+	flow_id			integer not null,
+	model_id		integer not null,
+	master_id		integer not null,
+	master_param_id	integer not null,
 	pos_x			real not null,
 	pos_y			real not null,
-	primary key(trans_id, seq)
+	primary key(flow_id, model_id)
+);
+
+CREATE TABLE T_FLOW_PARAMETER (
+	flow_id			integer  not null,
+	param_id		integer  not null,
+	name			text	 not null,
+	value			text	 not null,
+	pos_x			real	 not null,
+	pos_y			real	 not null,
+	primary key(flow_id, param_id)
 );
 
 CREATE TABLE T_TASK_MODEL_INST (
@@ -39,99 +55,124 @@ CREATE TABLE T_TASK_MODEL_INST (
 	flow_id				integer,
 	created_date		text not null,
 	last_updated_date	text not null,
-	exec_env		text
-);
-
-CREATE TABLE T_MODEL_INFO (
-	model_id		integer primary key,
-	task_inst_id	integer not null,
-	model_type		integer not null,
-	name 			text not null,
-	rname 			text not null,
-	file_name		text,
-	model_data		blob,
-	pos_x			real not null,
-	pos_y			real not null,
-	pos_z			real not null,
-	rot_x			real not null,
-	rot_y			real not null,
-	rot_z			real not null
-);
-
-CREATE TABLE T_MODEL_DETAIL (
-	model_detail_id		integer primary key,
-	model_id			integer not null,
-	file_name			text,
-	model_data			blob
+	exec_env			text
 );
 
 CREATE TABLE T_FIGURE (
-	figure_id		integer primary key,
 	task_inst_id	integer not null,
+	figure_id		integer not null,
+	seq				integer not null,
 	name 			text not null,
-	data			blob
+	data			blob,
+	primary key(task_inst_id, figure_id)
 );
 
 CREATE TABLE T_FILE (
-	file_id			integer primary key,
 	task_inst_id	integer not null,
+	file_id			integer not null,
+	seq				integer not null,
 	name 			text not null,
-	file_data		blob
+	file_data		blob,
+	primary key(task_inst_id, file_id)
 );
 
 CREATE TABLE T_TASK_INST_PARAMETER (
-	task_param_id	integer primary key,
 	task_inst_id	integer not null,
-	type			integer not null,
-	model_name		text,
+	task_param_id	integer not null,
 	elem_num		integer not null,
-	elem_types		text,
 	name			text,
 	rname			text,
 	unit			text,
-	value			text
+	value			text,
+	hide			integer,
+	type			integer not null,
+	model_id		integer,
+	model_param_id	integer,
+	primary key(task_inst_id, task_param_id)
 );
 
 CREATE TABLE T_STATE (
-	state_id		integer primary key,
 	task_inst_id	integer not null,
+	state_id		integer not null,
 	type			integer not null,
 	cmd_name		text,
 	pos_x			real not null,
 	pos_y			real not null,
 	condition		text,
-	disp_name		text
+	disp_name		text,
+	primary key(task_inst_id, state_id)
 );
 
 CREATE TABLE T_STATE_ACTION (
-	state_action_id		integer primary key,
+	task_inst_id		integer not null,
 	state_id			integer not null,
+	state_action_id		integer not null,
 	seq					integer not null,
 	action				text not null,
 	model				text not null,
-	target				text
+	target				text,
+	primary key(task_inst_id, state_id, state_action_id)
 );
 
 CREATE TABLE T_ARGUMENT (
-	arg_id		integer primary key,
-	state_id	integer not null,
-	seq			integer not null,
-	name		text,
-	value		text
+	task_inst_id	integer not null,
+	state_id		integer not null,
+	arg_id			integer  not null,
+	seq				integer not null,
+	name			text,
+	value			text,
+	primary key(task_inst_id, state_id, arg_id)
 );
 
 CREATE TABLE T_TRANSITION (
-	trans_id		integer primary key,
 	task_inst_id	integer not null,
+	trans_id		integer not null,
 	source_id		integer not null,
+	source_index	integer not null,
 	target_id		integer not null,
-	condition		text
+	target_index	integer not null,
+	primary key(task_inst_id, trans_id)
 );
 
-CREATE TABLE T_VIA_POINT (
-	trans_id		integer,
-	seq				integer,
+CREATE TABLE T_MODEL_INFO (
+	task_inst_id	integer not null,
+	model_id		integer not null,
+	model_master_id integer not null,
+	model_type		integer not null,
+	rname 			text not null,
 	pos_x			real not null,
 	pos_y			real not null,
-	primary key(trans_id, seq)
+	pos_z			real not null,
+	rot_x			real not null,
+	rot_y			real not null,
+	rot_z			real not null,
+	primary key(task_inst_id, model_id)
 );
+
+CREATE TABLE M_MODEL (
+	model_id		integer primary key,
+	name 			text not null,
+	file_name		text,
+	hash			text,
+	model_data		blob,
+	image_file_name	text,
+	image_data		blob
+);
+
+CREATE TABLE M_MODEL_DETAIL (
+	model_id			integer not null,
+	model_detail_id		integer not null,
+	file_name			text,
+	model_data			blob,
+	primary key(model_id, model_detail_id)
+);
+
+CREATE TABLE M_MODEL_PARAMETER (
+	model_id			integer not null,
+	model_param_id		integer not null,
+	name 				text not null,
+	value			text,
+	primary key(model_id, model_param_id)
+);
+
+
