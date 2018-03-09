@@ -69,6 +69,7 @@ set(sources
 set(headers
   ArgumentDialog.h
   Calculator.h
+  Parser.h
   ChoreonoidUtil.h
   ControllerBase.h
   CommandDefTypes.h
