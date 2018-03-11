@@ -26,6 +26,8 @@ class ModelWidget : public QWidget {
   Q_OBJECT
 public:
   explicit ModelWidget(QWidget* parent = 0);
+  inline void setFlowModelParamId(int value) { this->flowModelParamId_ = value; }
+
   void showModelInfo();
 
   inline int getMasterId() const {
@@ -48,6 +50,7 @@ private:
   QComboBox* cmbModelParamName;
   QGraphicsView* imageView;
   QGraphicsScene* scene;
+  int flowModelParamId_;
 
   vector<ModelMasterParamPtr> modelMasterList_;
 };

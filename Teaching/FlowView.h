@@ -46,7 +46,8 @@ public:
 	void createStateMachine(FlowParamPtr& target);
 
 	inline bool updateTargetFlowParam() { return grhStateMachine->updateTargetFlowParam(); };
-	void paramInfoUpdated(TaskModelParamPtr targetTask, ElementStmParamPtr targetState) { grhStateMachine->paramInfoUpdated(targetTask, targetState); };
+	inline void paramInfoUpdated(TaskModelParamPtr targetTask, ElementStmParamPtr targetState) { grhStateMachine->paramInfoUpdated(targetTask, targetState); };
+  inline void modelParamUpdated(int flowModelId, ModelMasterParamPtr masterParam) { grhStateMachine->modelParamUpdated(flowModelId, masterParam); };
   void setEditMode(bool canEdit);
 
 public Q_SLOTS:
@@ -97,6 +98,7 @@ public:
   inline void setButtonEnableMode(bool isEnable) { viewImpl->setButtonEnableMode(isEnable); }
 	inline bool updateTargetFlowParam() { return viewImpl->updateTargetFlowParam(); };
 	inline void paramInfoUpdated(TaskModelParamPtr targetTask, ElementStmParamPtr targetState) { viewImpl->paramInfoUpdated(targetTask, targetState); };
+  inline void modelParamUpdated(int flowModelId, ModelMasterParamPtr masterParam) { viewImpl->modelParamUpdated(flowModelId, masterParam); };
 
 private:
   FlowViewImpl* viewImpl;

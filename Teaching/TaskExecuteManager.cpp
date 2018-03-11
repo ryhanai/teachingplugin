@@ -112,33 +112,6 @@ void TaskExecuteManager::runFlow(FlowParamPtr targetFlow) {
   }
   setButtonEnableMode(true);
 
-  //while (true) {
-  //	if (currTask->getType() == ELEMENT_COMMAND) {
-  //		prevTask_ = currentTask_;
-  //		currentTask_ = currTask->getTaskParam();
-  //		if (doFlowOperation() == ExecResult::EXEC_BREAK) {
-  //			statemachineView_->setStepStatus(true);
-  //			return;
-  //		}
-  //	}
-  //	nextTask = currTask->getNextElem();
-
-  //	if (!nextTask) {
-  //		InfoBar::instance()->showMessage("");
-  //		DDEBUG_V("currTask : %d, nextTask:NOT EXIST.", currTask->getType());
-  //		detachAllModelItem();
-  //		return;
-  //	}
-  //	/////
-  //	currTask->updateActive(false);
-  //	nextTask->updateActive(true);
-  //	this->flowView_->repaint();
-
-  //	currTask = nextTask;
-  //	if (nextTask->getType() == ELEMENT_FINAL) {
-  //		break;
-  //	}
-  //}
   InfoBar::instance()->showMessage(_("Finished Flow :") + targetFlow->getName(), MESSAGE_PERIOD);
 }
 
@@ -347,6 +320,13 @@ ExecResult TaskExecuteManager::doTaskOperation(bool updateCurrentTask) {
             DDEBUG("TaskExecuteManager::doTaskOperation FALSE");
             currentTask_ = currentTask_->getFalseTask();
           }
+          //if (argHandler_->checkFlowCondition(currentFlow_, cond.toStdString().c_str())) {
+          //  DDEBUG("TaskExecuteManager::doTaskOperation TRUE");
+          //  currentTask_ = currentTask_->getTrueTask();
+          //} else {
+          //  DDEBUG("TaskExecuteManager::doTaskOperation FALSE");
+          //  currentTask_ = currentTask_->getFalseTask();
+          //}
         }
       }
       //
@@ -364,13 +344,25 @@ ExecResult TaskExecuteManager::doTaskOperation(bool updateCurrentTask) {
 ExecResult TaskExecuteManager::doTaskOperationStep() {
 	DDEBUG("TaskExecuteManager::doTaskOperationStep");
 
-	bool isReal = SettingManager::getInstance().getIsReal();
+  ElementStmParamPtr nextParam;
+  bool isReal = SettingManager::getInstance().getIsReal();
+
+  if(currParam_->getType() == ELEMENT_START) {
+    nextParam = currParam_->getNextElem();
+
+    currParam_->updateActive(false);
+    nextParam->updateActive(true);
+    this->statemachineView_->repaint();
+
+    currParam_ = nextParam;
+
+    return ExecResult::EXEC_BREAK;
+  }
 	TeachingEventHandler::instance()->prv_SetInputValues();
 
   //ƒ‚ƒfƒ‹î•ñ‚Ìİ’è
   parseModelInfo();
 
-	ElementStmParamPtr nextParam;
   bool cmdRet = false;
   std::vector<CompositeParamType> parameterList;
 
@@ -432,14 +424,33 @@ ExecResult TaskExecuteManager::doTaskOperationStep() {
     currParam_ = nextParam;
     if (nextParam->getType() == ELEMENT_FINAL) {
       prevTask_ = currentTask_;
-      currentTask_ = currentTask_->getNextTask();
+      if (currentTask_->getNextTask()) {
+        currentTask_ = currentTask_->getNextTask();
+      } else {
+        QString cond = currentTask_->getFlowCondition();
+        DDEBUG_V("FlowCondition : %s", cond.toStdString().c_str());
+        if (0 == cond.length()) {
+          currentTask_ = 0;
+        } else {
+          if (checkCondition(cond)) {
+            DDEBUG("TaskExecuteManager::doTaskOperation TRUE");
+            currentTask_ = currentTask_->getTrueTask();
+          } else {
+            DDEBUG("TaskExecuteManager::doTaskOperation FALSE");
+            currentTask_ = currentTask_->getFalseTask();
+          }
+        }
+      }
       //
       if (currentTask_) {
         prepareTask();
+        TeachingEventHandler::instance()->setComCurrentTask(currentTask_);
+        DDEBUG("TaskExecuteManager::doTaskOperation EXEC_BREAK");
         return ExecResult::EXEC_BREAK;
       }
       break;
     }
+
     if (currParam_->getType() == ELEMENT_COMMAND) return ExecResult::EXEC_BREAK;
   }
   return ExecResult::EXEC_FINISHED;

@@ -40,7 +40,6 @@ void NodePainter::paint(QPainter* painter, Node & node, FlowScene const& scene) 
   drawNodeRect(painter, geom, model, graphicsObject);
 
   drawConnectionPoints(painter, geom, state, model, scene);
-	//DDEBUG_V("target:%s", node.id().toString().toStdString().c_str());
 
   drawFilledConnectionPoints(painter, geom, state, model);
 
@@ -158,15 +157,17 @@ void NodePainter::drawConnectionPoints(QPainter* painter,
           painter->setBrush(nodeStyle.ConnectionPointColor);
         }
 
-				if (dataType.id == "cntl") {
-					painter->setBrush(Qt::red);
+        if (dataType.id == "cntl") {
+          painter->setBrush(Qt::red);
           QPolygon poly;
           auto r = diameter * 0.6;
           poly << QPoint(p.x() + r, p.y())
-               << QPoint(p.x() - r / 2.0, p.y() + r * sqrt(3.0))
-               << QPoint(p.x() - r / 2.0, p.y() - r * sqrt(3.0));
+            << QPoint(p.x() - r / 2.0, p.y() + r * sqrt(3.0))
+            << QPoint(p.x() - r / 2.0, p.y() - r * sqrt(3.0));
           painter->drawPolygon(poly);
-				} else {
+        } else if(dataType.id == "modeldata") {
+          painter->drawRect(p.x() -  (reducedDiameter * r), p.y() - (reducedDiameter * r), reducedDiameter * r * 2.0, reducedDiameter * r * 2.0);
+        } else {
           painter->drawEllipse(p, reducedDiameter * r, reducedDiameter * r);
         }
 			}

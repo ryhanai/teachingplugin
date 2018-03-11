@@ -118,6 +118,7 @@ void FlowEditor::contextMenuEvent(QContextMenuEvent *event) {
         fmParam->setRealElem(&node);
         fmParam->setNew();
         node.setParamId(fmParam->getId());
+        ((TransformDataModel*)(node.nodeDataModel()))->setFlowModelParamId(fmParam->getId());
         flowParam->addModel(fmParam);
 
       } else if (modelName == "Flow Param") {
@@ -345,6 +346,7 @@ void FlowEditor::createStateMachine(FlowParamPtr target) {
       ((TransformDataModel*)(node.nodeDataModel()))->setMasterInfo(target->getMasterId(), target->getMasterParamId());
       target->setRealElem(&node);
       node.setParamId(target->getId());
+      ((TransformDataModel*)(node.nodeDataModel()))->setFlowModelParamId(target->getId());
     }
   }
   /////
@@ -583,6 +585,54 @@ void FlowEditor::deleteSelectedNodes() {
   for (QGraphicsItem * item : _scene->selectedItems()) {
     if (auto c = qgraphicsitem_cast<ConnectionGraphicsObject*>(item))
       _scene->deleteConnection(c->connection());
+  }
+}
+
+void FlowEditor::modelParamUpdated(int flowModelId, ModelMasterParamPtr masterParam) {
+  DDEBUG_V("FlowEditor::modelParamUpdated : %d, %d", flowModelId, masterParam->getId());
+  //対象ノードの検索
+  FlowParamPtr flowParam = std::dynamic_pointer_cast<FlowParam>(targetParam_);
+  vector<FlowModelParamPtr> modelList = flowParam->getModelList();
+  vector<FlowModelParamPtr>::iterator modelElem = find_if(modelList.begin(), modelList.end(), FlowModelParamComparator(flowModelId));
+  if (modelElem == modelList.end()) {
+    DDEBUG("FlowModelParam NOT FOUND");
+    return;
+  }
+
+  Node* targetNode = (*modelElem)->getRealElem();
+  //
+  vector<ElementStmParamPtr> stateList = targetParam_->getStmElementList();
+  unordered_map<QUuid, shared_ptr<Connection> > connMap = _scene->connections();
+  for (auto it = connMap.begin(); it != connMap.end(); ++it) {
+    //対象モデルノードと接続されているノードの検索
+    shared_ptr<Connection> target = it->second;
+    Node* sourceNode = target->getNode(PortType::Out);
+    if (sourceNode->nodeDataModel()->name() != "Model Param") continue;
+    int sourceId = sourceNode->getParamId();
+    if (sourceId != flowModelId) continue;
+    //
+    Node* targetNode = target->getNode(PortType::In);
+    int targetId = targetNode->getParamId();
+    vector<ElementStmParamPtr>::iterator targetElem = find_if(stateList.begin(), stateList.end(), ElementStmParamComparator(targetId));
+    if (targetElem == stateList.end()) continue;
+    TaskModelParamPtr taskParam = (*targetElem)->getTaskParam();
+    if (!taskParam) continue;
+
+    //対象タスクのパラメータ情報取得
+    int targetIndex = target->getPortIndex(PortType::In);
+    Node* orgNode = (*targetElem)->getRealElem();
+    int targetParamId = orgNode->nodeDataModel()->portNames.at(targetIndex - 1).id_;
+    ParameterParamPtr targetParam = taskParam->getParameterById(targetParamId);
+    if (targetParam->getType() != PARAM_KIND_MODEL) continue;
+    vector<ModelParamPtr> taskModelList = taskParam->getModelList();
+
+    //対象タスクのモデル情報の取得
+    int modelId =targetParam->getModelId();
+    vector<ModelParamPtr>::iterator targetModel = find_if(taskModelList.begin(), taskModelList.end(), ModelParamComparator(modelId));
+    if (targetModel == taskModelList.end()) continue;
+    (*targetModel)->setMasterId(masterParam->getId());
+    (*targetModel)->setModelMaster(masterParam);
+    DDEBUG("Model Data CHANGED");
   }
 }
 

@@ -47,8 +47,9 @@ std::string evaluator::operator()(FunCallNodeSp const& node) const {
 }
 
 /////
-MemberParam::MemberParam(NodeType type, std::string source, TaskModelParamPtr targetModel)
+MemberParam::MemberParam(NodeType type, std::string source, TaskModelParamPtr targetModel, FlowParamPtr targetFlow)
   : nodeType_(type), source_(source), valueVector6d_(6) {
+  targetFlow_ = targetFlow;
   targetModel_ = targetModel;
 }
 
@@ -192,7 +193,8 @@ bool MemberParam::parseVector6d(MemberParam* elem01, MemberParam* elem02, Member
 bool MemberParam::parseVariable(bool isSub) {
 	DDEBUG_V("MemberParam::parseVariable source:%s", source_.c_str());
 	QString paramName = QString::fromStdString(source_);
-
+  //
+  //TODO FlowParamÇÃèÍçá
   vector<ParameterParamPtr> paramList = targetModel_->getParameterList();
   vector<ParameterParamPtr>::iterator targetParam = find_if(paramList.begin(), paramList.end(), ParameterParamComparatorByRName(paramName));
   if (targetParam == paramList.end()) return false;
@@ -234,7 +236,8 @@ bool MemberParam::parseVariable(bool isSub) {
       DDEBUG_V("MemberParam::parseVariable : Model Param Rep=%s", desc.toStdString().c_str());
       Calculator* calc = new Calculator();
       //çƒåvéZÇµÇ»Ç¢ÇÊÇ§Ç…isSubÇTrueÇ…ê›íË
-      if (calc->calculate(desc, targetModel_, true) == false) {
+      calc->setTaskModelParam(targetModel_);
+      if (calc->calculate(desc, true) == false) {
         DDEBUG("MemberParam::parseVariable : Calc Error");
         return false;
       }
@@ -371,6 +374,11 @@ bool MemberParam::calcMat2rpy(const Matrix3d& matrix) {
   return true;
 }
 /////
+Calculator::Calculator()
+  : resultScalar_(0.0), resultVector3d_(Vector3d::Zero()), resultVector6d_(6),
+    valMode_(VAL_SCALAR), targetModel_(0), targetFlow_(0) {
+}
+
 Calculator::~Calculator() {
   std::vector<MemberParam*>::iterator itStart = memberList_.begin();
   while (itStart != memberList_.end()) {
@@ -417,7 +425,8 @@ bool Calculator::buildArguments(TaskModelParamPtr taskParam, ElementStmParamPtr 
     }
 
     if (argDef->getType() == "double") {
-      bool ret = this->calculate(valueDesc, taskParam);
+      this->setTaskModelParam(taskParam);
+      bool ret = this->calculate(valueDesc);
       if (ret == false) return false;
       if (this->getValMode() == VAL_SCALAR) {
         DDEBUG_V("name : %s, %f", arg->getName().toStdString().c_str(), this->getResultScalar());
@@ -451,11 +460,18 @@ bool Calculator::buildArguments(TaskModelParamPtr taskParam, ElementStmParamPtr 
 }
 
 bool Calculator::checkSyntax(TaskModelParamPtr taskParam, QString script, string& errStr) {
-  return calculate(script, taskParam);
+  this->setTaskModelParam(taskParam);
+  return calculate(script);
 }
 
 bool Calculator::checkCondition(bool cmdRet, string script) {
   return cmdRet;
+}
+
+bool Calculator::checkFlowCondition(FlowParamPtr flowParam, string script) {
+  DDEBUG_V("Calculator::checkFlowCondition : %s", script.c_str());
+  calculate(QString::fromStdString(script));
+  return false;
 }
 
 int Calculator::extractNodeInfo(const Node& source) {
@@ -466,7 +482,7 @@ int Calculator::extractNodeInfo(const Node& source) {
     {
       ValueNodeSp val = boost::get<ValueNodeSp>(source);
       std::string strVal = boost::lexical_cast<std::string>(val->v_);
-      memberList_.push_back(new MemberParam(TYPE_VALUE, strVal, targetModel_));
+      memberList_.push_back(new MemberParam(TYPE_VALUE, strVal, targetModel_, targetFlow_));
       ret = memberList_.size() - 1;
       break;
     }
@@ -480,7 +496,7 @@ int Calculator::extractNodeInfo(const Node& source) {
       std::string strY = boost::apply_visitor(evaluator(), nodeY);
       Node nodeZ = val->z_;
       std::string strZ = boost::apply_visitor(evaluator(), nodeZ);
-      MemberParam* member = new MemberParam(TYPE_VECTOR, "[" + strX + "," + strY + "," + strZ + "]", targetModel_);
+      MemberParam* member = new MemberParam(TYPE_VECTOR, "[" + strX + "," + strY + "," + strZ + "]", targetModel_, targetFlow_);
       member->arg01_ = strX;
       member->arg02_ = strY;
       member->arg03_ = strZ;
@@ -515,7 +531,7 @@ int Calculator::extractNodeInfo(const Node& source) {
 			Node nodeRZ = val->Rz_;
 			std::string strRZ = boost::apply_visitor(evaluator(), nodeRZ);
 
-			MemberParam* member = new MemberParam(TYPE_VECTOR6, "[" + strX + "," + strY + "," + strZ + "," + strRX + "," + strRY + "," + strRZ + "]", targetModel_);
+			MemberParam* member = new MemberParam(TYPE_VECTOR6, "[" + strX + "," + strY + "," + strZ + "," + strRX + "," + strRY + "," + strRZ + "]", targetModel_, targetFlow_);
 			member->arg01_ = strX;
 			member->arg02_ = strY;
 			member->arg03_ = strZ;
@@ -559,7 +575,7 @@ int Calculator::extractNodeInfo(const Node& source) {
       Node rhs = val->rhs_;
       std::string strRhs = boost::apply_visitor(evaluator(), rhs);
       std::string strOpe = val->op_;
-      MemberParam* member = new MemberParam(TYPE_BIN_OPE, strLhs + strOpe + strRhs, targetModel_);
+      MemberParam* member = new MemberParam(TYPE_BIN_OPE, strLhs + strOpe + strRhs, targetModel_, targetFlow_);
       member->arg01_ = strLhs;
       member->arg02_ = strRhs;
       member->arg03_ = strOpe;
@@ -579,7 +595,7 @@ int Calculator::extractNodeInfo(const Node& source) {
     {
       VariableNodeSp val = boost::get<VariableNodeSp>(source);
       std::string strVal = boost::lexical_cast<std::string>(val->nm_);
-      memberList_.push_back(new MemberParam(TYPE_VARIABLE, strVal, targetModel_));
+      memberList_.push_back(new MemberParam(TYPE_VARIABLE, strVal, targetModel_, targetFlow_));
       ret = memberList_.size() - 1;
       break;
     }
@@ -591,7 +607,7 @@ int Calculator::extractNodeInfo(const Node& source) {
       std::string strFunc = boost::apply_visitor(evaluator(), func);
       Node args = val->args_;
       std::string strArgs = boost::apply_visitor(evaluator(), args);
-      MemberParam* member = new MemberParam(TYPE_FUNC, strFunc + "(" + strArgs + ")", targetModel_);
+      MemberParam* member = new MemberParam(TYPE_FUNC, strFunc + "(" + strArgs + ")", targetModel_, targetFlow_);
       member->arg01_ = strFunc;
       member->arg02_ = strArgs;
       memberList_.push_back(member);
@@ -606,9 +622,8 @@ int Calculator::extractNodeInfo(const Node& source) {
   return ret;
 }
 
-bool Calculator::calculate(QString source, TaskModelParamPtr targetModel, bool isSub) {
-	DDEBUG("Calculator::calculate");
-	QString target;
+bool Calculator::calculate(QString source, bool isSub) {
+	DDEBUG_V("Calculator::calculate: %s", source.toStdString().c_str());
   CalcMode mode = CALC_NOTHING;
   valMode_ = VAL_SCALAR;
   std::vector<MemberParam*>::iterator itStart = memberList_.begin();
@@ -617,19 +632,19 @@ bool Calculator::calculate(QString source, TaskModelParamPtr targetModel, bool i
     ++itStart;
   }
   memberList_.clear();
-  targetModel_ = targetModel;
 
-  //std::string str = source.toAscii();
   std::string str = source.toLocal8Bit().constData();
   makeTree<std::string::iterator> mt;
   Node result;
   std::string::iterator it = str.begin();
 	std::vector<Node> nodeList;
+  DDEBUG("qi::phrase_parse");
   if (qi::phrase_parse(it, str.end(), mt, qi::space, result) == false) return false;
-	int ret = extractNodeInfo(result);
+  DDEBUG("qi::phrase_parse OK");
+  int ret = extractNodeInfo(result);
 	if (ret < 0) return false;
-	if (memberList_.size() == 0) return false;
-	//
+  if (memberList_.size() == 0) return false;
+  //
   for (int index = memberList_.size() - 1; 0 <= index; index--) {
     MemberParam* member = memberList_[index];
 		DDEBUG_V("member %d, %s", member->nodeType_, member->source_.c_str());

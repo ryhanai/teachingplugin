@@ -116,6 +116,7 @@ bool ChoreonoidUtil::loadModelItem(ModelParamPtr target) {
 	DDEBUG("ChoreonoidUtil::loadModelItem");
 	if (target == NULL)  return false;
   if (target->getModelMaster()->getModelItem()) {
+    DDEBUG("ChoreonoidUtil::loadModelItem Loading");
     string robotModel = SettingManager::getInstance().getRobotModelName();
     BodyItemPtr item = target->getModelMaster()->getModelItem();
     ChoreonoidUtil::updateModelItemPosition(item,
@@ -143,7 +144,8 @@ bool ChoreonoidUtil::unLoadModelItem(ModelParamPtr target) {
 
 
 bool ChoreonoidUtil::loadModelMasterItem(ModelMasterParamPtr target) {
-	if (target == NULL)  return false;
+  DDEBUG("ChoreonoidUtil::loadModelMasterItem");
+  if (target == NULL)  return false;
 	if (target->getModelItem() == 0) {
 		if (makeModelItem(target) == 0) {
 			target->setModelItem(0);
