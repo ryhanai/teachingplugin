@@ -35,6 +35,7 @@ bool TeachingUtil::importTask(QString& strFName, std::vector<TaskModelParamPtr>&
       QString taskExecEnv = "";
       try { taskName = QString::fromStdString(taskMap->get("taskName").toString()); } catch (...) { continue; }
       try { taskComment = QString::fromStdString(taskMap->get("comment").toString()).replace("|", "\n"); } catch (...) {}
+      //try { taskComment = QString::fromStdString(taskMap->get("comment").toString()); } catch (...) {}
       try { taskExecEnv = QString::fromStdString(taskMap->get("initialize").toString()).replace("|", "\n"); } catch (...) {}
 
 			TaskModelParamPtr taskParam = std::make_shared<TaskModelParam>(NULL_ID, taskName, taskComment, taskExecEnv, -1, "", "");
@@ -139,7 +140,6 @@ bool TeachingUtil::importTask(QString& strFName, std::vector<TaskModelParamPtr>&
           try { posY = stateMap->get("pos_y").toDouble(); } catch (...) {}
           try { condition = QString::fromStdString(stateMap->get("condition").toString()).replace("|", "\n"); } catch (...) {}
           try { dispName = QString::fromStdString(stateMap->get("disp_name").toString()); } catch (...) {}
-          DDEBUG_V("cmd_name[%s]", cmdName.toStdString().c_str());
 					int newId = taskParam->getMaxStateId();
 					stateIdMap[id] = newId;
 					ElementStmParamPtr stateParam = std::make_shared<ElementStmParam>(newId, type, cmdName, dispName, posX, posY, condition);
@@ -361,6 +361,7 @@ bool TeachingUtil::exportTask(QString& strFName, TaskModelParamPtr targetTask) {
   MappingPtr taskNode = archive->newMapping();
   taskNode->write("taskName", targetTask->getName().toUtf8(), DOUBLE_QUOTED);
   taskNode->write("comment", targetTask->getComment().replace("\n", "|").toUtf8(), DOUBLE_QUOTED);
+  //taskNode->write("comment", targetTask->getComment().toUtf8(), DOUBLE_QUOTED);
   taskNode->write("initialize", targetTask->getExecEnv().replace("\n", "|").toUtf8(), DOUBLE_QUOTED);
   //
   if (0 < targetTask->getModelList().size()) {
@@ -570,6 +571,7 @@ bool TeachingUtil::exportFlow(QString& strFName, FlowParamPtr targetFlow) {
       }
       stateNode->write("pos_x", param->getPosX());
       stateNode->write("pos_y", param->getPosY());
+      stateNode->write("condition", param->getCondition().replace("\n", "|").toUtf8(), DOUBLE_QUOTED);
     }
   }
   //
@@ -652,11 +654,9 @@ bool TeachingUtil::importFlow(QString& strFName, std::vector<FlowParamPtr>& flow
       Mapping* flowMap = eachFlow->toMapping();
       //
       QString flowName = "";
-      try { flowName = QString::fromStdString(flowMap->get("flowName").toString()); }
-      catch (...) { continue; }
+      try { flowName = QString::fromStdString(flowMap->get("flowName").toString()); } catch (...) { continue; }
       QString flowComment = "";
-      try { flowComment = QString::fromStdString(flowMap->get("comment").toString()).replace("|", "\n"); }
-      catch (...) {}
+      try { flowComment = QString::fromStdString(flowMap->get("comment").toString()).replace("|", "\n"); } catch (...) {}
 
       FlowParamPtr flowParam = std::make_shared<FlowParam>(NULL_ID, flowName, flowComment, "", "");
       flowParam->setNew();

@@ -113,6 +113,10 @@ void TeachingEventHandler::tiv_TaskExportClicked(int selectedId, QString strTask
 	stv_->setStepStatus(false);
 
   if (0 <= selectedId) {
+    stv_->updateTargetParam();
+    mdv_->updateTaskParam();
+    prv_SetInputValues();
+
     tiv_CurrentTask_ = TeachingDataHolder::instance()->getTaskInstanceById(selectedId);
     com_CurrentTask_ = tiv_CurrentTask_;
     updateComViews(tiv_CurrentTask_);
@@ -125,10 +129,7 @@ void TeachingEventHandler::tiv_TaskExportClicked(int selectedId, QString strTask
 	if (tiv_CurrentTask_->getName() != strTask) {
 		tiv_CurrentTask_->setName(strTask);
 	}
-	stv_->updateTargetParam();
-	mdv_->updateTaskParam();
 	tiv_->updateGrid(tiv_CurrentTask_);
-	prv_SetInputValues();
 
 	QFileDialog::Options options;
 	QString strSelectedFilter;
@@ -653,6 +654,9 @@ void TeachingEventHandler::mdv_UpdateComment(QString comment) {
 	if (com_CurrentTask_) {
 		com_CurrentTask_->setComment(comment);
 	}
+  if (tiv_CurrentTask_) {
+    tiv_CurrentTask_->setComment(comment);
+  }
 }
 
 void TeachingEventHandler::mdv_UpdateFileSeq(int id, int seq) {
