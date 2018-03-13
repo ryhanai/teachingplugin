@@ -1,4 +1,5 @@
 #include "ParamWidget.hpp"
+#include "TeachingEventHandler.h"
 
 ParamWidget::ParamWidget(QWidget* parent) : QWidget(parent) {
   //setStyleSheet( "QWidget{ background-color : rgba( 160, 160, 160, 255); border-radius : 7px;  }" );
@@ -20,7 +21,7 @@ void ParamWidget::setParamInfo(QString name, QString value) {
 }
 
 //////////
-ModelWidget::ModelWidget(QWidget* parent) : QWidget(parent) {
+ModelWidget::ModelWidget(QWidget* parent) : QWidget(parent), flowModelParamId_(NULL_ID){
   imageView = new QGraphicsView();
   scene = new QGraphicsScene();
   imageView->setScene(scene);
@@ -75,6 +76,10 @@ void ModelWidget::modelSelectionChanged(int index) {
   for (int index = 0; index < (*masterParamItr)->getActiveParamList().size(); index++) {
     ModelParameterParamPtr param = (*masterParamItr)->getActiveParamList()[index];
     cmbModelParamName->addItem(param->getName(), param->getId());
+  }
+  //
+  if (0 < flowModelParamId_) {
+    TeachingEventHandler::instance()->flv_ModelParamChanged(flowModelParamId_, *masterParamItr);
   }
 }
 

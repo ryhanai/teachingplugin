@@ -549,6 +549,8 @@ public:
 
   virtual ~TransformDataModel() {}
 
+  inline void setFlowModelParamId(int value) { _modelEdit->setFlowModelParamId(value); }
+
 public:
 
   void initialize() {

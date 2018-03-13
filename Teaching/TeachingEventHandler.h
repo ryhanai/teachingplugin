@@ -32,6 +32,7 @@ public:
 	~TeachingEventHandler();
 
   inline bool canEdit() const { return this->canEdit_; }
+  inline void setComCurrentTask(TaskModelParamPtr param) { this->com_CurrentTask_ = param; }
 
 	//TaskInstanceView
 	void tiv_Loaded(TaskInstanceViewImpl* view);
@@ -59,6 +60,7 @@ public:
 	void flv_RunFlowClicked();
 	void flv_InitPosClicked();
   void flv_EditClicked(ElementStmParamPtr target);
+  void flv_ModelParamChanged(int flowModelId, ModelMasterParamPtr masterParam);
 
 	//MetaDataView
 	void mdv_Loaded(MetaDataViewImpl* view);

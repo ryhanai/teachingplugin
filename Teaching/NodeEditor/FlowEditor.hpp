@@ -21,6 +21,7 @@ public:
   void createStateMachine(FlowParamPtr target);
 	bool updateTargetFlowParam();
 	void paramInfoUpdated(TaskModelParamPtr targetTask, ElementStmParamPtr targetState);
+  void modelParamUpdated(int flowModelId, ModelMasterParamPtr masterParam);
 
 public Q_SLOTS:
   void deleteSelectedNodes();

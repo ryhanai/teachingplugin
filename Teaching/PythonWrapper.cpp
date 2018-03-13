@@ -198,6 +198,12 @@ bool PythonWrapper::checkCondition(bool cmdRet, string script) {
   return calcResult.at(0) == 1 ? true : false;
 }
 
+bool PythonWrapper::checkFlowCondition(FlowParamPtr flowParam, string script) {
+  //TODO
+  return true;
+  //TODO
+}
+
 int PythonWrapper::execFunction(string script, vector<double>& result) {
   int ret = doFunction(script);
   if (ret != RETURN_OK) return ret;

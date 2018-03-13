@@ -64,7 +64,7 @@ private:
 /////
 class MemberParam {
 public:
-  MemberParam(NodeType type, std::string source, TaskModelParamPtr targetModel);
+  MemberParam(NodeType type, std::string source, TaskModelParamPtr targetModel, FlowParamPtr targetFlow);
   ~MemberParam() {};
 
   inline CalcMode getCalcMode() const { return this->calcMode_; }
@@ -97,7 +97,9 @@ private:
   Vector3d valueVector3d_;
   VectorXd valueVector6d_;
   Matrix3d valueMatrix_;
-	TaskModelParamPtr targetModel_;
+
+  TaskModelParamPtr targetModel_;
+  FlowParamPtr targetFlow_;
 
   CalcMode calcMode_;
 
@@ -117,15 +119,25 @@ private:
 
 class Calculator : public ArgumentEstimator {
 public:
-  Calculator() : resultScalar_(0.0), resultVector3d_(Vector3d::Zero()), resultVector6d_(6), valMode_(VAL_SCALAR) {};
+  Calculator();
   ~Calculator();
 
   void initialize(TaskModelParamPtr targetParam = NULL);
   void finalize();
 
+  inline void setFlowParam(FlowParamPtr targetFlow) {
+    this->targetFlow_ = targetFlow;
+    this->targetModel_ = 0;
+  }
+  inline void setTaskModelParam(TaskModelParamPtr targetModel) {
+    this->targetFlow_ = 0;
+    this->targetModel_ = targetModel;
+  }
+
   bool buildArguments(TaskModelParamPtr taskParam, ElementStmParamPtr targetParam, std::vector<CompositeParamType>& parameterList);
   bool checkSyntax(TaskModelParamPtr taskParam, QString script, string& errStr);
   bool checkCondition(bool cmdRet, string script);
+  bool checkFlowCondition(FlowParamPtr flowParam, string script);
 
 private:
   ValueMode valMode_;
@@ -135,6 +147,7 @@ private:
 	Matrix3d resultMatrix_;
 
 	TaskModelParamPtr targetModel_;
+  FlowParamPtr targetFlow_;
   std::vector<MemberParam*> memberList_;
 
   inline double getResultScalar() const { return this->resultScalar_; }
@@ -144,7 +157,7 @@ private:
 
   inline ValueMode getValMode() const { return this->valMode_; }
 
-  bool calculate(QString source, TaskModelParamPtr targetModel, bool isSub = false);
+  bool calculate(QString source, bool isSub = false);
 
   int extractNodeInfo(const Node& source);
 

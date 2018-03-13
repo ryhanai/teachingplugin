@@ -113,6 +113,10 @@ void TeachingEventHandler::tiv_TaskExportClicked(int selectedId, QString strTask
 	stv_->setStepStatus(false);
 
   if (0 <= selectedId) {
+    stv_->updateTargetParam();
+    mdv_->updateTaskParam();
+    prv_SetInputValues();
+
     tiv_CurrentTask_ = TeachingDataHolder::instance()->getTaskInstanceById(selectedId);
     com_CurrentTask_ = tiv_CurrentTask_;
     updateComViews(tiv_CurrentTask_);
@@ -125,10 +129,7 @@ void TeachingEventHandler::tiv_TaskExportClicked(int selectedId, QString strTask
 	if (tiv_CurrentTask_->getName() != strTask) {
 		tiv_CurrentTask_->setName(strTask);
 	}
-	stv_->updateTargetParam();
-	mdv_->updateTaskParam();
 	tiv_->updateGrid(tiv_CurrentTask_);
-	prv_SetInputValues();
 
 	QFileDialog::Options options;
 	QString strSelectedFilter;
@@ -653,6 +654,9 @@ void TeachingEventHandler::mdv_UpdateComment(QString comment) {
 	if (com_CurrentTask_) {
 		com_CurrentTask_->setComment(comment);
 	}
+  if (tiv_CurrentTask_) {
+    tiv_CurrentTask_->setComment(comment);
+  }
 }
 
 void TeachingEventHandler::mdv_UpdateFileSeq(int id, int seq) {
@@ -733,12 +737,14 @@ void TeachingEventHandler::prv_SetInputValues() {
 	DDEBUG("TeachingEventHandler::prv_SetInputValues");
 	if (com_CurrentTask_) {
 		vector<ParameterParamPtr> paramList = com_CurrentTask_->getParameterList();
-		vector<ParameterParamPtr>::iterator itParam = paramList.begin();
+    DDEBUG_V("paramList:%d", paramList.size());
+    vector<ParameterParamPtr>::iterator itParam = paramList.begin();
 		while (itParam != paramList.end()) {
 			(*itParam)->saveValues();
 			++itParam;
 		}
 	}
+  DDEBUG("TeachingEventHandler::prv_SetInputValues End");
 }
 
 //TaskExecutionView
@@ -863,6 +869,23 @@ void TeachingEventHandler::flv_EditClicked(ElementStmParamPtr target) {
     } else {
       TaskInfoDialog dialog(target, flv_);
       dialog.exec();
+    }
+  }
+}
+
+void TeachingEventHandler::flv_ModelParamChanged(int flowModelId, ModelMasterParamPtr masterParam) {
+  DDEBUG_V("TeachingEventHandler::flv_ModelParamChanged : %d, %d", flowModelId, masterParam->getId());
+  unloadTaskModelItems();
+  if (masterParam->getModelItem() == 0) {
+    if (ChoreonoidUtil::makeModelItem(masterParam) == 0) {
+      masterParam->setModelItem(0);
+    }
+  }
+  flv_->modelParamUpdated(flowModelId, masterParam);
+  if (com_CurrentTask_) {
+    bool isUpdateTree = ChoreonoidUtil::loadTaskModelItem(com_CurrentTask_);
+    if (isUpdateTree) {
+      ChoreonoidUtil::showAllModelItem();
     }
   }
 }
@@ -1172,7 +1195,6 @@ bool TeachingEventHandler::prd_OkClicked(QString name, QString id, int type, QSt
   /////
   prd_UpdateParam(name, id, type, unit, num, model_id, model_param_id, hide);
   //
-  vector<int> existModels;
   vector<ParameterParamPtr> paramList = com_CurrentTask_->getActiveParameterList();
   for (int index = 0; index < paramList.size(); index++) {
     ParameterParamPtr param = paramList[index];
@@ -1187,18 +1209,23 @@ bool TeachingEventHandler::prd_OkClicked(QString name, QString id, int type, QSt
     }
     //
     int type = param->getType();
-    if (type == 0) {
+    if (type == PARAM_KIND_NORMAL) {
       if (param->getElemNum() <= 0) {
         QMessageBox::warning(prd_, _("Parameter"), _("Please input Element Num."));
         return false;
       }
 
     } else {
-      if (std::find(existModels.begin(), existModels.end(), param->getModelId()) != existModels.end()) {
-        QMessageBox::warning(prd_, _("Parameter"), _("Target Model CANNOT duplicate."));
-        return false;
+      if (param->getModelId() < 0) continue;
+      for (int idxSub = 0; idxSub < paramList.size(); idxSub++) {
+        if (idxSub == index) continue;
+        ParameterParamPtr paramSub = paramList[idxSub];
+        if (paramSub->getType() != PARAM_KIND_MODEL) continue;
+        if (param->getModelId() == paramSub->getModelId() && param->getModelParamId() == paramSub->getModelParamId()) {
+          QMessageBox::warning(prd_, _("Parameter"), _("Target Model CANNOT duplicate."));
+          return false;
+        }
       }
-      existModels.push_back(param->getModelId());
     }
   }
   //
