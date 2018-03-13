@@ -146,10 +146,6 @@ namespace teaching {
             | ('<' > additive_expr[qi::_val = phx::bind(&BinOpNode::create, str_lt, qi::_val, qi::_1)])
             | ('>' > additive_expr[qi::_val = phx::bind(&BinOpNode::create, str_gt, qi::_val, qi::_1)]));
       additive_expr = term[qi::_val = qi::_1]
-        > *(('+' > term[qi::_val = phx::bind(&BinOpNode::create, "+", qi::_val, qi::_1)])
-            | ('-' > term[qi::_val = phx::bind(&BinOpNode::create, "-", qi::_val, qi::_1)]));
-
-      expr = term[qi::_val = qi::_1]
         > *(('+' > term[qi::_val = phx::bind(&BinOpNode::create, str_plus, qi::_val, qi::_1)])
             | ('-' > term[qi::_val = phx::bind(&BinOpNode::create, str_minus, qi::_val, qi::_1)]));
       term = factor[qi::_val = qi::_1]
