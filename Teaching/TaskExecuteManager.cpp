@@ -75,15 +75,12 @@ void TaskExecuteManager::runFlow(FlowParamPtr targetFlow) {
     if (targetState->getNextElem()->getType() == ELEMENT_DECISION) {
       ElementStmParamPtr decisionElem = targetState->getNextElem();
       currentTask->setFlowCondition(decisionElem->getCondition());
-      currentTask->setTrueTask(decisionElem->getTrueElem()->getTaskParam());
-      currentTask->setFalseTask(decisionElem->getFalseElem()->getTaskParam());
 
-    } else if (targetState->getNextElem()->getType() == ELEMENT_MERGE) {
-      ElementStmParamPtr mergeElem = targetState->getNextElem();
-      currentTask->setNextTask(mergeElem->getNextElem()->getTaskParam());
+      currentTask->setTrueTask(getNextTask(decisionElem->getTrueElem()));
+      currentTask->setFalseTask(getNextTask(decisionElem->getFalseElem()));
 
     } else {
-      currentTask->setNextTask(targetState->getNextElem()->getTaskParam());
+      currentTask->setNextTask(getNextTask(targetState->getNextElem()));
     }
   }
   //
@@ -114,6 +111,14 @@ void TaskExecuteManager::runFlow(FlowParamPtr targetFlow) {
 
   InfoBar::instance()->showMessage(_("Finished Flow :") + targetFlow->getName(), MESSAGE_PERIOD);
 }
+
+TaskModelParamPtr TaskExecuteManager::getNextTask(ElementStmParamPtr target) {
+  if (target->getType() == ELEMENT_MERGE) {
+    return target->getNextElem()->getTaskParam();
+  }
+  return target->getTaskParam();
+}
+
 
 bool TaskExecuteManager::runSingleCommand() {
 	DDEBUG("TaskExecuteManager::runSingleCommand");
@@ -313,20 +318,13 @@ ExecResult TaskExecuteManager::doTaskOperation(bool updateCurrentTask) {
         if (0 == cond.length()) {
           currentTask_ = 0;
         } else {
-          if (checkCondition(cond)) {
+          if (argHandler_->checkFlowCondition(currentFlow_, cond.toStdString().c_str())) {
             DDEBUG("TaskExecuteManager::doTaskOperation TRUE");
             currentTask_ = currentTask_->getTrueTask();
           } else {
             DDEBUG("TaskExecuteManager::doTaskOperation FALSE");
             currentTask_ = currentTask_->getFalseTask();
           }
-          //if (argHandler_->checkFlowCondition(currentFlow_, cond.toStdString().c_str())) {
-          //  DDEBUG("TaskExecuteManager::doTaskOperation TRUE");
-          //  currentTask_ = currentTask_->getTrueTask();
-          //} else {
-          //  DDEBUG("TaskExecuteManager::doTaskOperation FALSE");
-          //  currentTask_ = currentTask_->getFalseTask();
-          //}
         }
       }
       //
@@ -432,7 +430,7 @@ ExecResult TaskExecuteManager::doTaskOperationStep() {
         if (0 == cond.length()) {
           currentTask_ = 0;
         } else {
-          if (checkCondition(cond)) {
+          if (argHandler_->checkFlowCondition(currentFlow_, cond.toStdString().c_str())) {
             DDEBUG("TaskExecuteManager::doTaskOperation TRUE");
             currentTask_ = currentTask_->getTrueTask();
           } else {
@@ -504,71 +502,6 @@ bool TaskExecuteManager::doModelAction() {
     }
   }
   return true;
-}
-
-bool TaskExecuteManager::checkCondition(QString cond) {
-  //TODO
-  if (cond == "true") return true;
-
-  QString strVal;
-  QString strParam;
-  int type;
-  if (cond.contains("==")) {
-    QStringList elems = cond.split("==");
-    strParam = elems[0];
-    strVal = elems[1];
-    type = 1;
-
-  } else if (cond.contains("<=")) {
-    QStringList elems = cond.split("<=");
-    strParam = elems[0];
-    strVal = elems[1];
-    type = 2;
-
-  } else if (cond.contains("<")) {
-    QStringList elems = cond.split("<");
-    strParam = elems[0];
-    strVal = elems[1];
-    type = 3;
-
-  } else if (cond.contains(">=")) {
-    QStringList elems = cond.split(">=");
-    strParam = elems[0];
-    strVal = elems[1];
-    type = 4;
-
-  } else if (cond.contains(">")) {
-    QStringList elems = cond.split(">");
-    strParam = elems[0];
-    strVal = elems[1];
-    type = 5;
-  }
-  DDEBUG_V("strParam:%s", strParam.toStdString().c_str());
-  DDEBUG_V("strVal:%s", strVal.toStdString().c_str());
-  //
-  double targetVal = strVal.toDouble();
-  vector<FlowParameterParamPtr> paramList = currentFlow_->getFlowParamList();
-  vector<FlowParameterParamPtr>::iterator flowParam = find_if(paramList.begin(), paramList.end(), FlowParameterParamByNameComparator(strParam));
-  if (flowParam == paramList.end()) return false;
-  DDEBUG_V("paramVal:%s", (*flowParam)->getValue().toStdString().c_str());
-  double paramVal = (*flowParam)->getValue().toDouble();
-  //
-  switch (type) {
-    case 1:
-      return (paramVal == targetVal);
-    case 2:
-      return (paramVal <= targetVal);
-    case 3:
-      return (paramVal < targetVal);
-    case 4:
-      return (paramVal >= targetVal);
-    case 5:
-      return (paramVal > targetVal);
-    default:
-      return false;
-  }
-  //
-  return false;
 }
 
 void TaskExecuteManager::prepareTask() {

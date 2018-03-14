@@ -69,13 +69,14 @@ private:
 
   void parseModelInfo();
   bool doModelAction();
-  bool checkCondition(QString cond);
   void prepareTask();
   void setOutArgument(std::vector<CompositeParamType>& parameterList);
   void setButtonEnableMode(bool isEnable);
 
   void createArgEstimator(TaskModelParamPtr targetParam = NULL);
   void deleteArgEstimator();
+
+  TaskModelParamPtr getNextTask(ElementStmParamPtr target);
 };
 
 }

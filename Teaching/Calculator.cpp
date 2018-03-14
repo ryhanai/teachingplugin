@@ -60,81 +60,81 @@ bool MemberParam::parseScalar() {
 }
 
 bool MemberParam::calcBinOpe(MemberParam* lhs, MemberParam* rhs) {
-	ValueMode leftMode = lhs->valMode_;
-  ValueMode rightMode = rhs->valMode_;
-	DDEBUG_V("MemberParam::calcBinOpe %s %d %d", arg03_.c_str(), leftMode, rightMode);
+	ValueMode leftNode = lhs->valMode_;
+  ValueMode rightNode = rhs->valMode_;
+	DDEBUG_V("MemberParam::calcBinOpe %s %d %d", arg03_.c_str(), leftNode, rightNode);
   //
   if (arg03_ == "+") {
-    if (leftMode == VAL_SCALAR && rightMode == VAL_SCALAR) {
+    if (leftNode == VAL_SCALAR && rightNode == VAL_SCALAR) {
       valueScalar_ = lhs->getValueScalar() + rhs->getValueScalar();
       valMode_ = VAL_SCALAR;
       return true;
 
-    } else if (leftMode == VAL_VECTOR_3D && rightMode == VAL_VECTOR_3D) {
+    } else if (leftNode == VAL_VECTOR_3D && rightNode == VAL_VECTOR_3D) {
       valueVector3d_ = lhs->getValueVector3d() + rhs->getValueVector3d();
       valMode_ = VAL_VECTOR_3D;
       return true;
 
-		} else if (leftMode == VAL_VECTOR_6D && rightMode == VAL_VECTOR_6D) {
+		} else if (leftNode == VAL_VECTOR_6D && rightNode == VAL_VECTOR_6D) {
 			valueVector6d_ = lhs->getValueVector6d() + rhs->getValueVector6d();
 			valMode_ = VAL_VECTOR_6D;
 			return true;
 		}
 
   } else if (arg03_ == "-") {
-    if (leftMode == VAL_SCALAR && rightMode == VAL_SCALAR) {
+    if (leftNode == VAL_SCALAR && rightNode == VAL_SCALAR) {
       valueScalar_ = lhs->getValueScalar() - rhs->getValueScalar();
       valMode_ = VAL_SCALAR;
       return true;
 
-    } else if (leftMode == VAL_VECTOR_3D && rightMode == VAL_VECTOR_3D) {
+    } else if (leftNode == VAL_VECTOR_3D && rightNode == VAL_VECTOR_3D) {
       valueVector3d_ = lhs->getValueVector3d() - rhs->getValueVector3d();
       valMode_ = VAL_VECTOR_3D;
       return true;
 
-		} else if (leftMode == VAL_VECTOR_6D && rightMode == VAL_VECTOR_6D) {
+		} else if (leftNode == VAL_VECTOR_6D && rightNode == VAL_VECTOR_6D) {
 			valueVector6d_ = lhs->getValueVector6d() - rhs->getValueVector6d();
 			valMode_ = VAL_VECTOR_6D;
 			return true;
 		}
 
   } else if (arg03_ == "*") {
-    if (leftMode == VAL_SCALAR) {
-      if (rightMode == VAL_SCALAR) {
+    if (leftNode == VAL_SCALAR) {
+      if (rightNode == VAL_SCALAR) {
         valueScalar_ = lhs->getValueScalar() * rhs->getValueScalar();
         valMode_ = VAL_SCALAR;
         return true;
-      } else if (rightMode == VAL_VECTOR_3D) {
+      } else if (rightNode == VAL_VECTOR_3D) {
         valueVector3d_ = lhs->getValueScalar() * rhs->getValueVector3d();
         valMode_ = VAL_VECTOR_3D;
         return true;
-			} else if (rightMode == VAL_VECTOR_6D) {
+			} else if (rightNode == VAL_VECTOR_6D) {
 				valueVector6d_ = lhs->getValueScalar() * rhs->getValueVector6d();
 				valMode_ = VAL_VECTOR_6D;
 				return true;
 			}
 
-    } else if (leftMode == VAL_VECTOR_3D) {
-      if (rightMode == VAL_SCALAR) {
+    } else if (leftNode == VAL_VECTOR_3D) {
+      if (rightNode == VAL_SCALAR) {
         valueVector3d_ = lhs->getValueVector3d() * rhs->getValueScalar();
         valMode_ = VAL_VECTOR_3D;
         return true;
       }
 
-		} else if (leftMode == VAL_VECTOR_6D) {
-			if (rightMode == VAL_SCALAR) {
+		} else if (leftNode == VAL_VECTOR_6D) {
+			if (rightNode == VAL_SCALAR) {
 				valueVector6d_ = lhs->getValueVector6d() * rhs->getValueScalar();
 				valMode_ = VAL_VECTOR_6D;
 				return true;
 			}
 
-		} else if (leftMode == VAL_MATRIX) {
-      if (rightMode == VAL_VECTOR_3D) {
+		} else if (leftNode == VAL_MATRIX) {
+      if (rightNode == VAL_VECTOR_3D) {
         valueVector3d_ = lhs->getValueMatrix() * rhs->getValueVector3d();
         valMode_ = VAL_VECTOR_3D;
         return true;
 
-      } else if (rightMode == VAL_MATRIX) {
+      } else if (rightNode == VAL_MATRIX) {
         valueMatrix_ = lhs->getValueMatrix() * rhs->getValueMatrix();
         valMode_ = VAL_MATRIX;
         return true;
@@ -142,26 +142,42 @@ bool MemberParam::calcBinOpe(MemberParam* lhs, MemberParam* rhs) {
     }
 
   } else if (arg03_ == "/") {
-    if (leftMode == VAL_SCALAR) {
-      if (rightMode == VAL_SCALAR) {
+    if (leftNode == VAL_SCALAR) {
+      if (rightNode == VAL_SCALAR) {
         valueScalar_ = lhs->getValueScalar() / rhs->getValueScalar();
         valMode_ = VAL_SCALAR;
         return true;
       }
-    } else if (leftMode == VAL_VECTOR_3D) {
-      if (rightMode == VAL_SCALAR) {
+    } else if (leftNode == VAL_VECTOR_3D) {
+      if (rightNode == VAL_SCALAR) {
         valueVector3d_ = lhs->getValueVector3d() / rhs->getValueScalar();
         valMode_ = VAL_VECTOR_3D;
         return true;
       }
 
-		} else if (leftMode == VAL_VECTOR_6D) {
-			if (rightMode == VAL_SCALAR) {
+		} else if (leftNode == VAL_VECTOR_6D) {
+			if (rightNode == VAL_SCALAR) {
 				valueVector6d_ = lhs->getValueVector6d() / rhs->getValueScalar();
 				valMode_ = VAL_VECTOR_6D;
 				return true;
 			}
 		}
+
+  } else if (arg03_ == "||" || arg03_ == "&&" || arg03_ == "==" || arg03_ == "!=" 
+          || arg03_ == "<=" || arg03_ == ">=" || arg03_ == "<" || arg03_ == ">") {
+    if (leftNode != VAL_SCALAR || leftNode != VAL_SCALAR) return false;
+    valMode_ = VAL_SCALAR;
+    if (     arg03_ == "||") valueScalar_ = (lhs->getValueScalar() || rhs->getValueScalar());
+    else if (arg03_ == "&&") valueScalar_ = (lhs->getValueScalar() && rhs->getValueScalar());
+    else if (arg03_ == "==") valueScalar_ = dbl_eq(lhs->getValueScalar(),rhs->getValueScalar());
+    else if (arg03_ == "!=") valueScalar_ = !dbl_eq(lhs->getValueScalar(), rhs->getValueScalar());
+    else if (arg03_ == "<=") valueScalar_ = (lhs->getValueScalar() <= rhs->getValueScalar());
+    else if (arg03_ == ">=") valueScalar_ = (lhs->getValueScalar() >= rhs->getValueScalar());
+    else if (arg03_ == "<")  valueScalar_ = (lhs->getValueScalar() <  rhs->getValueScalar());
+    else if (arg03_ == ">")  valueScalar_ = (lhs->getValueScalar() >  rhs->getValueScalar());
+
+    DDEBUG_V("left:%f, %s, right:%f, Result:%f", lhs->getValueScalar(), arg03_.c_str(), rhs->getValueScalar(), valueScalar_);
+    return true;
   }
 
   return false;
@@ -195,58 +211,87 @@ bool MemberParam::parseVariable(bool isSub) {
 	QString paramName = QString::fromStdString(source_);
   //
   //TODO FlowParamÇÃèÍçá
-  vector<ParameterParamPtr> paramList = targetModel_->getParameterList();
-  vector<ParameterParamPtr>::iterator targetParam = find_if(paramList.begin(), paramList.end(), ParameterParamComparatorByRName(paramName));
-  if (targetParam == paramList.end()) return false;
-	//
-  DDEBUG("MemberParam::parseVariable : Param");
-  if ((*targetParam)->getElemNum() == 1) {
-    valueScalar_ = (*targetParam)->getNumValues(0);
-    valMode_ = VAL_SCALAR;
+  if (this->targetFlow_) {
+    vector<FlowParameterParamPtr> paramList = targetFlow_->getFlowParamList();
+    vector<FlowParameterParamPtr>::iterator targetParam = find_if(paramList.begin(), paramList.end(), FlowParameterParamByNameComparator(paramName));
+    if (targetParam == paramList.end()) return false;
+    //
+    QString strValue = (*targetParam)->getValue();
+    QStringList valList = strValue.split(",");
+    if (valList.size() == 1) {
+      valueScalar_ = strValue.toDouble();
+      valMode_ = VAL_SCALAR;
 
-  } else if ((*targetParam)->getElemNum() == 3) {
-    valueVector3d_[0] = (*targetParam)->getNumValues(0);
-    valueVector3d_[1] = (*targetParam)->getNumValues(1);
-    valueVector3d_[2] = (*targetParam)->getNumValues(2);
-    valMode_ = VAL_VECTOR_3D;
+    } else if (valList.size() == 3) {
+      valueVector3d_[0] = valList[0].toDouble();
+      valueVector3d_[1] = valList[1].toDouble();
+      valueVector3d_[2] = valList[2].toDouble();
+      valMode_ = VAL_VECTOR_3D;
 
-  } else if ((*targetParam)->getElemNum() == 6) {
-    DDEBUG_V("ElemNum(6) %d,%d,%d,%d", (*targetParam)->getType(), (*targetParam)->getExecModelId(), (*targetParam)->getExecModelParamId(), isSub);
-    if ((*targetParam)->getType()== PARAM_KIND_NORMAL || (*targetParam)->getExecModelParamId() <= 0 || isSub) {
-      valueVector6d_[0] = (*targetParam)->getNumValues(0);
-      valueVector6d_[1] = (*targetParam)->getNumValues(1);
-      valueVector6d_[2] = (*targetParam)->getNumValues(2);
-      valueVector6d_[3] = (*targetParam)->getNumValues(3);
-      valueVector6d_[4] = (*targetParam)->getNumValues(4);
-      valueVector6d_[5] = (*targetParam)->getNumValues(5);
-
-    } else {
-      vector<ModelParamPtr> modelList = targetModel_->getModelList();
-      vector<ModelParamPtr>::iterator targetModelItr = find_if(modelList.begin(), modelList.end(), ModelParamComparator((*targetParam)->getExecModelId()));
-      if (targetModelItr == modelList.end()) return false;
-
-      ModelMasterParamPtr master = (*targetModelItr)->getModelMaster();
-      vector<ModelParameterParamPtr> masterParamList = master->getModelParameterList();
-      vector<ModelParameterParamPtr>::iterator masterParamItr = find_if(masterParamList.begin(), masterParamList.end(), ModelMasterParamComparator((*targetParam)->getExecModelParamId()));
-      if (masterParamItr == masterParamList.end()) return false;
-
-      QString desc = (*masterParamItr)->getValueDesc();
-      DDEBUG_V("MemberParam::parseVariable : Model Param=%s", desc.toStdString().c_str());
-      desc = desc.replace("origin", (*targetParam)->getRName());
-      DDEBUG_V("MemberParam::parseVariable : Model Param Rep=%s", desc.toStdString().c_str());
-      Calculator* calc = new Calculator();
-      //çƒåvéZÇµÇ»Ç¢ÇÊÇ§Ç…isSubÇTrueÇ…ê›íË
-      calc->setTaskModelParam(targetModel_);
-      if (calc->calculate(desc, true) == false) {
-        DDEBUG("MemberParam::parseVariable : Calc Error");
-        return false;
-      }
-      valueVector6d_ = calc->getResultVector6d();
+    } else if (valList.size() == 6) {
+      valueVector6d_[0] = valList[0].toDouble();
+      valueVector6d_[1] = valList[1].toDouble();
+      valueVector6d_[2] = valList[2].toDouble();
+      valueVector6d_[3] = valList[3].toDouble();
+      valueVector6d_[4] = valList[4].toDouble();
+      valueVector6d_[5] = valList[5].toDouble();
       valMode_ = VAL_VECTOR_6D;
-      delete calc;
-      DDEBUG_V("MemberParam::parseVariable : Calc End %f, %f, %f, %f, %f, %f", valueVector6d_[0], valueVector6d_[1], valueVector6d_[2], valueVector6d_[3], valueVector6d_[4], valueVector6d_[5]);
     }
-    valMode_ = VAL_VECTOR_6D;
+
+  } else {
+    vector<ParameterParamPtr> paramList = targetModel_->getParameterList();
+    vector<ParameterParamPtr>::iterator targetParam = find_if(paramList.begin(), paramList.end(), ParameterParamComparatorByRName(paramName));
+    if (targetParam == paramList.end()) return false;
+    //
+    DDEBUG("MemberParam::parseVariable : Param");
+    if ((*targetParam)->getElemNum() == 1) {
+      valueScalar_ = (*targetParam)->getNumValues(0);
+      valMode_ = VAL_SCALAR;
+
+    } else if ((*targetParam)->getElemNum() == 3) {
+      valueVector3d_[0] = (*targetParam)->getNumValues(0);
+      valueVector3d_[1] = (*targetParam)->getNumValues(1);
+      valueVector3d_[2] = (*targetParam)->getNumValues(2);
+      valMode_ = VAL_VECTOR_3D;
+
+    } else if ((*targetParam)->getElemNum() == 6) {
+      DDEBUG_V("ElemNum(6) %d,%d,%d,%d", (*targetParam)->getType(), (*targetParam)->getExecModelId(), (*targetParam)->getExecModelParamId(), isSub);
+      if ((*targetParam)->getType() == PARAM_KIND_NORMAL || (*targetParam)->getExecModelParamId() <= 0 || isSub) {
+        valueVector6d_[0] = (*targetParam)->getNumValues(0);
+        valueVector6d_[1] = (*targetParam)->getNumValues(1);
+        valueVector6d_[2] = (*targetParam)->getNumValues(2);
+        valueVector6d_[3] = (*targetParam)->getNumValues(3);
+        valueVector6d_[4] = (*targetParam)->getNumValues(4);
+        valueVector6d_[5] = (*targetParam)->getNumValues(5);
+
+      } else {
+        vector<ModelParamPtr> modelList = targetModel_->getModelList();
+        vector<ModelParamPtr>::iterator targetModelItr = find_if(modelList.begin(), modelList.end(), ModelParamComparator((*targetParam)->getExecModelId()));
+        if (targetModelItr == modelList.end()) return false;
+
+        ModelMasterParamPtr master = (*targetModelItr)->getModelMaster();
+        vector<ModelParameterParamPtr> masterParamList = master->getModelParameterList();
+        vector<ModelParameterParamPtr>::iterator masterParamItr = find_if(masterParamList.begin(), masterParamList.end(), ModelMasterParamComparator((*targetParam)->getExecModelParamId()));
+        if (masterParamItr == masterParamList.end()) return false;
+
+        QString desc = (*masterParamItr)->getValueDesc();
+        DDEBUG_V("MemberParam::parseVariable : Model Param=%s", desc.toStdString().c_str());
+        desc = desc.replace("origin", (*targetParam)->getRName());
+        DDEBUG_V("MemberParam::parseVariable : Model Param Rep=%s", desc.toStdString().c_str());
+        Calculator* calc = new Calculator();
+        //çƒåvéZÇµÇ»Ç¢ÇÊÇ§Ç…isSubÇTrueÇ…ê›íË
+        calc->setTaskModelParam(targetModel_);
+        if (calc->calculate(desc, true) == false) {
+          DDEBUG("MemberParam::parseVariable : Calc Error");
+          return false;
+        }
+        valueVector6d_ = calc->getResultVector6d();
+        valMode_ = VAL_VECTOR_6D;
+        delete calc;
+        DDEBUG_V("MemberParam::parseVariable : Calc End %f, %f, %f, %f, %f, %f", valueVector6d_[0], valueVector6d_[1], valueVector6d_[2], valueVector6d_[3], valueVector6d_[4], valueVector6d_[5]);
+      }
+      valMode_ = VAL_VECTOR_6D;
+    }
   }
 
   return true;
@@ -470,8 +515,10 @@ bool Calculator::checkCondition(bool cmdRet, string script) {
 
 bool Calculator::checkFlowCondition(FlowParamPtr flowParam, string script) {
   DDEBUG_V("Calculator::checkFlowCondition : %s", script.c_str());
-  calculate(QString::fromStdString(script));
-  return false;
+  this->targetFlow_ = flowParam;
+  this->targetModel_ = 0;
+  if (calculate(QString::fromStdString(script)) == false) return false;
+  return this->getResultScalar();
 }
 
 int Calculator::extractNodeInfo(const Node& source) {
@@ -633,13 +680,17 @@ bool Calculator::calculate(QString source, bool isSub) {
   }
   memberList_.clear();
 
-  std::string str = source.toLocal8Bit().constData();
+  std::string str = source.toStdString();
   makeTree<std::string::iterator> mt;
   Node result;
   std::string::iterator it = str.begin();
-	std::vector<Node> nodeList;
+	//std::vector<Node> nodeList;
   DDEBUG("qi::phrase_parse");
-  if (qi::phrase_parse(it, str.end(), mt, qi::space, result) == false) return false;
+  if (qi::phrase_parse(it, str.end(), mt, qi::space, result) == false) {
+    DDEBUG_V("Error:%", mt.getErrorMessage().c_str());
+    mt.clearErrorMessage();
+    return false;
+  }
   DDEBUG("qi::phrase_parse OK");
   int ret = extractNodeInfo(result);
 	if (ret < 0) return false;

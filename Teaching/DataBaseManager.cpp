@@ -19,6 +19,7 @@ DatabaseManager::DatabaseManager() {
 
 bool DatabaseManager::connectDB() {
   DDEBUG("DatabaseManager::connectDB");
+  if (db_.isOpen()) return true;
 	db_ = QSqlDatabase::addDatabase("QSQLITE");
 	db_.setDatabaseName(QString::fromStdString(SettingManager::getInstance().getDatabase()));
 	if (db_.open() == false) {
@@ -28,6 +29,7 @@ bool DatabaseManager::connectDB() {
 }
 
 bool DatabaseManager::reConnectDB() {
+  DDEBUG("DatabaseManager::reConnectDB");
   closeDB();
   //
   db_ = QSqlDatabase::addDatabase("QSQLITE");
