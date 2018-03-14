@@ -66,7 +66,11 @@ int main()
   while (getline(std::cin, str)) {
     if (qi::phrase_parse(str.begin(), str.end(), parser, qi::space, result)) {
       std::cout << boost::apply_visitor(teaching::tostr_visitor(), result) << std::endl;
+    } else {
+      std::cout << parser.getErrorMessage() << std::endl;
+      parser.clearErrorMessage();
     }
+
     std::cout << prompt;
   }
 

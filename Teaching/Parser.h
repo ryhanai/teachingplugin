@@ -116,6 +116,11 @@ namespace teaching {
     qi::rule<Iterator, Node(), qi::space_type> topexpr, expr,
       logical_and_expr, equality_expr, relational_expr, additive_expr,
       term, factor, variable, literal, args, vector3d_const, vector6d_const;
+
+    std::stringstream ss;
+    std::string getErrorMessage() { return ss.str(); }
+    void clearErrorMessage() { return ss.str(""); ss.clear(std::stringstream::goodbit); }
+
   makeTree() : makeTree::base_type(topexpr) {
       topexpr = expr > qi::eoi;
 #if _MSC_VER >= 1900
@@ -197,63 +202,91 @@ namespace teaching {
       literal = qi::double_[qi::_val = phx::bind(&ValueNode::create, qi::_1)];
       qi::on_error<qi::fail>(
         topexpr,
-        std::cerr << phx::val("Expecting : ") << qi::_4 << phx::val(" here: \"")
+        ss << phx::val("Expecting : ") << qi::_4 << phx::val(" here: \"")
         << phx::construct<std::string>(qi::_3, qi::_2) << phx::val("\"")
         << phx::val(" in \"") << phx::construct<std::string>(qi::_1, qi::_2) << phx::val("\"")
         << std::endl
         );
       qi::on_error<qi::fail>(
         expr,
-        std::cerr << phx::val("Expecting : ") << qi::_4 << phx::val(" here: \"")
+        ss << phx::val("Expecting : ") << qi::_4 << phx::val(" here: \"")
+        << phx::construct<std::string>(qi::_3, qi::_2) << phx::val("\"")
+        << phx::val(" in \"") << phx::construct<std::string>(qi::_1, qi::_2) << phx::val("\"")
+        << std::endl
+        );
+      qi::on_error<qi::fail>(
+        logical_and_expr,
+        ss << phx::val("Expecting : ") << qi::_4 << phx::val(" here: \"")
+        << phx::construct<std::string>(qi::_3, qi::_2) << phx::val("\"")
+        << phx::val(" in \"") << phx::construct<std::string>(qi::_1, qi::_2) << phx::val("\"")
+        << std::endl
+        );
+      qi::on_error<qi::fail>(
+        equality_expr,
+        ss << phx::val("Expecting : ") << qi::_4 << phx::val(" here: \"")
+        << phx::construct<std::string>(qi::_3, qi::_2) << phx::val("\"")
+        << phx::val(" in \"") << phx::construct<std::string>(qi::_1, qi::_2) << phx::val("\"")
+        << std::endl
+        );
+      qi::on_error<qi::fail>(
+        relational_expr,
+        ss << phx::val("Expecting : ") << qi::_4 << phx::val(" here: \"")
+        << phx::construct<std::string>(qi::_3, qi::_2) << phx::val("\"")
+        << phx::val(" in \"") << phx::construct<std::string>(qi::_1, qi::_2) << phx::val("\"")
+        << std::endl
+        );
+      qi::on_error<qi::fail>(
+        additive_expr,
+        ss << phx::val("Expecting : ") << qi::_4 << phx::val(" here: \"")
         << phx::construct<std::string>(qi::_3, qi::_2) << phx::val("\"")
         << phx::val(" in \"") << phx::construct<std::string>(qi::_1, qi::_2) << phx::val("\"")
         << std::endl
         );
       qi::on_error<qi::fail>(
         term,
-        std::cerr << phx::val("Expecting : ") << qi::_4 << phx::val(" here: \"")
+        ss << phx::val("Expecting : ") << qi::_4 << phx::val(" here: \"")
         << phx::construct<std::string>(qi::_3, qi::_2) << phx::val("\"")
         << phx::val(" in \"") << phx::construct<std::string>(qi::_1, qi::_2) << phx::val("\"")
         << std::endl
         );
       qi::on_error<qi::fail>(
         factor,
-        std::cerr << phx::val("Expecting : ") << qi::_4 << phx::val(" here: \"")
+        ss << phx::val("Expecting : ") << qi::_4 << phx::val(" here: \"")
         << phx::construct<std::string>(qi::_3, qi::_2) << phx::val("\"")
         << phx::val(" in \"") << phx::construct<std::string>(qi::_1, qi::_2) << phx::val("\"")
         << std::endl
         );
       qi::on_error<qi::fail>(
         args,
-        std::cerr << phx::val("Expecting : ") << qi::_4 << phx::val(" here: \"")
+        ss << phx::val("Expecting : ") << qi::_4 << phx::val(" here: \"")
         << phx::construct<std::string>(qi::_3, qi::_2) << phx::val("\"")
         << phx::val(" in \"") << phx::construct<std::string>(qi::_1, qi::_2) << phx::val("\"")
         << std::endl
         );
       qi::on_error<qi::fail>(
         vector3d_const,
-        std::cerr << phx::val("Expecting : ") << qi::_4 << phx::val(" here: \"")
+        ss << phx::val("Expecting : ") << qi::_4 << phx::val(" here: \"")
         << phx::construct<std::string>(qi::_3, qi::_2) << phx::val("\"")
         << phx::val(" in \"") << phx::construct<std::string>(qi::_1, qi::_2) << phx::val("\"")
         << std::endl
         );
       qi::on_error<qi::fail>(
         vector6d_const,
-        std::cerr << phx::val("Expecting : ") << qi::_4 << phx::val(" here: \"")
+        ss << phx::val("Expecting : ") << qi::_4 << phx::val(" here: \"")
         << phx::construct<std::string>(qi::_3, qi::_2) << phx::val("\"")
         << phx::val(" in \"") << phx::construct<std::string>(qi::_1, qi::_2) << phx::val("\"")
         << std::endl
         );
       qi::on_error<qi::fail>(
         variable,
-        std::cerr << phx::val("Expecting : ") << qi::_4 << phx::val(" here: \"")
+        ss << phx::val("Expecting : ") << qi::_4 << phx::val(" here: \"")
         << phx::construct<std::string>(qi::_3, qi::_2) << phx::val("\"")
         << phx::val(" in \"") << phx::construct<std::string>(qi::_1, qi::_2) << phx::val("\"")
         << std::endl
         );
       qi::on_error<qi::fail>(
         literal,
-        std::cerr << phx::val("Expecting : ") << qi::_4 << phx::val(" here: \"")
+        ss << phx::val("Expecting : ") << qi::_4 << phx::val(" here: \"")
         << phx::construct<std::string>(qi::_3, qi::_2) << phx::val("\"")
         << phx::val(" in \"") << phx::construct<std::string>(qi::_1, qi::_2) << phx::val("\"")
         << std::endl
