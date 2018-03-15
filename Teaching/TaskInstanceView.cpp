@@ -140,7 +140,7 @@ TaskInstanceViewImpl::~TaskInstanceViewImpl() {
 }
 
 void TaskInstanceViewImpl::loadTaskInfo() {
-	//DDEBUG("TaskInstanceViewImpl::loadTaskInfo");
+	DDEBUG("TaskInstanceViewImpl::loadTaskInfo");
 	if (DatabaseManager::getInstance().connectDB()) {
 		TeachingDataHolder::instance()->loadData();
 		vector<TaskModelParamPtr> taskList = TeachingDataHolder::instance()->getTaskList();
@@ -307,7 +307,6 @@ void TaskInstanceViewImpl::updateGrid(TaskModelParamPtr& target) {
 }
 
 void TaskInstanceViewImpl::widgetClose() {
-  DatabaseManager::getInstance().closeDB();
 }
 
 void TaskInstanceViewImpl::setEditMode(bool canEdit) {
