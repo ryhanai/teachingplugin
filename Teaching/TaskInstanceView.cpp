@@ -307,6 +307,7 @@ void TaskInstanceViewImpl::updateGrid(TaskModelParamPtr& target) {
 }
 
 void TaskInstanceViewImpl::widgetClose() {
+  DatabaseManager::getInstance().closeDB();
 }
 
 void TaskInstanceViewImpl::setEditMode(bool canEdit) {

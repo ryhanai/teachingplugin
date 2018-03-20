@@ -20,7 +20,7 @@ DatabaseManager::DatabaseManager() {
 bool DatabaseManager::connectDB() {
   DDEBUG("DatabaseManager::connectDB");
   if (db_.isOpen()) return true;
-	db_ = QSqlDatabase::addDatabase("QSQLITE", "TeachingPlugin");
+	db_ = QSqlDatabase::addDatabase("QSQLITE");
 	db_.setDatabaseName(QString::fromStdString(SettingManager::getInstance().getDatabase()));
 	if (db_.open() == false) {
 		return false;
@@ -32,7 +32,7 @@ bool DatabaseManager::reConnectDB() {
   DDEBUG("DatabaseManager::reConnectDB");
   closeDB();
   //
-  db_ = QSqlDatabase::addDatabase("QSQLITE", "TeachingPlugin");
+  db_ = QSqlDatabase::addDatabase("QSQLITE");
   db_.setDatabaseName(QString::fromStdString(SettingManager::getInstance().getDatabase()));
   if (db_.open() == false) {
     return false;
@@ -44,7 +44,6 @@ void DatabaseManager::closeDB() {
   DDEBUG("DatabaseManager::closeDB");
   if (db_.isOpen()) {
     db_.close();
-    db_.removeDatabase("TeachingPlugin");
   }
 }
 /////
