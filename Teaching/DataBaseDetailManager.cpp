@@ -1223,7 +1223,7 @@ bool DatabaseManager::saveModelMasterList(vector<ModelMasterParamPtr> target) {
 			//
 			string strQuery = "INSERT INTO M_MODEL ";
 			strQuery += "(model_id, name, file_name, model_data, hash, image_file_name, image_data) ";
-			strQuery += "VALUES ( ?, ?, ?, ?, ?, ? )";
+			strQuery += "VALUES ( ?, ?, ?, ?, ?, ?, ? )";
 
 			QSqlQuery query(QString::fromStdString(strQuery));
 			query.addBindValue(maxId);
@@ -1233,6 +1233,7 @@ bool DatabaseManager::saveModelMasterList(vector<ModelMasterParamPtr> target) {
       query.addBindValue(source->getHash());
       query.addBindValue(source->getImageFileName());
       query.addBindValue(image2DB(source->getImageFileName(), source->getImage()));
+
       if (!query.exec()) {
 				errorStr_ = "INSERT(M_MODEL) error:" + query.lastError().databaseText();
 				DDEBUG_V("INSERT Err : %s", errorStr_.toStdString().c_str());
