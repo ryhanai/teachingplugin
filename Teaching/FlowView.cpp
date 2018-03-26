@@ -230,6 +230,7 @@ void FlowViewImpl::clearView() {
 /////
 void FlowViewImpl::searchClicked() {
 	TeachingEventHandler::instance()->flv_SearchClicked(TeachingEventHandler::instance()->canEdit());
+  setEditMode(TeachingEventHandler::instance()->canEdit());
 }
 
 void FlowViewImpl::newFlowClicked() {
@@ -387,6 +388,8 @@ void FlowViewImpl::setEditMode(bool canEdit) {
   btnEdit->setEnabled(canEdit);
   btnExport->setEnabled(canEdit);
   btnImport->setEnabled(canEdit);
+
+  grhStateMachine->setEditMode(canEdit);
 }
 /////
 FlowView::FlowView() : viewImpl(0) {

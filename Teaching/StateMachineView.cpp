@@ -512,6 +512,8 @@ void StateMachineViewImpl::setEditMode(bool canEdit) {
   } else {
     frmItem_->setHidden(true);
   }
+
+  grhStateMachine->setEditMode(canEdit);
 }
 /////
 StateMachineView::StateMachineView() : viewImpl(0) {
