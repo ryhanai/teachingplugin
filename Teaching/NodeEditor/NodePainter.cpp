@@ -118,14 +118,13 @@ void NodePainter::drawConnectionPoints(QPainter* painter,
     [&](PortType portType)
     {
       size_t n = state.getEntries(portType).size();
-
       for (size_t i = 0; i < n; ++i) {
         QPointF p = geom.portScenePosition(i, portType);
         auto const & dataType = model->dataType(portType, i);
         bool canConnect = (state.getEntries(portType)[i].empty() ||
                            (portType == PortType::Out &&
                             model->portOutConnectionPolicy(i) == NodeDataModel::ConnectionPolicy::Many) );
-				
+
         double r = 1.0;
         if (state.isReacting() && canConnect && portType == state.reactingPortType()) {
 

@@ -49,7 +49,7 @@ bool NodeConnectionInteraction::canConnect(PortIndex &portIndex, bool& typeConve
 
   // 4) Connection type equals node port type, or there is a registered type conversion that can translate between the two
   auto connectionDataType = _connection->dataType();
-
+  
   auto const   &modelTarget = _node->nodeDataModel();
   NodeDataType candidateNodeDataType = modelTarget->dataType(requiredPort, portIndex);
 
@@ -120,6 +120,7 @@ bool NodeConnectionInteraction::tryConnect() const {
                                    portIndex,
                                    *_connection);
 
+
   // 3) Assign Connection to empty port in NodeState
   // The port is not longer required after this function
   _connection->setNodeToPort(*_node, requiredPort, portIndex);
@@ -135,6 +136,13 @@ bool NodeConnectionInteraction::tryConnect() const {
   {
     PortIndex outPortIndex = _connection->getPortIndex(PortType::Out);
     outNode->onDataUpdated(outPortIndex);
+  }
+
+
+  auto inNode = _connection->getNode(PortType::In);
+  if (inNode == outNode) {
+    DDEBUG("NOT possible to connect between the same nodes.");
+    _scene->deleteConnection(*_connection);
   }
 
   return true;
