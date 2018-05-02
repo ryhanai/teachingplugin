@@ -7,7 +7,9 @@
 #include "ConnectionGraphicsObject.hpp"
 #include "Connection.hpp"
 
+#include "Node.hpp"
 #include "NodeData.hpp"
+#include "NodeDataModel.hpp"
 
 #include "StyleCollection.hpp"
 
@@ -167,7 +169,21 @@ paint(QPainter* painter,
       p.setColor(connectionStyle.constructionColor());
       p.setStyle(Qt::DashLine);
     }
-
+    //////////
+    Node* sourceNode = connection.getNode(PortType::Out);
+    Node* targetNode = connection.getNode(PortType::In);
+    if (sourceNode && targetNode) {
+      int sourceIndex = connection.getPortIndex(PortType::Out);
+      NodeDataType sourceType = sourceNode->nodeDataModel()->dataType(PortType::Out, sourceIndex);
+      int targetIndex = connection.getPortIndex(PortType::In);
+      NodeDataType targetType = targetNode->nodeDataModel()->dataType(PortType::In, targetIndex);
+      if (sourceType.id == "cntl" || targetType.id == "cntl") {
+        p.setStyle(Qt::DashLine);
+      } else {
+        p.setStyle(Qt::SolidLine);
+      }
+    }
+    //////////
     painter->setPen(p);
     painter->setBrush(Qt::NoBrush);
 
