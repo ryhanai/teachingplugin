@@ -159,8 +159,9 @@ bool TeachingEventHandler::tiv_TaskImportClicked() {
 	//タスク定義ファイルの読み込み
 	vector<TaskModelParamPtr> taskInstList;
 	vector<ModelMasterParamPtr> masterList;
-	if (TeachingUtil::importTask(strFName, taskInstList, masterList) == false) {
-		QMessageBox::warning(tiv_, _("Task Load Error"), "Load Error (Task Def)");
+  QString errMessage;
+	if (TeachingUtil::importTask(strFName, taskInstList, masterList, errMessage) == false) {
+		QMessageBox::warning(tiv_, _("Task Load Error"), errMessage);
 		return false;
 	}
   //モデルマスタのチェック
@@ -438,8 +439,9 @@ void TeachingEventHandler::flv_FlowImportClicked() {
 
 	vector<FlowParamPtr> flowModelList;
 	vector<ModelMasterParamPtr> masterList;
-	if (TeachingUtil::importFlow(strFName, flowModelList, masterList) == false) {
-		QMessageBox::warning(flv_, _("Import Flow"), _("FLOW import FAILED"));
+  QString errMessage;
+  if (TeachingUtil::importFlow(strFName, flowModelList, masterList, errMessage) == false) {
+		QMessageBox::warning(flv_, _("Import Flow"), errMessage);
 		return;
 	}
 	if (flowModelList.size() == 0) {

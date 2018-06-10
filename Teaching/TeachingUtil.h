@@ -21,18 +21,24 @@ template <typename T> std::string toStr(const T& t) {
 
 class TeachingUtil {
 public:
-  static bool importTask(QString& strFName, std::vector<TaskModelParamPtr>& taskInstList, vector<ModelMasterParamPtr>& modelMasterList);
+  static bool importTask(QString& strFName, std::vector<TaskModelParamPtr>& taskInstList, vector<ModelMasterParamPtr>& modelMasterList, QString& errMessage);
   static bool exportTask(QString& strFName, TaskModelParamPtr targetTask);
   static bool loadModelDetail(QString& strFName, ModelMasterParamPtr targetModel);
   static void loadTaskDetailData(TaskModelParamPtr target);
 
   static bool exportFlow(QString& strFName, FlowParamPtr targetFlow);
-  static bool importFlow(QString& strFName, std::vector<FlowParamPtr>& flowModelList, vector<ModelMasterParamPtr>& modelMasterList);
+  static bool importFlow(QString& strFName, std::vector<FlowParamPtr>& flowModelList, vector<ModelMasterParamPtr>& modelMasterList, QString& errMessage);
 
   static QString getSha1Hash(const void *data, const std::size_t byte_count);
 
 private:
   static int getModelType(QString& source);
+  static bool importTaskModel(Mapping* taskMap, TaskModelParamPtr taskParam, QString taskNameErr, QString& errMessage);
+  static bool importTaskParameter(Mapping* taskMap, TaskModelParamPtr taskParam, QString taskNameErr, QString& errMessage);
+  static bool importTaskState(Mapping* taskMap, TaskModelParamPtr taskParam, QString taskNameErr, QString& errMessage);
+  static bool importTaskFile(Mapping* taskMap, TaskModelParamPtr taskParam, QString& path, QString taskNameErr, QString& errMessage);
+  static bool importTaskImage(Mapping* taskMap, TaskModelParamPtr taskParam, QString& path, QString taskNameErr, QString& errMessage);
+  static bool importTaskMaster(Mapping* taskMap, vector<ModelMasterParamPtr>& modelMasterList, QString& path, QString taskNameErr, QString& errMessage);
 
 };
 /////

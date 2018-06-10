@@ -725,3 +725,168 @@ msgstr "パラメータ名を指定してください"
 #: TeachingDataHolder.cpp:323
 msgid "Parameter Definition is Empty."
 msgstr "パラメータ定義を指定してください"
+
+#: TeachingUtil.cpp:27
+msgid "Failed to load YAML file : "
+msgstr "YAMLファイルの読み込みに失敗しました : "
+
+#: TeachingUtil.cpp:44
+msgid "Failed to read the taskName of the task."
+msgstr "対象タスクの名称(taskName)の読み込みに失敗しました"
+
+#: TeachingUtil.cpp:47
+msgid "Task Name is EMPTY."
+msgstr "対象タスクの名称(taskName)が設定されていません"
+
+#: TeachingUtil.cpp:68
+msgid "Failed to read the rname of the task model."
+msgstr "タスクモデルのId(rname)の読み込みに失敗しました"
+
+#: TeachingUtil.cpp:80
+msgid "rname of the task model is EMPTY."
+msgstr "タスクモデルのId(rname)が設定されていません"
+
+#: TeachingUtil.cpp:68
+msgid "Failed to read the master_id of the task model."
+msgstr "タスクモデルのマスタId(master_id)の読み込みに失敗しました"
+
+#: TeachingUtil.cpp:68
+msgid "Failed to read the model_type of the task model."
+msgstr "タスクモデルのモデル型(model_type)の読み込みに失敗しました"
+
+#: TeachingUtil.cpp:68
+msgid "Failed to read the pos_x of the task model."
+msgstr "タスクモデルの位置・姿勢(pos_x)の読み込みに失敗しました"
+
+#: TeachingUtil.cpp:68
+msgid "Failed to read the pos_y of the task model."
+msgstr "タスクモデルの位置・姿勢(pos_y)の読み込みに失敗しました"
+
+#: TeachingUtil.cpp:68
+msgid "Failed to read the pos_z of the task model."
+msgstr "タスクモデルの位置・姿勢(pos_z)の読み込みに失敗しました"
+
+#: TeachingUtil.cpp:68
+msgid "Failed to read the rot_x of the task model."
+msgstr "タスクモデルの位置・姿勢(rot_x)の読み込みに失敗しました"
+
+#: TeachingUtil.cpp:68
+msgid "Failed to read the rot_y of the task model."
+msgstr "タスクモデルの位置・姿勢(rot_y)の読み込みに失敗しました"
+
+#: TeachingUtil.cpp:68
+msgid "Failed to read the rot_z of the task model."
+msgstr "タスクモデルの位置・姿勢(rot_z)の読み込みに失敗しました"
+
+#: TeachingUtil.cpp:68
+msgid "Failed to read the rname of the task parameter."
+msgstr "タスクパラメータのId(rname)の読み込みに失敗しました"
+
+#: TeachingUtil.cpp:68
+msgid "Rname of the task parameter is EMPTY."
+msgstr "タスクパラメータのId(rname)が設定されていません"
+
+#: TeachingUtil.cpp:68
+msgid "Failed to read the type of the task parameter."
+msgstr "タスクパラメータの型(type)の読み込みに失敗しました"
+
+#: TeachingUtil.cpp:68
+msgid "Failed to read the elem_num of the task parameter."
+msgstr "タスクパラメータの要素数(elem_num)の読み込みに失敗しました"
+
+#: TeachingUtil.cpp:68
+msgid "Failed to read the id of the state."
+msgstr "状態のIdの読み込みに失敗しました"
+
+#: TeachingUtil.cpp:68
+msgid "Failed to read the type of the state."
+msgstr "状態のタイプ(type)の読み込みに失敗しました"
+
+#: TeachingUtil.cpp:68
+msgid "Failed to read the pos_x of the state."
+msgstr "状態の位置情報(pos_x)の読み込みに失敗しました"
+
+#: TeachingUtil.cpp:68
+msgid "Failed to read the pos_y of the state."
+msgstr "状態の位置情報(pos_y)の読み込みに失敗しました"
+
+#: TeachingUtil.cpp:68
+msgid "Failed to read the action of the state action."
+msgstr "状態アクションのアクション名(action)の読み込みに失敗しました"
+
+#: TeachingUtil.cpp:68
+msgid "Action of the state action is EMPTY."
+msgstr "状態アクションのアクション名(action)が設定されていません"
+
+#: TeachingUtil.cpp:68
+msgid "Failed to read the model of the state action."
+msgstr "状態アクションのモデル名(model)の読み込みに失敗しました"
+
+#: TeachingUtil.cpp:68
+msgid "Model of the state action is EMPTY."
+msgstr "状態アクションのモデル名(model)が設定されていません"
+
+#: TeachingUtil.cpp:68
+msgid "Failed to read the seq of the argument."
+msgstr "引数情報の順番(seq)の読み込みに失敗しました"
+
+#: TeachingUtil.cpp:68
+msgid "Failed to read the source_id of the transition."
+msgstr "遷移情報のsource_idの読み込みに失敗しました"
+
+#: TeachingUtil.cpp:68
+msgid "Failed to read the target_id of the transition."
+msgstr "遷移情報のtarget_idの読み込みに失敗しました"
+
+#: TeachingUtil.cpp:68
+msgid "Failed to read the source_index of the transition."
+msgstr "遷移情報のsource_indexの読み込みに失敗しました"
+
+#: TeachingUtil.cpp:68
+msgid "Failed to read the target_index of the transition."
+msgstr "遷移情報のtarget_indexの読み込みに失敗しました"
+
+#: TeachingUtil.cpp:68
+msgid "Failed to read the name of the file."
+msgstr "ファイル情報のファイル名(name)の読み込みに失敗しました"
+
+#: TeachingUtil.cpp:68
+msgid "FILE name is EMPTY."
+msgstr "ファイル情報のファイル名(name)が設定されていません"
+
+#: TeachingUtil.cpp:68
+msgid "Failed to open FILE."
+msgstr "ファイルオープンに失敗しました"
+
+#: TeachingUtil.cpp:68
+msgid "Failed to read the name of the image."
+msgstr "画像情報のファイル名(name)の読み込みに失敗しました"
+
+#: TeachingUtil.cpp:68
+msgid "IMAGE name is EMPTY."
+msgstr "画像情報のファイル名(name)が設定されていません"
+
+#: TeachingUtil.cpp:68
+msgid "Failed to read the id of the modelMaster."
+msgstr "モデルマスタのIdの読み込みに失敗しました"
+
+#: TeachingUtil.cpp:68
+msgid "Failed to read the name of the modelMaster."
+msgstr "モデルマスタの名称(name)の読み込みに失敗しました"
+
+#: TeachingUtil.cpp:68
+msgid "Failed to read the file_name of the modelMaster."
+msgstr "モデルマスタのファイル名(file_name)の読み込みに失敗しました"
+
+#: TeachingUtil.cpp:68
+msgid "Failed to read the flowName of the flow."
+msgstr "対象フローの名称(flowName)の読み込みに失敗しました"
+
+#: TeachingUtil.cpp:68
+msgid "FlowName is EMPTY."
+msgstr "対象フローの名称(flowName)が設定されていません"
+
+#: TeachingUtil.cpp:68
+msgid "Failed to read the type of the transition."
+msgstr "遷移情報の型(type)の読み込みに失敗しました"
+
