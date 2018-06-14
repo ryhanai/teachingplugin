@@ -35,19 +35,13 @@ public:
     return this->cmbModelName->itemData(index).toInt();
   }
 
-  inline int getMasterParamId() const {
-    int index = cmbModelParamName->currentIndex();
-    return this->cmbModelParamName->itemData(index).toInt();
-  }
-
-  void setMasterInfo(int masterId, int masterParamId);
+  void setMasterInfo(int masterId);
 
 private Q_SLOTS:
   void modelSelectionChanged(int index);
 
 private:
   QComboBox * cmbModelName;
-  QComboBox* cmbModelParamName;
   QGraphicsView* imageView;
   QGraphicsScene* scene;
   int flowModelParamId_;

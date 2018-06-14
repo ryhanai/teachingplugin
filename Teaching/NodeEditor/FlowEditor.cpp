@@ -13,9 +13,9 @@ using QtNodes::FlowEditor;
 using QtNodes::FlowScene;
 using namespace teaching;
 
-
 FlowEditor::FlowEditor(FlowScene *scene, FlowViewImpl* flowView)
-  : ActivityEditorBase(scene), flowView_(flowView) {
+  : ActivityEditorBase(scene), updateNodesLater_([&]() { removeNode(); }),
+    flowView_(flowView) {
   setDragMode(QGraphicsView::ScrollHandDrag);
   setRenderHint(QPainter::Antialiasing);
 
@@ -96,73 +96,51 @@ void FlowEditor::contextMenuEvent(QContextMenuEvent *event) {
   connect(treeView, &QTreeWidget::itemClicked, [&](QTreeWidgetItem *item, int) {
     QString modelName = item->data(0, Qt::UserRole).toString();
     DDEBUG_V("modelName=%s", modelName.toStdString().c_str());
+    if (modelName == skipText) return;
 
-    if (modelName == skipText) {
-      return;
-    }
-
-    auto type = _scene->registry().create(modelName);
-
-    if (type) {
-      auto& node = _scene->createNode(std::move(type));
-      QPoint pos = event->pos();
-      QPointF posView = this->mapToScene(pos);
-      node.nodeGraphicsObject().setPos(posView);
-
-      if (modelName == "Model Param") {
-        ((TransformDataModel*)(node.nodeDataModel()))->initialize();
-
-        FlowParamPtr flowParam = std::dynamic_pointer_cast<FlowParam>(targetParam_);
-        int newId = flowParam->getMaxModelId();
-        FlowModelParamPtr fmParam = std::make_shared<FlowModelParam>(newId, NULL_ID, NULL_ID);
-        fmParam->setRealElem(&node);
-        fmParam->setNew();
-        node.setParamId(fmParam->getId());
-        ((TransformDataModel*)(node.nodeDataModel()))->setFlowModelParamId(fmParam->getId());
-        flowParam->addModel(fmParam);
-
-      } else if (modelName == "Flow Param") {
-        QString nodeName = "";
-        QString nodeValue = "";
-        QWidget* widget = node.nodeDataModel()->embeddedWidget();
-        if (widget) {
-          ParamWidget* target = (ParamWidget*)widget;
-          nodeName = target->getName();
-          nodeValue = target->getValue();
-        }
-        //
-        FlowParamPtr flowParam = std::dynamic_pointer_cast<FlowParam>(targetParam_);
-        int newId = flowParam->getMaxParamId();
-        FlowParameterParamPtr fmParam = std::make_shared<FlowParameterParam>(newId, nodeName, nodeValue);
-        fmParam->setRealElem(&node);
-        fmParam->setNew();
-        node.setParamId(fmParam->getId());
-        flowParam->addFlowParam(fmParam);
-
-      } else {
-        ElementType typeId = ELEMENT_COMMAND;
-        if (modelName == "Initial") {
-          typeId = ELEMENT_START;
-        } else if (modelName == "Final") {
-          typeId = ELEMENT_FINAL;
-        } else if (modelName == "Decision") {
-          typeId = ELEMENT_DECISION;
-        } else if (modelName == "Merge") {
-          typeId = ELEMENT_MERGE;
-        }
-        int newId = targetParam_->getMaxStateId();
-        ElementStmParamPtr newParam = std::make_shared<ElementStmParam>(newId, typeId, modelName, modelName, pos.x(), pos.y(), "");
-        newParam->setRealElem(&node);
-        newParam->setNew();
-        node.setParamId(newParam->getId());
-        targetParam_->addStmElement(newParam);
+    if (modelName == "Model Param") {
+      FlowParamPtr flowParam = std::dynamic_pointer_cast<FlowParam>(targetParam_);
+      int newId = flowParam->getMaxModelId();
+      int masterId = NULL_ID;
+      vector<ModelMasterParamPtr> modelMasterList = TeachingDataHolder::instance()->getModelMasterList();
+      if (0 < modelMasterList.size()) {
+        masterId = modelMasterList[0]->getId();
       }
+      FlowModelParamPtr fmParam = std::make_shared<FlowModelParam>(newId, masterId);
+      fmParam->setNew();
+      flowParam->addModel(fmParam);
+      createFlowModelNode(fmParam);
+
+    } else if (modelName == "Flow Param") {
+      FlowParamPtr flowParam = std::dynamic_pointer_cast<FlowParam>(targetParam_);
+      int newId = flowParam->getMaxParamId();
+      FlowParameterParamPtr fmParam = std::make_shared<FlowParameterParam>(newId, "ParamName", "0.0");
+      fmParam->setNew();
+      flowParam->addFlowParam(fmParam);
+      createFlowParamNode(fmParam);
 
     } else {
-      DDEBUG("Etc Node");
-      qDebug() << "Model not found";
-    }
+      QPoint pos = event->pos();
+      ElementType typeId = ELEMENT_COMMAND;
+      if (modelName == "Initial") {
+        typeId = ELEMENT_START;
+      } else if (modelName == "Final") {
+        typeId = ELEMENT_FINAL;
+      } else if (modelName == "Decision") {
+        typeId = ELEMENT_DECISION;
+      } else if (modelName == "Merge") {
+        typeId = ELEMENT_MERGE;
+      } else {
+        DDEBUG("Etc Node");
+        qDebug() << "Model not found";
+      }
 
+      int newId = targetParam_->getMaxStateId();
+      ElementStmParamPtr newParam = std::make_shared<ElementStmParam>(newId, typeId, modelName, modelName, pos.x(), pos.y(), "");
+      newParam->setNew();
+      targetParam_->addStmElement(newParam);
+      createFlowExtNode(typeId, newParam);
+    }
     modelMenu.close();
   });
 
@@ -285,85 +263,24 @@ void FlowEditor::createStateMachine(FlowParamPtr target) {
   removeAll();
   //
   vector<ElementStmParamPtr> elemList = target->getActiveStateList();
-  for (int index = 0; index < elemList.size(); index++) {
-    ElementStmParamPtr target = elemList[index];
+  for (ElementStmParamPtr target : elemList) {
     if (target->getMode() == DB_MODE_DELETE || target->getMode() == DB_MODE_IGNORE) continue;
-
-    QString typeName = "";
     int typeId = target->getType();
-    if (typeId == ELEMENT_START) {
-      typeName = "Initial";
-    } else if (typeId == ELEMENT_FINAL) {
-      typeName = "Final";
-    } else if (typeId == ELEMENT_DECISION) {
-      typeName = "Decision";
-    } else if (typeId == ELEMENT_MERGE) {
-      typeName = "Merge";
+    if (typeId == ELEMENT_COMMAND) {
+      createFlowTaskNode(target);
     } else {
-      typeName = "Task";
-    }
-    auto type = _scene->registry().create(typeName);
-    if (type) {
-      type->setTaskName(target->getCmdDspName());
-      if (typeId == ELEMENT_COMMAND) {
-        int id = target->getTaskParam()->getId();
-        teaching::TaskModelParamPtr targetTask = teaching::TeachingDataHolder::instance()->getFlowTaskInstanceById(id);
-        if (targetTask) {
-          std::vector<teaching::ParameterParamPtr> paramList = targetTask->getActiveParameterList();
-          vector<PortInfo> portList;
-          for (int index = 0; index < paramList.size(); index++) {
-            teaching::ParameterParamPtr param = paramList[index];
-            if (param->getHide()) continue;
-            PortInfo info(param->getId(), param->getName(), param->getType());
-            portList.push_back(info);
-          }
-          type->portNames = portList;
-        }
-      }
-
-      auto& node = _scene->createNode(std::move(type));
-      node.nodeGraphicsObject().setPos(target->getPosX(), target->getPosY());
-      target->setRealElem(&node);
-      node.setParamId(target->getId());
-      node.setBreak(target->isBreak());
-
-    } else {
-      qDebug() << "Model not found";
+      createFlowExtNode(typeId, target);
     }
   }
-  /////
   vector<FlowModelParamPtr> modelList = target->getModelList();
-  for (int index = 0; index < modelList.size(); index++) {
-    FlowModelParamPtr target = modelList[index];
+  for(FlowModelParamPtr target : modelList) {
     if (target->getMode() == DB_MODE_DELETE || target->getMode() == DB_MODE_IGNORE) continue;
-
-    QString typeName = "Model Param";
-    auto type = _scene->registry().create(typeName);
-    if (type) {
-      auto& node = _scene->createNode(std::move(type));
-      node.nodeGraphicsObject().setPos(target->getPosX(), target->getPosY());
-      ((TransformDataModel*)(node.nodeDataModel()))->initialize();
-      ((TransformDataModel*)(node.nodeDataModel()))->setMasterInfo(target->getMasterId(), target->getMasterParamId());
-      target->setRealElem(&node);
-      node.setParamId(target->getId());
-      ((TransformDataModel*)(node.nodeDataModel()))->setFlowModelParamId(target->getId());
-    }
+    createFlowModelNode(target);
   }
-  /////
   vector<FlowParameterParamPtr> paramList = target->getFlowParamList();
-  for (int index = 0; index < paramList.size(); index++) {
-    FlowParameterParamPtr target = paramList[index];
+  for(FlowParameterParamPtr target : paramList) {
     if (target->getMode() == DB_MODE_DELETE || target->getMode() == DB_MODE_IGNORE) continue;
-
-    QString typeName = "Flow Param";
-    auto type = _scene->registry().create(typeName);
-    if (type) {
-      auto& node = _scene->createNode(std::move(type));
-      node.nodeGraphicsObject().setPos(target->getPosX(), target->getPosY());
-      ((ParamDataModel*)(node.nodeDataModel()))->setParamInfo(target->getName(), target->getValue());
-      target->setRealElem(&node);
-      node.setParamId(target->getId());
-    }
+    createFlowParamNode(target);
   }
   /////
   vector<ConnectionStmParamPtr> connList = target->getActiveTransitionList();
@@ -392,6 +309,101 @@ void FlowEditor::createStateMachine(FlowParamPtr target) {
     if (targetElem == elemList.end()) continue;
     Node* targetNode = (*targetElem)->getRealElem();
     _scene->createConnection(*targetNode, target->getTargetIndex(), *sourceNode, target->getSourceIndex());
+  }
+}
+
+void FlowEditor::createFlowTaskNode(ElementStmParamPtr target) {
+  auto type = _scene->registry().create("Task");
+  type->setTaskName(target->getCmdDspName());
+
+  int id = target->getTaskParam()->getId();
+  teaching::TaskModelParamPtr targetTask = teaching::TeachingDataHolder::instance()->getFlowTaskInstanceById(id);
+  if (targetTask) {
+    vector<PortInfo> portList;
+    for (ModelParamPtr model : targetTask->getActiveModelList()) {
+      PortInfo info(model->getId(), model->getRName(), 1);
+      portList.push_back(info);
+    }
+    for(ParameterParamPtr param : targetTask->getActiveParameterList()) {
+      if (param->getType() != 0) continue;
+      if (param->getHide()) continue;
+      PortInfo info(param->getId(), param->getName(), 0);
+      portList.push_back(info);
+    }
+    type->portNames = portList;
+  }
+
+  auto& node = _scene->createNode(std::move(type));
+  node.nodeGraphicsObject().setPos(target->getPosX(), target->getPosY());
+  target->setRealElem(&node);
+  node.setParamId(target->getId());
+  node.setBreak(target->isBreak());
+}
+
+void FlowEditor::createFlowExtNode(int typeId, ElementStmParamPtr target) {
+  QString typeName = "";
+  if (typeId == ELEMENT_START) {
+    typeName = "Initial";
+  } else if (typeId == ELEMENT_FINAL) {
+    typeName = "Final";
+  } else if (typeId == ELEMENT_DECISION) {
+    typeName = "Decision";
+  } else if (typeId == ELEMENT_MERGE) {
+    typeName = "Merge";
+  } else {
+    typeName = "Task";
+  }
+  auto type = _scene->registry().create(typeName);
+  if (type) {
+    type->setTaskName(target->getCmdDspName());
+    auto& node = _scene->createNode(std::move(type));
+    node.nodeGraphicsObject().setPos(target->getPosX(), target->getPosY());
+    target->setRealElem(&node);
+    node.setParamId(target->getId());
+    node.setBreak(target->isBreak());
+  } else {
+    qDebug() << "Model not found";
+  }
+}
+
+void FlowEditor::createFlowParamNode(FlowParameterParamPtr target) {
+  auto type = _scene->registry().create("Flow Param");
+  if (type) {
+    auto& node = _scene->createNode(std::move(type));
+    node.nodeGraphicsObject().setPos(target->getPosX(), target->getPosY());
+    ((ParamDataModel*)(node.nodeDataModel()))->setParamInfo(target->getName(), target->getValue());
+    target->setRealElem(&node);
+    node.setParamId(target->getId());
+  }
+}
+
+void FlowEditor::createFlowModelNode(FlowModelParamPtr target) {
+  auto type = _scene->registry().create("Model Param");
+  if (type) {
+    vector<PortInfo> portList;
+    PortInfo info(0, "origin", 1);
+    portList.push_back(info);
+
+    int masterId = target->getMasterId();
+    vector<ModelMasterParamPtr> modelMasterList = TeachingDataHolder::instance()->getModelMasterList();
+    vector<ModelMasterParamPtr>::iterator masterParamItr = find_if(modelMasterList.begin(), modelMasterList.end(), ModelMasterComparator(masterId));
+    if (masterParamItr != modelMasterList.end()) {
+      vector<ModelParameterParamPtr> paramList = (*masterParamItr)->getActiveParamList();
+      for (int index = 0; index < paramList.size(); index++) {
+        ModelParameterParamPtr param = paramList[index];
+        PortInfo infoParam(index+1, param->getName(), 1);
+        portList.push_back(infoParam);
+      }
+    }
+    type->portNames = portList;
+
+    auto& node = _scene->createNode(std::move(type));
+    node.nodeGraphicsObject().setPos(target->getPosX(), target->getPosY());
+    ((TransformDataModel*)(node.nodeDataModel()))->initialize();
+    ((TransformDataModel*)(node.nodeDataModel()))->setMasterInfo(target->getMasterId());
+    target->setRealElem(&node);
+    node.setParamId(target->getId());
+    ((TransformDataModel*)(node.nodeDataModel()))->setFlowModelParamId(target->getId());
   }
 }
 
@@ -454,7 +466,8 @@ bool FlowEditor::updateTargetFlowParam() {
       Node* orgNode = (*targetElem)->getRealElem();
       int targetId = orgNode->nodeDataModel()->portNames.at(targetIndex - 1).id_;
       ParameterParamPtr targetParam = (*targetElem)->getTaskParam()->getParameterById(targetId);
-      targetParam->setExecParamId((*modelElem)->getMasterId(), (*modelElem)->getMasterParamId());
+      //TODO GA
+      //targetParam->setExecParamId((*modelElem)->getMasterId(), (*modelElem)->getMasterParamId());
 
     } else if (type == TYPE_FLOW_PARAM) {
       //FlowParameterの検索
@@ -588,6 +601,58 @@ void FlowEditor::deleteSelectedNodes() {
   }
 }
 
+void FlowEditor::hideSelectedNodes() {
+  for (QGraphicsItem * item : _scene->selectedItems()) {
+    if (auto n = qgraphicsitem_cast<NodeGraphicsObject*>(item)) {
+      n->node().setHide(true);
+      QWidget* widget = n->node().nodeDataModel()->embeddedWidget();
+      if (widget) {
+        widget->setVisible(false);
+      }
+      n->node().nodeGraphicsObject().update();
+      }
+  }
+  _scene->update();
+}
+
+void FlowEditor::dispSetting() {
+  updateTargetFlowParam();
+  FlowParamPtr flowParam = std::dynamic_pointer_cast<FlowParam>(targetParam_);
+  NodeDispDialog dialog(flowParam, this);
+  dialog.exec();
+  //
+  for(ElementStmParamPtr node : targetParam_->getActiveStateList()) {
+    QtNodes::Node* target = node->getRealElem();
+    if (target) {
+      target->nodeGraphicsObject().update();
+    }
+  }
+  //
+  for(FlowModelParamPtr node : flowParam->getModelList()) {
+    QtNodes::Node* target = node->getRealElem();
+    if (target) {
+      QWidget* widget = target->nodeDataModel()->embeddedWidget();
+      if (widget) {
+        widget->setVisible(!target->isHide());
+      }
+      target->nodeGraphicsObject().update();
+    }
+  }
+  //
+  for (FlowParameterParamPtr node : flowParam->getFlowParamList()) {
+    QtNodes::Node* target = node->getRealElem();
+    if (target) {
+      QWidget* widget = target->nodeDataModel()->embeddedWidget();
+      if (widget) {
+        widget->setVisible(!target->isHide());
+      }
+      target->nodeGraphicsObject().update();
+    }
+  }
+
+  _scene->update();
+}
+
 void FlowEditor::modelParamUpdated(int flowModelId, ModelMasterParamPtr masterParam) {
   DDEBUG_V("FlowEditor::modelParamUpdated : %d, %d", flowModelId, masterParam->getId());
   //対象ノードの検索
@@ -599,41 +664,62 @@ void FlowEditor::modelParamUpdated(int flowModelId, ModelMasterParamPtr masterPa
     return;
   }
 
+  if ((*modelElem)->getMasterId() == masterParam->getId()) return;
+
   Node* targetNode = (*modelElem)->getRealElem();
-  //
-  vector<ElementStmParamPtr> stateList = targetParam_->getStmElementList();
-  unordered_map<QUuid, shared_ptr<Connection> > connMap = _scene->connections();
-  for (auto it = connMap.begin(); it != connMap.end(); ++it) {
-    //対象モデルノードと接続されているノードの検索
-    shared_ptr<Connection> target = it->second;
-    Node* sourceNode = target->getNode(PortType::Out);
-    if (sourceNode->nodeDataModel()->name() != "Model Param") continue;
-    int sourceId = sourceNode->getParamId();
-    if (sourceId != flowModelId) continue;
-    //
-    Node* targetNode = target->getNode(PortType::In);
-    int targetId = targetNode->getParamId();
-    vector<ElementStmParamPtr>::iterator targetElem = find_if(stateList.begin(), stateList.end(), ElementStmParamComparator(targetId));
-    if (targetElem == stateList.end()) continue;
-    TaskModelParamPtr taskParam = (*targetElem)->getTaskParam();
-    if (!taskParam) continue;
 
-    //対象タスクのパラメータ情報取得
-    int targetIndex = target->getPortIndex(PortType::In);
-    Node* orgNode = (*targetElem)->getRealElem();
-    int targetParamId = orgNode->nodeDataModel()->portNames.at(targetIndex - 1).id_;
-    ParameterParamPtr targetParam = taskParam->getParameterById(targetParamId);
-    if (targetParam->getType() != PARAM_KIND_MODEL) continue;
-    vector<ModelParamPtr> taskModelList = taskParam->getModelList();
-
-    //対象タスクのモデル情報の取得
-    int modelId =targetParam->getModelId();
-    vector<ModelParamPtr>::iterator targetModel = find_if(taskModelList.begin(), taskModelList.end(), ModelParamComparator(modelId));
-    if (targetModel == taskModelList.end()) continue;
-    (*targetModel)->setMasterId(masterParam->getId());
-    (*targetModel)->setModelMaster(masterParam);
-    DDEBUG("Model Data CHANGED");
+  int outNum = targetNode->nodeDataModel()->nPorts(PortType::Out);
+  for (int index = 0; index < outNum; index++) {
+    std::unordered_map<QUuid, Connection*> outMap = targetNode->nodeState().connections(PortType::Out, index);
+    for (auto it = outMap.begin(); it != outMap.end(); ++it) {
+      Connection* target = it->second;
+      _scene->deleteConnection(*target);
+    }
   }
+
+  (*modelElem)->setMasterId(masterParam->getId());
+  createFlowModelNode(*modelElem);
+  removingNode_ = targetNode;
+  updateNodesLater_();
+
+  ////
+  //vector<ElementStmParamPtr> stateList = targetParam_->getStmElementList();
+  //unordered_map<QUuid, shared_ptr<Connection> > connMap = _scene->connections();
+  //for (auto it = connMap.begin(); it != connMap.end(); ++it) {
+  //  //対象モデルノードと接続されているノードの検索
+  //  shared_ptr<Connection> target = it->second;
+  //  Node* sourceNode = target->getNode(PortType::Out);
+  //  if (sourceNode->nodeDataModel()->name() != "Model Param") continue;
+  //  int sourceId = sourceNode->getParamId();
+  //  if (sourceId != flowModelId) continue;
+  //  //
+  //  Node* targetNode = target->getNode(PortType::In);
+  //  int targetId = targetNode->getParamId();
+  //  vector<ElementStmParamPtr>::iterator targetElem = find_if(stateList.begin(), stateList.end(), ElementStmParamComparator(targetId));
+  //  if (targetElem == stateList.end()) continue;
+  //  TaskModelParamPtr taskParam = (*targetElem)->getTaskParam();
+  //  if (!taskParam) continue;
+
+  //  //対象タスクのパラメータ情報取得
+  //  int targetIndex = target->getPortIndex(PortType::In);
+  //  Node* orgNode = (*targetElem)->getRealElem();
+  //  int targetParamId = orgNode->nodeDataModel()->portNames.at(targetIndex - 1).id_;
+  //  ParameterParamPtr targetParam = taskParam->getParameterById(targetParamId);
+  //  if (targetParam->getType() != PARAM_KIND_MODEL) continue;
+  //  vector<ModelParamPtr> taskModelList = taskParam->getModelList();
+
+  //  //対象タスクのモデル情報の取得
+  //  int modelId =targetParam->getModelId();
+  //  vector<ModelParamPtr>::iterator targetModel = find_if(taskModelList.begin(), taskModelList.end(), ModelParamComparator(modelId));
+  //  if (targetModel == taskModelList.end()) continue;
+  //  (*targetModel)->setMasterId(masterParam->getId());
+  //  (*targetModel)->setModelMaster(masterParam);
+  //  DDEBUG("Model Data CHANGED");
+  //}
+}
+
+void FlowEditor::removeNode() {
+  _scene->removeNode(*removingNode_);
 }
 
 void FlowEditor::keyReleaseEvent(QKeyEvent *event) {

@@ -650,6 +650,22 @@ msgstr "メタデータ"
 msgid "FlowModel"
 msgstr "フロー"
 
+#: FlowView.cpp:337
+msgid "Hide"
+msgstr "非表示"
+
+#: FlowView.cpp:337
+msgid "Hide selected Node"
+msgstr "選択したノードを非表示"
+
+#: FlowView.cpp:337
+msgid "Disp"
+msgstr "表示設定"
+
+#: FlowView.cpp:337
+msgid "Set display state of node."
+msgstr "ノードの表示状態を設定する"
+
 #: TaskInstanceView.cpp:375
 msgid "Target Task is used. ["
 msgstr "選択したタスクインスタンスはフローで使用しています"

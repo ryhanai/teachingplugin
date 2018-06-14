@@ -558,9 +558,8 @@ public:
   }
 
   inline int getMasterId() const { return _modelEdit->getMasterId(); }
-  inline int getMasterParamId() const { return _modelEdit->getMasterParamId(); }
-  inline void setMasterInfo(int masterId, int masterParamId) {
-    _modelEdit->setMasterInfo(masterId, masterParamId);
+  inline void setMasterInfo(int masterId) {
+    _modelEdit->setMasterInfo(masterId);
   }
 
   QString caption() const override {
@@ -570,6 +569,14 @@ public:
   QString name() const override {
     return QString("Model Param");
   }
+
+  QString portCaption(PortType portType, PortIndex portIndex) const override {
+    if (portType == PortType::Out) {
+      return portNames.at(portIndex).name_;
+    }
+    return QString("");
+  }
+  bool portCaptionVisible(PortType portType, PortIndex portIndex) const override { return true; }
 
   std::unique_ptr<NodeDataModel> clone() const override {
     return std::make_unique<TransformDataModel>();
@@ -591,7 +598,7 @@ public:
     if (portType == PortType::In) {
       return 0;
     } else {
-      return 1;
+      return portNames.size();
     }
   }
   

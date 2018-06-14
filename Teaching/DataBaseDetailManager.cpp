@@ -135,7 +135,7 @@ vector<ElementStmParamPtr> DatabaseManager::getFlowStateParams(int flowId) {
 
 bool DatabaseManager::saveFlowStmData(int parentId, ElementStmParamPtr source) {
   if (source->getMode() == DB_MODE_INSERT) {
-    DDEBUG("saveFlowStmData : INSERT");
+    DDEBUG_V("saveFlowStmData : INSERT FlowId=%d, StateId=%d", parentId, source->getId());
 
     string strQuery = "INSERT INTO T_FLOW_STATE ";
     strQuery += "(state_id, flow_id, type, task_inst_id, pos_x, pos_y, condition) ";
@@ -289,7 +289,7 @@ vector<FlowModelParamPtr> DatabaseManager::getFlowModelParams(int flowId) {
     double pos_x = stmQuery.value(4).toDouble();
     double pos_y = stmQuery.value(5).toDouble();
     //
-    FlowModelParamPtr param = std::make_shared<FlowModelParam>(model_id, master_id, master_param_id);
+    FlowModelParamPtr param = std::make_shared<FlowModelParam>(model_id, master_id);
     param->setPosX(pos_x);
     param->setPosY(pos_y);
     result.push_back(param);
@@ -321,7 +321,9 @@ bool DatabaseManager::saveFlowModelParam(int parentId, vector<FlowModelParamPtr>
     queryTra.addBindValue(parentId);
     queryTra.addBindValue(index + 1);
     queryTra.addBindValue(param->getMasterId());
-    queryTra.addBindValue(param->getMasterParamId());
+    //TODO GA
+    queryTra.addBindValue("0");
+    //TODO GA
     queryTra.addBindValue(param->getPosX());
     queryTra.addBindValue(param->getPosY());
 
@@ -547,8 +549,9 @@ bool DatabaseManager::saveStateParameter(int taskId, ElementStmParamPtr source) 
 }
 
 bool DatabaseManager::saveElementStmData(int parentId, ElementStmParamPtr source) {
+  DDEBUG_V("saveElementStmData : taskId=%d, stateId=%d", parentId, source->getId());
   if (source->getMode() == DB_MODE_INSERT) {
-    DDEBUG("saveElementStmData : INSERT");
+    DDEBUG_V("saveElementStmData : INSERT taskId=%d, stateId=%d", parentId, source->getId());
     string strQuery = "INSERT INTO T_STATE ";
     strQuery += "(task_inst_id, state_id, type, cmd_name, pos_x, pos_y, condition, disp_name) ";
     strQuery += "VALUES ( ?, ?, ?, ?, ?, ?, ?, ? )";

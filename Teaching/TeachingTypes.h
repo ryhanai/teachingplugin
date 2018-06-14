@@ -829,10 +829,10 @@ typedef std::shared_ptr<ImageDataParam> ImageDataParamPtr;
 /////
 class FlowModelParam : public DatabaseParam {
 public:
-  FlowModelParam(int id, int masterId, int masterParamId)
-    : masterId_(masterId), masterParamId_(masterParamId), DatabaseParam(id) {};
+  FlowModelParam(int id, int masterId)
+    : masterId_(masterId), DatabaseParam(id) {};
   FlowModelParam(FlowModelParam* source)
-    : masterId_(source->masterId_), masterParamId_(source->masterParamId_),
+    : masterId_(source->masterId_), 
       posX_(source->posX_), posY_(source->posY_), realElem_(source->realElem_), DatabaseParam(source) {};
   ~FlowModelParam() {};
 
@@ -840,14 +840,6 @@ public:
   inline void setMasterId(int value) {
     if (this->masterId_ != value) {
       this->masterId_ = value;
-      setUpdate();
-    }
-  }
-
-  inline int getMasterParamId() const { return this->masterParamId_; }
-  inline void setMasterParamId(int value) {
-    if (this->masterParamId_ != value) {
-      this->masterParamId_ = value;
       setUpdate();
     }
   }
@@ -874,7 +866,6 @@ public:
 
 private:
   int masterId_;
-  int masterParamId_;
   double posX_;
   double posY_;
 

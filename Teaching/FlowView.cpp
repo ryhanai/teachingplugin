@@ -11,6 +11,7 @@
 
 #include "NodeEditor/FlowScene.hpp"
 #include "NodeEditor/models.hpp"
+#include "TeachingUtil.h"
 
 #include "gettext.h"
 #include "LoggerUtil.h"
@@ -20,7 +21,219 @@ using namespace boost;
 using namespace cnoid;
 
 namespace teaching {
+NodeDispDialog::NodeDispDialog(FlowParamPtr param, QWidget* parent)
+  : QDialog(parent, Qt::CustomizeWindowHint | Qt::WindowTitleHint) {
+    this->targetParam_ = param;
 
+    lstNode_ = UIUtil::makeTableWidget(2, false);
+    lstNode_->setColumnWidth(0, 25);
+    lstNode_->setColumnWidth(1, 200);
+    lstNode_->setHorizontalHeaderLabels(QStringList() << "" << "Node");
+
+    lstModel_ = UIUtil::makeTableWidget(2, false);
+    lstModel_->setColumnWidth(0, 25);
+    lstModel_->setColumnWidth(1, 200);
+    lstModel_->setHorizontalHeaderLabels(QStringList() << "" << "Model");
+
+    lstParam_ = UIUtil::makeTableWidget(2, false);
+    lstParam_->setColumnWidth(0, 25);
+    lstParam_->setColumnWidth(1, 200);
+    lstParam_->setHorizontalHeaderLabels(QStringList() << "" << "Param");
+
+    QFrame* frmGrid = new QFrame;
+    QHBoxLayout* gridLayout = new QHBoxLayout(frmGrid);
+    gridLayout->setContentsMargins(2, 2, 2, 2);
+    gridLayout->addWidget(lstNode_);
+    gridLayout->addWidget(lstModel_);
+    gridLayout->addWidget(lstParam_);
+    //
+    QFrame* frmButtons = new QFrame;
+    QPushButton* btnOK = new QPushButton(_("OK"));
+    QPushButton* btnCancel = new QPushButton(_("Cancel"));
+    QHBoxLayout* buttonLayout = new QHBoxLayout(frmButtons);
+    buttonLayout->setContentsMargins(2, 2, 2, 2);
+    buttonLayout->addWidget(btnCancel);
+    buttonLayout->addStretch();
+    buttonLayout->addWidget(btnOK);
+    //
+    QVBoxLayout* mainLayout = new QVBoxLayout;
+    mainLayout->addWidget(frmGrid);
+    mainLayout->addWidget(frmButtons);
+    setLayout(mainLayout);
+    //
+    connect(btnOK, SIGNAL(clicked()), this, SLOT(oKClicked()));
+    connect(btnCancel, SIGNAL(clicked()), this, SLOT(cancelClicked()));
+    connect(this, SIGNAL(rejected()), this, SLOT(cancelClicked()));
+
+    setWindowTitle(_("Disp"));
+    resize(800, 300);
+    //
+    showNodeList();
+    showModelList();
+    showParamList();
+}
+
+void NodeDispDialog::showNodeList() {
+  lstNode_->setRowCount(0);
+
+  for (ElementStmParamPtr node : targetParam_->getActiveStateList()) {
+    QtNodes::Node* target = node->getRealElem();
+    if (target) {
+      int row = lstNode_->rowCount();
+      lstNode_->insertRow(row);
+
+      QTableWidgetItem* itemDisp = new QTableWidgetItem;
+      lstNode_->setItem(row, 0, itemDisp);
+      if (target->isHide()) {
+        itemDisp->setCheckState(Qt::Unchecked);
+      } else {
+        itemDisp->setCheckState(Qt::Checked);
+      }
+      itemDisp->setData(Qt::UserRole, node->getId());
+      itemDisp->setTextAlignment(Qt::AlignCenter);
+
+      QTableWidgetItem* itemName = new QTableWidgetItem;
+      lstNode_->setItem(row, 1, itemName);
+      itemName->setText(target->nodeDataModel()->caption());
+      itemName->setData(Qt::UserRole, node->getId());
+    }
+  }
+}
+
+void NodeDispDialog::showModelList() {
+  lstModel_->setRowCount(0);
+  vector<ModelMasterParamPtr> modelMasterList = TeachingDataHolder::instance()->getModelMasterList();
+
+  for (FlowModelParamPtr model : targetParam_->getModelList()) {
+    QtNodes::Node* target = model->getRealElem();
+    if (target) {
+      int row = lstModel_->rowCount();
+      lstModel_->insertRow(row);
+
+      QTableWidgetItem* itemDisp = new QTableWidgetItem;
+      lstModel_->setItem(row, 0, itemDisp);
+      if (target->isHide()) {
+        itemDisp->setCheckState(Qt::Unchecked);
+      } else {
+        itemDisp->setCheckState(Qt::Checked);
+      }
+      itemDisp->setData(Qt::UserRole, model->getId());
+      itemDisp->setTextAlignment(Qt::AlignCenter);
+
+      QTableWidgetItem* itemName = new QTableWidgetItem;
+      lstModel_->setItem(row, 1, itemName);
+      int masterId = model->getMasterId();
+      vector<ModelMasterParamPtr>::iterator masterParamItr = find_if(modelMasterList.begin(), modelMasterList.end(), ModelMasterComparator(masterId));
+      if (masterParamItr == modelMasterList.end()) return;
+      itemName->setText((*masterParamItr)->getName());
+      itemName->setData(Qt::UserRole, model->getId());
+    }
+  }
+}
+
+void NodeDispDialog::showParamList() {
+  lstParam_->setRowCount(0);
+  for (FlowParameterParamPtr param : targetParam_->getFlowParamList()) {
+    QtNodes::Node* target = param->getRealElem();
+    if (target) {
+      int row = lstParam_->rowCount();
+      lstParam_->insertRow(row);
+
+      QTableWidgetItem* itemDisp = new QTableWidgetItem;
+      lstParam_->setItem(row, 0, itemDisp);
+      if (target->isHide()) {
+        itemDisp->setCheckState(Qt::Unchecked);
+      } else {
+        itemDisp->setCheckState(Qt::Checked);
+      }
+      itemDisp->setData(Qt::UserRole, param->getId());
+      itemDisp->setTextAlignment(Qt::AlignCenter);
+
+      QTableWidgetItem* itemName = new QTableWidgetItem;
+      lstParam_->setItem(row, 1, itemName);
+      itemName->setText(param->getName());
+      itemName->setData(Qt::UserRole, param->getId());
+    }
+  }
+}
+
+void NodeDispDialog::oKClicked() {
+  DDEBUG("NodeDispDialog::oKClicked()");
+
+  int nodeNum = lstNode_->rowCount();
+  vector<ElementStmParamPtr> nodeList = targetParam_->getActiveStateList();
+
+  for (int index = 0; index < nodeNum; index++) {
+    QTableWidgetItem* item = lstNode_->item(index, 0);
+    if (item) {
+      int targetId = item->data(Qt::UserRole).toInt();
+      vector<ElementStmParamPtr>::iterator targetElem = find_if(nodeList.begin(), nodeList.end(), ElementStmParamComparator(targetId));
+      if (targetElem == nodeList.end()) continue;
+      //
+      QtNodes::Node* target = (*targetElem)->getRealElem();
+      if (target) {
+        Qt::CheckState state = item->checkState();
+        if (state == Qt::Checked) {
+          target->setHide(false);
+        } else {
+          target->setHide(true);
+        }
+      }
+    }
+  }
+  //
+  int modelNum = lstModel_->rowCount();
+  vector<FlowModelParamPtr> modelList = targetParam_->getModelList();
+
+  for (int index = 0; index < modelNum; index++) {
+    QTableWidgetItem* item = lstModel_->item(index, 0);
+    if (item) {
+      int targetId = item->data(Qt::UserRole).toInt();
+      vector<FlowModelParamPtr>::iterator targetElem = find_if(modelList.begin(), modelList.end(), FlowModelParamComparator(targetId));
+      if (targetElem == modelList.end()) continue;
+      //
+      QtNodes::Node* target = (*targetElem)->getRealElem();
+      if (target) {
+        Qt::CheckState state = item->checkState();
+        if (state == Qt::Checked) {
+          target->setHide(false);
+        } else {
+          target->setHide(true);
+        }
+      }
+    }
+  }
+  //
+  int paramNum = lstParam_->rowCount();
+  vector<FlowParameterParamPtr> paramList = targetParam_->getFlowParamList();
+
+  for (int index = 0; index < paramNum; index++) {
+    QTableWidgetItem* item = lstParam_->item(index, 0);
+    if (item) {
+      int targetId = item->data(Qt::UserRole).toInt();
+      vector<FlowParameterParamPtr>::iterator targetElem = find_if(paramList.begin(), paramList.end(), FlowParameterParamComparator(targetId));
+      if (targetElem == paramList.end()) continue;
+      //
+      QtNodes::Node* target = (*targetElem)->getRealElem();
+      if (target) {
+        Qt::CheckState state = item->checkState();
+        if (state == Qt::Checked) {
+          target->setHide(false);
+        } else {
+          target->setHide(true);
+        }
+      }
+    }
+  }
+
+  close();
+}
+
+void NodeDispDialog::cancelClicked() {
+  DDEBUG("NodeDispDialog::cancelClicked()");
+  close();
+}
+//////////
 TaskInfoDialog::TaskInfoDialog(ElementStmParamPtr param, QWidget* parent)
   : QDialog(parent, Qt::CustomizeWindowHint | Qt::WindowTitleHint) {
   this->targetParam_ = param;
@@ -116,6 +329,12 @@ FlowViewImpl::FlowViewImpl(QWidget* parent) {
 
   //
   QFrame* frmTask = new QFrame;
+  btnHide = new QPushButton(_("Hide"));
+  btnHide->setToolTip(_("Hide selected Node"));
+
+  btnDisp = new QPushButton(_("Disp"));
+  btnDisp->setToolTip(_("Set display state of node."));
+
   btnDeleteTask = new QPushButton(_("Delete"));
   btnDeleteTask->setIcon(QIcon(":/Teaching/icons/Delete.png"));
   btnDeleteTask->setToolTip(_("Delete selected Task"));
@@ -151,6 +370,9 @@ FlowViewImpl::FlowViewImpl(QWidget* parent) {
 
   QHBoxLayout* taskLayout = new QHBoxLayout;
   frmTask->setLayout(taskLayout);
+  taskLayout->addWidget(btnHide);
+  taskLayout->addWidget(btnDisp);
+  taskLayout->addStretch();
   taskLayout->addWidget(btnDeleteTask);
   taskLayout->addStretch();
   taskLayout->addWidget(btnEdit);
@@ -183,6 +405,8 @@ FlowViewImpl::FlowViewImpl(QWidget* parent) {
   connect(btnEdit, SIGNAL(clicked()), this, SLOT(editClicked()));
   connect(btnExport, SIGNAL(clicked()), this, SLOT(exportFlowClicked()));
   connect(btnImport, SIGNAL(clicked()), this, SLOT(importFlowClicked()));
+  connect(btnHide, SIGNAL(clicked()), this, SLOT(hideClicked()));
+  connect(btnDisp, SIGNAL(clicked()), this, SLOT(dispClicked()));
 
 	TeachingEventHandler::instance()->flv_Loaded(this);
 }
@@ -202,6 +426,9 @@ void FlowViewImpl::setButtonEnableMode(bool isEnable) {
   btnEdit->setEnabled(isEnable);
   btnImport->setEnabled(isEnable);
   btnExport->setEnabled(isEnable);
+  btnHide->setEnabled(isEnable);
+  btnDisp->setEnabled(isEnable);
+
   btnAbort->setEnabled(!isEnable);
 
   setEditMode(TeachingEventHandler::instance()->canEdit());
@@ -250,6 +477,15 @@ void FlowViewImpl::deleteTaskClicked() {
 	TeachingEventHandler::instance()->flv_DeleteTaskClicked();
 }
 
+void FlowViewImpl::hideClicked() {
+  DDEBUG("FlowViewImpl::hideClicked()");
+  grhStateMachine->hideSelectedNodes();
+}
+
+void FlowViewImpl::dispClicked() {
+  grhStateMachine->dispSetting();
+}
+
 void FlowViewImpl::editClicked() {
 	DDEBUG("FlowViewImpl::editClicked()");
 
@@ -271,6 +507,8 @@ void FlowViewImpl::changeEnables(bool value) {
   btnInitPos->setEnabled(value);
   btnEdit->setEnabled(value);
   btnExport->setEnabled(value);
+  btnHide->setEnabled(value);
+  btnDisp->setEnabled(value);
 }
 
 void FlowViewImpl::exportFlowClicked() {
@@ -388,8 +626,10 @@ void FlowViewImpl::setEditMode(bool canEdit) {
   btnEdit->setEnabled(canEdit);
   btnExport->setEnabled(canEdit);
   btnImport->setEnabled(canEdit);
+  btnHide->setEnabled(canEdit);
+  btnDisp->setEnabled(canEdit);
 
-  grhStateMachine->setEditMode(canEdit);
+  //grhStateMachine->setEditMode(canEdit);
 }
 /////
 FlowView::FlowView() : viewImpl(0) {

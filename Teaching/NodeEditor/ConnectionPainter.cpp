@@ -135,6 +135,12 @@ paint(QPainter* painter,
 
   bool const selected = graphicsObject.isSelected();
 
+  Node* sourceNode = connection.getNode(PortType::Out);
+  Node* targetNode = connection.getNode(PortType::In);
+  if (sourceNode && targetNode) {
+    if (sourceNode->isHide() || targetNode->isHide()) return;
+  }
+
   if (hovered || selected)
   {
     QPen p;
@@ -170,8 +176,6 @@ paint(QPainter* painter,
       p.setStyle(Qt::DashLine);
     }
     //////////
-    Node* sourceNode = connection.getNode(PortType::Out);
-    Node* targetNode = connection.getNode(PortType::In);
     if (sourceNode && targetNode) {
       int sourceIndex = connection.getPortIndex(PortType::Out);
       NodeDataType sourceType = sourceNode->nodeDataModel()->dataType(PortType::Out, sourceIndex);

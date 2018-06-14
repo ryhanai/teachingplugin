@@ -2,6 +2,7 @@
 
 #include "Export.hpp"
 #include "ActivityEditorBase.hpp"
+#include <cnoid/LazyCaller>
 
 namespace teaching {
 	class FlowViewImpl;
@@ -22,9 +23,11 @@ public:
 	bool updateTargetFlowParam();
 	void paramInfoUpdated(TaskModelParamPtr targetTask, ElementStmParamPtr targetState);
   void modelParamUpdated(int flowModelId, ModelMasterParamPtr masterParam);
+  void dispSetting();
 
 public Q_SLOTS:
   void deleteSelectedNodes();
+  void hideSelectedNodes();
 
 protected:
   void contextMenuEvent(QContextMenuEvent *event) override;
@@ -40,5 +43,14 @@ protected:
 
 private:
 	FlowViewImpl* flowView_;
+
+  cnoid::LazyCaller updateNodesLater_;
+  Node* removingNode_;
+
+  void createFlowTaskNode(ElementStmParamPtr target);
+  void createFlowExtNode(int typeId, ElementStmParamPtr target);
+  void createFlowParamNode(FlowParameterParamPtr target);
+  void createFlowModelNode(FlowModelParamPtr target);
+  void removeNode();
 };
 }

@@ -28,14 +28,10 @@ ModelWidget::ModelWidget(QWidget* parent) : QWidget(parent), flowModelParamId_(N
 
   cmbModelName = new QComboBox;
   cmbModelName->addItem("XXXXXXXXXXXXXXX");
-
-  cmbModelParamName = new QComboBox;
-  cmbModelParamName->addItem("XXXXXXXXXXXXXXX");
   //
   QGridLayout* layout = new QGridLayout();
   layout->addWidget(imageView, 0, 0, 2, 1);
   layout->addWidget(cmbModelName, 0, 1, 1, 1);
-  layout->addWidget(cmbModelParamName, 1, 1, 1, 1);
   setLayout(layout);
 
   connect(cmbModelName, SIGNAL(currentIndexChanged(int)), this, SLOT(modelSelectionChanged(int)));
@@ -48,20 +44,10 @@ void ModelWidget::showModelInfo() {
     ModelMasterParamPtr param = modelMasterList_[index];
     cmbModelName->addItem(param->getName(), param->getId());
   }
-  /////
-  cmbModelParamName->clear();
-  cmbModelParamName->addItem("origin", -1);
-  ModelMasterParamPtr baseParam = modelMasterList_[0];
-  for (int index = 0; index < baseParam->getActiveParamList().size(); index++) {
-    ModelParameterParamPtr param = baseParam->getActiveParamList()[index];
-    cmbModelParamName->addItem(param->getName(), param->getId());
-  }
 }
 
 void ModelWidget::modelSelectionChanged(int index) {
   scene->clear();
-  cmbModelParamName->clear();
-  cmbModelParamName->addItem("origin", -1);
 
   int modelId = cmbModelName->itemData(index).toInt();
   vector<ModelMasterParamPtr>::iterator masterParamItr = find_if(modelMasterList_.begin(), modelMasterList_.end(), ModelMasterComparator(modelId));
@@ -72,18 +58,13 @@ void ModelWidget::modelSelectionChanged(int index) {
     pixmap = pixmap.scaled(imageView->width() - 5, imageView->height() - 5, Qt::KeepAspectRatio, Qt::FastTransformation);
   }
   scene->addPixmap(pixmap);
-
-  for (int index = 0; index < (*masterParamItr)->getActiveParamList().size(); index++) {
-    ModelParameterParamPtr param = (*masterParamItr)->getActiveParamList()[index];
-    cmbModelParamName->addItem(param->getName(), param->getId());
-  }
   //
   if (0 < flowModelParamId_) {
     TeachingEventHandler::instance()->flv_ModelParamChanged(flowModelParamId_, *masterParamItr);
   }
 }
 
-void ModelWidget::setMasterInfo(int masterId, int masterParamId) {
+void ModelWidget::setMasterInfo(int masterId) {
   int masterIndex = 0;
   for (int index = 0; index < cmbModelName->count(); index++) {
     if (cmbModelName->itemData(index) == masterId) {
@@ -92,15 +73,4 @@ void ModelWidget::setMasterInfo(int masterId, int masterParamId) {
     }
   }
   cmbModelName->setCurrentIndex(masterIndex);
-  //
-  int masterParamIndex = 0;
-  if (0 < masterParamId) {
-    for (int index = 0; index < cmbModelParamName->count(); index++) {
-      if (cmbModelParamName->itemData(index) == masterParamId) {
-        masterParamIndex = index;
-        break;
-      }
-    }
-  }
-  cmbModelParamName->setCurrentIndex(masterParamIndex);
 }

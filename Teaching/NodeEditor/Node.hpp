@@ -41,6 +41,8 @@ public:
 
 	inline void setParamId(int id) { this->paramId_ = id; }
 	inline int getParamId() { return this->paramId_; }
+  inline void setHide(bool value) { this->isHide_ = value; }
+  inline bool isHide() const { return this->isHide_; }
 
 public:
   QJsonObject save() const override;
@@ -99,6 +101,7 @@ private:
 	int paramId_;
 	bool isActive_;
 	bool isBreak_;
+  bool isHide_;
 
 	void updateDisp();
 };

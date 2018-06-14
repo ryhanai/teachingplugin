@@ -520,7 +520,6 @@ void FlowModelParam::updatePos() {
   posY_ = realElem_->nodeGraphicsObject().pos().y();
 
   masterId_ = ((TransformDataModel*)realElem_->nodeDataModel())->getMasterId();
-  masterParamId_ = ((TransformDataModel*)realElem_->nodeDataModel())->getMasterParamId();
 
   setUpdate();
 }

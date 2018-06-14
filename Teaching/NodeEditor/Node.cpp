@@ -32,7 +32,7 @@ Node::Node(std::unique_ptr<NodeDataModel> && dataModel)
   , _nodeState(_nodeDataModel)
   , _nodeGeometry(_nodeDataModel)
   , _nodeGraphicsObject(nullptr)
-	, isBreak_(false), isActive_(false)
+	, isBreak_(false), isActive_(false), isHide_(false)
 {
   _nodeGeometry.recalculateSize();
 

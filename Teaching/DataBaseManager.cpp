@@ -478,6 +478,8 @@ bool DatabaseManager::deleteFlowModel(int id) {
 	if (deleteDataById("T_FLOW", "flow_id", id) == false) return false;
 	if (deleteDataById("T_FLOW_STATE", "flow_id", id) == false) return false;
 	if (deleteDataById("T_FLOW_TRANSITION", "flow_id", id) == false) return false;
+  if (deleteDataById("T_FLOW_MODEL_PARAM", "flow_id", id) == false) return false;
+  if (deleteDataById("T_FLOW_PARAMETER", "flow_id", id) == false) return false;
 
 	db_.commit();
 	return true;

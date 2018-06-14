@@ -200,6 +200,8 @@ namespace teaching {
     vector<ElementStmParamPtr> stateList = param->getActiveStateList();
 	  vector<ConnectionStmParamPtr> transList = param->getActiveTransitionList();
 	  grhStateMachine->createStateMachine(stateList, transList);
+
+    btnRun->setEnabled(true);
   }
 
   void StateMachineViewImpl::clearTaskParam() {
@@ -499,10 +501,10 @@ std::shared_ptr<DataModelRegistry> StateMachineViewImpl::registerDataModels() {
 }
 
 void StateMachineViewImpl::setEditMode(bool canEdit) {
+  DDEBUG_V("StateMachineViewImpl::setEditMode : %d", canEdit);
+
   btnRun->setEnabled(!canEdit);
   btnBP->setEnabled(!canEdit);
-  //btnStep->setEnabled(!canEdit);
-  //btnCont->setEnabled(!canEdit);
   //
   btnDelete->setEnabled(canEdit);
   btnEdit->setEnabled(canEdit);
@@ -513,7 +515,7 @@ void StateMachineViewImpl::setEditMode(bool canEdit) {
     frmItem_->setHidden(true);
   }
 
-  grhStateMachine->setEditMode(canEdit);
+  //grhStateMachine->setEditMode(canEdit);
 }
 /////
 StateMachineView::StateMachineView() : viewImpl(0) {

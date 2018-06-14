@@ -17,6 +17,26 @@ namespace teaching {
 
 class TaskInstanceView;
 
+class NodeDispDialog : public QDialog {
+  Q_OBJECT
+public:
+  NodeDispDialog(FlowParamPtr param, QWidget* parent = 0);
+
+private Q_SLOTS:
+  void oKClicked();
+  void cancelClicked();
+
+private:
+  QTableWidget * lstNode_;
+  QTableWidget * lstModel_;
+  QTableWidget * lstParam_;
+
+  void showNodeList();
+  void showModelList();
+  void showParamList();
+
+  FlowParamPtr targetParam_;
+};
 
 class TaskInfoDialog : public QDialog {
   Q_OBJECT
@@ -64,6 +84,8 @@ private Q_SLOTS :
   void initPosClicked();
   void exportFlowClicked();
   void importFlowClicked();
+  void hideClicked();
+  void dispClicked();
 
 private:
   QLineEdit* leName;
@@ -72,6 +94,9 @@ private:
   QPushButton* btnSearch;
   QPushButton* btnNewFlow;
   QPushButton* btnRegistFlow;
+
+  QPushButton* btnHide;
+  QPushButton* btnDisp;
 
   QPushButton* btnDeleteTask;
   QPushButton* btnRunFlow;

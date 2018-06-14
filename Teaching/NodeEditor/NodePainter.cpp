@@ -25,6 +25,8 @@ using QtNodes::FlowScene;
 using namespace teaching;
 
 void NodePainter::paint(QPainter* painter, Node & node, FlowScene const& scene) {
+  if (node.isHide()) return;
+
   NodeGeometry const& geom = node.nodeGeometry();
 
   NodeState const& state = node.nodeState();

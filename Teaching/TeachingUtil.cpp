@@ -854,7 +854,6 @@ bool TeachingUtil::exportFlow(QString& strFName, FlowParamPtr targetFlow) {
       MappingPtr modelNode = modelsNode->newMapping();
       modelNode->write("id", param->getId());
       modelNode->write("master_id", param->getMasterId());
-      modelNode->write("master_param_id", param->getMasterParamId());
       modelNode->write("pos_x", param->getPosX());
       modelNode->write("pos_y", param->getPosY());
     }
@@ -1024,7 +1023,8 @@ bool TeachingUtil::importFlow(QString& strFName, std::vector<FlowParamPtr>& flow
           try { posX = modelMap->get("pos_x").toDouble(); } catch (...) { continue; }
           try { posY = modelMap->get("pos_y").toDouble(); } catch (...) { continue; }
 
-          FlowModelParamPtr modelParam = std::make_shared<FlowModelParam>(id, master_id, master_param_id);
+          //TODO GA
+          FlowModelParamPtr modelParam = std::make_shared<FlowModelParam>(id, master_id);
           modelParam->setPosX(posX);
           modelParam->setPosY(posY);
           modelParam->setNew();

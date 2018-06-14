@@ -315,7 +315,6 @@ void ModelMasterDialog::addModelParamClicked() {
 void ModelMasterDialog::deleteModelParamClicked() {
 	QTableWidgetItem* item = lstParam->currentItem();
 	if (item) {
-		int id = item->data(Qt::UserRole).toInt();
 		TeachingEventHandler::instance()->mmd_DeleteModelParamClicked();
 
 		lstParam->removeRow(lstParam->currentRow());
