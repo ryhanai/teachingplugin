@@ -1,7 +1,7 @@
 CREATE TABLE T_FLOW (
 	flow_id				integer primary key,
 	name 				text not null,
-	comment				text not null,
+	comment				text,
 	created_date		text not null,
 	last_updated_date	text not null
 );
@@ -32,7 +32,6 @@ CREATE TABLE T_FLOW_MODEL_PARAM (
 	flow_id			integer not null,
 	model_id		integer not null,
 	master_id		integer not null,
-	master_param_id	integer not null,
 	pos_x			real not null,
 	pos_y			real not null,
 	primary key(flow_id, model_id)
@@ -51,7 +50,7 @@ CREATE TABLE T_FLOW_PARAMETER (
 CREATE TABLE T_TASK_MODEL_INST (
 	task_inst_id		integer primary key,
 	name 				text not null,
-	comment				text not null,
+	comment				text,
 	flow_id				integer,
 	created_date		text not null,
 	last_updated_date	text not null,
@@ -146,6 +145,7 @@ CREATE TABLE T_MODEL_INFO (
 	rot_x			real not null,
 	rot_y			real not null,
 	rot_z			real not null,
+	hide			integer,
 	primary key(task_inst_id, model_id)
 );
 
