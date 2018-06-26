@@ -2,6 +2,7 @@
 
 #include "Export.hpp"
 #include "ActivityEditorBase.hpp"
+#include "Node.hpp"
 #include <cnoid/LazyCaller>
 
 namespace teaching {
@@ -11,6 +12,12 @@ namespace teaching {
 namespace QtNodes {
 
 class FlowScene;
+
+struct ConnectionInfo {
+  Node* sourceNode;
+  Node* node;
+  int portindex;
+};
 
 class NODE_EDITOR_PUBLIC FlowEditor : public ActivityEditorBase {
 public:
@@ -51,6 +58,6 @@ private:
   void createFlowExtNode(int typeId, ElementStmParamPtr target);
   void createFlowParamNode(FlowParameterParamPtr target);
   void createFlowModelNode(FlowModelParamPtr target);
-  void removeNode();
+  void removeModelNodeLater();
 };
 }

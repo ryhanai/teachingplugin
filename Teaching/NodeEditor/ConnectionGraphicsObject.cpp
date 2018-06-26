@@ -21,6 +21,7 @@
 #include "Node.hpp"
 
 #include "../LoggerUtil.h"
+#include "../TeachingEventHandler.h"
 
 using QtNodes::ConnectionGraphicsObject;
 using QtNodes::Connection;
@@ -28,8 +29,7 @@ using QtNodes::FlowScene;
 using namespace teaching;
 
 ConnectionGraphicsObject::
-ConnectionGraphicsObject(FlowScene &scene,
-                         Connection &connection)
+ConnectionGraphicsObject(FlowScene &scene, QtNodes::Connection &connection)
   : _scene(scene)
   , _connection(connection)
 {
@@ -201,6 +201,7 @@ void ConnectionGraphicsObject::mouseReleaseEvent(QGraphicsSceneMouseEvent* event
 
   if (node && interaction.tryConnect()) {
     node->resetReactionToConnection();
+    TeachingEventHandler::instance()->flv_Connected(_connection);
   } else if (_connection.connectionState().requiresPort()) {
     _scene.deleteConnection(_connection);
   }

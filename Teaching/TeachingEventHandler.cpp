@@ -165,17 +165,14 @@ bool TeachingEventHandler::tiv_TaskImportClicked() {
 		return false;
 	}
   //モデルマスタのチェック
-  for (int index = 0; index < masterList.size(); index++) {
-    ModelMasterParamPtr master = masterList[index];
+  for (ModelMasterParamPtr master : masterList) {
     QString txtData = QString::fromUtf8(master->getData());
     QString strHash = TeachingUtil::getSha1Hash(txtData.toStdString().c_str(), txtData.toStdString().length());
     int ret = DatabaseManager::getInstance().checkModelMaster(strHash);
     if (0 < ret) {
       master->setDelete();
-      for (int idxTask = 0; idxTask < taskInstList.size(); idxTask++) {
-        TaskModelParamPtr task = taskInstList[idxTask];
-        for (int idxModel = 0; idxModel < task->getModelList().size(); idxModel++) {
-          ModelParamPtr model = task->getModelList()[idxTask];
+      for (TaskModelParamPtr task : taskInstList) {
+        for (ModelParamPtr model : task->getModelList()) {
           if (model->getMasterId() == master->getId()) {
             model->setMasterId(ret);
           }
@@ -245,15 +242,15 @@ void TeachingEventHandler::tiv_RegistTaskClicked(int selectedId, QString strTask
 
 	stv_->setStepStatus(false);
 
-  if (0 <= selectedId) {
-    tiv_CurrentTask_ = TeachingDataHolder::instance()->getTaskInstanceById(selectedId);
-    com_CurrentTask_ = tiv_CurrentTask_;
-    updateComViews(tiv_CurrentTask_);
-  }
+  //削除したTransitionが復活してしまうため
+  //if (0 <= selectedId) {
+  //  tiv_CurrentTask_ = TeachingDataHolder::instance()->getTaskInstanceById(selectedId);
+  //  com_CurrentTask_ = tiv_CurrentTask_;
+  //  updateComViews(tiv_CurrentTask_);
+  //}
   if (tiv_CurrentTask_ == 0) return;
 
-	for (int index = 0; index < tiv_CurrentTask_->getModelList().size(); index++) {
-		ModelParamPtr model = tiv_CurrentTask_->getModelList()[index];
+	for (ModelParamPtr model : tiv_CurrentTask_->getActiveModelList()) {
 		if (model->isChangedPosition() == false) continue;
 		//
 		QMessageBox::StandardButton ret = QMessageBox::question(tiv_, _("Confirm"),
@@ -395,6 +392,7 @@ void TeachingEventHandler::flv_SelectionChanged(TaskModelParamPtr target) {
 		stv_->clearTaskParam();
 		prv_->clearTaskParam();
 	}
+  tiv_CurrentTask_ = 0;
 }
 
 void TeachingEventHandler::flv_FlowExportClicked(QString name, QString comment) {
@@ -460,13 +458,10 @@ void TeachingEventHandler::flv_FlowImportClicked() {
       for (int idxFlow = 0; idxFlow < flowModelList.size(); idxFlow++) {
         DDEBUG_V("idxFlow : %d", idxFlow);
         FlowParamPtr targetFlow = flowModelList[idxFlow];
-        for (int idxTask = 0; idxTask < targetFlow->getStmElementList().size(); idxTask++) {
-          DDEBUG_V("idxTask : %d", idxTask);
-          TaskModelParamPtr task = targetFlow->getStmElementList()[idxTask]->getTaskParam();;
+        for (ElementStmParamPtr state : targetFlow->getActiveStateList()) {
+          TaskModelParamPtr task = state->getTaskParam();;
           if (task) {
-            for (int idxModel = 0; idxModel < task->getModelList().size(); idxModel++) {
-              DDEBUG_V("idxModel : %d", idxModel);
-              ModelParamPtr model = task->getModelList()[idxModel];
+            for (ModelParamPtr model : task->getModelList()) {
               if (model->getMasterId() == master->getId()) {
                 model->setMasterId(ret);
               }
@@ -483,14 +478,11 @@ void TeachingEventHandler::flv_FlowImportClicked() {
 	TeachingDataHolder::instance()->updateModelMaster();
 	flv_CurrentFlow_ = flowModelList[0];
 
-	for (int index = 0; index < flv_CurrentFlow_->getStmElementList().size(); index++) {
-		ElementStmParamPtr state = flv_CurrentFlow_->getStmElementList()[index];
+	for (ElementStmParamPtr state : flv_CurrentFlow_->getStmElementList()) {
 		TaskModelParamPtr task = state->getTaskParam();
 		if (task) {
-			for (int idxSub = 0; idxSub < task->getModelList().size(); idxSub++) {
-				ModelParamPtr model = task->getModelList()[idxSub];
-				for (int idxMaster = 0; idxMaster < masterList.size(); idxMaster++) {
-					ModelMasterParamPtr master = masterList[idxMaster];
+			for (ModelParamPtr model : task->getModelList()) {
+				for (ModelMasterParamPtr master : masterList) {
 					if (master->getOrgId() == model->getMasterId()) {
 						model->setMasterId(master->getId());
 						break;
@@ -524,13 +516,11 @@ void TeachingEventHandler::flv_RegistFlowClicked(QString name, QString comment) 
 	}
 	//
 	bool isChanged = false;
-	for (int idxTask = 0; idxTask < flv_CurrentFlow_->getStmElementList().size(); idxTask++) {
-		ElementStmParamPtr state = flv_CurrentFlow_->getStmElementList()[idxTask];
+	for (ElementStmParamPtr state : flv_CurrentFlow_->getStmElementList()) {
 		if (state->getType() != ELEMENT_COMMAND) continue;
 		TaskModelParamPtr task = state->getTaskParam();
 		if (task) {
-			for (int index = 0; index < task->getModelList().size(); index++) {
-				ModelParamPtr model = task->getModelList()[index];
+			for (ModelParamPtr model : task->getModelList()) {
 				if (model->isChangedPosition() == false) continue;
 				isChanged = true;
 				break;
@@ -714,7 +704,7 @@ void TeachingEventHandler::stv_EditClicked(ElementStmParamPtr target) {
 				vector<ArgumentDefParam*> argList = param->getArgList();
 				for (int idxArg = 0; idxArg < argList.size(); idxArg++) {
 					ArgumentDefParam* arg = argList[idxArg];
-					ArgumentParamPtr argParam = std::make_shared<ArgumentParam>(-1, agd_Current_Stm_->getId(), idxArg + 1, QString::fromStdString(arg->getName()), "");
+          ArgumentParamPtr argParam = std::make_shared<ArgumentParam>(idxArg + 1, idxArg + 1, QString::fromStdString(arg->getName()), "");
 					argParam->setNew();
 					agd_Current_Stm_->addArgument(argParam);
 				}
@@ -843,16 +833,14 @@ void TeachingEventHandler::flv_InitPosClicked() {
 	if (!flv_CurrentFlow_) return;
 	stv_->setStepStatus(false);
 
-  for (int idxParam = 0; idxParam < flv_CurrentFlow_->getFlowParamList().size(); idxParam++) {
-    FlowParameterParamPtr targetParam = flv_CurrentFlow_->getFlowParamList()[idxParam];
+  for (FlowParameterParamPtr targetParam : flv_CurrentFlow_->getFlowParamList()) {
     targetParam->setInitialValue();
   }
-	for (int idxState = 0; idxState < flv_CurrentFlow_->getStmElementList().size(); idxState++) {
-		ElementStmParamPtr targetState = flv_CurrentFlow_->getStmElementList()[idxState];
+	for (ElementStmParamPtr targetState : flv_CurrentFlow_->getStmElementList()) {
 		if (targetState->getType() == ELEMENT_COMMAND) {
 			TaskModelParamPtr task = targetState->getTaskParam();
-			for (int index = 0; index < task->getModelList().size(); index++) {
-				task->getModelList()[index]->setInitialPos();
+			for (ModelParamPtr model : task->getModelList()) {
+        model->setInitialPos();
 			}
 		}
 	}
@@ -893,6 +881,88 @@ void TeachingEventHandler::flv_ModelParamChanged(int flowModelId, ModelMasterPar
   DDEBUG("TeachingEventHandler::flv_ModelParamChanged : End");
 }
 
+void TeachingEventHandler::flv_Connected(QtNodes::Connection& target) {
+  DDEBUG("TeachingEventHandler::flv_Connected()");
+
+  Node* taskNode = target.getNode(PortType::In);
+  if (!taskNode) return;
+  int portIndex = target.getPortIndex(PortType::In);
+  if (portIndex <= 0) return;
+
+  int targetId = taskNode->getParamId();
+  if (!taskNode->nodeDataModel()) return;
+  if (taskNode->nodeDataModel()->portNames.size() <= portIndex - 1) return;
+  int id = taskNode->nodeDataModel()->portNames[portIndex-1].id_;
+  DDEBUG_V("portIndex : %d, id : %d", portIndex, id);
+
+  Node* sourceNode = target.getNode(PortType::Out);
+  int sourceId = sourceNode->getParamId();
+
+  if (sourceNode->nodeDataModel()->name() == "Model Param") {
+    vector<ElementStmParamPtr> stateList = flv_CurrentFlow_->getStmElementList();
+    vector<ElementStmParamPtr>::iterator targetElem = find_if(stateList.begin(), stateList.end(), ElementStmParamComparator(targetId));
+    if (targetElem == stateList.end()) return;
+    TaskModelParamPtr taskParam = (*targetElem)->getTaskParam();
+    DDEBUG_V("Task Name : %s", taskParam->getName().toStdString().c_str());
+
+    vector<FlowModelParamPtr> modelList = flv_CurrentFlow_->getModelList();
+    //FlowModelParameterの検索
+    vector<FlowModelParamPtr>::iterator modelElem = find_if(modelList.begin(), modelList.end(), FlowModelParamComparator(sourceId));
+    if (modelElem == modelList.end()) return;
+    DDEBUG_V("Master Id : %d", (*modelElem)->getMasterId());
+    int masterId = (*modelElem)->getMasterId();
+
+    ModelParamPtr model = taskParam->getModelParamById(id);
+    DDEBUG_V("Model Name : %s", model->getRName().toStdString().c_str());
+    vector<ModelMasterParamPtr> modelMasterList = TeachingDataHolder::instance()->getModelMasterList();
+    vector<ModelMasterParamPtr>::iterator masterParamItr = find_if(modelMasterList.begin(), modelMasterList.end(), ModelMasterComparator(masterId));
+    if (masterParamItr != modelMasterList.end()) {
+      ChoreonoidUtil::replaceMaster(model, *masterParamItr);
+    }
+  }
+}
+
+void TeachingEventHandler::flv_Disconnected(QtNodes::Connection& target) {
+  DDEBUG("TeachingEventHandler::flv_Disconnected()");
+
+  Node* taskNode = target.getNode(PortType::In);
+  if (!taskNode) return;
+  int portIndex = target.getPortIndex(PortType::In);
+  if (portIndex <= 0) {
+    DDEBUG("TeachingEventHandler::flv_Disconnected() End");
+    return;
+  }
+  int targetId = taskNode->getParamId();
+  if (!taskNode->nodeDataModel()) return;
+  if (taskNode->nodeDataModel()->portNames.size() <= portIndex - 1) return;
+  int id = taskNode->nodeDataModel()->portNames[portIndex - 1].id_;
+  DDEBUG_V("portIndex : %d, id : %d", portIndex, id);
+
+  Node* sourceNode = target.getNode(PortType::Out);
+  if (!sourceNode) return;
+  int sourceId = sourceNode->getParamId();
+
+  if (sourceNode->nodeDataModel()->name() == "Model Param") {
+    vector<ElementStmParamPtr> stateList = flv_CurrentFlow_->getStmElementList();
+    vector<ElementStmParamPtr>::iterator targetElem = find_if(stateList.begin(), stateList.end(), ElementStmParamComparator(targetId));
+    if (targetElem == stateList.end()) return;
+    TaskModelParamPtr taskParam = (*targetElem)->getTaskParam();
+    if (!taskParam) return;
+    DDEBUG_V("Task Name : %s", taskParam->getName().toStdString().c_str());
+
+    ModelParamPtr model = taskParam->getModelParamById(id);
+    DDEBUG_V("Model Name : %s", model->getRName().toStdString().c_str());
+    bool isLoaded = model->isLoaded();
+    ChoreonoidUtil::unLoadModelItem(model);
+    model->restoreModelMaster();
+    if (isLoaded) {
+      ChoreonoidUtil::loadModelItem(model);
+      ChoreonoidUtil::showAllModelItem();
+    }
+  }
+  DDEBUG("TeachingEventHandler::flv_Disconnected() End");
+}
+
 void TeachingEventHandler::tiv_InitPosClicked() {
 	DDEBUG("TeachingEventHandler::initPosClicked()");
 
@@ -900,8 +970,7 @@ void TeachingEventHandler::tiv_InitPosClicked() {
 	if (!tiv_CurrentTask_) return;
 	stv_->setStepStatus(false);
 	//
-	for (int index = 0; index < tiv_CurrentTask_->getModelList().size(); index++) {
-		ModelParamPtr model = tiv_CurrentTask_->getModelList()[index];
+	for (ModelParamPtr model : tiv_CurrentTask_->getActiveModelList()) {
 		model->setInitialPos();
 	}
 
@@ -984,7 +1053,7 @@ bool TeachingEventHandler::mdd_Loaded(ModelDialog* dialog) {
 	return true;
 }
 
-void TeachingEventHandler::mdd_ModelSelectionChanged(int newId, QString rname, int type, double posX, double posY, double posZ, double rotX, double rotY, double rotZ) {
+void TeachingEventHandler::mdd_ModelSelectionChanged(int newId, QString rname, int type, double posX, double posY, double posZ, double rotX, double rotY, double rotZ, int hide) {
 	DDEBUG_V("TeachingEventHandler::mdd_ModelSelectionChanged: %d, %d, %d", newId, mdd_CurrentId_, com_CurrentTask_->getId());
 	if (mdd_CurrentModel_) {
 		mdd_CurrentModel_->setRName(rname);
@@ -995,12 +1064,13 @@ void TeachingEventHandler::mdd_ModelSelectionChanged(int newId, QString rname, i
 		mdd_CurrentModel_->setRotRx(rotX);
 		mdd_CurrentModel_->setRotRy(rotY);
 		mdd_CurrentModel_->setRotRz(rotZ);
-	}
+    mdd_CurrentModel_->setHide(hide);
+  }
 
 	mdd_CurrentModel_ = 0;
-	for (int index = 0; index < com_CurrentTask_->getModelList().size(); index++) {
-		if (com_CurrentTask_->getModelList()[index]->getId() == newId) {
-			mdd_CurrentModel_ = com_CurrentTask_->getModelList()[index];
+	for (ModelParamPtr model : com_CurrentTask_->getModelList()) {
+		if (model->getId() == newId) {
+			mdd_CurrentModel_ = model;
 			break;
 		}
 	}
@@ -1026,8 +1096,7 @@ void TeachingEventHandler::mdd_CurrentBodyItemChanged(BodyItem* bodyItem) {
 		mdd_connectionToKinematicStateChanged.disconnect();
 		mdd_BodyItem_ = bodyItem;
 	  if (mdd_BodyItem_) {
-	    for (int index = 0; index < com_CurrentTask_->getModelList().size(); index++) {
-			ModelParamPtr model = com_CurrentTask_->getModelList()[index];
+	    for (ModelParamPtr model : com_CurrentTask_->getModelList()) {
 	      if (model->getModelMaster()->getModelItem().get() == mdd_BodyItem_) {
 					mdd_selectedModel_ = model;
 	        break;
@@ -1094,7 +1163,7 @@ bool TeachingEventHandler::mdd_AddModelClicked() {
 	if (!mdd_CurrentModelMaster_) return false;
 
 	ModelParamPtr param = TeachingDataHolder::instance()->addModel(com_CurrentTask_, mdd_CurrentModelMaster_);
-	ChoreonoidUtil::loadModelMasterItem(param->getModelMaster());
+	ChoreonoidUtil::loadModelItem(param);
 	ChoreonoidUtil::showAllModelItem();
 
 	vector<ModelParamPtr> modelList = com_CurrentTask_->getActiveModelList();
@@ -1119,15 +1188,14 @@ bool TeachingEventHandler::mdd_DeleteModelClicked() {
 }
 
 bool TeachingEventHandler::mdd_CheckModel(QString target) {
-  for (int index = 0; index < com_CurrentTask_->getModelList().size(); index++) {
-    ModelParamPtr model = com_CurrentTask_->getModelList()[index];
+  for (ModelParamPtr model : com_CurrentTask_->getModelList()) {
     if (model->getId() == mdd_CurrentModel_->getId()) continue;
     if (model->getRName() == target) return false;
   }
   return true;
 }
 
-void TeachingEventHandler::mdd_OkClicked(QString rname, int type, double posX, double posY, double posZ, double rotX, double rotY, double rotZ) {
+void TeachingEventHandler::mdd_OkClicked(QString rname, int type, double posX, double posY, double posZ, double rotX, double rotY, double rotZ, int hide) {
   if (0 < rname.length() && mdd_CurrentModel_) {
     mdd_CurrentModel_->setRName(rname);
     mdd_CurrentModel_->setType(type);
@@ -1137,11 +1205,28 @@ void TeachingEventHandler::mdd_OkClicked(QString rname, int type, double posX, d
     mdd_CurrentModel_->setRotRx(rotX);
     mdd_CurrentModel_->setRotRy(rotY);
     mdd_CurrentModel_->setRotRz(rotZ);
+    mdd_CurrentModel_->setHide(hide);
   }
 	mdd_connectionToKinematicStateChanged.disconnect();
 	mdd_currentBodyItemChangeConnection.disconnect();
 	mdd_->close();
 	mdd_ = 0;
+  /////
+  if (flv_CurrentFlow_) {
+    ElementStmParamPtr targetState = 0;
+    for (ElementStmParamPtr state : flv_CurrentFlow_->getStmElementList()) {
+      TaskModelParamPtr task = state->getTaskParam();
+      if (task) {
+        if (task->getId() == com_CurrentTask_->getId()) {
+          targetState = state;
+          break;
+        }
+      }
+    }
+    if (targetState) {
+      flv_->paramInfoUpdated(com_CurrentTask_, targetState);
+    }
+  }
 }
 
 void TeachingEventHandler::mdd_CancelClicked() {
@@ -1187,8 +1272,7 @@ bool TeachingEventHandler::prd_DeleteParamClicked() {
 }
 
 bool TeachingEventHandler::prd_OkClicked(QString name, QString id, int type, QString unit, QString num, int model_id, int model_param_id, int hide) {
-  for (int index = 0; index < com_CurrentTask_->getParameterList().size(); index++) {
-    ParameterParamPtr param = com_CurrentTask_->getParameterList()[index];
+  for (ParameterParamPtr param : com_CurrentTask_->getParameterList()) {
     if (param->getId() == prd_CurrentParam_->getId()) continue;
     if (id == param->getRName()) {
       QMessageBox::warning(prd_, _("Parameter"), _("Duplicate specified ID."));
@@ -1234,8 +1318,7 @@ bool TeachingEventHandler::prd_OkClicked(QString name, QString id, int type, QSt
   //
   if (flv_CurrentFlow_) {
     ElementStmParamPtr targetState = 0;
-    for (int index = 0; index < flv_CurrentFlow_->getStmElementList().size(); index++) {
-      ElementStmParamPtr state = flv_CurrentFlow_->getStmElementList()[index];
+    for (ElementStmParamPtr state : flv_CurrentFlow_->getStmElementList()) {
       TaskModelParamPtr task = state->getTaskParam();
       if (task) {
         if (task->getId() == com_CurrentTask_->getId()) {
@@ -1316,7 +1399,7 @@ void TeachingEventHandler::prd_ModelTableSelectionChanged(int selectedId) {
   for (int index = 0; index < modelList.size(); index++) {
     ModelParamPtr model = modelList[index];
     if (model->getId() == selectedId) {
-      vector<ModelParameterParamPtr> paramList = model->getModelMaster()->getActiveParamList();
+      vector<ModelParameterParamPtr> paramList = model->getModelMaster()->getActiveModelParamList();
       prd_->showModelParamInfo(paramList);
       return;
     }
@@ -1328,7 +1411,7 @@ vector<ModelParameterParamPtr> TeachingEventHandler::prd_ModelSelectionChanged(i
   for (int index = 0; index < modelList.size(); index++) {
     ModelParamPtr model = modelList[index];
     if (model->getId() == selectedId) {
-      return model->getModelMaster()->getActiveParamList();
+      return model->getModelMaster()->getActiveModelParamList();
     }
   }
   vector<ModelParameterParamPtr> result;
@@ -1364,7 +1447,7 @@ void TeachingEventHandler::mmd_ModelSelectionChanged(int newId, QString name, QS
 
   QImage targetImage = model->getImage();
 	this->mmd_->updateContents(model->getName(), model->getFileName(), model->getImageFileName(), &targetImage);
-	this->mmd_->showParamGrid(model->getActiveParamList());
+	this->mmd_->showParamGrid(model->getActiveModelParamList());
 	mmd_CurrentParam_ = 0;
 }
 
@@ -1466,7 +1549,7 @@ void TeachingEventHandler::mmd_DeleteModelClicked(int id) {
 void TeachingEventHandler::mmd_AddModelParamClicked() {
 	if (!mmd_CurrentModel_) return;
 	TeachingDataHolder::instance()->addModelMasterParam(mmd_CurrentModel_);
-	this->mmd_->showParamGrid(mmd_CurrentModel_->getActiveParamList());
+	this->mmd_->showParamGrid(mmd_CurrentModel_->getActiveModelParamList());
 }
 
 void TeachingEventHandler::mmd_DeleteModelParamClicked() {
@@ -1495,7 +1578,7 @@ void TeachingEventHandler::agd_ModelSelectionChanged(int selectedId) {
 	for (int index = 0; index < modelList.size(); index++) {
 		ModelParamPtr model = modelList[index];
 		if (model->getId() == selectedId) {
-			vector<ModelParameterParamPtr> paramList = model->getModelMaster()->getActiveParamList();
+			vector<ModelParameterParamPtr> paramList = model->getModelMaster()->getActiveModelParamList();
 			agd_->showModelParamInfo(paramList);
 			return;
 		}
@@ -1511,18 +1594,16 @@ void TeachingEventHandler::agd_Loaded(ArgumentDialog* dialog) {
 	agd_Current_Arg_ = 0;
 
 	vector<ModelParamPtr> modelList = com_CurrentTask_->getActiveModelList();
-	vector<ParameterParamPtr> paramList = com_CurrentTask_->getActiveParameterList();
-	vector<ArgumentParamPtr> argList = agd_Current_Stm_->getActiveArgumentList();
-	vector<ElementStmActionParamPtr> actionList = agd_Current_Stm_->getActiveStateActionList();
 	agd_->showModelInfo(modelList);
-	agd_->showParamInfo(paramList, modelList);
-	agd_->showArgInfo(agd_Current_Stm_, argList);
-	agd_->showActionInfo(actionList);
+	agd_->showParamInfo(com_CurrentTask_->getActiveParameterList(), modelList);
+	agd_->showArgInfo(agd_Current_Stm_, agd_Current_Stm_->getActiveArgumentList());
+	agd_->showActionInfo(agd_Current_Stm_->getActiveStateActionList());
 }
 
 void TeachingEventHandler::agd_ArgSelectionChanged(int selectedId, QString strDef) {
-	if (selectedId == NULL_ID) return;
-	if (agd_Current_Arg_) {
+  DDEBUG_V("TeachingEventHandler::argSelectionChanged : %d", selectedId);
+  if (selectedId == NULL_ID) return;
+  if (agd_Current_Arg_) {
 		if (agd_Current_Arg_->getValueDesc() != strDef) {
 			agd_Current_Arg_->setValueDesc(strDef);
 		}
@@ -1553,7 +1634,7 @@ void TeachingEventHandler::agd_AddClicked(QString strAct, QString strModel, QStr
 	maxId++;
 	DDEBUG_V("id=%d", maxId);
 
-	ElementStmActionParamPtr newAction = std::make_shared<ElementStmActionParam>(maxId, agd_Current_Stm_->getId(), agd_Current_Stm_->getActionList().size(), "attach", "", "", true);
+	ElementStmActionParamPtr newAction = std::make_shared<ElementStmActionParam>(maxId, agd_Current_Stm_->getActionList().size(), "attach", "", "", true);
 	agd_Current_Stm_->addModelAction(newAction);
 
 	agd_->updateAddAction(newAction);
@@ -1587,15 +1668,13 @@ bool TeachingEventHandler::agd_OKClicked(QString strName, QString strAct, QStrin
 	ArgumentEstimator* handler = EstimatorFactory::getInstance().createArgEstimator(com_CurrentTask_);
 	std::stringstream errorMsg;
 	bool existError = false;
-	for (int index = 0; index < agd_Current_Stm_->getArgList().size(); index++) {
+	for (int index = 0; index < agd_Current_Stm_->getActiveArgumentList().size(); index++) {
 		ArgumentParamPtr param = agd_Current_Stm_->getArgList()[index];
-		if (param->getMode() == DB_MODE_DELETE || param->getMode() == DB_MODE_IGNORE) continue;
 		ArgumentDefParam* argDef = agd_Current_Stm_->getCommadDefParam()->getArgList()[index];
 		if (argDef->getDirection() == 1) {
 			QString targetStr = agd_Current_Stm_->getArgList()[index]->getValueDesc();
 			ParameterParamPtr targetParam = NULL;
-			for (int idxParam = 0; idxParam < com_CurrentTask_->getParameterList().size(); idxParam++) {
-				ParameterParamPtr parmParm = com_CurrentTask_->getParameterList()[idxParam];
+			for (ParameterParamPtr parmParm : com_CurrentTask_->getParameterList()) {
 				if (parmParm->getRName() == targetStr) {
 					targetParam = parmParm;
 					break;
@@ -1605,11 +1684,6 @@ bool TeachingEventHandler::agd_OKClicked(QString strName, QString strAct, QStrin
 				errorMsg << "[" << param->getName().toStdString() << "] " << "target parameter [" << targetStr.toStdString() << "] NOT Exists." << std::endl;
 				existError = true;
 			} else {
-				//if (targetParam->getElemTypes().toStdString() != argDef->getType()) {
-				//	DDEBUG_V("%s, %s", targetParam->getElemTypes().toStdString().c_str(), argDef->getType().c_str());
-				//	errorMsg << "[" << param->getName().toStdString() << "] " << "and target parameter [" << targetStr.toStdString() << "] TYPE Error." << std::endl;
-				//	existError = true;
-				//}
 				if (targetParam->getElemNum() < argDef->getLength()) {
 					DDEBUG_V("%d, %d", targetParam->getElemNum(), argDef->getLength());
 					errorMsg << "[" << param->getName().toStdString() << "] " << "target parameter [" << targetStr.toStdString() << "] NUM Error." << std::endl;
@@ -1621,7 +1695,7 @@ bool TeachingEventHandler::agd_OKClicked(QString strName, QString strAct, QStrin
 			if (0 < param->getValueDesc().trimmed().length()) {
 				string strError;
 				if (handler->checkSyntax(com_CurrentTask_, param->getValueDesc(), strError) == false) {
-					DDEBUG_V("%s", param->getValueDesc().toStdString().c_str());
+					DDEBUG_V("checkSyntax Error : %s", param->getValueDesc().toStdString().c_str());
 					errorMsg << "[" << param->getName().toStdString() << "]" << strError << std::endl;
 					existError = true;
 				}

@@ -203,8 +203,7 @@ void SettingDialog::oKClicked() {
     leRobotModel->setFocus();
     return;
   }
-  for (int index = 0; index < appList_.size(); index++) {
-    AppExtParam param = appList_[index];
+  for (AppExtParam param : appList_) {
     if (param.ext_.size() == 0) {
       QMessageBox::warning(this, _("Setting"), _("Please input Target EXT."));
       return;

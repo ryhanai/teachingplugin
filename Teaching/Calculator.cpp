@@ -237,61 +237,85 @@ bool MemberParam::parseVariable(bool isSub) {
       valueVector6d_[5] = valList[5].toDouble();
       valMode_ = VAL_VECTOR_6D;
     }
+    return true;
+  }
 
-  } else {
-    vector<ParameterParamPtr> paramList = targetModel_->getParameterList();
-    vector<ParameterParamPtr>::iterator targetParam = find_if(paramList.begin(), paramList.end(), ParameterParamComparatorByRName(paramName));
-    if (targetParam == paramList.end()) return false;
-    //
-    DDEBUG("MemberParam::parseVariable : Param");
-    if ((*targetParam)->getElemNum() == 1) {
-      valueScalar_ = (*targetParam)->getNumValues(0);
-      valMode_ = VAL_SCALAR;
-
-    } else if ((*targetParam)->getElemNum() == 3) {
-      valueVector3d_[0] = (*targetParam)->getNumValues(0);
-      valueVector3d_[1] = (*targetParam)->getNumValues(1);
-      valueVector3d_[2] = (*targetParam)->getNumValues(2);
-      valMode_ = VAL_VECTOR_3D;
-
-    } else if ((*targetParam)->getElemNum() == 6) {
-      DDEBUG_V("ElemNum(6) %d,%d,%d,%d", (*targetParam)->getType(), (*targetParam)->getExecModelId(), (*targetParam)->getExecModelParamId(), isSub);
-      if ((*targetParam)->getType() == PARAM_KIND_NORMAL || (*targetParam)->getExecModelParamId() <= 0 || isSub) {
-        valueVector6d_[0] = (*targetParam)->getNumValues(0);
-        valueVector6d_[1] = (*targetParam)->getNumValues(1);
-        valueVector6d_[2] = (*targetParam)->getNumValues(2);
-        valueVector6d_[3] = (*targetParam)->getNumValues(3);
-        valueVector6d_[4] = (*targetParam)->getNumValues(4);
-        valueVector6d_[5] = (*targetParam)->getNumValues(5);
-
-      } else {
-        vector<ModelParamPtr> modelList = targetModel_->getModelList();
-        vector<ModelParamPtr>::iterator targetModelItr = find_if(modelList.begin(), modelList.end(), ModelParamComparator((*targetParam)->getExecModelId()));
-        if (targetModelItr == modelList.end()) return false;
-
-        ModelMasterParamPtr master = (*targetModelItr)->getModelMaster();
-        vector<ModelParameterParamPtr> masterParamList = master->getModelParameterList();
-        vector<ModelParameterParamPtr>::iterator masterParamItr = find_if(masterParamList.begin(), masterParamList.end(), ModelMasterParamComparator((*targetParam)->getExecModelParamId()));
-        if (masterParamItr == masterParamList.end()) return false;
-
-        QString desc = (*masterParamItr)->getValueDesc();
-        DDEBUG_V("MemberParam::parseVariable : Model Param=%s", desc.toStdString().c_str());
-        desc = desc.replace("origin", (*targetParam)->getRName());
-        DDEBUG_V("MemberParam::parseVariable : Model Param Rep=%s", desc.toStdString().c_str());
-        Calculator* calc = new Calculator();
-        //再計算しないようにisSubをTrueに設定
-        calc->setTaskModelParam(targetModel_);
-        if (calc->calculate(desc, true) == false) {
-          DDEBUG("MemberParam::parseVariable : Calc Error");
-          return false;
-        }
-        valueVector6d_ = calc->getResultVector6d();
-        valMode_ = VAL_VECTOR_6D;
-        delete calc;
-        DDEBUG_V("MemberParam::parseVariable : Calc End %f, %f, %f, %f, %f, %f", valueVector6d_[0], valueVector6d_[1], valueVector6d_[2], valueVector6d_[3], valueVector6d_[4], valueVector6d_[5]);
-      }
+  DDEBUG("MemberParam::parseVariable : Param");
+  //モデルの検索
+  QString modelName = paramName;
+  QString featureName;
+  if (paramName.contains(".")) {
+    DDEBUG("MemberParam::parseVariable : ModelFeature");
+    QStringList modelList = paramName.split(".");
+    if (modelList.size() != 2) return false;
+    modelName = modelList[0];
+    featureName = modelList[1];
+    DDEBUG_V("MemberParam::parseVariable : Model : %s, Feature : %s", modelName.toStdString().c_str(), featureName.toStdString().c_str());
+  }
+  vector<ModelParamPtr> modelList = targetModel_->getActiveModelList();
+  std::vector<ModelParamPtr>::iterator model = std::find_if(modelList.begin(), modelList.end(), ModelParamComparatorByRName(modelName));
+  if (model != modelList.end()) {
+    if (paramName.contains(".") == false) {
+      DDEBUG("MemberParam::parseVariable : ModelParam");
+      valueVector6d_[0] = (*model)->getPosX();
+      valueVector6d_[1] = (*model)->getPosY();
+      valueVector6d_[2] = (*model)->getPosZ();
+      valueVector6d_[3] = (*model)->getRotRx();
+      valueVector6d_[4] = (*model)->getRotRy();
+      valueVector6d_[5] = (*model)->getRotRz();
       valMode_ = VAL_VECTOR_6D;
+      return true;
+
+    } else {
+      ModelMasterParamPtr master = (*model)->getModelMaster();
+      vector<ModelParameterParamPtr> masterParamList = master->getModelParameterList();
+      vector<ModelParameterParamPtr>::iterator masterParamItr = find_if(masterParamList.begin(), masterParamList.end(), ModelMasterParamComparatorByName(featureName));
+      if (masterParamItr == masterParamList.end()) return false;
+      QString desc = (*masterParamItr)->getValueDesc();
+      DDEBUG_V("MemberParam::parseVariable : Model Param=%s", desc.toStdString().c_str());
+      desc = desc.replace("origin", modelName);
+      DDEBUG_V("MemberParam::parseVariable : Model Param Rep=%s", desc.toStdString().c_str());
+      Calculator* calc = new Calculator();
+      //再計算しないようにisSubをTrueに設定
+      calc->setTaskModelParam(targetModel_);
+      if (calc->calculate(desc, true) == false) {
+        DDEBUG("MemberParam::parseVariable : Calc Error");
+        return false;
+      }
+      valueVector6d_ = calc->getResultVector6d();
+      valMode_ = VAL_VECTOR_6D;
+      delete calc;
+      DDEBUG_V("MemberParam::parseVariable : Calc End %f, %f, %f, %f, %f, %f", valueVector6d_[0], valueVector6d_[1], valueVector6d_[2], valueVector6d_[3], valueVector6d_[4], valueVector6d_[5]);
+      return true;
     }
+  }
+
+  DDEBUG("MemberParam::parseVariable : NormalParam");
+
+  //パラメータの検索
+  vector<ParameterParamPtr> paramList = targetModel_->getActiveParameterList();
+  vector<ParameterParamPtr>::iterator targetParam = find_if(paramList.begin(), paramList.end(), ParameterParamComparatorByRName(paramName));
+  if (targetParam == paramList.end()) return false;
+  //
+  if ((*targetParam)->getElemNum() == 1) {
+    valueScalar_ = (*targetParam)->getNumValues(0);
+    valMode_ = VAL_SCALAR;
+
+  } else if ((*targetParam)->getElemNum() == 3) {
+    valueVector3d_[0] = (*targetParam)->getNumValues(0);
+    valueVector3d_[1] = (*targetParam)->getNumValues(1);
+    valueVector3d_[2] = (*targetParam)->getNumValues(2);
+    valMode_ = VAL_VECTOR_3D;
+
+  } else if ((*targetParam)->getElemNum() == 6) {
+    valueVector6d_[0] = (*targetParam)->getNumValues(0);
+    valueVector6d_[1] = (*targetParam)->getNumValues(1);
+    valueVector6d_[2] = (*targetParam)->getNumValues(2);
+    valueVector6d_[3] = (*targetParam)->getNumValues(3);
+    valueVector6d_[4] = (*targetParam)->getNumValues(4);
+    valueVector6d_[5] = (*targetParam)->getNumValues(5);
+
+    valMode_ = VAL_VECTOR_6D;
   }
 
   return true;
@@ -486,7 +510,7 @@ bool Calculator::buildArguments(TaskModelParamPtr taskParam, ElementStmParamPtr 
       }
 
     } else {
-      vector<ParameterParamPtr> paramList = taskParam->getParameterList();
+      vector<ParameterParamPtr> paramList = taskParam->getActiveParameterList();
       vector<ParameterParamPtr>::iterator targetParam = find_if(paramList.begin(), paramList.end(), ParameterParamComparatorByRName(valueDesc));
       QString strVal;
       if (targetParam != paramList.end()) {
@@ -703,6 +727,7 @@ bool Calculator::calculate(QString source, bool isSub) {
       case TYPE_VALUE:
       {
         if (member->parseScalar() == false) {
+          DDEBUG("Calculator::calculate ERROR TYPE_VALUE");
           return false;
         }
         valMode_ = member->valMode_;
@@ -715,7 +740,8 @@ bool Calculator::calculate(QString source, bool isSub) {
 								memberList_[member->idxArg01_],
 								memberList_[member->idxArg02_],
 								memberList_[member->idxArg03_]) == false) {
-					return false;
+          DDEBUG("Calculator::calculate ERROR TYPE_VECTOR");
+          return false;
 				}
 				valMode_ = member->valMode_;
 				break;
@@ -730,7 +756,8 @@ bool Calculator::calculate(QString source, bool isSub) {
 					memberList_[member->idxArg04_],
 					memberList_[member->idxArg05_],
 					memberList_[member->idxArg06_]) == false) {
-					return false;
+          DDEBUG("Calculator::calculate ERROR TYPE_VECTOR6");
+          return false;
 				}
 				DDEBUG("Calculator::calculate Vector6");
 				valMode_ = member->valMode_;
@@ -741,6 +768,7 @@ bool Calculator::calculate(QString source, bool isSub) {
       {
         if (member->calcBinOpe(memberList_[member->idxArg01_],
           memberList_[member->idxArg02_]) == false) {
+          DDEBUG("Calculator::calculate ERROR TYPE_BIN_OPE");
           return false;
         }
         valMode_ = member->valMode_;
@@ -760,6 +788,7 @@ bool Calculator::calculate(QString source, bool isSub) {
       case TYPE_FUNC:
       {
         if (member->calcFunc(memberList_[member->idxArg01_]) == false) {
+          DDEBUG("Calculator::calculate ERROR TYPE_FUNC");
           return false;
         }
         valMode_ = member->valMode_;

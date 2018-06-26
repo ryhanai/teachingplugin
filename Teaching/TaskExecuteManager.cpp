@@ -53,7 +53,7 @@ void TaskExecuteManager::runFlow(FlowParamPtr targetFlow) {
     QMessageBox::warning(0, _("Run Flow"), targetFlow->getErrStr());
     return;
   }
-  vector<ElementStmParamPtr> stateList = targetFlow->getStmElementList();
+  vector<ElementStmParamPtr> stateList = targetFlow->getActiveStateList();
   TaskModelParamPtr currentTask;
   for (int index = 0; index < stateList.size(); index++) {
 		ElementStmParamPtr targetState = stateList[index];
@@ -62,9 +62,6 @@ void TaskExecuteManager::runFlow(FlowParamPtr targetFlow) {
     currentTask = targetState->getTaskParam();
     ChoreonoidUtil::unLoadTaskModelItem(currentTask);
 
-    if (targetState->getMode() == DB_MODE_DELETE || targetState->getMode() == DB_MODE_IGNORE) {
-      continue;
-    }
     TeachingUtil::loadTaskDetailData(currentTask);
     DDEBUG("TaskParam checkAndOrderStateMachine");
     if (currentTask->checkAndOrderStateMachine()) {
@@ -455,13 +452,10 @@ ExecResult TaskExecuteManager::doTaskOperationStep() {
 }
 //////////
 void TaskExecuteManager::parseModelInfo() {
-  vector<ModelParamPtr> modelList = currentTask_->getModelList();
-  vector<ElementStmParamPtr> stateList = currentTask_->getStmElementList();
-  for (int index = 0; index < stateList.size(); index++) {
-		ElementStmParamPtr state = stateList[index];
-    vector<ElementStmActionParamPtr> actionList = state->getActionList();
-    for (int idxAction = 0; idxAction < actionList.size(); idxAction++) {
-			ElementStmActionParamPtr action = actionList[idxAction];
+  vector<ModelParamPtr> modelList = currentTask_->getActiveModelList();
+  vector<ElementStmParamPtr> stateList = currentTask_->getActiveStateList();
+  for (ElementStmParamPtr state : currentTask_->getActiveStateList()) {
+    for (ElementStmActionParamPtr action : state->getActiveStateActionList()) {
       std::vector<ModelParamPtr>::iterator model = std::find_if(modelList.begin(), modelList.end(), ModelParamComparatorByRName(action->getModel()));
       if (model == modelList.end()) continue;
       action->setModelParam(*model);
@@ -470,13 +464,11 @@ void TaskExecuteManager::parseModelInfo() {
 }
 
 bool TaskExecuteManager::doModelAction() {
-  vector<ElementStmActionParamPtr> actionList = currParam_->getActionList();
-  for (int index = 0; index < actionList.size(); index++) {
-		ElementStmActionParamPtr action = actionList[index];
+  for (ElementStmActionParamPtr action : currParam_->getActiveStateActionList()) {
     DDEBUG_V("Action : %s = %s, %s, %s", currParam_->getCmdName().toStdString().c_str(), action->getAction().toStdString().c_str(), action->getModel().toStdString().c_str(), action->getTarget().toStdString().c_str());
     //
     if (action->getAction() == "attach" || action->getAction() == "detach") {
-      vector<ParameterParamPtr> paramList = currentTask_->getParameterList();
+      vector<ParameterParamPtr> paramList = currentTask_->getActiveParameterList();
       vector<ParameterParamPtr>::iterator targetParam = find_if(paramList.begin(), paramList.end(), ParameterParamComparatorByRName(action->getTarget()));
       QString strVal;
       int intTarget = -1;
@@ -537,8 +529,8 @@ void TaskExecuteManager::setOutArgument(std::vector<CompositeParamType>& paramet
     QString targetStr = currParam_->getArgList()[idxArg]->getValueDesc();
     DDEBUG_V("targetStr : %s", targetStr.toStdString().c_str());
     ParameterParamPtr targetParam = NULL;
-    for (int idxParam = 0; idxParam < currentTask_->getParameterList().size(); idxParam++) {
-			ParameterParamPtr parmParm = currentTask_->getParameterList()[idxParam];
+    for (int idxParam = 0; idxParam < currentTask_->getActiveParameterList().size(); idxParam++) {
+			ParameterParamPtr parmParm = currentTask_->getActiveParameterList()[idxParam];
       if (parmParm->getRName() == targetStr) {
         targetParam = parmParm;
         break;

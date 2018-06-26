@@ -82,6 +82,7 @@ bool TeachingUtil::importTaskModel(Mapping* taskMap, TaskModelParamPtr taskParam
       Mapping* modelMap = modelList->at(idxModel)->toMapping();
       QString modelRName = "";
       int master_id = -1;
+      int hide = 0;
       QString modelType = "";
       double posX = 0.0; double posY = 0.0; double posZ = 0.0;
       double rotX = 0.0; double rotY = 0.0; double rotZ = 0.0;
@@ -156,9 +157,10 @@ bool TeachingUtil::importTaskModel(Mapping* taskMap, TaskModelParamPtr taskParam
         DDEBUG(errMessage.toStdString().c_str());
         return false;
       }
+      try { hide = modelMap->get("hide").toInt(); } catch (...) {}
 
       if (modelType.length() == 0) modelType = "Env";
-      ModelParamPtr modelParam = std::make_shared<ModelParam>(NULL_ID, master_id, getModelType(modelType), modelRName, posX, posY, posZ, rotX, rotY, rotZ, true);
+      ModelParamPtr modelParam = std::make_shared<ModelParam>(NULL_ID, master_id, getModelType(modelType), modelRName, posX, posY, posZ, rotX, rotY, rotZ, hide, true);
       taskParam->addModel(modelParam);
     }
   }
@@ -316,7 +318,7 @@ bool TeachingUtil::importTaskState(Mapping* taskMap, TaskModelParamPtr taskParam
 
           try { target = QString::fromStdString(actionMap->get("target").toString()); } catch (...) {}
           DDEBUG_V("action : %s, model : %s, target : %s", action.toStdString().c_str(), model.toStdString().c_str(), target.toStdString().c_str());
-          ElementStmActionParamPtr actionParam = std::make_shared<ElementStmActionParam>(NULL_ID, NULL_ID, idxAction, action, model, target, true);
+          ElementStmActionParamPtr actionParam = std::make_shared<ElementStmActionParam>(NULL_ID, idxAction, action, model, target, true);
           stateParam->addModelAction(actionParam);
         }
       }
@@ -340,7 +342,7 @@ bool TeachingUtil::importTaskState(Mapping* taskMap, TaskModelParamPtr taskParam
         try { name = QString::fromStdString(argMap->get("name").toString()); } catch (...) {}
         try { valueDesc = QString::fromStdString(argMap->get("value").toString()).replace("|", "\n"); } catch (...) {}
         DDEBUG_V("seq : %d, name : %s, valueDesc : %s", seq, name.toStdString().c_str(), valueDesc.toStdString().c_str());
-        ArgumentParamPtr argParam = std::make_shared<ArgumentParam>(NULL_ID, NULL_ID, seq, name, valueDesc);
+        ArgumentParamPtr argParam = std::make_shared<ArgumentParam>(NULL_ID, seq, name, valueDesc);
         argParam->setNew();
         stateParam->addArgument(argParam);
       }
@@ -597,14 +599,12 @@ void TeachingUtil::loadTaskDetailData(TaskModelParamPtr target) {
   if (target->IsLoaded()) return;
   DDEBUG("loadTaskDetailData");
 
-  for (int idxModel = 0; idxModel < target->getModelList().size(); idxModel++) {
-		ModelParamPtr model = target->getModelList()[idxModel];
+  for (ModelParamPtr model : target->getActiveModelList()) {
     if (ChoreonoidUtil::makeModelItem(model->getModelMaster()) == false) {
       model->getModelMaster()->setModelItem(0);
     }
   }
-  for (int idxFig = 0; idxFig < target->getImageList().size(); idxFig++) {
-		ImageDataParamPtr param = target->getImageList()[idxFig];
+  for (ImageDataParamPtr param : target->getActiveImageList()) {
     param->loadData();
   }
 
@@ -624,11 +624,11 @@ bool TeachingUtil::exportTask(QString& strFName, TaskModelParamPtr targetTask) {
   //taskNode->write("comment", targetTask->getComment().toUtf8(), DOUBLE_QUOTED);
   taskNode->write("initialize", targetTask->getExecEnv().replace("\n", "|").toUtf8(), DOUBLE_QUOTED);
   //
-  if (0 < targetTask->getModelList().size()) {
+  vector<ModelParamPtr> modelList = targetTask->getActiveModelList();
+  if (0 < modelList.size()) {
     Listing* modelsNode = taskNode->createListing("models");
-    for (int index = 0; index < targetTask->getModelList().size(); index++) {
-			ModelParamPtr param = targetTask->getModelList()[index];
-      if (param->getMode() == DB_MODE_DELETE || param->getMode() == DB_MODE_IGNORE) continue;
+    for (int index = 0; index < modelList.size(); index++) {
+			ModelParamPtr param = modelList[index];
       MappingPtr modelNode = modelsNode->newMapping();
 			modelNode->write("rname", param->getRName().toUtf8(), DOUBLE_QUOTED);
 			modelNode->write("master_id", param->getMasterId());
@@ -648,7 +648,8 @@ bool TeachingUtil::exportTask(QString& strFName, TaskModelParamPtr targetTask) {
       modelNode->write("rot_x", param->getRotRx());
       modelNode->write("rot_y", param->getRotRy());
       modelNode->write("rot_z", param->getRotRz());
-			//
+      modelNode->write("hide", param->getHide());
+      //
 			bool isExist = false;
 			for(int idxMaster = 0; idxMaster < masterList.size(); idxMaster++) {
 				ModelMasterParamPtr master = masterList[idxMaster];
@@ -663,11 +664,11 @@ bool TeachingUtil::exportTask(QString& strFName, TaskModelParamPtr targetTask) {
     }
   }
   //
-  if (0 < targetTask->getStmElementList().size()) {
+  std::vector<ElementStmParamPtr> stateList = targetTask->getActiveStateList();
+  if (0 < stateList.size()) {
     Listing* statesNode = taskNode->createListing("states");
-    for (int index = 0; index < targetTask->getStmElementList().size(); index++) {
-			ElementStmParamPtr param = targetTask->getStmElementList()[index];
-      if (param->getMode() == DB_MODE_DELETE || param->getMode() == DB_MODE_IGNORE) continue;
+    for (int index = 0; index < stateList.size(); index++) {
+			ElementStmParamPtr param = stateList[index];
       MappingPtr stateNode = statesNode->newMapping();
       stateNode->write("id", param->getId());
       stateNode->write("type", param->getType());
@@ -679,10 +680,11 @@ bool TeachingUtil::exportTask(QString& strFName, TaskModelParamPtr targetTask) {
       stateNode->write("pos_x", param->getPosX());
       stateNode->write("pos_y", param->getPosY());
       //
-      if (0 < param->getActionList().size()) {
+      vector<ElementStmActionParamPtr> actionList = param->getActiveStateActionList();
+      if (0 <actionList.size()) {
         Listing* actionsNode = stateNode->createListing("model_actions");
-        for (int idxAction = 0; idxAction < param->getActionList().size(); idxAction++) {
-					ElementStmActionParamPtr actParam = param->getActionList()[idxAction];
+        for (int idxAction = 0; idxAction < actionList.size(); idxAction++) {
+					ElementStmActionParamPtr actParam = actionList[idxAction];
           MappingPtr actionNode = actionsNode->newMapping();
           actionNode->write("action", actParam->getAction().toUtf8(), DOUBLE_QUOTED);
           actionNode->write("model", actParam->getModel().toUtf8(), DOUBLE_QUOTED);
@@ -692,10 +694,11 @@ bool TeachingUtil::exportTask(QString& strFName, TaskModelParamPtr targetTask) {
         }
       }
       //
-      if (0 < param->getArgList().size()) {
+      vector<ArgumentParamPtr> argList = param->getActiveArgumentList();
+      if (0 < argList.size()) {
         Listing* argsNode = stateNode->createListing("arguments");
-        for (int idxArg = 0; idxArg < param->getArgList().size(); idxArg++) {
-					ArgumentParamPtr argParam = param->getArgList()[idxArg];
+        for (int idxArg = 0; idxArg < argList.size(); idxArg++) {
+					ArgumentParamPtr argParam = argList[idxArg];
           MappingPtr argNode = argsNode->newMapping();
           argNode->write("seq", argParam->getSeq());
           argNode->write("name", argParam->getName().toUtf8(), DOUBLE_QUOTED);
@@ -705,11 +708,11 @@ bool TeachingUtil::exportTask(QString& strFName, TaskModelParamPtr targetTask) {
     }
   }
   //
-  if (0 < targetTask->getStmConnectionList().size()) {
+  vector<ConnectionStmParamPtr> transList = targetTask->getActiveTransitionList();
+  if (0 < transList.size()) {
     Listing* connsNode = taskNode->createListing("transitions");
-    for (int index = 0; index < targetTask->getStmConnectionList().size(); index++) {
-			ConnectionStmParamPtr param = targetTask->getStmConnectionList()[index];
-      if (param->getMode() == DB_MODE_DELETE || param->getMode() == DB_MODE_IGNORE) continue;
+    for (int index = 0; index < transList.size(); index++) {
+			ConnectionStmParamPtr param = transList[index];
       if (param->getSourceId() == param->getTargetId()) continue;
       MappingPtr connNode = connsNode->newMapping();
       connNode->write("source_id", param->getSourceId());
@@ -719,11 +722,11 @@ bool TeachingUtil::exportTask(QString& strFName, TaskModelParamPtr targetTask) {
     }
   }
   //
-  if (0 < targetTask->getParameterList().size()) {
+  vector<ParameterParamPtr> paramList = targetTask->getActiveParameterList();
+  if (0 <paramList.size()) {
     Listing* paramsNode = taskNode->createListing("parameters");
-    for (int index = 0; index < targetTask->getParameterList().size(); index++) {
-			ParameterParamPtr param = targetTask->getParameterList()[index];
-      if (param->getMode() == DB_MODE_DELETE || param->getMode() == DB_MODE_IGNORE) continue;
+    for (int index = 0; index < paramList.size(); index++) {
+			ParameterParamPtr param = paramList[index];
       MappingPtr paramNode = paramsNode->newMapping();
       paramNode->write("type", param->getType());
       paramNode->write("name", param->getName().toUtf8(), DOUBLE_QUOTED);
@@ -737,11 +740,11 @@ bool TeachingUtil::exportTask(QString& strFName, TaskModelParamPtr targetTask) {
     }
   }
   //
-  if (0 < targetTask->getFileList().size()) {
+  vector<FileDataParamPtr> fileList = targetTask->getActiveFileList();
+  if (0 < fileList.size()) {
     Listing* filesNode = taskNode->createListing("files");
-    for (int index = 0; index < targetTask->getFileList().size(); index++) {
-			FileDataParamPtr param = targetTask->getFileList()[index];
-      if (param->getMode() == DB_MODE_DELETE || param->getMode() == DB_MODE_IGNORE) continue;
+    for (int index = 0; index < fileList.size(); index++) {
+			FileDataParamPtr param = fileList[index];
       MappingPtr fileNode = filesNode->newMapping();
       fileNode->write("name", param->getName().toUtf8(), DOUBLE_QUOTED);
       if (0 < param->getName().length()) {
@@ -754,11 +757,11 @@ bool TeachingUtil::exportTask(QString& strFName, TaskModelParamPtr targetTask) {
     }
   }
   //
-  if (0 < targetTask->getImageList().size()) {
+  vector<ImageDataParamPtr> imageList = targetTask->getActiveImageList();
+  if (0 < imageList.size()) {
     Listing* imagesNode = taskNode->createListing("images");
-    for (int index = 0; index < targetTask->getImageList().size(); index++) {
-			ImageDataParamPtr param = targetTask->getImageList()[index];
-      if (param->getMode() == DB_MODE_DELETE || param->getMode() == DB_MODE_IGNORE) continue;
+    for (int index = 0; index < imageList.size(); index++) {
+			ImageDataParamPtr param = imageList[index];
       MappingPtr imageNode = imagesNode->newMapping();
       imageNode->write("name", param->getName().toUtf8(), DOUBLE_QUOTED);
       if (0 < param->getName().length()) {
@@ -795,11 +798,11 @@ bool TeachingUtil::exportTask(QString& strFName, TaskModelParamPtr targetTask) {
 			  }
 			}
 
-      if (0 < master->getModelParameterList().size()) {
+      vector<ModelParameterParamPtr> paramList = master->getActiveModelParamList();
+      if (0 < paramList.size()) {
         Listing* featuresNode = masterNode->createListing("features");
-        for (int index = 0; index <master->getModelParameterList().size(); index++) {
-          ModelParameterParamPtr feature = master->getModelParameterList()[index];
-          if (feature->getMode() == DB_MODE_DELETE || feature->getMode() == DB_MODE_IGNORE) continue;
+        for (int index = 0; index <paramList.size(); index++) {
+          ModelParameterParamPtr feature = paramList[index];
           MappingPtr featureNode = featuresNode->newMapping();
           featureNode->write("name", feature->getName().toUtf8(), DOUBLE_QUOTED);
           featureNode->write("value", feature->getValueDesc().toUtf8(), DOUBLE_QUOTED);
@@ -827,11 +830,11 @@ bool TeachingUtil::exportFlow(QString& strFName, FlowParamPtr targetFlow) {
   flowNode->write("flowName", targetFlow->getName().toUtf8(), DOUBLE_QUOTED);
   flowNode->write("comment", targetFlow->getComment().replace("\n", "|").toUtf8(), DOUBLE_QUOTED);
   //
-  if (0 < targetFlow->getStmElementList().size()) {
+  vector<ElementStmParamPtr> stateList = targetFlow->getActiveStateList();
+  if (0 < stateList.size()) {
     Listing* statesNode = flowNode->createListing("states");
-    for (int index = 0; index < targetFlow->getStmElementList().size(); index++) {
-			ElementStmParamPtr param = targetFlow->getStmElementList()[index];
-      if (param->getMode() == DB_MODE_DELETE || param->getMode() == DB_MODE_IGNORE) continue;
+    for (int index = 0; index < stateList.size(); index++) {
+			ElementStmParamPtr param = stateList[index];
       MappingPtr stateNode = statesNode->newMapping();
       stateNode->write("id", param->getId());
       stateNode->write("type", param->getType());
@@ -846,11 +849,11 @@ bool TeachingUtil::exportFlow(QString& strFName, FlowParamPtr targetFlow) {
     }
   }
   //
-  if (0 < targetFlow->getModelList().size()) {
+  vector<FlowModelParamPtr> modelList = targetFlow->getActiveModelList();
+  if (0 < modelList.size()) {
     Listing* modelsNode = flowNode->createListing("models");
-    for (int index = 0; index < targetFlow->getModelList().size(); index++) {
-      FlowModelParamPtr param = targetFlow->getModelList()[index];
-      if (param->getMode() == DB_MODE_DELETE || param->getMode() == DB_MODE_IGNORE) continue;
+    for (int index = 0; index < modelList.size(); index++) {
+      FlowModelParamPtr param = modelList[index];
       MappingPtr modelNode = modelsNode->newMapping();
       modelNode->write("id", param->getId());
       modelNode->write("master_id", param->getMasterId());
@@ -859,11 +862,11 @@ bool TeachingUtil::exportFlow(QString& strFName, FlowParamPtr targetFlow) {
     }
   }
   //
-  if (0 < targetFlow->getFlowParamList().size()) {
+  vector<FlowParameterParamPtr> paramList = targetFlow->getActiveFlowParamList();
+  if (0 < paramList.size()) {
     Listing* paramsNode = flowNode->createListing("parameters");
-    for (int index = 0; index < targetFlow->getFlowParamList().size(); index++) {
-      FlowParameterParamPtr param = targetFlow->getFlowParamList()[index];
-      if (param->getMode() == DB_MODE_DELETE || param->getMode() == DB_MODE_IGNORE) continue;
+    for (int index = 0; index < paramList.size(); index++) {
+      FlowParameterParamPtr param = paramList[index];
       MappingPtr paramNode = paramsNode->newMapping();
       paramNode->write("id", param->getId());
       paramNode->write("name", param->getName().toUtf8(), DOUBLE_QUOTED);
@@ -873,11 +876,11 @@ bool TeachingUtil::exportFlow(QString& strFName, FlowParamPtr targetFlow) {
     }
   }
   //
-  if (0 < targetFlow->getStmConnectionList().size()) {
+  vector<ConnectionStmParamPtr> transList = targetFlow->getActiveTransitionList();
+  if (0 < transList.size()) {
     Listing* connsNode = flowNode->createListing("transitions");
-    for (int index = 0; index < targetFlow->getStmConnectionList().size(); index++) {
-			ConnectionStmParamPtr param = targetFlow->getStmConnectionList()[index];
-      if (param->getMode() == DB_MODE_DELETE || param->getMode() == DB_MODE_IGNORE) continue;
+    for (int index = 0; index < transList.size(); index++) {
+			ConnectionStmParamPtr param = transList[index];
       if (param->getSourceId() == param->getTargetId()) continue;
       MappingPtr connNode = connsNode->newMapping();
       connNode->write("type", param->getType());
@@ -1014,16 +1017,14 @@ bool TeachingUtil::importFlow(QString& strFName, std::vector<FlowParamPtr>& flow
       if (modelList) {
         for (int idxModel = 0; idxModel < modelList->size(); idxModel++) {
           Mapping* modelMap = modelList->at(idxModel)->toMapping();
-          int id, master_id, master_param_id;
+          int id, master_id;
           double posX, posY;
 
           try { id = modelMap->get("id").toInt(); } catch (...) { continue; }
           try { master_id = modelMap->get("master_id").toInt(); } catch (...) { continue; }
-          try { master_param_id = modelMap->get("master_param_id").toInt(); } catch (...) { continue; }
           try { posX = modelMap->get("pos_x").toDouble(); } catch (...) { continue; }
           try { posY = modelMap->get("pos_y").toDouble(); } catch (...) { continue; }
 
-          //TODO GA
           FlowModelParamPtr modelParam = std::make_shared<FlowModelParam>(id, master_id);
           modelParam->setPosX(posX);
           modelParam->setPosY(posY);

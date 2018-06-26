@@ -120,7 +120,7 @@ namespace teaching {
   buttonBotLayout->setContentsMargins(2, 2, 2, 2);
 	buttonBotLayout->addWidget(btnCancel);
   buttonBotLayout->addStretch();
-  buttonBotLayout->addWidget(btnReNew);
+  //buttonBotLayout->addWidget(btnReNew);
   buttonBotLayout->addStretch();
   buttonBotLayout->addWidget(btnOK);
 
@@ -364,8 +364,7 @@ void ModelMasterDialog::reNewClicked() {
   DatabaseManager::getInstance().saveModelMasterList(modelList);
   //重複データの削除
   modelList = DatabaseManager::getInstance().getModelMasterList();
-  for (int index = 0; index < modelList.size(); index++) {
-    ModelMasterParamPtr target = modelList[index];
+  for (ModelMasterParamPtr target : modelList) {
     DatabaseManager::getInstance().reNewModelMaster(target);
   }
   //T_TASK_MODEL_INSTの整理

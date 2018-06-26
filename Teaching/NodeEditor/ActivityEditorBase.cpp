@@ -224,12 +224,10 @@ ElementStmParamPtr ActivityEditorBase::getCurrentNode() {
 	return result;
 }
 
-//void ActivityEditorBase::setEditMode(bool canEdit) {
-//  QList<QGraphicsItem*> items = _scene->items();
-//  for (int index = 0; index < items.size(); index++) {
-//    QGraphicsItem* item = items.at(index);
-//    ((NodeGraphicsObject*)item)->lock(!canEdit);
-//  }
-//}
+void ActivityEditorBase::setEditMode(bool canEdit) {
+  for (QGraphicsItem* item : _scene->items()) {
+    ((NodeGraphicsObject*)item)->lock(!canEdit);
+  }
+}
 
 }

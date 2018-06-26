@@ -115,6 +115,8 @@ TaskInstanceViewImpl::TaskInstanceViewImpl(QWidget* parent)
   setLayout(mainLayout);
   //
   connect(lstResult, SIGNAL(itemSelectionChanged()), this, SLOT(taskSelectionChanged()));
+  connect(lstResult, SIGNAL(itemClicked(QTableWidgetItem *)), this, SLOT(taskActivated()));
+
   connect(btnSearch, SIGNAL(clicked()), this, SLOT(searchClicked()));
   connect(leCond, SIGNAL(editingFinished()), this, SLOT(searchClicked()));
 	connect(btnModelMaster, SIGNAL(clicked()), this, SLOT(modelMasterClicked()));
@@ -179,6 +181,11 @@ void TaskInstanceViewImpl::taskSelectionChanged() {
   currentTaskIndex_ = lstResult->currentRow();
 	TaskModelParamPtr newTask = TeachingDataHolder::instance()->getTaskInstanceById(selectedId);
   leTask->setText(newTask->getName());
+}
+
+void TaskInstanceViewImpl::taskActivated() {
+  DDEBUG("TaskInstanceViewImpl::taskActivated()");
+  TeachingEventHandler::instance()->tiv_TaskSelectionChanged(getSelectedId(), leTask->text());
 }
 
 void TaskInstanceViewImpl::searchClicked() {

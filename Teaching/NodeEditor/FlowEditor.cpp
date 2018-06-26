@@ -7,6 +7,7 @@
 #include "../FlowView.h"
 #include "models.hpp"
 
+#include "../ChoreonoidUtil.h"
 #include "../LoggerUtil.h"
 
 using QtNodes::FlowEditor;
@@ -14,7 +15,7 @@ using QtNodes::FlowScene;
 using namespace teaching;
 
 FlowEditor::FlowEditor(FlowScene *scene, FlowViewImpl* flowView)
-  : ActivityEditorBase(scene), updateNodesLater_([&]() { removeNode(); }),
+  : ActivityEditorBase(scene), updateNodesLater_([&]() { removeModelNodeLater(); }),
     flowView_(flowView) {
   setDragMode(QGraphicsView::ScrollHandDrag);
   setRenderHint(QPainter::Antialiasing);
@@ -180,11 +181,12 @@ void FlowEditor::dragMoveEvent(QDragMoveEvent *event) {
 }
 
 void FlowEditor::mouseReleaseEvent(QMouseEvent *event) {
-	QGraphicsView::mouseReleaseEvent(event);
+  DDEBUG("FlowActivityEditor::mouseReleaseEvent");
+  QGraphicsView::mouseReleaseEvent(event);
 
 	ElementStmParamPtr target = getCurrentNode();
 	if (target) {
-		if (target->getType() == ElementType::ELEMENT_COMMAND) {
+    if (target->getType() == ElementType::ELEMENT_COMMAND) {
 			flowView_->flowSelectionChanged(target->getTaskParam());
 		}
 	}
@@ -226,14 +228,15 @@ void FlowEditor::dropEvent(QDropEvent* event) {
 		int id = varData.toInt();
 		teaching::TaskModelParamPtr targetTask = teaching::TeachingDataHolder::instance()->getTaskInstanceById(id);
 		if (targetTask) {
-			std::vector<teaching::ParameterParamPtr> paramList = targetTask->getActiveParameterList();
 			vector<PortInfo> portList;
-			for (int index = 0; index < paramList.size(); index++) {
-				teaching::ParameterParamPtr param = paramList[index];
-				if (param->getHide()) continue;
-				PortInfo info(param->getId(), param->getName(), param->getType());
-				portList.push_back(info);
-			}
+      for (ModelParamPtr model : targetTask->getVisibleModelList()) {
+        PortInfo info(model->getId(), model->getRName(), 1);
+        portList.push_back(info);
+      }
+      for (ParameterParamPtr param : targetTask->getVisibleParameterList()) {
+        PortInfo info(param->getId(), param->getName(), 0);
+        portList.push_back(info);
+      }
 			type->portNames = portList;
 		}
 		auto& node = _scene->createNode(std::move(type));
@@ -264,7 +267,6 @@ void FlowEditor::createStateMachine(FlowParamPtr target) {
   //
   vector<ElementStmParamPtr> elemList = target->getActiveStateList();
   for (ElementStmParamPtr target : elemList) {
-    if (target->getMode() == DB_MODE_DELETE || target->getMode() == DB_MODE_IGNORE) continue;
     int typeId = target->getType();
     if (typeId == ELEMENT_COMMAND) {
       createFlowTaskNode(target);
@@ -272,27 +274,39 @@ void FlowEditor::createStateMachine(FlowParamPtr target) {
       createFlowExtNode(typeId, target);
     }
   }
-  vector<FlowModelParamPtr> modelList = target->getModelList();
+  vector<FlowModelParamPtr> modelList = target->getActiveModelList();
   for(FlowModelParamPtr target : modelList) {
-    if (target->getMode() == DB_MODE_DELETE || target->getMode() == DB_MODE_IGNORE) continue;
     createFlowModelNode(target);
   }
-  vector<FlowParameterParamPtr> paramList = target->getFlowParamList();
+  vector<FlowParameterParamPtr> paramList = target->getActiveFlowParamList();
   for(FlowParameterParamPtr target : paramList) {
-    if (target->getMode() == DB_MODE_DELETE || target->getMode() == DB_MODE_IGNORE) continue;
     createFlowParamNode(target);
   }
   /////
-  vector<ConnectionStmParamPtr> connList = target->getActiveTransitionList();
-  for (int index = 0; index < connList.size(); index++) {
-    ConnectionStmParamPtr target = connList[index];
-    if (target->getMode() == DB_MODE_DELETE || target->getMode() == DB_MODE_IGNORE) continue;
+  vector<ModelMasterParamPtr> modelMasterList = TeachingDataHolder::instance()->getModelMasterList();
+  for (ConnectionStmParamPtr target : target->getActiveTransitionList()) {
+    vector<ElementStmParamPtr>::iterator targetElem = find_if(elemList.begin(), elemList.end(), ElementStmParamComparator(target->getTargetId()));
+    if (targetElem == elemList.end()) continue;
+    Node* targetNode = (*targetElem)->getRealElem();
 
     Node* sourceNode;
     if (target->getType() == TYPE_MODEL_PARAM) {
       vector<FlowModelParamPtr>::iterator sourceElem = find_if(modelList.begin(), modelList.end(), FlowModelParamComparator(target->getSourceId()));
       if (sourceElem == modelList.end()) continue;
       sourceNode = (*sourceElem)->getRealElem();
+      //
+      //モデルの差し替え
+      int targetId = targetNode->getParamId();
+      int id = targetNode->nodeDataModel()->portNames[target->getTargetIndex() - 1].id_;
+      int sourceId = sourceNode->getParamId();
+
+      TaskModelParamPtr taskParam = (*targetElem)->getTaskParam();
+      ModelParamPtr model = taskParam->getModelParamById(id);
+      int masterId = (*sourceElem)->getMasterId();
+      vector<ModelMasterParamPtr>::iterator masterParamItr = find_if(modelMasterList.begin(), modelMasterList.end(), ModelMasterComparator(masterId));
+      if (masterParamItr != modelMasterList.end()) {
+        model->updateModelMaster(*masterParamItr);
+      }
 
     } else if (target->getType() == TYPE_FLOW_PARAM) {
       vector<FlowParameterParamPtr>::iterator sourceElem = find_if(paramList.begin(), paramList.end(), FlowParameterParamComparator(target->getSourceId()));
@@ -305,9 +319,6 @@ void FlowEditor::createStateMachine(FlowParamPtr target) {
       sourceNode = (*sourceElem)->getRealElem();
     }
 
-    vector<ElementStmParamPtr>::iterator targetElem = find_if(elemList.begin(), elemList.end(), ElementStmParamComparator(target->getTargetId()));
-    if (targetElem == elemList.end()) continue;
-    Node* targetNode = (*targetElem)->getRealElem();
     _scene->createConnection(*targetNode, target->getTargetIndex(), *sourceNode, target->getSourceIndex());
   }
 }
@@ -316,17 +327,14 @@ void FlowEditor::createFlowTaskNode(ElementStmParamPtr target) {
   auto type = _scene->registry().create("Task");
   type->setTaskName(target->getCmdDspName());
 
-  int id = target->getTaskParam()->getId();
-  teaching::TaskModelParamPtr targetTask = teaching::TeachingDataHolder::instance()->getFlowTaskInstanceById(id);
+  teaching::TaskModelParamPtr targetTask = target->getTaskParam();
   if (targetTask) {
     vector<PortInfo> portList;
-    for (ModelParamPtr model : targetTask->getActiveModelList()) {
+    for (ModelParamPtr model : targetTask->getVisibleModelList()) {
       PortInfo info(model->getId(), model->getRName(), 1);
       portList.push_back(info);
     }
-    for(ParameterParamPtr param : targetTask->getActiveParameterList()) {
-      if (param->getType() != 0) continue;
-      if (param->getHide()) continue;
+    for(ParameterParamPtr param : targetTask->getVisibleParameterList()) {
       PortInfo info(param->getId(), param->getName(), 0);
       portList.push_back(info);
     }
@@ -381,17 +389,19 @@ void FlowEditor::createFlowModelNode(FlowModelParamPtr target) {
   auto type = _scene->registry().create("Model Param");
   if (type) {
     vector<PortInfo> portList;
-    PortInfo info(0, "origin", 1);
-    portList.push_back(info);
+    PortInfo modelPort(0, "", 1);
+    portList.push_back(modelPort);
+    PortInfo orgPort(0, "origin", 0);
+    portList.push_back(orgPort);
 
     int masterId = target->getMasterId();
     vector<ModelMasterParamPtr> modelMasterList = TeachingDataHolder::instance()->getModelMasterList();
     vector<ModelMasterParamPtr>::iterator masterParamItr = find_if(modelMasterList.begin(), modelMasterList.end(), ModelMasterComparator(masterId));
     if (masterParamItr != modelMasterList.end()) {
-      vector<ModelParameterParamPtr> paramList = (*masterParamItr)->getActiveParamList();
+      vector<ModelParameterParamPtr> paramList = (*masterParamItr)->getActiveModelParamList();
       for (int index = 0; index < paramList.size(); index++) {
         ModelParameterParamPtr param = paramList[index];
-        PortInfo infoParam(index+1, param->getName(), 1);
+        PortInfo infoParam(index+1, param->getName(), 0);
         portList.push_back(infoParam);
       }
     }
@@ -407,25 +417,23 @@ void FlowEditor::createFlowModelNode(FlowModelParamPtr target) {
   }
 }
 
+//TODO GA　要修正
 bool FlowEditor::updateTargetFlowParam() {
   DDEBUG("FlowEditor::updateTargetParam");
   if (targetParam_ == 0) return true;
 
 	vector<ElementStmParamPtr> stateList = targetParam_->getStmElementList();
-	for (int index = 0; index < stateList.size(); index++) {
-		ElementStmParamPtr target = stateList[index];
-		target->updatePos();
+	for (ElementStmParamPtr target : stateList) {
+    target->updatePos();
 	}
   FlowParamPtr flowParam = std::dynamic_pointer_cast<FlowParam>(targetParam_);
   //flowParam
   vector<FlowModelParamPtr> modelList = flowParam->getModelList();
-  for (int index = 0; index < modelList.size(); index++) {
-    FlowModelParamPtr target = modelList[index];
+  for (FlowModelParamPtr target : modelList) {
     target->updatePos();
   }
   vector<FlowParameterParamPtr> paramList = flowParam->getFlowParamList();
-  for (int index = 0; index < paramList.size(); index++) {
-    FlowParameterParamPtr target = paramList[index];
+  for (FlowParameterParamPtr target : paramList) {
     target->updatePos();
   }
   //
@@ -454,7 +462,6 @@ bool FlowEditor::updateTargetFlowParam() {
     connParam->setNew();
     targetParam_->addStmConnection(connParam);
     ////////
-    flowParam->updateExecParam();
     if (type == TYPE_MODEL_PARAM) {
       //FlowModelParameterの検索
       vector<FlowModelParamPtr>::iterator modelElem = find_if(modelList.begin(), modelList.end(), FlowModelParamComparator(sourceId));
@@ -500,23 +507,24 @@ void FlowEditor::paramInfoUpdated(TaskModelParamPtr targetTask, ElementStmParamP
 
 	std::vector<teaching::ParameterParamPtr> paramList = targetTask->getActiveParameterList();
 	vector<PortInfo> portList;
-	for (int index = 0; index < paramList.size(); index++) {
-		teaching::ParameterParamPtr param = paramList[index];
-		if (param->getHide()) continue;
-		PortInfo info(param->getId(), param->getName(), param->getType());
-		portList.push_back(info);
-	}
+  for (ModelParamPtr model : targetTask->getVisibleModelList()) {
+    PortInfo info(model->getId(), model->getRName(), 1);
+    portList.push_back(info);
+  }
+  for (ParameterParamPtr param : targetTask->getVisibleParameterList()) {
+    PortInfo info(param->getId(), param->getName(), 0);
+    portList.push_back(info);
+  }
 
 	auto type = _scene->registry().create("Task");
 	type->setTaskName(targetState->getCmdDspName());
 	type->portNames = portList;
 
-	auto& node = _scene->createNode(std::move(type));
-	node.nodeGraphicsObject().setPos(targetState->getPosX(), targetState->getPosY());
+  Node* orgNode = targetState->getRealElem();
+  auto& node = _scene->createNode(std::move(type));
+	node.nodeGraphicsObject().setPos(orgNode->nodeGraphicsObject().pos().x(), orgNode->nodeGraphicsObject().pos().y());
 	node.setParamId(targetState->getId());
 	node.setBreak(targetState->isBreak());
-
-	Node* orgNode = targetState->getRealElem();
 
 	std::unordered_map<QUuid, Connection*> outMap = orgNode->nodeState().connections(PortType::Out, 0);
 	for (auto it = outMap.begin(); it != outMap.end(); ++it) {
@@ -534,15 +542,25 @@ void FlowEditor::paramInfoUpdated(TaskModelParamPtr targetTask, ElementStmParamP
 	//
 	int inNum = orgNode->nodeDataModel()->nPorts(PortType::In);
 	for (int index = 1; index < inNum; index++) {
-		int targetId = orgNode->nodeDataModel()->portNames.at(index - 1).id_;
-		ParameterParamPtr targetParam = targetTask->getParameterById(targetId);
-		if (targetParam->getHide()) {
-			continue;
-		}
+    int targetType = orgNode->nodeDataModel()->portNames.at(index - 1).type_;
+    int targetId = orgNode->nodeDataModel()->portNames.at(index - 1).id_;
+
+    if(targetType == 0) {
+      ParameterParamPtr targetParam = targetTask->getParameterById(targetId);
+      if (targetParam->getHide()) {
+        continue;
+      }
+    } else {
+      ModelParamPtr targetParam = targetTask->getModelParamById(targetId);
+      if (targetParam->getHide()) {
+        continue;
+      }
+    }
+
 		int targetIndex = -1;
 		for (int idxInfo = 0; idxInfo < portList.size(); idxInfo++) {
 			PortInfo info = portList[idxInfo];
-			if (info.id_ == targetId) {
+			if (info.id_ == targetId && info.type_ == targetType) {
 				targetIndex = idxInfo;
 				break;
 			}
@@ -668,6 +686,16 @@ void FlowEditor::modelParamUpdated(int flowModelId, ModelMasterParamPtr masterPa
 
   Node* targetNode = (*modelElem)->getRealElem();
 
+  std::vector<ConnectionInfo> connectionList;
+  std::unordered_map<QUuid, Connection*> outKeepMap = targetNode->nodeState().connections(PortType::Out, 0);
+  for (auto it = outKeepMap.begin(); it != outKeepMap.end(); ++it) {
+    Connection* target = it->second;
+    ConnectionInfo info;
+    info.node = target->getNode(PortType::In);
+    info.portindex = target->getPortIndex(PortType::In);
+    connectionList.push_back(info);
+  }
+
   int outNum = targetNode->nodeDataModel()->nPorts(PortType::Out);
   for (int index = 0; index < outNum; index++) {
     std::unordered_map<QUuid, Connection*> outMap = targetNode->nodeState().connections(PortType::Out, index);
@@ -678,47 +706,31 @@ void FlowEditor::modelParamUpdated(int flowModelId, ModelMasterParamPtr masterPa
   }
 
   (*modelElem)->setMasterId(masterParam->getId());
+  (*modelElem)->setPosX(targetNode->nodeGraphicsObject().pos().x());
+  (*modelElem)->setPosY(targetNode->nodeGraphicsObject().pos().y());
   createFlowModelNode(*modelElem);
+
+  vector<ElementStmParamPtr> stateList = flowParam->getStmElementList();
+  for (ConnectionInfo info : connectionList) {
+    _scene->createConnection(*info.node, info.portindex, *(*modelElem)->getRealElem(), 0);
+
+    int targetId = info.node->getParamId();
+    int id = info.node->nodeDataModel()->portNames[info.portindex - 1].id_;
+    vector<ElementStmParamPtr>::iterator targetElem = find_if(stateList.begin(), stateList.end(), ElementStmParamComparator(targetId));
+    if (targetElem == stateList.end()) return;
+    TaskModelParamPtr taskParam = (*targetElem)->getTaskParam();
+
+    ModelParamPtr model = taskParam->getModelParamById(id);
+    ChoreonoidUtil::replaceMaster(model, masterParam);
+  }
+
   removingNode_ = targetNode;
   updateNodesLater_();
-
-  ////
-  //vector<ElementStmParamPtr> stateList = targetParam_->getStmElementList();
-  //unordered_map<QUuid, shared_ptr<Connection> > connMap = _scene->connections();
-  //for (auto it = connMap.begin(); it != connMap.end(); ++it) {
-  //  //対象モデルノードと接続されているノードの検索
-  //  shared_ptr<Connection> target = it->second;
-  //  Node* sourceNode = target->getNode(PortType::Out);
-  //  if (sourceNode->nodeDataModel()->name() != "Model Param") continue;
-  //  int sourceId = sourceNode->getParamId();
-  //  if (sourceId != flowModelId) continue;
-  //  //
-  //  Node* targetNode = target->getNode(PortType::In);
-  //  int targetId = targetNode->getParamId();
-  //  vector<ElementStmParamPtr>::iterator targetElem = find_if(stateList.begin(), stateList.end(), ElementStmParamComparator(targetId));
-  //  if (targetElem == stateList.end()) continue;
-  //  TaskModelParamPtr taskParam = (*targetElem)->getTaskParam();
-  //  if (!taskParam) continue;
-
-  //  //対象タスクのパラメータ情報取得
-  //  int targetIndex = target->getPortIndex(PortType::In);
-  //  Node* orgNode = (*targetElem)->getRealElem();
-  //  int targetParamId = orgNode->nodeDataModel()->portNames.at(targetIndex - 1).id_;
-  //  ParameterParamPtr targetParam = taskParam->getParameterById(targetParamId);
-  //  if (targetParam->getType() != PARAM_KIND_MODEL) continue;
-  //  vector<ModelParamPtr> taskModelList = taskParam->getModelList();
-
-  //  //対象タスクのモデル情報の取得
-  //  int modelId =targetParam->getModelId();
-  //  vector<ModelParamPtr>::iterator targetModel = find_if(taskModelList.begin(), taskModelList.end(), ModelParamComparator(modelId));
-  //  if (targetModel == taskModelList.end()) continue;
-  //  (*targetModel)->setMasterId(masterParam->getId());
-  //  (*targetModel)->setModelMaster(masterParam);
-  //  DDEBUG("Model Data CHANGED");
-  //}
+  DDEBUG("FlowEditor::modelParamUpdated End");
 }
 
-void FlowEditor::removeNode() {
+void FlowEditor::removeModelNodeLater() {
+  DDEBUG("FlowEditor::removeModelNodeLater");
   _scene->removeNode(*removingNode_);
 }
 

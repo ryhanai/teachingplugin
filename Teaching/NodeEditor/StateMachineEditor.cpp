@@ -270,10 +270,8 @@ void StateMachineEditor::createStateMachine(std::vector<ElementStmParamPtr>& ele
 	DDEBUG_V("StateMachineEditor::createStateMachine %d, %d", elemList.size(), connList.size());
 	removeAll();
 
-	for (int index = 0; index < elemList.size(); index++) {
-		ElementStmParamPtr target = elemList[index];
-    DDEBUG_V("StateMachineEditor::createStateMachine %d, %d", target->getId(), target->getType());
-    if (target->getMode() == DB_MODE_DELETE || target->getMode() == DB_MODE_IGNORE) continue;
+	for (ElementStmParamPtr target : elemList) {
+    //DDEBUG_V("StateMachineEditor::createStateMachine %d, %d", target->getId(), target->getType());
 
 		QString typeName = "";
 		int typeId = target->getType();
@@ -302,10 +300,7 @@ void StateMachineEditor::createStateMachine(std::vector<ElementStmParamPtr>& ele
 		}
 	}
 	/////
-	for (int index = 0; index < connList.size(); index++) {
-		ConnectionStmParamPtr target = connList[index];
-		if (target->getMode() == DB_MODE_DELETE || target->getMode() == DB_MODE_IGNORE) continue;
-
+	for (ConnectionStmParamPtr target : connList) {
 		vector<ElementStmParamPtr>::iterator sourceElem = find_if(elemList.begin(), elemList.end(), ElementStmParamComparator(target->getSourceId()));
 		if (sourceElem == elemList.end()) continue;
 		vector<ElementStmParamPtr>::iterator targetElem = find_if(elemList.begin(), elemList.end(), ElementStmParamComparator(target->getTargetId()));
@@ -321,15 +316,14 @@ void StateMachineEditor::createStateMachine(std::vector<ElementStmParamPtr>& ele
 void StateMachineEditor::updateTargetParam() {
 	if (targetParam_ == 0) return;
 
-	vector<ElementStmParamPtr> stateList = targetParam_->getStmElementList();
-	for (int index = 0; index < stateList.size(); index++) {
-		ElementStmParamPtr target = stateList[index];
+	for (ElementStmParamPtr target : targetParam_->getStmElementList()) {
 		target->updatePos();
 	}
 	//
 	targetParam_->clearTransitionList();
 	int connId = 1;
 	unordered_map<QUuid, shared_ptr<Connection> > connMap = _scene->connections();
+  DDEBUG_V("StateMachineEditor::updateTargetParam conn : %d", _scene->connections().size());
 	for (auto it = connMap.begin(); it != connMap.end(); ++it) {
 		shared_ptr<Connection> target = it->second;
 		Node* sourceNode = target->getNode(PortType::Out);
@@ -345,8 +339,6 @@ void StateMachineEditor::updateTargetParam() {
 		connParam->setNew();
 		targetParam_->addStmConnection(connParam);
 	}
-  TaskModelParamPtr taskParam = std::dynamic_pointer_cast<TaskModelParam>(targetParam_);
-  taskParam->updateExecParam();
 }
 
 void StateMachineEditor::setBreakPoint(bool isBreak) {

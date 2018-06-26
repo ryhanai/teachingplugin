@@ -36,7 +36,7 @@ public:
 
 	//TaskInstanceView
 	void tiv_Loaded(TaskInstanceViewImpl* view);
-	void tiv_TaskSelectionChanged(int selectedId, QString strTask);
+  void tiv_TaskSelectionChanged(int selectedId, QString strTask);
 	bool tiv_DeleteTaskClicked(int selectedId);
 	void tiv_TaskExportClicked(int selectedId, QString strTask);
 	bool tiv_TaskImportClicked();
@@ -61,6 +61,8 @@ public:
 	void flv_InitPosClicked();
   void flv_EditClicked(ElementStmParamPtr target);
   void flv_ModelParamChanged(int flowModelId, ModelMasterParamPtr masterParam);
+  void flv_Connected(QtNodes::Connection& target);
+  void flv_Disconnected(QtNodes::Connection& target);
 
 	//MetaDataView
 	void mdv_Loaded(MetaDataViewImpl* view);
@@ -110,7 +112,7 @@ public:
 
 	//ModelDialog
 	bool mdd_Loaded(ModelDialog* dialog);
-	void mdd_ModelSelectionChanged(int newId, QString rname, int type, double posX, double posY, double posZ, double rotX, double rotY, double rotZ);
+	void mdd_ModelSelectionChanged(int newId, QString rname, int type, double posX, double posY, double posZ, double rotX, double rotY, double rotZ, int hide);
 	void mdd_ModelMasterSelectionChanged(int newId);
 	void mdd_CurrentBodyItemChanged(BodyItem* bodyItem);
 	void mdd_updateKinematicState(bool blockSignals);
@@ -118,7 +120,7 @@ public:
 	bool mdd_AddModelClicked();
 	bool mdd_DeleteModelClicked();
   bool mdd_CheckModel(QString target);
-  void mdd_OkClicked(QString rname, int type, double posX, double posY, double posZ, double rotX, double rotY, double rotZ);
+  void mdd_OkClicked(QString rname, int type, double posX, double posY, double posZ, double rotX, double rotY, double rotZ, int hide);
 	void mdd_CancelClicked();
 
 	//ModelMasterDialog

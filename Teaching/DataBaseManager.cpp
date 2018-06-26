@@ -480,6 +480,19 @@ bool DatabaseManager::deleteFlowModel(int id) {
 	if (deleteDataById("T_FLOW_TRANSITION", "flow_id", id) == false) return false;
   if (deleteDataById("T_FLOW_MODEL_PARAM", "flow_id", id) == false) return false;
   if (deleteDataById("T_FLOW_PARAMETER", "flow_id", id) == false) return false;
+  //
+  string strQuery = "SELECT task_inst_id FROM T_TASK_MODEL_INST WHERE flow_id = " + toStr(id);
+  QSqlQuery taskQuery(db_);
+  taskQuery.exec(strQuery.c_str());
+  vector<int> removeTasks;
+  while (taskQuery.next()) {
+    int id = taskQuery.value(0).toInt();
+    removeTasks.push_back(id);
+  }
+  //
+  for (int targetId : removeTasks) {
+    if (deleteTaskModel(targetId) == false) return false;
+  }
 
 	db_.commit();
 	return true;

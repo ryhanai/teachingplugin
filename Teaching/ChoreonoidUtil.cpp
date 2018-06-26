@@ -44,9 +44,7 @@ bool ChoreonoidUtil::makeModelItem(ModelMasterParamPtr target) {
   file.close();
   saved.append(strModel);
   //
-  vector<ModelDetailParamPtr> detailList = target->getModelDetailList();
-  for (int index = 0; index < detailList.size(); index++) {
-		ModelDetailParamPtr detail = detailList[index];
+  for (ModelDetailParamPtr detail : target->getModelDetailList()) {
     QString strDetail = strPath + QString("/work/") + detail->getFileName();
     QFile fileDetail(strDetail);
     fileDetail.open(QIODevice::WriteOnly);
@@ -75,10 +73,7 @@ bool ChoreonoidUtil::makeModelItem(ModelMasterParamPtr target) {
 }
 
 bool ChoreonoidUtil::loadTaskModelItem(TaskModelParamPtr target) {
-  vector<ModelParamPtr> modelList = target->getModelList();
-  for (int index = 0; index < modelList.size(); index++) {
-		ModelParamPtr model = modelList[index];
-    if (model->getMode() == DB_MODE_DELETE || model->getMode() == DB_MODE_IGNORE) continue;
+  for (ModelParamPtr model : target->getActiveModelList()) {
     if (loadModelItem(model) == false) return false;
   }
   ItemTreeView::mainInstance()->update();
@@ -88,11 +83,7 @@ bool ChoreonoidUtil::loadTaskModelItem(TaskModelParamPtr target) {
 
 bool ChoreonoidUtil::unLoadTaskModelItem(TaskModelParamPtr target) {
 	if (target->IsModelLoaded() == false) return true;
-
-  vector<ModelParamPtr> modelList = target->getModelList();
-  for (int index = 0; index < modelList.size(); index++) {
-		ModelParamPtr model = modelList[index];
-    if (model->getMode() == DB_MODE_DELETE || model->getMode() == DB_MODE_IGNORE) continue;
+  for (ModelParamPtr model : target->getActiveModelList()) {
     if (unLoadModelItem(model) == false) return false;
   }
   target->setModelLoaded(false);
@@ -108,37 +99,45 @@ cnoid::BodyItem* ChoreonoidUtil::searchParentModel(const std::string targetName)
       return item;
     }
   }
-
   return NULL;
 }
 
 bool ChoreonoidUtil::loadModelItem(ModelParamPtr target) {
 	DDEBUG("ChoreonoidUtil::loadModelItem");
-	if (target == NULL)  return false;
-  if (target->getModelMaster()->getModelItem()) {
-    DDEBUG("ChoreonoidUtil::loadModelItem Loading");
-    string robotModel = SettingManager::getInstance().getRobotModelName();
-    BodyItemPtr item = target->getModelMaster()->getModelItem();
-    ChoreonoidUtil::updateModelItemPosition(item,
-      target->getPosX(), target->getPosY(), target->getPosZ(),
-      target->getRotRx(), target->getRotRy(), target->getRotRz());
-    if (target->getType() == MODEL_EE) {
-      BodyItem* parentModel = searchParentModel(robotModel);
-      if (parentModel) {
-        parentModel->addChildItem(item);
-      }
-    } else {
-      RootItem::mainInstance()->addChildItem(item);
-    }
+	if (target == NULL || target->getModelMaster() == NULL)  return false;
+  if (target->isLoaded())  return true;
+
+  if (!target->getModelMaster()->getModelItem()) {
+    ChoreonoidUtil::makeModelItem(target->getModelMaster());
   }
+  DDEBUG("ChoreonoidUtil::loadModelItem Loading");
+  string robotModel = SettingManager::getInstance().getRobotModelName();
+  BodyItemPtr item = target->getModelMaster()->getModelItem();
+  ChoreonoidUtil::updateModelItemPosition(item,
+    target->getPosX(), target->getPosY(), target->getPosZ(),
+    target->getRotRx(), target->getRotRy(), target->getRotRz());
+  if (target->getType() == MODEL_EE) {
+    BodyItem* parentModel = searchParentModel(robotModel);
+    if (parentModel) {
+      parentModel->addChildItem(item);
+    }
+  } else {
+    RootItem::mainInstance()->addChildItem(item);
+  }
+  target->setLoaded(true);
   return true;
 }
 
 bool ChoreonoidUtil::unLoadModelItem(ModelParamPtr target) {
 	DDEBUG("ChoreonoidUtil::unLoadModelItem");
-	if (target->getModelMaster()->getModelItem()) {
-    target->getModelMaster()->getModelItem()->detachFromParentItem();
+  if (target->isLoaded()==false)  return true;
+
+  if (target->getModelMaster()) {
+    if (target->getModelMaster()->getModelItem()) {
+      target->getModelMaster()->getModelItem()->detachFromParentItem();
+    }
   }
+  target->setLoaded(false);
   return true;
 }
 
@@ -165,6 +164,17 @@ bool ChoreonoidUtil::unLoadModelMasterItem(ModelMasterParamPtr target) {
 	}
 	return true;
 }
+
+void ChoreonoidUtil::replaceMaster(ModelParamPtr source, ModelMasterParamPtr target) {
+  bool isLoaded = source->isLoaded();
+  ChoreonoidUtil::unLoadModelItem(source);
+  source->updateModelMaster(target);
+  if (isLoaded) {
+    ChoreonoidUtil::loadModelItem(source);
+    ChoreonoidUtil::showAllModelItem();
+  }
+}
+
 
 bool ChoreonoidUtil::updateModelItemPosition(const BodyItemPtr& target, double posX, double posY, double posZ, double rotRx, double rotRy, double rotRz) {
   //BodyLinkViewImpl::doInverseKinematics

@@ -24,7 +24,7 @@ public:
 
 	void setTargetParam(ActivityParamPtr param) { this->targetParam_ = param; }
 	void removeAll();
-  //void setEditMode(bool canEdit);
+  void setEditMode(bool canEdit);
 
 	ElementStmParamPtr getCurrentNode();
 

@@ -141,7 +141,7 @@ void ModelParameterGroup::disconnectKinematics() {
 		}
 
     if ((*itParam)->getType() == PARAM_KIND_MODEL) {
-      vector<ModelParamPtr> modelList = param->getModelList();
+      vector<ModelParamPtr> modelList = param->getActiveModelList();
       for (int index = 0; index < modelList.size(); index++) {
         ModelParamPtr model = modelList[index];
         if (model->getId() == (*itParam)->getModelId()) {

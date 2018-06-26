@@ -43,6 +43,7 @@ private:
   QLineEdit* leRx;
   QLineEdit* leRy;
   QLineEdit* leRz;
+  QComboBox* cmbHide;
 
 	int currentIndex_;
 	int currentMasterIndex_;

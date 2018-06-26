@@ -232,6 +232,7 @@ public:
 
 	inline std::vector<ModelParameterParamPtr> getModelParameterList() const { return this->modelParameterList_; }
 	inline void addModelParameter(ModelParameterParamPtr target) { this->modelParameterList_.push_back(target); }
+  std::vector<ModelParameterParamPtr> getActiveModelParamList();
 
 	inline void setModelItem(cnoid::BodyItemPtr value) { this->item_ = value; }
 	inline cnoid::BodyItemPtr getModelItem() const { return this->item_; }
@@ -250,7 +251,6 @@ public:
   inline QByteArray getRawData() const { return this->rawData_; }
   void loadData();
   void deleteModelDetails();
-	std::vector<ModelParameterParamPtr> getActiveParamList();
 
 private:
 	int orgId_;
@@ -273,23 +273,56 @@ private:
 typedef std::shared_ptr<ModelMasterParam> ModelMasterParamPtr;
 
 /////
+class PostureParam {
+public:
+  PostureParam(double posX, double posY, double posZ, double rotRx, double rotRy, double rotRz)
+    : posX_(posX), posY_(posY), posZ_(posZ), rotRx_(rotRx), rotRy_(rotRy), rotRz_(rotRz) {
+  };
+  PostureParam(const PostureParam* source)
+    : posX_(source->posX_), posY_(source->posY_), posZ_(source->posZ_),
+    rotRx_(source->rotRx_), rotRy_(source->rotRy_), rotRz_(source->rotRz_) {};
+
+  inline double getPosX() const { return this->posX_; }
+  inline void setPosX(double value) { this->posX_ = value; }
+
+  inline double getPosY() const { return this->posY_; }
+  inline void setPosY(double value) { this->posY_ = value; }
+
+  inline double getPosZ() const { return this->posZ_; }
+  inline void setPosZ(double value) { this->posZ_ = value; }
+
+  inline double getRotRx() const { return this->rotRx_; }
+  inline void setRotRx(double value) { this->rotRx_ = value; }
+
+  inline double getRotRy() const { return this->rotRy_; }
+  inline void setRotRy(double value) { this->rotRy_ = value; }
+
+  inline double getRotRz() const { return this->rotRz_; }
+  inline void setRotRz(double value) { this->rotRz_ = value; }
+
+private:
+  double posX_, posY_, posZ_;
+  double rotRx_, rotRy_, rotRz_;
+};
+typedef std::shared_ptr<PostureParam> PostureParamPtr;
+/////
 class ModelParam : public DatabaseParam {
 public:
-  ModelParam(int id, int master_id, int type, QString rname, double posX, double posY, double posZ, double rotRx, double rotRy, double rotRz, bool isNew)
+  ModelParam(int id, int master_id, int type, QString rname, double posX, double posY, double posZ, double rotRx, double rotRy, double rotRz, bool hide, bool isNew)
     : master_id_(master_id), type_(type), rname_(rname),
-    posX_(posX), posY_(posY), posZ_(posZ), rotRx_(rotRx), rotRy_(rotRy), rotRz_(rotRz),
-    orgPosX_(posX), orgPosY_(posY), orgPosZ_(posZ), orgRotRx_(rotRx), orgRotRy_(rotRy), orgRotRz_(rotRz),
-		master_(0), DatabaseParam(id) {
+		hide_(hide), master_(0), isLoaded_(false),
+    master_id_org_(master_id), master_org_(0),  DatabaseParam(id) {
+    posture = std::make_shared<PostureParam>(posX, posY, posZ, rotRx, rotRy, rotRz);
+    postureOrg = std::make_shared<PostureParam>(posX, posY, posZ, rotRx, rotRy, rotRz);
     if (isNew) setNew();
   };
   ModelParam(const ModelParam* source)
     : master_id_(source->master_id_), type_(source->type_), rname_(source->rname_),
-    posX_(source->posX_), posY_(source->posY_), posZ_(source->posZ_),
-    rotRx_(source->rotRx_), rotRy_(source->rotRy_), rotRz_(source->rotRz_),
-    orgPosX_(source->orgPosX_), orgPosY_(source->orgPosY_), orgPosZ_(source->orgPosZ_),
-    orgRotRx_(source->orgRotRx_), orgRotRy_(source->orgRotRy_), orgRotRz_(source->orgRotRz_),
-		master_(source->master_),	DatabaseParam(source)
+		master_(source->master_), hide_(source->hide_), isLoaded_(false),
+    master_id_org_(source->master_id_org_), master_org_(source->master_org_), DatabaseParam(source)
   {
+    posture = std::make_shared<PostureParam>(source->posture.get());
+    postureOrg = std::make_shared<PostureParam>(source->postureOrg.get());
   };
 
 	inline int getMasterId() const { return this->master_id_; }
@@ -316,82 +349,95 @@ public:
     }
   }
 
-  inline double getPosX() const { return this->posX_; }
+  inline double getPosX() const { return posture->getPosX(); }
   inline void setPosX(double value) {
-    if (dbl_eq(this->posX_, value) == false) {
-      this->posX_ = value;
+    if (dbl_eq(posture->getPosX(), value) == false) {
+      posture->setPosX(value);
       setUpdate();
     }
   }
-  inline double getPosY() const { return this->posY_; }
+  inline double getPosY() const { return posture->getPosY(); }
   inline void setPosY(double value) {
-    if (dbl_eq(this->posY_, value) == false) {
-      this->posY_ = value;
+    if (dbl_eq(posture->getPosY(), value) == false) {
+      posture->setPosY(value);
       setUpdate();
     }
   }
-  inline double getPosZ() const { return this->posZ_; }
+  inline double getPosZ() const { return posture->getPosZ(); }
   inline void setPosZ(double value) {
-    if (dbl_eq(this->posZ_, value) == false) {
-      this->posZ_ = value;
+    if (dbl_eq(posture->getPosZ(), value) == false) {
+      posture->setPosZ(value);
       setUpdate();
     }
   }
-  inline double getRotRx() const { return this->rotRx_; }
+  inline double getRotRx() const { return posture->getRotRx(); }
   inline void setRotRx(double value) {
-    if (dbl_eq(this->rotRx_, value) == false) {
-      this->rotRx_ = value;
+    if (dbl_eq(posture->getRotRx(), value) == false) {
+      posture->setRotRx(value);
       setUpdate();
     }
   }
-  inline double getRotRy() const { return this->rotRy_; }
+  inline double getRotRy() const { return posture->getRotRy(); }
   inline void setRotRy(double value) {
-    if (dbl_eq(this->rotRy_, value) == false) {
-      this->rotRy_ = value;
+    if (dbl_eq(posture->getRotRy(), value) == false) {
+      posture->setRotRy(value);
       setUpdate();
     }
   }
-  inline double getRotRz() const { return this->rotRz_; }
+  inline double getRotRz() const { return posture->getRotRz(); }
   inline void setRotRz(double value) {
-    if (dbl_eq(this->rotRz_, value) == false) {
-      this->rotRz_ = value;
+    if (dbl_eq(posture->getRotRz(), value) == false) {
+      posture->setRotRz(value);
       setUpdate();
     }
   }
 
-	inline void setModelMaster(ModelMasterParamPtr value) { this->master_ = value; }
+  inline int getHide() const { return this->hide_; }
+  inline void setHide(int value) {
+    if (this->hide_ != value) {
+      this->hide_ = value;
+      setUpdate();
+    }
+  }
+
+  inline void setLoaded(bool value) { this->isLoaded_ = value; }
+  inline bool isLoaded() const { return this->isLoaded_; }
+
+  inline void setModelMaster(ModelMasterParamPtr value) { this->master_ = value; }
 	inline ModelMasterParamPtr getModelMaster() const { return this->master_; }
 
   void setInitialPos();
   bool isChangedPosition();
+  void updateModelMaster(ModelMasterParamPtr value);
+  void restoreModelMaster();
 
 private:
 	int master_id_;
 	int type_;
   QString rname_;
-  double posX_, posY_, posZ_;
-  double rotRx_, rotRy_, rotRz_;
-  double orgPosX_, orgPosY_, orgPosZ_;
-  double orgRotRx_, orgRotRy_, orgRotRz_;
-	ModelMasterParamPtr master_;
+  PostureParamPtr posture;
+  PostureParamPtr postureOrg;
+  //double posX_, posY_, posZ_;
+  //double rotRx_, rotRy_, rotRz_;
+  //double orgPosX_, orgPosY_, orgPosZ_;
+  //double orgRotRx_, orgRotRy_, orgRotRz_;
+  int hide_;
+  bool isLoaded_;
+  ModelMasterParamPtr master_;
+
+  int master_id_org_;
+  ModelMasterParamPtr master_org_;
 };
 typedef std::shared_ptr<ModelParam> ModelParamPtr;
 /////
 class ArgumentParam : public DatabaseParam {
 public:
-  ArgumentParam(int id, int state_id, int seq, QString name, QString valueDesc)
-    : state_id_(state_id), seq_(seq), name_(name), valueDesc_(valueDesc), DatabaseParam(id) {};
+  ArgumentParam(int id, int seq, QString name, QString valueDesc)
+    : seq_(seq), name_(name), valueDesc_(valueDesc), DatabaseParam(id) {};
   ArgumentParam(const ArgumentParam* source)
-    : state_id_(source->state_id_), seq_(source->seq_),
-    name_(source->name_), valueDesc_(source->valueDesc_), DatabaseParam(source) {};
+    : seq_(source->seq_), name_(source->name_), valueDesc_(source->valueDesc_),
+      DatabaseParam(source) {};
 
-  inline int getStateId() const { return this->state_id_; }
-  inline void setStateId(int value) {
-    if (this->state_id_ != value) {
-      this->state_id_ = value;
-      setUpdate();
-    }
-  }
   inline int getSeq() const { return this->seq_; }
   inline void setSeq(int value) {
     if (this->seq_ != value) {
@@ -418,7 +464,6 @@ public:
   inline void setValueDescOrg(QString value) { this->valueDescOrg_ = value; }
 
 private:
-  int state_id_;
   int seq_;
   QString name_;
   QString valueDesc_;
@@ -428,22 +473,14 @@ typedef std::shared_ptr<ArgumentParam> ArgumentParamPtr;
 
 class ElementStmActionParam : public DatabaseParam {
 public:
-  ElementStmActionParam(int id, int stateId, int seq, QString action, QString model, QString target, bool isNew)
-    : state_id_(stateId), seq_(seq), action_(action), model_(model), target_(target), DatabaseParam(id) {
+  ElementStmActionParam(int id, int seq, QString action, QString model, QString target, bool isNew)
+    : seq_(seq), action_(action), model_(model), target_(target), DatabaseParam(id) {
     if (isNew) setNew();
   };
   ElementStmActionParam(const ElementStmActionParam* source)
-    : state_id_(source->state_id_), seq_(source->seq_),
-    action_(source->action_), model_(source->model_), target_(source->target_),
+    : seq_(source->seq_), action_(source->action_), model_(source->model_), target_(source->target_),
     DatabaseParam(source) {};
 
-  inline int getStateId() const { return this->state_id_; }
-  inline void setStateId(int value) {
-    if (this->state_id_ != value) {
-      this->state_id_ = value;
-      setUpdate();
-    }
-  }
   inline int getSeq() const { return this->seq_; }
   inline void setSeq(int value) {
     if (this->seq_ != value) {
@@ -478,7 +515,6 @@ public:
   inline void setModelParam(ModelParamPtr value) { this->targetModel_ = value; }
 
 private:
-  int state_id_;
   int seq_;
   QString action_;
   QString model_;
@@ -651,13 +687,36 @@ private:
 	int targetIndex_;
 };
 
+class ParameterValueParam {
+public:
+  ParameterValueParam() {};
+  ParameterValueParam(ParameterValueParam* source);
+
+  QString getValues(int index);
+  double getNumValues(int index);
+  void setValue(int index, QString value);
+  inline int getValuesNum() { return valueList_.size(); }
+
+  void setValuesByString(QString source);
+  QString getValuesString();
+
+  void clear();
+
+private:
+  std::vector<QString> valueList_;
+
+};
+typedef std::shared_ptr<ParameterValueParam> ParameterValueParamPtr;
+
 class ParameterParam : public DatabaseParam {
 public:
   ParameterParam(int id, int type, int elem_num, int task_inst_id, QString name, QString rname, QString unit, int model_id, int model_param_id, int hide)
     : type_(type), elem_num_(elem_num), parent_id_(task_inst_id), name_(name), rname_(rname),
-      unit_(unit), model_id_(model_id), model_param_id_(model_param_id), hide_(hide), flowParam_(0),
-      DatabaseParam(id)
-  {};
+      unit_(unit), model_id_(model_id), model_param_id_(model_param_id), hide_(hide),
+    //flowParam_(0),
+      DatabaseParam(id) {
+    valueParam_ = std::make_shared<ParameterValueParam>();
+  };
   ParameterParam(ParameterParam* source);
 	~ParameterParam();
 
@@ -725,35 +784,27 @@ public:
     }
   }
 
-  inline int getExecModelId() const { return this->exec_model_id_; }
-  inline int getExecModelParamId() const { return this->exec_model_param_id_; }
-  inline void setExecParamId(int modelId, int model_param_id) {
-    this->exec_model_id_ = modelId;
-    this->exec_model_param_id_ = model_param_id;
-  }
-  inline void updateExecParam() {
-    this->exec_model_id_ = model_id_;
-    this->exec_model_param_id_ = model_param_id_;
-  }
-
-  inline void setFlowParam(FlowParameterParamPtr value) {
-    this->flowParam_ = value;
-  }
-
   inline void addControl(QLineEdit* target) { this->controlList_.push_back(target); }
 	inline int getControlNum() const { return this->controlList_.size(); }
 	inline QLineEdit* getControl(int index) { return this->controlList_[index]; }
 
-  std::string getValues(int index);
+  inline std::string getValues(int index) { return valueParam_->getValues(index).toStdString(); }
+  inline double getNumValues(int index) { return valueParam_->getNumValues(index); }
+  inline void setDBValues(QString source) { valueParam_->setValuesByString(source); }
+  inline QString getDBValues() { return valueParam_->getValuesString();  }
+
+  void setFlowParam(FlowParameterParamPtr value);
   void setOutValues(int index, QString source);
   void updateOutValues();
-  double getNumValues(int index);
   void saveValues();
-  void setDBValues(QString source);
-  QString getDBValues();
   void clearControlList() { this->controlList_.clear(); }
   void setFlowValues(QString source);
-  inline void clearFlowParam() { flowParam_ = 0; }
+  inline void clearFlowParam() {
+    flowParam_ = 0;
+    restoreParameter();
+  }
+  void restoreParameter();
+
 
 private:
   int type_;
@@ -766,11 +817,9 @@ private:
   QString unit_;
 	int hide_;
 
-  int exec_model_id_;
-  int exec_model_param_id_;
-
   std::vector<QLineEdit*> controlList_;
-  std::vector<QString> valueList_;
+  ParameterValueParamPtr valueParam_;
+  ParameterValueParamPtr valueParam_org_;
   FlowParameterParamPtr flowParam_;
 };
 typedef std::shared_ptr<ParameterParam> ParameterParamPtr;
@@ -876,9 +925,14 @@ typedef std::shared_ptr<FlowModelParam> FlowModelParamPtr;
 class FlowParameterParam : public DatabaseParam {
 public:
   FlowParameterParam(int id, QString name, QString value)
-    : name_(name), value_(value), orgValue_(value), DatabaseParam(id) {};
+    : name_(name), valueParam_org_(0), DatabaseParam(id) {
+    valueParam_ = std::make_shared<ParameterValueParam>();
+    valueParam_->setValuesByString(value);
+    valueParam_org_ = std::make_shared<ParameterValueParam>();
+    valueParam_org_->setValuesByString(value);
+  };
   FlowParameterParam(FlowParameterParam* source)
-    : name_(source->name_), value_(source->value_),
+    : name_(source->name_), valueParam_(source->valueParam_), valueParam_org_(source->valueParam_org_),
     posX_(source->posX_), posY_(source->posY_), realElem_(source->realElem_), DatabaseParam(source) {};
   ~FlowParameterParam() {};
 
@@ -890,10 +944,10 @@ public:
     }
   }
 
-  inline QString getValue() const { return this->value_; }
+  inline QString getValue() const { return valueParam_->getValuesString(); }
   inline void setValue(QString value) {
-    if (this->value_ != value) {
-      this->value_ = value;
+    if (valueParam_->getValuesString() != value) {
+      valueParam_->setValuesByString(value);
       setUpdate();
     }
   }
@@ -916,16 +970,18 @@ public:
   inline void setRealElem(QtNodes::Node* elem) { this->realElem_ = elem; }
   inline QtNodes::Node* getRealElem() const { return this->realElem_; }
 
+  inline ParameterValueParamPtr getParameter() { return this->valueParam_; }
+
   void updatePos();
   void setInitialValue();
 
 private:
   QString name_;
-  QString value_;
-  QString orgValue_;
   double posX_;
   double posY_;
 
+  ParameterValueParamPtr valueParam_;
+  ParameterValueParamPtr valueParam_org_;
   QtNodes::Node* realElem_;
 };
 /////
@@ -962,7 +1018,8 @@ public:
 	inline std::vector<ParameterParamPtr> getParameterList() const { return this->parameterList_; }
 	inline void addParameter(ParameterParamPtr target) { this->parameterList_.push_back(target); }
 	std::vector<ParameterParamPtr> getActiveParameterList();
-	ParameterParamPtr getParameterById(int id);
+  std::vector<ParameterParamPtr> getVisibleParameterList();
+  ParameterParamPtr getParameterById(int id);
 
 	inline std::vector<ElementStmParamPtr> getStmElementList() const { return this->stmElemList_; }
   inline void addStmElement(ElementStmParamPtr target){ this->stmElemList_.push_back(target); }
@@ -1010,6 +1067,8 @@ public:
   inline std::vector<ModelParamPtr> getModelList() const { return this->modelList_; }
   inline void addModel(ModelParamPtr target){ this->modelList_.push_back(target); }
 	std::vector<ModelParamPtr> getActiveModelList();
+  std::vector<ModelParamPtr> getVisibleModelList();
+  ModelParamPtr getModelParamById(int id);
 
   inline std::vector<FileDataParamPtr> getFileList() const { return this->fileList_; }
   inline void addFile(FileDataParamPtr target){ this->fileList_.push_back(target); }
@@ -1043,7 +1102,6 @@ public:
   inline bool IsModelLoaded() const { return this->isModelLoaded_; }
   inline void setModelLoaded(bool value) { this->isModelLoaded_ = value; }
 
-  void updateExecParam();
   void initFlowParam();
 
 private:
@@ -1075,13 +1133,15 @@ public:
 
   inline std::vector<FlowModelParamPtr> getModelList() const { return this->modelList_; }
   inline void addModel(FlowModelParamPtr target) { this->modelList_.push_back(target); }
+  std::vector<FlowModelParamPtr> getActiveModelList();
+
 
   inline std::vector<FlowParameterParamPtr> getFlowParamList() const { return this->paramList_; }
   inline void addFlowParam(FlowParameterParamPtr target) { this->paramList_.push_back(target); }
+  std::vector<FlowParameterParamPtr> getActiveFlowParamList();
 
   int getMaxModelId();
   int getMaxParamId();
-  void updateExecParam();
 
 private:
   std::vector<FlowModelParamPtr> modelList_;
@@ -1130,6 +1190,16 @@ struct ModelMasterParamComparator {
 	bool operator()(const ModelParameterParamPtr elem) const {
 		return elem->getId() == id_;
 	}
+};
+
+struct ModelMasterParamComparatorByName {
+  QString name_;
+  ModelMasterParamComparatorByName(QString value) {
+    name_ = value;
+  }
+  bool operator()(const ModelParameterParamPtr elem) const {
+    return elem->getName() == name_;
+  }
 };
 
 struct ElementStmParamComparator {

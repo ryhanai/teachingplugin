@@ -34,7 +34,6 @@ public:
 private:
   TaskExecutor();
   std::vector<AttachedModel*> modelList;
-  //std::vector<teaching::CompositeParamType> params_;
   ControllerBase* handler_;
 
 };

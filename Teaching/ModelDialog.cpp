@@ -70,6 +70,11 @@ ModelDialog::ModelDialog(QWidget* parent)
   leRy = new QLineEdit; leRy->setAlignment(Qt::AlignRight);
   QLabel* lblRz = new QLabel(_("Rz:"));
   leRz = new QLineEdit; leRz->setAlignment(Qt::AlignRight);
+
+  QLabel* lblVisibility = new QLabel(_("Visibility:"));
+  cmbHide = new QComboBox(this);
+  cmbHide->addItem("public");
+  cmbHide->addItem("private");
   //
   QGridLayout* taskLayout = new QGridLayout;
   taskLayout->setContentsMargins(2, 0, 2, 0);
@@ -93,6 +98,9 @@ ModelDialog::ModelDialog(QWidget* parent)
   taskLayout->addWidget(leRy, 4, 3, 1, 1);
   taskLayout->addWidget(lblRz, 4, 4, 1, 1, Qt::AlignRight);
   taskLayout->addWidget(leRz, 4, 5, 1, 1);
+
+  taskLayout->addWidget(lblVisibility, 5, 0, 1, 1, Qt::AlignRight);
+  taskLayout->addWidget(cmbHide, 5, 1, 1, 1);
   //
   QFrame* frmBotButtons = new QFrame;
   QPushButton* btnOK = new QPushButton(_("OK"));
@@ -178,7 +186,9 @@ void ModelDialog::updateContents(const ModelParamPtr& source) {
 		leRx->setText(QString::number(source->getRotRx(), 'f', 6));
 		leRy->setText(QString::number(source->getRotRy(), 'f', 6));
 		leRz->setText(QString::number(source->getRotRz(), 'f', 6));
-	}	else {
+    cmbHide->setCurrentIndex(source->getHide());
+
+  }	else {
 		leMaster->setText("");
 		leModelRName->setText("");
 		leX->setText("");
@@ -187,7 +197,8 @@ void ModelDialog::updateContents(const ModelParamPtr& source) {
 		leRx->setText("");
 		leRy->setText("");
 		leRz->setText("");
-	}
+    cmbHide->setCurrentIndex(0);
+  }
 }
 //////////
 void ModelDialog::modelSelectionChanged() {
@@ -210,6 +221,8 @@ void ModelDialog::modelSelectionChanged() {
 	string strRotRz = leRz->text().toUtf8().constData();
 	double rotRz = std::atof(strRotRz.c_str());
 
+  int hide = cmbHide->currentIndex();
+
 	if (currentIndex_ != NULL_ID) {
 		lstModel->item(currentIndex_, 0)->setText(getTypeName(selectedType));
 		lstModel->item(currentIndex_, 1)->setText(strModelRName);
@@ -220,7 +233,7 @@ void ModelDialog::modelSelectionChanged() {
 	if (item) {
 		newId = item->data(Qt::UserRole).toInt();
 	}
-	TeachingEventHandler::instance()->mdd_ModelSelectionChanged(newId, strModelRName, selectedType, posX, posY, posZ, rotRx, rotRy, rotRz);
+	TeachingEventHandler::instance()->mdd_ModelSelectionChanged(newId, strModelRName, selectedType, posX, posY, posZ, rotRx, rotRy, rotRz, hide);
 }
 
 void ModelDialog::modelMasterSelectionChanged() {
@@ -288,7 +301,9 @@ void ModelDialog::okClicked() {
 	string strRotRz = leRz->text().toUtf8().constData();
 	double rotRz = std::atof(strRotRz.c_str());
 
-	TeachingEventHandler::instance()->mdd_OkClicked(strModelRName, selectedType, posX, posY, posZ, rotRx, rotRy, rotRz);
+  int hide = cmbHide->currentIndex();
+
+	TeachingEventHandler::instance()->mdd_OkClicked(strModelRName, selectedType, posX, posY, posZ, rotRx, rotRy, rotRz, hide);
 }
 
 void ModelDialog::cancelClicked() {

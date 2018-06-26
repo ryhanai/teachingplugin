@@ -27,6 +27,9 @@
 //#include "FlowViewTest.hpp"
 #include "DataModelRegistry.hpp"
 
+#include "../LoggerUtil.h"
+#include "../TeachingEventHandler.h"
+
 using QtNodes::FlowScene;
 using QtNodes::Node;
 using QtNodes::NodeGraphicsObject;
@@ -54,7 +57,7 @@ FlowScene::
 
 //------------------------------------------------------------------------------
 
-std::shared_ptr<Connection>
+std::shared_ptr<QtNodes::Connection>
 FlowScene::
 createConnection(PortType connectedPort,
                  Node& node,
@@ -74,7 +77,7 @@ createConnection(PortType connectedPort,
 }
 
 
-std::shared_ptr<Connection>
+std::shared_ptr<QtNodes::Connection>
 FlowScene::
 createConnection(Node& nodeIn,
                  PortIndex portIndexIn,
@@ -106,7 +109,7 @@ createConnection(Node& nodeIn,
 }
 
 
-std::shared_ptr<Connection>
+std::shared_ptr<QtNodes::Connection>
 FlowScene::
 restoreConnection(QJsonObject const &connectionJson)
 {
@@ -125,11 +128,16 @@ restoreConnection(QJsonObject const &connectionJson)
 
 void
 FlowScene::
-deleteConnection(Connection& connection)
+deleteConnection(QtNodes::Connection& connection)
 {
+  DDEBUG_V("FlowScene::deleteConnection : %d", _connections.size());
+  TeachingEventHandler::instance()->flv_Disconnected(connection);
+
   connectionDeleted(connection);
   connection.removeFromNodes();
   _connections.erase(connection.id());
+
+  DDEBUG_V("FlowScene::deleteConnection End : %d", _connections.size());
 }
 
 
@@ -349,7 +357,7 @@ nodes() const
 }
 
 
-std::unordered_map<QUuid, std::shared_ptr<Connection> > const &
+std::unordered_map<QUuid, std::shared_ptr<QtNodes::Connection> > const &
 FlowScene::
 connections() const
 {

@@ -69,8 +69,8 @@ msgstr "キャンセル"
 
 #: ArgumentDialog.cpp:144 StateMachineView.cpp:343 StateMachineView.cpp:587
 #: StateMachineView.cpp:609
-msgid "Command"
-msgstr "コマンド"
+msgid "Please input State Name."
+msgstr "状態名を設定してください"
 
 #: ArgumentDialog.cpp:328 ArgumentDialog.cpp:332 ArgumentDialog.cpp:349
 msgid "Argument"
@@ -166,6 +166,10 @@ msgstr "コメント:"
 msgid "Delete selected Task"
 msgstr "タスクインスタンスを削除する"
 
+#: FlowView.cpp:55
+msgid "Edit target task"
+msgstr "タスクインスタンスを編集する"
+
 #: FlowView.cpp:59
 msgid "Move Up selected Task"
 msgstr "タスクインスタンスを上へ移動する"
@@ -181,6 +185,10 @@ msgstr "フロー実行"
 #: FlowView.cpp:67 FlowView.cpp:273 FlowView.cpp:288
 msgid "Run Flow"
 msgstr "選択したフローを実行する"
+
+#: FlowView.cpp:67 FlowView.cpp:273 FlowView.cpp:288
+msgid "Abort Operation"
+msgstr "処理を中断する"
 
 #: FlowView.cpp:69 TaskInstanceView.cpp:65
 msgid "Task"
@@ -205,6 +213,14 @@ msgstr "フロー実行中 :"
 #: FlowView.cpp:304
 msgid "Finished Flow :"
 msgstr "フロー実行完了 :"
+
+#: FlowView.cpp:304
+msgid "Export Flow"
+msgstr "フローをエクスポートする"
+
+#: FlowView.cpp:304
+msgid "Import Flow"
+msgstr "フローをインポートする"
 
 #: MetaDataView.cpp:85
 msgid "Model Inforamtion"
@@ -339,6 +355,10 @@ msgid "Model Master"
 msgstr "モデルマスタ"
 
 #: ModelMasterDialog.cpp:270
+msgid "Master Name:"
+msgstr "マスタ名"
+
+#: ModelMasterDialog.cpp:270
 msgid "The same model has already been registered."
 msgstr "同じモデルが登録されています"
 
@@ -389,10 +409,6 @@ msgstr "単位:"
 #: ParameterDialog.cpp:56
 msgid "Num:"
 msgstr "パラメータ数:"
-
-#: ParameterDialog.cpp:58
-msgid "Type:"
-msgstr "型:"
 
 #: ParameterDialog.cpp:110
 msgid "Task Parameter"
@@ -450,6 +466,22 @@ msgstr "指定されたIDがモデルIDと重複しています"
 #: TeachingEventHandler.cpp:786
 msgid "Incorrect flow parameter connection."
 msgstr "フローパラメータの接続が不適切です"
+
+#: TeachingEventHandler.cpp:786
+msgid "Save Flow"
+msgstr "フロー保存"
+
+#: TeachingEventHandler.cpp:786
+msgid "Target flow saved"
+msgstr "フローを保存しました"
+
+#: TeachingEventHandler.cpp:786
+msgid "Save Task"
+msgstr "タスク保存"
+
+#: TeachingEventHandler.cpp:786
+msgid "Target task saved."
+msgstr "タスクを保存しました"
 
 #: SettingDialog.cpp:17
 msgid "Database:"
@@ -655,6 +687,14 @@ msgid "Hide"
 msgstr "非表示"
 
 #: FlowView.cpp:337
+msgid "Task Instance Name"
+msgstr "タスク表示名"
+
+#: FlowView.cpp:337
+msgid "Please input Task Instance Name."
+msgstr "タスク表示名を設定してください"
+
+#: FlowView.cpp:337
 msgid "Hide selected Node"
 msgstr "選択したノードを非表示"
 
@@ -713,6 +753,10 @@ msgstr "一時停止中の処理をキャンセルしてもよろしいですか
 #: DesisionDialog.cpp:61
 msgid "Decision condition setting"
 msgstr "分岐条件設定"
+
+#: DesisionDialog.cpp:61
+msgid "Python Import"
+msgstr "Pythonインポート情報"
 
 #: TaskExecuteManager.cpp:141
 msgid "Paused Task :"

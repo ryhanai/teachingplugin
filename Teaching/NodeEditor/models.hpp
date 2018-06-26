@@ -602,8 +602,13 @@ public:
     }
   }
   
-  NodeDataType dataType(PortType, PortIndex) const override {
-    return ModelParamData().type();
+  NodeDataType dataType(PortType portType, PortIndex portIndex) const override {
+    if (portNames[portIndex].type_ == 1) {
+      return ModelParamData().type();
+    } else {
+      return ParamData().type();
+    }
+
   }
 
   std::shared_ptr<NodeData> outData(PortIndex) override {

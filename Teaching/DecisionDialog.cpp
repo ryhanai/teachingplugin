@@ -90,7 +90,7 @@ void DesisionDialog::showParamInfo() {
       vector<ModelParamPtr>::iterator targetModel = find_if(modelList.begin(), modelList.end(), ModelParamComparator(param->getModelId()));
       if (targetModel != modelList.end()) {
         strModel = (*targetModel)->getRName();
-        vector<ModelParameterParamPtr> modelParamList = (*targetModel)->getModelMaster()->getActiveParamList();
+        vector<ModelParameterParamPtr> modelParamList = (*targetModel)->getModelMaster()->getActiveModelParamList();
         vector<ModelParameterParamPtr>::iterator targetModelParam = find_if(modelParamList.begin(), modelParamList.end(), ModelMasterParamComparator(param->getModelParamId()));
         if (targetModelParam != modelParamList.end()) {
           strModelParam = (*targetModelParam)->getName();

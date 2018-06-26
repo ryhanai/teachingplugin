@@ -21,6 +21,8 @@ public:
 	static bool loadModelMasterItem(ModelMasterParamPtr target);
 	static bool unLoadModelMasterItem(ModelMasterParamPtr target);
 
+  static void replaceMaster(ModelParamPtr source, ModelMasterParamPtr target);
+
   static bool updateModelItemPosition(const cnoid::BodyItemPtr& target, double posX, double posY, double posZ, double rotRx, double rotRy, double rotRz);
   static void showAllModelItem();
 

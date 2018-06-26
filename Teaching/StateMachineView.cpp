@@ -197,9 +197,7 @@ namespace teaching {
     }
     //
     grhStateMachine->setTargetParam(param);
-    vector<ElementStmParamPtr> stateList = param->getActiveStateList();
-	  vector<ConnectionStmParamPtr> transList = param->getActiveTransitionList();
-	  grhStateMachine->createStateMachine(stateList, transList);
+	  grhStateMachine->createStateMachine(param->getActiveStateList(), param->getActiveTransitionList());
 
     btnRun->setEnabled(true);
   }
@@ -515,7 +513,7 @@ void StateMachineViewImpl::setEditMode(bool canEdit) {
     frmItem_->setHidden(true);
   }
 
-  //grhStateMachine->setEditMode(canEdit);
+  grhStateMachine->setEditMode(canEdit);
 }
 /////
 StateMachineView::StateMachineView() : viewImpl(0) {

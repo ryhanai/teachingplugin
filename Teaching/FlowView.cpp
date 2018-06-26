@@ -104,7 +104,7 @@ void NodeDispDialog::showModelList() {
   lstModel_->setRowCount(0);
   vector<ModelMasterParamPtr> modelMasterList = TeachingDataHolder::instance()->getModelMasterList();
 
-  for (FlowModelParamPtr model : targetParam_->getModelList()) {
+  for (FlowModelParamPtr model : targetParam_->getActiveModelList()) {
     QtNodes::Node* target = model->getRealElem();
     if (target) {
       int row = lstModel_->rowCount();
@@ -133,7 +133,7 @@ void NodeDispDialog::showModelList() {
 
 void NodeDispDialog::showParamList() {
   lstParam_->setRowCount(0);
-  for (FlowParameterParamPtr param : targetParam_->getFlowParamList()) {
+  for (FlowParameterParamPtr param : targetParam_->getActiveFlowParamList()) {
     QtNodes::Node* target = param->getRealElem();
     if (target) {
       int row = lstParam_->rowCount();
@@ -183,7 +183,7 @@ void NodeDispDialog::oKClicked() {
   }
   //
   int modelNum = lstModel_->rowCount();
-  vector<FlowModelParamPtr> modelList = targetParam_->getModelList();
+  vector<FlowModelParamPtr> modelList = targetParam_->getActiveModelList();
 
   for (int index = 0; index < modelNum; index++) {
     QTableWidgetItem* item = lstModel_->item(index, 0);
@@ -629,7 +629,7 @@ void FlowViewImpl::setEditMode(bool canEdit) {
   btnHide->setEnabled(canEdit);
   btnDisp->setEnabled(canEdit);
 
-  //grhStateMachine->setEditMode(canEdit);
+  grhStateMachine->setEditMode(canEdit);
 }
 /////
 FlowView::FlowView() : viewImpl(0) {

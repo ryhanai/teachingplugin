@@ -27,6 +27,7 @@ public:
 
 private Q_SLOTS:
   void taskSelectionChanged();
+  void taskActivated();
   void searchClicked();
 	void modelMasterClicked();
 	void settingClicked();

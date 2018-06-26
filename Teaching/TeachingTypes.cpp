@@ -52,7 +52,7 @@ void ElementStmParam::clearActionList() {
 }
 
 void ElementStmParam::updatePos() {
-	//DDEBUG("ElementStmParam::updatePos");
+	DDEBUG("ElementStmParam::updatePos");
 	if (mode_ == DB_MODE_DELETE || mode_ == DB_MODE_IGNORE) return;
 
 	posX_ = realElem_->nodeGraphicsObject().pos().x();
@@ -152,31 +152,68 @@ ConnectionStmParam::ConnectionStmParam(const ConnectionStmParamPtr source)
 ConnectionStmParam::~ConnectionStmParam() {
 }
 /////
-std::string ParameterParam::getValues(int index) {
-  if (index < 0 || valueList_.size() <= index) return "";
-  return valueList_[index].toUtf8().constData();
+ParameterValueParam::ParameterValueParam(ParameterValueParam* source) {
+  for (unsigned int index = 0; index < source->valueList_.size(); index++) {
+    this->valueList_.push_back(source->valueList_[index]);
+  }
 }
 
-double ParameterParam::getNumValues(int index) {
+QString ParameterValueParam::getValues(int index) {
+  if (index < 0 || valueList_.size() <= index) return "";
+  return valueList_[index];
+}
+
+double ParameterValueParam::getNumValues(int index) {
   if (index < 0 || valueList_.size() <= index) return 0;
   return valueList_[index].toDouble();
 }
 
+void ParameterValueParam::setValue(int index, QString value) {
+  if (index < valueList_.size()) {
+    QString source = valueList_[index];
+    if (source != value) {
+      valueList_[index] = value;
+    }
+
+  } else {
+    valueList_.push_back(value);
+  }
+}
+
+void ParameterValueParam::clear() {
+  valueList_.clear();
+
+}
+
+void ParameterValueParam::setValuesByString(QString source) {
+  if (source.size() == 0) return;
+  valueList_.clear();
+  QStringList valList = source.split(",");
+  for (int index = 0; index < valList.size(); index++) {
+    valueList_.push_back(valList.at(index));
+  }
+}
+
+QString ParameterValueParam::getValuesString() {
+  QString result = QString("");
+  if (valueList_.size() == 0) return result;
+  //
+  for (int index = 0; index < valueList_.size(); index++) {
+    if (index != 0) {
+      result += QString(", ");
+    }
+    result += valueList_[index].trimmed();
+  }
+  return result;
+}
+
+/////
 void ParameterParam::saveValues() {
 	DDEBUG("ParameterParam::saveValues");
   for (int index = 0; index < controlList_.size(); index++) {
-		QLineEdit* target = controlList_[index];
-		if (index < valueList_.size()) {
-			QString source = valueList_[index];
-			if (source != target->text()) {
-				valueList_[index] = target->text();
-				setUpdate();
-      }
-
-    } else {
-			valueList_.push_back(target->text());
-			setUpdate();
-    }
+    QLineEdit* target = controlList_[index];
+    valueParam_->setValue(index, target->text());
+    setUpdate();
   }
 }
 
@@ -186,7 +223,8 @@ void ParameterParam::setFlowValues(QString source) {
   QStringList valList = source.split(",");
   for (int index = 0; index < valList.size(); index++) {
     QString each = valList.at(index);
-    valueList_[index] = each.toUtf8().constData();
+    valueParam_->setValue(index, each);
+    //valueList_[index] = each.toUtf8().constData();
     if (index < controlList_.size()) {
       controlList_[index] = new QLineEdit();
       controlList_[index]->setText(each);
@@ -195,31 +233,8 @@ void ParameterParam::setFlowValues(QString source) {
   DDEBUG("ParameterParam::setFlowValues End");
 }
 
-void ParameterParam::setDBValues(QString source) {
-  if (source.size() == 0) return;
-  QStringList valList = source.split(",");
-  valueList_.clear();
-  for (int index = 0; index < valList.size(); index++) {
-    QString each = valList.at(index);
-    valueList_.push_back(each.toUtf8().constData());
-  }
-}
-
-QString ParameterParam::getDBValues() {
-  QString result = QString("");
-  if (valueList_.size() == 0) return result;
-  //
-  for (int index = 0; index < valueList_.size(); index++) {
-    if (index != 0) {
-      result += QString(", ");
-    }
-    result += valueList_[index];
-  }
-  return result;
-}
-
 void ParameterParam::setOutValues(int index, QString source) {
-  valueList_[index] = source;
+  valueParam_->setValue(index, source);
   controlList_[index]->setText(source);
 }
 
@@ -242,18 +257,28 @@ ParameterParam::ParameterParam(ParameterParam* source)
   : type_(source->type_), elem_num_(source->elem_num_), parent_id_(source->parent_id_),
 		name_(source->name_),	rname_(source->rname_), unit_(source->unit_),
     model_id_(source->model_id_), model_param_id_(source->model_param_id_),
-    exec_model_id_(source->exec_model_id_), exec_model_param_id_(source->exec_model_param_id_),
-    hide_(source->hide_), flowParam_(source->flowParam_),
+    hide_(source->hide_), flowParam_(source->flowParam_), valueParam_(source->valueParam_),
 	  DatabaseParam(source) {
 	DDEBUG("ParameterParam copy");
-  for (unsigned int index = 0; index < source->valueList_.size(); index++) {
-    this->valueList_.push_back(source->valueList_[index]);
-  }
 }
 
 ParameterParam::~ParameterParam() {
 	controlList_.clear();
 }
+
+void ParameterParam::setFlowParam(FlowParameterParamPtr value) {
+  this->flowParam_ = value;
+
+  this->valueParam_org_ = this->valueParam_;
+  this->valueParam_ = value->getParameter();
+}
+
+void ParameterParam::restoreParameter() {
+  if (!this->valueParam_org_) return;
+  this->valueParam_ = this->valueParam_org_;
+
+}
+
 /////
 void ModelMasterParam::deleteModelDetails() {
   for (int index = 0; index < modelDetailList_.size(); index++) {
@@ -261,7 +286,7 @@ void ModelMasterParam::deleteModelDetails() {
   }
 }
 
-std::vector<ModelParameterParamPtr> ModelMasterParam::getActiveParamList() {
+std::vector<ModelParameterParamPtr> ModelMasterParam::getActiveModelParamList() {
 	vector<ModelParameterParamPtr> result;
 	for (int index = 0; index < modelParameterList_.size(); index++) {
 		ModelParameterParamPtr param = modelParameterList_[index];
@@ -293,42 +318,66 @@ QImage ModelMasterParam::db2Image(const QString& name, const QByteArray& source)
 bool ModelParam::isChangedPosition() {
 	//DDEBUG_V("ModelParam::isChangedPosition x:%f, %f, y:%f, %f, z:%f, %f, Rx:%f, %f, Ry:%f, %f, Rz:%f, %f", posX_, orgPosX_, posY_, orgPosY_, posZ_, orgPosZ_, rotRx_, orgRotRx_, rotRy_, orgRotRy_, rotRz_, orgRotRz_);
 
-	if (dbl_eq(posX_, orgPosX_) && dbl_eq(posY_, orgPosY_) && dbl_eq(posZ_,orgPosZ_)
-    && dbl_eq(rotRx_, orgRotRx_) && dbl_eq(rotRy_, orgRotRy_) && dbl_eq(rotRz_, orgRotRz_) ) return false;
+	if (dbl_eq(posture->getPosX(), postureOrg->getPosX())
+      && dbl_eq(posture->getPosY(), postureOrg->getPosY())
+      && dbl_eq(posture->getPosZ(), postureOrg->getPosZ())
+      && dbl_eq(posture->getRotRx(), postureOrg->getRotRx())
+      && dbl_eq(posture->getRotRy(), postureOrg->getRotRy())
+      && dbl_eq(posture->getRotRz(), postureOrg->getRotRz()) ) return false;
   return true;
 }
 
 void ModelParam::setInitialPos() {
   if (master_->getModelItem()) {
-    ChoreonoidUtil::updateModelItemPosition(master_->getModelItem(), orgPosX_, orgPosY_, orgPosZ_, orgRotRx_, orgRotRy_, orgRotRz_);
+    ChoreonoidUtil::updateModelItemPosition(master_->getModelItem(),
+      postureOrg->getPosX(), postureOrg->getPosY(), postureOrg->getPosZ(),
+      postureOrg->getRotRx(), postureOrg->getRotRy(), postureOrg->getRotRz());
   }
-  posX_ = orgPosX_;
-  posY_ = orgPosY_;
-  posZ_ = orgPosZ_;
-  rotRx_ = orgRotRx_;
-  rotRy_ = orgRotRy_;
-  rotRz_ = orgRotRz_;
+  posture->setPosX(postureOrg->getPosX());
+  posture->setPosY(postureOrg->getPosY());
+  posture->setPosZ(postureOrg->getPosZ());
+  posture->setRotRx(postureOrg->getRotRx());
+  posture->setRotRy(postureOrg->getRotRy());
+  posture->setRotRz(postureOrg->getRotRz());
 }
 
+void ModelParam::updateModelMaster(ModelMasterParamPtr value) {
+  this->master_org_ = this->master_;
+  this->master_id_org_ = this->master_id_;
+  //
+  this->master_ = value;
+  this->master_id_ = value->getId();
+
+  DDEBUG_V("ModelParam::updateModelMaster org : %d, new : %d", master_org_->getId(), master_->getId());
+}
+
+void ModelParam::restoreModelMaster() {
+  DDEBUG("ModelParam::restoreModelMaster");
+  if (!this->master_org_) return;
+
+  this->master_ = this->master_org_;
+  this->master_id_ = this->master_id_org_;
+  //
+  this->master_org_ = 0;
+  this->master_id_org_ = NULL_ID;
+
+  DDEBUG_V("ModelParam::restoreModelMaster new : %d", master_->getId());
+}
 /////
 void TaskModelParam::setAllNewData() {
   this->mode_ = DB_MODE_INSERT;
   //
-  for (int idxModel = 0; idxModel < modelList_.size(); idxModel++) {
-		ModelParamPtr model = modelList_[idxModel];
+  for (ModelParamPtr model : modelList_) {
     model->setNewForce();
     //
   }
   //
-  for (int idxState = 0; idxState < stmElemList_.size(); idxState++) {
-		ElementStmParamPtr state = stmElemList_[idxState];
+  for (ElementStmParamPtr state : stmElemList_) {
     state->setNewForce();
-    for (int idxAction = 0; idxAction < state->getActionList().size(); idxAction++) {
-			ElementStmActionParamPtr action = state->getActionList()[idxAction];
+    for (ElementStmActionParamPtr action : state->getActionList()) {
       action->setNewForce();
     }
-    for (int idxArg = 0; idxArg < state->getArgList().size(); idxArg++) {
-			ArgumentParamPtr arg = state->getArgList()[idxArg];
+    for (ArgumentParamPtr arg : state->getArgList()) {
       arg->setNewForce();
     }
   }
@@ -419,6 +468,26 @@ vector<ModelParamPtr> TaskModelParam::getActiveModelList() {
 	return result;
 }
 
+vector<ModelParamPtr> TaskModelParam::getVisibleModelList() {
+  vector<ModelParamPtr> result;
+  for (int index = 0; index < modelList_.size(); index++) {
+    ModelParamPtr param = modelList_[index];
+    if (param->getMode() == DB_MODE_DELETE || param->getMode() == DB_MODE_IGNORE) continue;
+    if (param->getHide()) continue;
+    result.push_back(param);
+  }
+  return result;
+}
+
+ModelParamPtr TaskModelParam::getModelParamById(int id) {
+  for (ModelParamPtr param : modelList_) {
+    if (param->getId() == id) {
+      return param;
+    }
+  }
+  return 0;
+}
+
 vector<FileDataParamPtr> TaskModelParam::getActiveFileList() {
 	std::vector<FileDataParamPtr> result;
 	for (int index = 0; index < fileList_.size(); index++) {
@@ -457,14 +526,6 @@ ImageDataParamPtr TaskModelParam::getImageById(int id) {
 		}
 	}
 	return 0;
-}
-
-void TaskModelParam::updateExecParam() {
-  for (int index = 0; index < parameterList_.size(); index++) {
-    ParameterParamPtr target = parameterList_[index];
-    if (target->getType() == PARAM_KIND_NORMAL) continue;
-    target->updateExecParam();
-  }
 }
 
 void TaskModelParam::initFlowParam() {
@@ -512,6 +573,26 @@ FlowParam::~FlowParam() {
   paramList_.clear();
 }
 
+std::vector<FlowModelParamPtr> FlowParam::getActiveModelList() {
+  std::vector<FlowModelParamPtr> result;
+  for (FlowModelParamPtr param : modelList_) {
+    if (param->getMode() == DB_MODE_DELETE || param->getMode() == DB_MODE_IGNORE) continue;
+    result.push_back(param);
+  }
+  return result;
+
+}
+
+std::vector<FlowParameterParamPtr> FlowParam::getActiveFlowParamList() {
+  std::vector<FlowParameterParamPtr> result;
+  for (FlowParameterParamPtr param : paramList_) {
+    if (param->getMode() == DB_MODE_DELETE || param->getMode() == DB_MODE_IGNORE) continue;
+    result.push_back(param);
+  }
+  return result;
+
+}
+
 void FlowModelParam::updatePos() {
   DDEBUG_V("FlowModelParam::updatePos:%d=%d", id_, mode_);
   if (mode_ == DB_MODE_DELETE || mode_ == DB_MODE_IGNORE) return;
@@ -532,18 +613,19 @@ void FlowParameterParam::updatePos() {
   posY_ = realElem_->nodeGraphicsObject().pos().y();
 
   name_ = ((ParamDataModel*)realElem_->nodeDataModel())->getName();
-  value_ = ((ParamDataModel*)realElem_->nodeDataModel())->getValue();
+  valueParam_->setValuesByString(((ParamDataModel*)realElem_->nodeDataModel())->getValue());
 
   setUpdate();
 }
 
 void FlowParameterParam::setInitialValue() {
-  value_ = orgValue_;
+  DDEBUG_V("FlowParameterParam::setInitialValue=%s", valueParam_org_->getValuesString().toStdString().c_str());
+  valueParam_ = valueParam_org_;
   if (realElem_) {
     QWidget* widget = realElem_->nodeDataModel()->embeddedWidget();
     if (widget) {
       ParamWidget* target = (ParamWidget*)widget;
-      target->setValue(value_);
+      target->setValue(valueParam_->getValuesString());
     }
   }
 }
@@ -739,9 +821,20 @@ std::vector<ParameterParamPtr> ActivityParam::getActiveParameterList() {
 	return result;
 }
 
+std::vector<ParameterParamPtr> ActivityParam::getVisibleParameterList() {
+  std::vector<ParameterParamPtr> result;
+  for (int index = 0; index < parameterList_.size(); index++) {
+    ParameterParamPtr param = parameterList_[index];
+    if (param->getMode() == DB_MODE_DELETE || param->getMode() == DB_MODE_IGNORE) continue;
+    if (param->getType() != 0) continue;
+    if (param->getHide()) continue;
+    result.push_back(param);
+  }
+  return result;
+}
+
 ParameterParamPtr ActivityParam::getParameterById(int id) {
-	for (int index = 0; index < parameterList_.size(); index++) {
-		ParameterParamPtr param = parameterList_[index];
+	for (ParameterParamPtr param : parameterList_) {
 		if (param->getId() == id) {
 			return param;
 		}
@@ -791,16 +884,6 @@ int FlowParam::getMaxParamId() {
   }
   result++;
   return result;
-}
-
-void FlowParam::updateExecParam() {
-  for (int index = 0; index < stmElemList_.size(); index++) {
-    ElementStmParamPtr target = stmElemList_[index];
-    TaskModelParamPtr targetTask = target->getTaskParam();
-    if (targetTask) {
-      targetTask->updateExecParam();
-    }
-  }
 }
 
 }

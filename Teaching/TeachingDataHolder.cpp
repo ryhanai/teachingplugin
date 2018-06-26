@@ -149,8 +149,7 @@ ModelParamPtr TeachingDataHolder::addModel(TaskModelParamPtr& source, ModelMaste
 	DDEBUG("TeachingDataHolder::addModel");
 
 	int maxId = -1;
-	for (int index = 0; index < source->getModelList().size(); index++ ) {
-		ModelParamPtr model = source->getModelList()[index];
+	for (ModelParamPtr model : source->getModelList() ) {
 		if (maxId < model->getId()) {
 			maxId = model->getId();
 		}
@@ -158,7 +157,7 @@ ModelParamPtr TeachingDataHolder::addModel(TaskModelParamPtr& source, ModelMaste
 	maxId++;
 	DDEBUG_V("TeachingDataHolder::addModel: %d", maxId);
 
-	ModelParamPtr param = std::make_shared<ModelParam>(maxId, master->getId(), 0, "New Model", 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, true);
+	ModelParamPtr param = std::make_shared<ModelParam>(maxId, master->getId(), 0, "New Model", 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0, true);
 	param->setModelMaster(master);
 	source->addModel(param);
 
@@ -168,8 +167,7 @@ ModelParamPtr TeachingDataHolder::addModel(TaskModelParamPtr& source, ModelMaste
 //T_FILE
 int TeachingDataHolder::addFile(TaskModelParamPtr& source, QString name, QString fileName) {
 	int maxId = -1;
-	for (int index = 0; index < source->getFileList().size(); index++) {
-		FileDataParamPtr param = source->getFileList()[index];
+	for (FileDataParamPtr param : source->getFileList()) {
 		if (maxId < param->getId()) {
 			maxId = param->getId();
 		}
@@ -194,8 +192,7 @@ void TeachingDataHolder::deleteFile(int id, TaskModelParamPtr& source) {
 //T_FIGURE
 int TeachingDataHolder::addImage(TaskModelParamPtr& source, QString name, QString fileName) {
 	int maxId = -1;
-	for (int index = 0; index < source->getImageList().size(); index++) {
-		ImageDataParamPtr param = source->getImageList()[index];
+	for (ImageDataParamPtr param : source->getImageList()) {
 		if (maxId < param->getId()) {
 			maxId = param->getId();
 		}
@@ -223,8 +220,7 @@ vector<ParameterParamPtr> TeachingDataHolder::loadParameter(int id) {
 
 ParameterParamPtr TeachingDataHolder::addParameter(TaskModelParamPtr& source) {
 	int maxId = -1;
-	for (int index = 0; index < source->getParameterList().size(); index++) {
-		ParameterParamPtr param = source->getParameterList()[index];
+	for (ParameterParamPtr param : source->getParameterList()) {
 		if (maxId < param->getId()) {
 			maxId = param->getId();
 		}
@@ -312,8 +308,8 @@ bool TeachingDataHolder::saveModelMaster(QString& errMessage) {
 	for (int index = 0; index < modelMasterList_.size(); index++) {
 		ModelMasterParamPtr master = modelMasterList_[index];
 		QStringList existParam;
-		for (int idxParam = 0; idxParam < master->getActiveParamList().size(); idxParam++) {
-			ModelParameterParamPtr param = master->getActiveParamList()[idxParam];
+		for (int idxParam = 0; idxParam < master->getActiveModelParamList().size(); idxParam++) {
+			ModelParameterParamPtr param = master->getActiveModelParamList()[idxParam];
 			if ( existParam.contains(param->getName())) {
 				QString errMessageDetail = _("A parameter with the same name exists.");
 				errMessage = errMessageDetail + " [ " + master->getName() + " : " + param->getName() + " ]";
