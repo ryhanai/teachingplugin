@@ -14,7 +14,7 @@ public:
   ParameterDialog(QWidget* parent = 0);
 
   void showModelInfo(const std::vector<ModelParamPtr>& modelList);
-  void showModelParamInfo(std::vector<ModelParameterParamPtr>& paramList);
+  void showModelParamInfo(const std::vector<ModelParameterParamPtr>& paramList);
   void showParamInfo(const std::vector<ParameterParamPtr>& paramList);
 	void setTaskName(QString taskName);
 

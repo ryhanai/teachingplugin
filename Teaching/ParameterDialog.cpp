@@ -157,7 +157,7 @@ void ParameterDialog::showModelInfo(const vector<ModelParamPtr>& modelList) {
 	}
 }
 
-void ParameterDialog::showModelParamInfo(vector<ModelParameterParamPtr>& paramList) {
+void ParameterDialog::showModelParamInfo(const vector<ModelParameterParamPtr>& paramList) {
   DDEBUG("ParameterDialog::showModelParamInfo");
   lstModelParam->setRowCount(0);
 

@@ -262,7 +262,7 @@ void TaskInstanceViewImpl::deleteTaskClicked() {
 	currentTaskIndex_ = -1;
 }
 
-void TaskInstanceViewImpl::showGrid(vector<TaskModelParamPtr>& taskList) {
+void TaskInstanceViewImpl::showGrid(const vector<TaskModelParamPtr>& taskList) {
 	//DDEBUG("TaskInstanceViewImpl::showGrid");
 	isSkip_ = true;
 

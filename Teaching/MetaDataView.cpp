@@ -228,17 +228,17 @@ void MetaDataViewImpl::setTaskParam(TaskModelParamPtr param) {
   textEdit->setText(param->getComment());
   setEditMode(TeachingEventHandler::instance()->canEdit());
   //
-  for (FileDataParamPtr param : param->getActiveFileList()) {
-    QListWidgetItem* item = new QListWidgetItem(param->getName());
+  for (FileDataParamPtr target : param->getActiveFileList()) {
+    QListWidgetItem* item = new QListWidgetItem(target->getName());
     lstFileName->addItem(item);
-    item->setData(Qt::UserRole, param->getId());
+    item->setData(Qt::UserRole, target->getId());
 	}
   //
-  for (ImageDataParamPtr param : param->getActiveImageList()) {
-    QListWidgetItem* item = new QListWidgetItem(param->getName());
-    item->setIcon(QIcon(QPixmap::fromImage(param->getData())));
+  for (ImageDataParamPtr target : param->getActiveImageList()) {
+    QListWidgetItem* item = new QListWidgetItem(target->getName());
+    item->setIcon(QIcon(QPixmap::fromImage(target->getData())));
     lstImage->addItem(item);
-    item->setData(Qt::UserRole, param->getId());
+    item->setData(Qt::UserRole, target->getId());
 	}
 }
 

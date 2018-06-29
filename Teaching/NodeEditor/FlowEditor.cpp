@@ -284,20 +284,20 @@ void FlowEditor::createStateMachine(FlowParamPtr target) {
   }
   /////
   vector<ModelMasterParamPtr> modelMasterList = TeachingDataHolder::instance()->getModelMasterList();
-  for (ConnectionStmParamPtr target : target->getActiveTransitionList()) {
-    vector<ElementStmParamPtr>::iterator targetElem = find_if(elemList.begin(), elemList.end(), ElementStmParamComparator(target->getTargetId()));
+  for (ConnectionStmParamPtr targetCon : target->getActiveTransitionList()) {
+    vector<ElementStmParamPtr>::iterator targetElem = find_if(elemList.begin(), elemList.end(), ElementStmParamComparator(targetCon->getTargetId()));
     if (targetElem == elemList.end()) continue;
     Node* targetNode = (*targetElem)->getRealElem();
 
     Node* sourceNode;
-    if (target->getType() == TYPE_MODEL_PARAM) {
-      vector<FlowModelParamPtr>::iterator sourceElem = find_if(modelList.begin(), modelList.end(), FlowModelParamComparator(target->getSourceId()));
+    if (targetCon->getType() == TYPE_MODEL_PARAM) {
+      vector<FlowModelParamPtr>::iterator sourceElem = find_if(modelList.begin(), modelList.end(), FlowModelParamComparator(targetCon->getSourceId()));
       if (sourceElem == modelList.end()) continue;
       sourceNode = (*sourceElem)->getRealElem();
       //
       //ƒ‚ƒfƒ‹‚Ì·‚µ‘Ö‚¦
       int targetId = targetNode->getParamId();
-      int id = targetNode->nodeDataModel()->portNames[target->getTargetIndex() - 1].id_;
+      int id = targetNode->nodeDataModel()->portNames[targetCon->getTargetIndex() - 1].id_;
       int sourceId = sourceNode->getParamId();
 
       TaskModelParamPtr taskParam = (*targetElem)->getTaskParam();
@@ -308,18 +308,18 @@ void FlowEditor::createStateMachine(FlowParamPtr target) {
         model->updateModelMaster(*masterParamItr);
       }
 
-    } else if (target->getType() == TYPE_FLOW_PARAM) {
-      vector<FlowParameterParamPtr>::iterator sourceElem = find_if(paramList.begin(), paramList.end(), FlowParameterParamComparator(target->getSourceId()));
+    } else if (targetCon->getType() == TYPE_FLOW_PARAM) {
+      vector<FlowParameterParamPtr>::iterator sourceElem = find_if(paramList.begin(), paramList.end(), FlowParameterParamComparator(targetCon->getSourceId()));
       if (sourceElem == paramList.end()) continue;
       sourceNode = (*sourceElem)->getRealElem();
 
     } else {
-      vector<ElementStmParamPtr>::iterator sourceElem = find_if(elemList.begin(), elemList.end(), ElementStmParamComparator(target->getSourceId()));
+      vector<ElementStmParamPtr>::iterator sourceElem = find_if(elemList.begin(), elemList.end(), ElementStmParamComparator(targetCon->getSourceId()));
       if (sourceElem == elemList.end()) continue;
       sourceNode = (*sourceElem)->getRealElem();
     }
 
-    _scene->createConnection(*targetNode, target->getTargetIndex(), *sourceNode, target->getSourceIndex());
+    _scene->createConnection(*targetNode, targetCon->getTargetIndex(), *sourceNode, targetCon->getSourceIndex());
   }
 }
 

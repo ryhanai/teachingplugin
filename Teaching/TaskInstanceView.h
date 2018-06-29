@@ -20,7 +20,7 @@ public:
   void loadTaskInfo();
   void setButtonEnableMode(bool isEnable);
 
-	void showGrid(vector<TaskModelParamPtr>& taskList);
+	void showGrid(const vector<TaskModelParamPtr>& taskList);
 	void updateGrid(TaskModelParamPtr& target);
   void setEditMode(bool canEdit);
 
