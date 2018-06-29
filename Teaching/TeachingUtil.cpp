@@ -627,8 +627,7 @@ bool TeachingUtil::exportTask(QString& strFName, TaskModelParamPtr targetTask) {
   vector<ModelParamPtr> modelList = targetTask->getActiveModelList();
   if (0 < modelList.size()) {
     Listing* modelsNode = taskNode->createListing("models");
-    for (int index = 0; index < modelList.size(); index++) {
-			ModelParamPtr param = modelList[index];
+    for (ModelParamPtr param : modelList) {
       MappingPtr modelNode = modelsNode->newMapping();
 			modelNode->write("rname", param->getRName().toUtf8(), DOUBLE_QUOTED);
 			modelNode->write("master_id", param->getMasterId());
@@ -667,8 +666,7 @@ bool TeachingUtil::exportTask(QString& strFName, TaskModelParamPtr targetTask) {
   std::vector<ElementStmParamPtr> stateList = targetTask->getActiveStateList();
   if (0 < stateList.size()) {
     Listing* statesNode = taskNode->createListing("states");
-    for (int index = 0; index < stateList.size(); index++) {
-			ElementStmParamPtr param = stateList[index];
+    for (ElementStmParamPtr param : stateList) {
       MappingPtr stateNode = statesNode->newMapping();
       stateNode->write("id", param->getId());
       stateNode->write("type", param->getType());
@@ -711,8 +709,7 @@ bool TeachingUtil::exportTask(QString& strFName, TaskModelParamPtr targetTask) {
   vector<ConnectionStmParamPtr> transList = targetTask->getActiveTransitionList();
   if (0 < transList.size()) {
     Listing* connsNode = taskNode->createListing("transitions");
-    for (int index = 0; index < transList.size(); index++) {
-			ConnectionStmParamPtr param = transList[index];
+    for (ConnectionStmParamPtr param : transList) {
       if (param->getSourceId() == param->getTargetId()) continue;
       MappingPtr connNode = connsNode->newMapping();
       connNode->write("source_id", param->getSourceId());
@@ -725,8 +722,7 @@ bool TeachingUtil::exportTask(QString& strFName, TaskModelParamPtr targetTask) {
   vector<ParameterParamPtr> paramList = targetTask->getActiveParameterList();
   if (0 <paramList.size()) {
     Listing* paramsNode = taskNode->createListing("parameters");
-    for (int index = 0; index < paramList.size(); index++) {
-			ParameterParamPtr param = paramList[index];
+    for (ParameterParamPtr param : paramList) {
       MappingPtr paramNode = paramsNode->newMapping();
       paramNode->write("type", param->getType());
       paramNode->write("name", param->getName().toUtf8(), DOUBLE_QUOTED);
@@ -743,8 +739,7 @@ bool TeachingUtil::exportTask(QString& strFName, TaskModelParamPtr targetTask) {
   vector<FileDataParamPtr> fileList = targetTask->getActiveFileList();
   if (0 < fileList.size()) {
     Listing* filesNode = taskNode->createListing("files");
-    for (int index = 0; index < fileList.size(); index++) {
-			FileDataParamPtr param = fileList[index];
+    for (FileDataParamPtr param : fileList) {
       MappingPtr fileNode = filesNode->newMapping();
       fileNode->write("name", param->getName().toUtf8(), DOUBLE_QUOTED);
       if (0 < param->getName().length()) {
@@ -760,8 +755,7 @@ bool TeachingUtil::exportTask(QString& strFName, TaskModelParamPtr targetTask) {
   vector<ImageDataParamPtr> imageList = targetTask->getActiveImageList();
   if (0 < imageList.size()) {
     Listing* imagesNode = taskNode->createListing("images");
-    for (int index = 0; index < imageList.size(); index++) {
-			ImageDataParamPtr param = imageList[index];
+    for (ImageDataParamPtr param : imageList) {
       MappingPtr imageNode = imagesNode->newMapping();
       imageNode->write("name", param->getName().toUtf8(), DOUBLE_QUOTED);
       if (0 < param->getName().length()) {
@@ -773,8 +767,7 @@ bool TeachingUtil::exportTask(QString& strFName, TaskModelParamPtr targetTask) {
 	/////
 	if (0 < masterList.size()) {
 		Listing* mastesrNode = taskNode->createListing("model_master");
-		for (int index = 0; index < masterList.size(); index++) {
-			ModelMasterParamPtr master = masterList[index];
+		for (ModelMasterParamPtr master : masterList) {
 			MappingPtr masterNode = mastesrNode->newMapping();
 			masterNode->write("id", master->getId());
 			masterNode->write("name", master->getName().toUtf8(), DOUBLE_QUOTED);
@@ -801,8 +794,7 @@ bool TeachingUtil::exportTask(QString& strFName, TaskModelParamPtr targetTask) {
       vector<ModelParameterParamPtr> paramList = master->getActiveModelParamList();
       if (0 < paramList.size()) {
         Listing* featuresNode = masterNode->createListing("features");
-        for (int index = 0; index <paramList.size(); index++) {
-          ModelParameterParamPtr feature = paramList[index];
+        for (ModelParameterParamPtr feature : paramList) {
           MappingPtr featureNode = featuresNode->newMapping();
           featureNode->write("name", feature->getName().toUtf8(), DOUBLE_QUOTED);
           featureNode->write("value", feature->getValueDesc().toUtf8(), DOUBLE_QUOTED);
@@ -833,8 +825,7 @@ bool TeachingUtil::exportFlow(QString& strFName, FlowParamPtr targetFlow) {
   vector<ElementStmParamPtr> stateList = targetFlow->getActiveStateList();
   if (0 < stateList.size()) {
     Listing* statesNode = flowNode->createListing("states");
-    for (int index = 0; index < stateList.size(); index++) {
-			ElementStmParamPtr param = stateList[index];
+    for (ElementStmParamPtr param : stateList) {
       MappingPtr stateNode = statesNode->newMapping();
       stateNode->write("id", param->getId());
       stateNode->write("type", param->getType());
@@ -852,8 +843,7 @@ bool TeachingUtil::exportFlow(QString& strFName, FlowParamPtr targetFlow) {
   vector<FlowModelParamPtr> modelList = targetFlow->getActiveModelList();
   if (0 < modelList.size()) {
     Listing* modelsNode = flowNode->createListing("models");
-    for (int index = 0; index < modelList.size(); index++) {
-      FlowModelParamPtr param = modelList[index];
+    for (FlowModelParamPtr param : modelList) {
       MappingPtr modelNode = modelsNode->newMapping();
       modelNode->write("id", param->getId());
       modelNode->write("master_id", param->getMasterId());
@@ -865,8 +855,7 @@ bool TeachingUtil::exportFlow(QString& strFName, FlowParamPtr targetFlow) {
   vector<FlowParameterParamPtr> paramList = targetFlow->getActiveFlowParamList();
   if (0 < paramList.size()) {
     Listing* paramsNode = flowNode->createListing("parameters");
-    for (int index = 0; index < paramList.size(); index++) {
-      FlowParameterParamPtr param = paramList[index];
+    for (FlowParameterParamPtr param : paramList) {
       MappingPtr paramNode = paramsNode->newMapping();
       paramNode->write("id", param->getId());
       paramNode->write("name", param->getName().toUtf8(), DOUBLE_QUOTED);
@@ -879,8 +868,7 @@ bool TeachingUtil::exportFlow(QString& strFName, FlowParamPtr targetFlow) {
   vector<ConnectionStmParamPtr> transList = targetFlow->getActiveTransitionList();
   if (0 < transList.size()) {
     Listing* connsNode = flowNode->createListing("transitions");
-    for (int index = 0; index < transList.size(); index++) {
-			ConnectionStmParamPtr param = transList[index];
+    for (ConnectionStmParamPtr param : transList) {
       if (param->getSourceId() == param->getTargetId()) continue;
       MappingPtr connNode = connsNode->newMapping();
       connNode->write("type", param->getType());
@@ -897,8 +885,7 @@ bool TeachingUtil::exportFlow(QString& strFName, FlowParamPtr targetFlow) {
   /////
   if (0 < taskList.size()) {
     QDir baseDir = QFileInfo(strFName).absolutePath();
-    for (int index = 0; index < taskList.size(); index++) {
-			TaskModelParamPtr targetTask = taskList[index];
+    for (TaskModelParamPtr targetTask : taskList) {
       int targetId = targetTask->getId();
       QString targetIdStr = QString::number(targetId);
       baseDir.mkdir(targetIdStr);

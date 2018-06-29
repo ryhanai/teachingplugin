@@ -32,8 +32,7 @@ void TeachingDataHolder::updateModelMaster() {
 vector<FlowParamPtr> TeachingDataHolder::getFlowList() {
 	vector<FlowParamPtr> result;
 
-	for (int index = 0; index < flowList_.size(); index++) {
-		FlowParamPtr param = flowList_[index];
+	for (FlowParamPtr param : flowList_) {
 		if (param->getMode() == DB_MODE_DELETE || param->getMode() == DB_MODE_IGNORE) continue;
 		result.push_back(param);
 	}
@@ -57,8 +56,7 @@ bool TeachingDataHolder::deleteFlow(int targetId) {
 
 FlowParamPtr TeachingDataHolder::getFlowById(int id) {
 	FlowParamPtr result;
-	for (int index = 0; index < flowList_.size(); index++) {
-		FlowParamPtr param = flowList_[index];
+	for (FlowParamPtr param : flowList_) {
 		if (param->getId() == id) {
 			result = param;
 			break;
@@ -242,8 +240,7 @@ bool TeachingDataHolder::saveTaskParameter(TaskModelParamPtr& target) {
 vector<ModelMasterParamPtr> TeachingDataHolder::getModelMasterList() {
 	vector<ModelMasterParamPtr> result;
 
-	for (int index = 0; index < modelMasterList_.size(); index++) {
-		ModelMasterParamPtr param = modelMasterList_[index];
+	for (ModelMasterParamPtr param : modelMasterList_) {
 		if (param->getMode() == DB_MODE_DELETE || param->getMode() == DB_MODE_IGNORE) continue;
 		result.push_back(param);
 	}
@@ -266,8 +263,7 @@ ModelMasterParamPtr TeachingDataHolder::getModelMasterById(int id) {
 
 ModelMasterParamPtr TeachingDataHolder::addModelMaster() {
 	int maxId = -1;
-	for (int index = 0; index < modelMasterList_.size(); index++) {
-		ModelMasterParamPtr master = modelMasterList_[index];
+	for (ModelMasterParamPtr master : modelMasterList_) {
 		if (maxId < master->getId()) {
 			maxId = master->getId();
 		}
@@ -284,8 +280,7 @@ ModelMasterParamPtr TeachingDataHolder::addModelMaster() {
 
 void TeachingDataHolder::addModelMasterParam(ModelMasterParamPtr target) {
 	int maxId = -1;
-	for (int index = 0; index < target->getModelParameterList().size(); index++) {
-		ModelParameterParamPtr param = target->getModelParameterList()[index];
+	for (ModelParameterParamPtr param: target->getModelParameterList()) {
 		if (maxId < param->getId()) {
 			maxId = param->getId();
 		}

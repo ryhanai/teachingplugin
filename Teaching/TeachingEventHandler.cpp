@@ -1396,8 +1396,7 @@ void TeachingEventHandler::prd_UpdateParam(QString name, QString id, int type, Q
 void TeachingEventHandler::prd_ModelTableSelectionChanged(int selectedId) {
   DDEBUG_V("TeachingEventHandler::prd_ModelSelectionChanged %d", selectedId);
   vector<ModelParamPtr> modelList = com_CurrentTask_->getActiveModelList();
-  for (int index = 0; index < modelList.size(); index++) {
-    ModelParamPtr model = modelList[index];
+  for (ModelParamPtr model : modelList) {
     if (model->getId() == selectedId) {
       vector<ModelParameterParamPtr> paramList = model->getModelMaster()->getActiveModelParamList();
       prd_->showModelParamInfo(paramList);
@@ -1408,8 +1407,7 @@ void TeachingEventHandler::prd_ModelTableSelectionChanged(int selectedId) {
 
 vector<ModelParameterParamPtr> TeachingEventHandler::prd_ModelSelectionChanged(int selectedId) {
   vector<ModelParamPtr> modelList = com_CurrentTask_->getActiveModelList();
-  for (int index = 0; index < modelList.size(); index++) {
-    ModelParamPtr model = modelList[index];
+  for (ModelParamPtr model : modelList) {
     if (model->getId() == selectedId) {
       return model->getModelMaster()->getActiveModelParamList();
     }
@@ -1459,8 +1457,7 @@ void TeachingEventHandler::mmd_ModelParameterSelectionChanged(int newId, QString
 	}
 	mmd_CurrentParam_ = 0;
 	//
-	for (int index = 0; mmd_CurrentModel_->getModelParameterList().size(); index++) {
-		ModelParameterParamPtr param = mmd_CurrentModel_->getModelParameterList()[index];
+	for (ModelParameterParamPtr param : mmd_CurrentModel_->getModelParameterList()) {
 		if (newId == param->getId()) {
 			mmd_CurrentParam_ = param;
 			break;
@@ -1575,8 +1572,7 @@ bool TeachingEventHandler::mmd_Check() {
 //ArgumentDialog
 void TeachingEventHandler::agd_ModelSelectionChanged(int selectedId) {
 	vector<ModelParamPtr> modelList = com_CurrentTask_->getActiveModelList();
-	for (int index = 0; index < modelList.size(); index++) {
-		ModelParamPtr model = modelList[index];
+	for (ModelParamPtr model : modelList) {
 		if (model->getId() == selectedId) {
 			vector<ModelParameterParamPtr> paramList = model->getModelMaster()->getActiveModelParamList();
 			agd_->showModelParamInfo(paramList);
@@ -1715,8 +1711,7 @@ bool TeachingEventHandler::agd_OKClicked(QString strName, QString strAct, QStrin
 
 void TeachingEventHandler::agd_CancelClicked() {
 	DDEBUG("TeachingEventHandler::agd_CancelClicked()");
-	for (int index = 0; index < agd_Current_Stm_->getArgList().size(); index++) {
-		ArgumentParamPtr param = agd_Current_Stm_->getArgList()[index];
+	for (ArgumentParamPtr param : agd_Current_Stm_->getArgList()) {
 		param->setValueDesc(param->getValueDescOrg());
 	}
 }

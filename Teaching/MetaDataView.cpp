@@ -228,23 +228,17 @@ void MetaDataViewImpl::setTaskParam(TaskModelParamPtr param) {
   textEdit->setText(param->getComment());
   setEditMode(TeachingEventHandler::instance()->canEdit());
   //
-	vector<FileDataParamPtr> fileList = param->getActiveFileList();
-  for (int index = 0; index < fileList.size(); index++) {
-		FileDataParamPtr param = fileList[index];
+  for (FileDataParamPtr param : param->getActiveFileList()) {
     QListWidgetItem* item = new QListWidgetItem(param->getName());
     lstFileName->addItem(item);
     item->setData(Qt::UserRole, param->getId());
-		DDEBUG_V("MetaDataViewImpl::setTaskParam file id=%d, index=%d", param->getId(), index);
 	}
   //
-	vector<ImageDataParamPtr> imageList = param->getActiveImageList();
-  for (int index = 0; index < imageList.size(); index++) {
-		ImageDataParamPtr param = imageList[index];
+  for (ImageDataParamPtr param : param->getActiveImageList()) {
     QListWidgetItem* item = new QListWidgetItem(param->getName());
     item->setIcon(QIcon(QPixmap::fromImage(param->getData())));
     lstImage->addItem(item);
     item->setData(Qt::UserRole, param->getId());
-		DDEBUG_V("MetaDataViewImpl::setTaskParam image id=%d, index=%d", param->getId(), index);
 	}
 }
 

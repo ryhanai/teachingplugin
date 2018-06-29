@@ -165,24 +165,19 @@ ArgumentDialog::ArgumentDialog(QWidget* parent)
 	TeachingEventHandler::instance()->agd_Loaded(this);
 }
 
-void ArgumentDialog::showModelInfo(vector<ModelParamPtr>& modelList) {
-	for (int index = 0; index < modelList.size(); index++) {
-		ModelParamPtr param = modelList[index];
-
+void ArgumentDialog::showModelInfo(const vector<ModelParamPtr>& modelList) {
+	for (const auto& param : modelList) {
 		int row = lstModel->rowCount();
 		lstModel->insertRow(row);
     UIUtil::makeTableItemWithData(lstModel, row, 0, param->getRName(), param->getMasterId());
-
 		cmbModel->addItem(param->getRName());
 	}
 }
 
-void ArgumentDialog::showModelParamInfo(vector<ModelParameterParamPtr>& paramList) {
+void ArgumentDialog::showModelParamInfo(const vector<ModelParameterParamPtr>& paramList) {
 	lstModelParam->setRowCount(0);
 
-	for (int index = 0; index < paramList.size(); index++) {
-		ModelParameterParamPtr param = paramList[index];
-
+	for (const auto& param : paramList) {
 		int row = lstModelParam->rowCount();
 		lstModelParam->insertRow(row);
 		UIUtil::makeTableItem(lstModelParam, row, 0, param->getName());
@@ -190,12 +185,10 @@ void ArgumentDialog::showModelParamInfo(vector<ModelParameterParamPtr>& paramLis
 	}
 }
 
-void ArgumentDialog::showParamInfo(vector<ParameterParamPtr>& paramList, vector<ModelParamPtr>& modelList) {
+void ArgumentDialog::showParamInfo(const vector<ParameterParamPtr>& paramList, const vector<ModelParamPtr>& modelList) {
 	cmbTarget->addItem("");
 
-	for (int index = 0; index < paramList.size(); index++) {
-		ParameterParamPtr param = paramList[index];
-
+	for (const auto& param : paramList) {
 		int row = lstParam->rowCount();
 		lstParam->insertRow(row);
 		UIUtil::makeTableItem(lstParam, row, 0, param->getName());
@@ -206,7 +199,7 @@ void ArgumentDialog::showParamInfo(vector<ParameterParamPtr>& paramList, vector<
     QString strModel = "";
     QString strModelParam = "";
     if (param->getType() == PARAM_KIND_MODEL) {
-      vector<ModelParamPtr>::iterator targetModel = find_if(modelList.begin(), modelList.end(), ModelParamComparator(param->getModelId()));
+      vector<ModelParamPtr>::const_iterator targetModel = find_if(modelList.begin(), modelList.end(), ModelParamComparator(param->getModelId()));
       if (targetModel != modelList.end()) {
         strModel = (*targetModel)->getRName();
         vector<ModelParameterParamPtr> paramList = TeachingEventHandler::instance()->prd_ModelSelectionChanged(param->getModelId());
@@ -225,7 +218,7 @@ void ArgumentDialog::showParamInfo(vector<ParameterParamPtr>& paramList, vector<
 	}
 }
 
-void ArgumentDialog::showArgInfo(ElementStmParamPtr target, vector<ArgumentParamPtr>& argList) {
+void ArgumentDialog::showArgInfo(const ElementStmParamPtr target, const vector<ArgumentParamPtr>& argList) {
 	txtStateName->setText(target->getCmdDspName());
 	txtCmdName->setText(target->getCmdName());
 
@@ -245,10 +238,8 @@ void ArgumentDialog::showArgInfo(ElementStmParamPtr target, vector<ArgumentParam
 	}
 }
 
-void ArgumentDialog::showActionInfo(vector<ElementStmActionParamPtr>& actionList) {
-	for (int index = 0; index < actionList.size(); index++) {
-		ElementStmActionParamPtr param = actionList[index];
-
+void ArgumentDialog::showActionInfo(const vector<ElementStmActionParamPtr>& actionList) {
+	for (ElementStmActionParamPtr param : actionList) {
 		int row = lstHandling->rowCount();
 		lstHandling->insertRow(row);
 		UIUtil::makeTableItemWithData(lstHandling, row, 0, param->getAction(), param->getId());

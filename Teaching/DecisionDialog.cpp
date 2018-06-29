@@ -75,8 +75,7 @@ DesisionDialog::DesisionDialog(TaskModelParamPtr param, ElementStmParamPtr stmPa
 void DesisionDialog::showParamInfo() {
 	vector<ParameterParamPtr> paramList = targetTask_->getActiveParameterList();
   vector<ModelParamPtr> modelList = targetTask_->getActiveModelList();
-  for (int index = 0; index < paramList.size(); index++) {
-		ParameterParamPtr param = paramList[index];
+  for (ParameterParamPtr param : paramList) {
     int row = lstParam->rowCount();
     lstParam->insertRow(row);
     UIUtil::makeTableItem(lstParam, row, 0, param->getName());
@@ -104,8 +103,7 @@ void DesisionDialog::showParamInfo() {
 
 void DesisionDialog::showModelInfo() {
 	vector<ModelParamPtr> modelList = targetTask_->getActiveModelList();
-	for (int index = 0; index < modelList.size(); index++) {
-		ModelParamPtr param = modelList[index];
+	for (ModelParamPtr param : modelList) {
     int row = lstModel->rowCount();
     lstModel->insertRow(row);
     UIUtil::makeTableItem(lstModel, row, 0, param->getRName());
@@ -194,8 +192,7 @@ FlowDesisionDialog::FlowDesisionDialog(FlowParamPtr param, ElementStmParamPtr st
 
 void FlowDesisionDialog::showParamInfo() {
   vector<FlowParameterParamPtr> paramList = targetFlow_->getFlowParamList();
-  for (int index = 0; index < paramList.size(); index++) {
-    FlowParameterParamPtr param = paramList[index];
+  for (FlowParameterParamPtr param : paramList) {
     int row = lstParam->rowCount();
     lstParam->insertRow(row);
     UIUtil::makeTableItem(lstParam, row, 0, param->getName());

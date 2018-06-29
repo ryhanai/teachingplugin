@@ -148,8 +148,7 @@ ParameterDialog::ParameterDialog(QWidget* parent)
 }
 
 void ParameterDialog::showModelInfo(const vector<ModelParamPtr>& modelList) {
-	for (int index = 0; index < modelList.size(); index++) {
-		ModelParamPtr param = modelList[index];
+	for (ModelParamPtr param : modelList) {
 		int row = lstModel->rowCount();
 		lstModel->insertRow(row);
 		UIUtil::makeTableItemWithData(lstModel, row, 0, param->getRName(), param->getId());
@@ -162,9 +161,7 @@ void ParameterDialog::showModelParamInfo(vector<ModelParameterParamPtr>& paramLi
   DDEBUG("ParameterDialog::showModelParamInfo");
   lstModelParam->setRowCount(0);
 
-  for (int index = 0; index < paramList.size(); index++) {
-    ModelParameterParamPtr param = paramList[index];
-
+  for (ModelParameterParamPtr param : paramList) {
     int row = lstModelParam->rowCount();
     lstModelParam->insertRow(row);
     UIUtil::makeTableItem(lstModelParam, row, 0, param->getName());
@@ -173,9 +170,7 @@ void ParameterDialog::showModelParamInfo(vector<ModelParameterParamPtr>& paramLi
 }
 
 void ParameterDialog::showParamInfo(const vector<ParameterParamPtr>& paramList) {
-  for (int index = 0; index < paramList.size(); index++) {
-    ParameterParamPtr param = paramList[index];
-
+  for (ParameterParamPtr param : paramList) {
     int row = lstParam->rowCount();
     lstParam->insertRow(row);
 
@@ -386,8 +381,7 @@ void ParameterDialog::modelSelectionChanged(int index) {
   //
   cmbModelParamName->clear();
   cmbModelParamName->addItem("", NULL_ID);
-  for (int index = 0; index < paramList.size(); index++) {
-    ModelParameterParamPtr param = paramList[index];
+  for (ModelParameterParamPtr param : paramList) {
     cmbModelParamName->addItem(param->getName(), param->getId());
   }
 }

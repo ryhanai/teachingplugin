@@ -15,11 +15,11 @@ public:
   ArgumentDialog(QWidget* parent = 0);
   inline bool isOK() const { return this->isOK_; }
 
-	void showModelInfo(vector<ModelParamPtr>& modelList);
-	void showModelParamInfo(vector<ModelParameterParamPtr>& paramList);
-	void showParamInfo(vector<ParameterParamPtr>& paramList, vector<ModelParamPtr>& modelList);
-	void showActionInfo(vector<ElementStmActionParamPtr>& actionList);
-	void showArgInfo(ElementStmParamPtr target, vector<ArgumentParamPtr>& argList);
+	void showModelInfo(const vector<ModelParamPtr>& modelList);
+	void showModelParamInfo(const vector<ModelParameterParamPtr>& paramList);
+	void showParamInfo(const vector<ParameterParamPtr>& paramList, const vector<ModelParamPtr>& modelList);
+	void showActionInfo(const vector<ElementStmActionParamPtr>& actionList);
+	void showArgInfo(const ElementStmParamPtr target, const vector<ArgumentParamPtr>& argList);
 
 	void updateArgument(QString currText);
 	void updateAction(ElementStmActionParamPtr& target);

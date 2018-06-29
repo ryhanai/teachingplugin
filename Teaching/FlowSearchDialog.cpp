@@ -82,9 +82,7 @@ void FlowSearchDialog::showGrid(const vector<FlowParamPtr>& flowList) {
 	lstFlow->setRowCount(0);
 	lstFlow->setHorizontalHeaderLabels(QStringList() << "Name" << "Comment" << "Created" << "Last Updated");
 
-	for (int index = 0; index < flowList.size(); index++) {
-		FlowParamPtr param = flowList[index];
-
+	for (FlowParamPtr param : flowList) {
 		int row = lstFlow->rowCount();
 		lstFlow->insertRow(row);
 

@@ -148,8 +148,7 @@ void ModelDialog::showModelGrid(const vector<ModelParamPtr>& source) {
 
 	lstModel->setRowCount(0);
 
-	for (int index = 0; index < source.size(); index++) {
-		ModelParamPtr param = source[index];
+	for (ModelParamPtr param : source) {
 		int row = lstModel->rowCount();
 		lstModel->insertRow(row);
 		UIUtil::makeTableItemWithData(lstModel, row, 0, getTypeName(param->getType()), param->getId());
@@ -160,8 +159,7 @@ void ModelDialog::showModelGrid(const vector<ModelParamPtr>& source) {
 void ModelDialog::showModelMasterGrid(const vector<ModelMasterParamPtr>& source) {
 	lstModelMaster->setRowCount(0);
 
-	for (int index = 0; index < source.size(); index++) {
-		ModelMasterParamPtr param = source[index];
+	for (ModelMasterParamPtr param : source) {
 		int row = lstModelMaster->rowCount();
 		lstModelMaster->insertRow(row);
     lstModelMaster->setRowHeight(row, 50);

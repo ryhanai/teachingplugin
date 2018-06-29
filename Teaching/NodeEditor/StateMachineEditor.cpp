@@ -266,7 +266,7 @@ void StateMachineEditor::dropEvent(QDropEvent* event) {
 	}
 }
 
-void StateMachineEditor::createStateMachine(std::vector<ElementStmParamPtr>& elemList, std::vector<ConnectionStmParamPtr>& connList) {
+void StateMachineEditor::createStateMachine(const std::vector<ElementStmParamPtr>& elemList, const std::vector<ConnectionStmParamPtr>& connList) {
 	DDEBUG_V("StateMachineEditor::createStateMachine %d, %d", elemList.size(), connList.size());
 	removeAll();
 
@@ -301,9 +301,9 @@ void StateMachineEditor::createStateMachine(std::vector<ElementStmParamPtr>& ele
 	}
 	/////
 	for (ConnectionStmParamPtr target : connList) {
-		vector<ElementStmParamPtr>::iterator sourceElem = find_if(elemList.begin(), elemList.end(), ElementStmParamComparator(target->getSourceId()));
+		vector<ElementStmParamPtr>::const_iterator sourceElem = find_if(elemList.begin(), elemList.end(), ElementStmParamComparator(target->getSourceId()));
 		if (sourceElem == elemList.end()) continue;
-		vector<ElementStmParamPtr>::iterator targetElem = find_if(elemList.begin(), elemList.end(), ElementStmParamComparator(target->getTargetId()));
+		vector<ElementStmParamPtr>::const_iterator targetElem = find_if(elemList.begin(), elemList.end(), ElementStmParamComparator(target->getTargetId()));
 		if (targetElem == elemList.end()) continue;
 		//
 		Node* sourceNode = (*sourceElem)->getRealElem();

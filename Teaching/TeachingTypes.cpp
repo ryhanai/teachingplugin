@@ -67,8 +67,7 @@ void ElementStmParam::updatePos() {
 
 vector<ArgumentParamPtr> ElementStmParam::getActiveArgumentList() {
 	std::vector<ArgumentParamPtr> result;
-	for (int index = 0; index < argList_.size(); index++) {
-		ArgumentParamPtr param = argList_[index];
+	for (ArgumentParamPtr param : argList_) {
 		if (param->getMode() == DB_MODE_DELETE || param->getMode() == DB_MODE_IGNORE) continue;
 		result.push_back(param);
 	}
@@ -76,8 +75,7 @@ vector<ArgumentParamPtr> ElementStmParam::getActiveArgumentList() {
 }
 
 ArgumentParamPtr ElementStmParam::getArgumentById(int id) {
-	for (int index = 0; index < argList_.size(); index++) {
-		ArgumentParamPtr param = argList_[index];
+	for (ArgumentParamPtr param : argList_) {
 		if (param->getId() == id) {
 			return param;
 		}
@@ -91,8 +89,7 @@ bool compareAction(const ElementStmActionParamPtr& left, const ElementStmActionP
 
 vector<ElementStmActionParamPtr> ElementStmParam::getActiveStateActionList() {
 	std::vector<ElementStmActionParamPtr> result;
-	for (int index = 0; index < actionList_.size(); index++) {
-		ElementStmActionParamPtr param = actionList_[index];
+	for (ElementStmActionParamPtr param : actionList_) {
 		if (param->getMode() == DB_MODE_DELETE || param->getMode() == DB_MODE_IGNORE) continue;
 		result.push_back(param);
 	}
@@ -101,8 +98,7 @@ vector<ElementStmActionParamPtr> ElementStmParam::getActiveStateActionList() {
 }
 
 ElementStmActionParamPtr ElementStmParam::getStateActionById(int id) {
-	for (int index = 0; index < actionList_.size(); index++) {
-		ElementStmActionParamPtr param = actionList_[index];
+	for (ElementStmActionParamPtr param : actionList_) {
 		if (param->getId() == id) {
 			return param;
 		}
@@ -281,15 +277,14 @@ void ParameterParam::restoreParameter() {
 
 /////
 void ModelMasterParam::deleteModelDetails() {
-  for (int index = 0; index < modelDetailList_.size(); index++) {
-    modelDetailList_[index]->setDelete();
+  for (ModelDetailParamPtr model : modelDetailList_) {
+    model->setDelete();
   }
 }
 
 std::vector<ModelParameterParamPtr> ModelMasterParam::getActiveModelParamList() {
 	vector<ModelParameterParamPtr> result;
-	for (int index = 0; index < modelParameterList_.size(); index++) {
-		ModelParameterParamPtr param = modelParameterList_[index];
+	for (ModelParameterParamPtr param : modelParameterList_) {
 		if (param->getMode() == DB_MODE_DELETE || param->getMode() == DB_MODE_IGNORE) continue;
 		result.push_back(param);
 	}
@@ -460,8 +455,7 @@ void TaskModelParam::clearParameterList() {
 
 vector<ModelParamPtr> TaskModelParam::getActiveModelList() {
 	vector<ModelParamPtr> result;
-	for (int index = 0; index < modelList_.size(); index++) {
-		ModelParamPtr param = modelList_[index];
+	for (ModelParamPtr param : modelList_) {
 		if (param->getMode() == DB_MODE_DELETE || param->getMode() == DB_MODE_IGNORE) continue;
 		result.push_back(param);
 	}
@@ -470,8 +464,7 @@ vector<ModelParamPtr> TaskModelParam::getActiveModelList() {
 
 vector<ModelParamPtr> TaskModelParam::getVisibleModelList() {
   vector<ModelParamPtr> result;
-  for (int index = 0; index < modelList_.size(); index++) {
-    ModelParamPtr param = modelList_[index];
+  for (ModelParamPtr param : modelList_) {
     if (param->getMode() == DB_MODE_DELETE || param->getMode() == DB_MODE_IGNORE) continue;
     if (param->getHide()) continue;
     result.push_back(param);
@@ -490,8 +483,7 @@ ModelParamPtr TaskModelParam::getModelParamById(int id) {
 
 vector<FileDataParamPtr> TaskModelParam::getActiveFileList() {
 	std::vector<FileDataParamPtr> result;
-	for (int index = 0; index < fileList_.size(); index++) {
-		FileDataParamPtr param = fileList_[index];
+	for (FileDataParamPtr param : fileList_) {
 		if (param->getMode() == DB_MODE_DELETE || param->getMode() == DB_MODE_IGNORE) continue;
 		result.push_back(param);
 	}
@@ -499,8 +491,7 @@ vector<FileDataParamPtr> TaskModelParam::getActiveFileList() {
 }
 
 FileDataParamPtr TaskModelParam::getFileById(int id) {
-	for (int index = 0; index < fileList_.size(); index++) {
-		FileDataParamPtr param = fileList_[index];
+	for (FileDataParamPtr param : fileList_) {
 		if (param->getId() == id) {
 			return param;
 		}
@@ -519,8 +510,7 @@ vector<ImageDataParamPtr> TaskModelParam::getActiveImageList() {
 }
 
 ImageDataParamPtr TaskModelParam::getImageById(int id) {
-	for (int index = 0; index < imageList_.size(); index++) {
-		ImageDataParamPtr param = imageList_[index];
+	for (ImageDataParamPtr param : imageList_) {
 		if (param->getId() == id) {
 			return param;
 		}
@@ -530,8 +520,7 @@ ImageDataParamPtr TaskModelParam::getImageById(int id) {
 
 void TaskModelParam::initFlowParam() {
   DDEBUG("TaskModelParam::initFlowParam");
-  for (int index = 0; index < parameterList_.size(); index++) {
-    ParameterParamPtr target = parameterList_[index];
+  for (ParameterParamPtr target : parameterList_) {
     target->clearFlowParam();
   }
 }
@@ -655,8 +644,7 @@ ActivityParam::ActivityParam(const ActivityParam* source)
 
 int ActivityParam::getMaxStateId() {
 	int result = 0;
-	for (int index = 0; index < stmElemList_.size(); index++) {
-		ElementStmParamPtr target = stmElemList_[index];
+	for (ElementStmParamPtr target : stmElemList_) {
 		if (result < target->getId()) {
 			result = target->getId();
 		}
@@ -813,8 +801,7 @@ bool ActivityParam::checkAndOrderStateMachine() {
 
 std::vector<ParameterParamPtr> ActivityParam::getActiveParameterList() {
 	std::vector<ParameterParamPtr> result;
-	for (int index = 0; index < parameterList_.size(); index++) {
-		ParameterParamPtr param = parameterList_[index];
+	for (ParameterParamPtr param : parameterList_) {
 		if (param->getMode() == DB_MODE_DELETE || param->getMode() == DB_MODE_IGNORE) continue;
 		result.push_back(param);
 	}
@@ -823,8 +810,7 @@ std::vector<ParameterParamPtr> ActivityParam::getActiveParameterList() {
 
 std::vector<ParameterParamPtr> ActivityParam::getVisibleParameterList() {
   std::vector<ParameterParamPtr> result;
-  for (int index = 0; index < parameterList_.size(); index++) {
-    ParameterParamPtr param = parameterList_[index];
+  for (ParameterParamPtr param : parameterList_) {
     if (param->getMode() == DB_MODE_DELETE || param->getMode() == DB_MODE_IGNORE) continue;
     if (param->getType() != 0) continue;
     if (param->getHide()) continue;
@@ -844,8 +830,7 @@ ParameterParamPtr ActivityParam::getParameterById(int id) {
 
 std::vector<ElementStmParamPtr> ActivityParam::getActiveStateList() {
 	std::vector<ElementStmParamPtr> result;
-	for (int index = 0; index < stmElemList_.size(); index++) {
-		ElementStmParamPtr param = stmElemList_[index];
+	for (ElementStmParamPtr param : stmElemList_) {
 		if (param->getMode() == DB_MODE_DELETE || param->getMode() == DB_MODE_IGNORE) continue;
 		result.push_back(param);
 	}
@@ -854,8 +839,7 @@ std::vector<ElementStmParamPtr> ActivityParam::getActiveStateList() {
 
 vector<ConnectionStmParamPtr> ActivityParam::getActiveTransitionList() {
 	std::vector<ConnectionStmParamPtr> result;
-	for (int index = 0; index < stmConnectionList_.size(); index++) {
-		ConnectionStmParamPtr param = stmConnectionList_[index];
+	for (ConnectionStmParamPtr param : stmConnectionList_) {
 		if (param->getMode() == DB_MODE_DELETE || param->getMode() == DB_MODE_IGNORE) continue;
 		result.push_back(param);
 	}
@@ -864,8 +848,7 @@ vector<ConnectionStmParamPtr> ActivityParam::getActiveTransitionList() {
 
 int FlowParam::getMaxModelId() {
   int result = 0;
-  for (int index = 0; index < modelList_.size(); index++) {
-    FlowModelParamPtr target = modelList_[index];
+  for (FlowModelParamPtr target : modelList_) {
     if (result < target->getId()) {
       result = target->getId();
     }
@@ -876,8 +859,7 @@ int FlowParam::getMaxModelId() {
 
 int FlowParam::getMaxParamId() {
   int result = 0;
-  for (int index = 0; index < paramList_.size(); index++) {
-    FlowParameterParamPtr target = paramList_[index];
+  for (FlowParameterParamPtr target : paramList_) {
     if (result < target->getId()) {
       result = target->getId();
     }

@@ -19,7 +19,7 @@ public:
 	StateMachineEditor(const StateMachineEditor&) = delete;
 	StateMachineEditor operator=(const StateMachineEditor&) = delete;
 
-	void createStateMachine(std::vector<ElementStmParamPtr>& elemList, std::vector<ConnectionStmParamPtr>& connList);
+	void createStateMachine(const std::vector<ElementStmParamPtr>& elemList, const std::vector<ConnectionStmParamPtr>& connList);
 	void updateTargetParam();
 
 	void setBreakPoint(bool isBreak);

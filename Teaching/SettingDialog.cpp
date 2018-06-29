@@ -236,8 +236,7 @@ void SettingDialog::oKClicked() {
   }
   //
   SettingManager::getInstance().clearExtList();
-  for (int index = 0; index < appList_.size(); index++) {
-    AppExtParam param = appList_[index];
+  for (AppExtParam param : appList_) {
     SettingManager::getInstance().setTargetApp(param.ext_.toStdString(), param.appPath_.toStdString());
   }
   SettingManager::getInstance().setIsReal(chkReal->isChecked());

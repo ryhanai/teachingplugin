@@ -270,9 +270,7 @@ void TaskInstanceViewImpl::showGrid(vector<TaskModelParamPtr>& taskList) {
   lstResult->setRowCount(0);
   lstResult->setHorizontalHeaderLabels(QStringList() << "Name" << "Comment" << "Created" << "Last Updated");
 
-  for (int index = 0; index < taskList.size(); index++) {
-		TaskModelParamPtr param = taskList[index];
-
+  for (TaskModelParamPtr param : taskList) {
     int row = lstResult->rowCount();
     lstResult->insertRow(row);
 
