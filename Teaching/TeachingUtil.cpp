@@ -81,6 +81,7 @@ bool TeachingUtil::importTaskModel(Mapping* taskMap, TaskModelParamPtr taskParam
     for (int idxModel = 0; idxModel < modelList->size(); idxModel++) {
       Mapping* modelMap = modelList->at(idxModel)->toMapping();
       QString modelRName = "";
+      int model_id = -1;
       int master_id = -1;
       int hide = 0;
       QString modelType = "";
@@ -101,6 +102,13 @@ bool TeachingUtil::importTaskModel(Mapping* taskMap, TaskModelParamPtr taskParam
       }
       //
       QString modelNameErr = QString::fromStdString("\n ModelName=[") + modelRName + QString::fromStdString("]");
+      try {
+        model_id = modelMap->get("model_id").toInt();
+      } catch (...) {
+        errMessage = _("Failed to read the model_id of the task model.") + taskNameErr + modelNameErr;
+        DDEBUG(errMessage.toStdString().c_str());
+        return false;
+      }
       try {
         master_id = modelMap->get("master_id").toInt();
       } catch (...) {
@@ -177,7 +185,7 @@ bool TeachingUtil::importTaskParameter(Mapping* taskMap, TaskModelParamPtr taskP
       QString paramRName = "";
       QString paramUnit = "";
       QString paramValue = "";
-      int type, paramNum, hide;
+      int type, paramType, hide;
       int model_id = NULL_ID;
       int model_param_id = NULL_ID;
 
@@ -205,7 +213,7 @@ bool TeachingUtil::importTaskParameter(Mapping* taskMap, TaskModelParamPtr taskP
       }
 
       try {
-        paramNum = paramMap->get("elem_num").toInt();
+        paramType = paramMap->get("param_type").toInt();
       } catch (...) {
         errMessage = _("Failed to read the elem_num of the task parameter.") + taskNameErr + paramNameErr;
         DDEBUG(errMessage.toStdString().c_str());
@@ -218,7 +226,7 @@ bool TeachingUtil::importTaskParameter(Mapping* taskMap, TaskModelParamPtr taskP
       try { model_param_id = paramMap->get("model_param_id").toInt(); } catch (...) {}
       try { hide = paramMap->get("hide").toInt(); } catch (...) {}
 
-      ParameterParamPtr param = std::make_shared<ParameterParam>(NULL_ID, type, paramNum, NULL_ID, paramName, paramRName, paramUnit, model_id, model_param_id, hide);
+      ParameterParamPtr param = std::make_shared<ParameterParam>(NULL_ID, type, paramType, NULL_ID, paramName, paramRName, paramUnit, model_id, model_param_id, hide);
       param->setDBValues(paramValue);
       param->setNewForce();
       taskParam->addParameter(param);
@@ -562,6 +570,7 @@ bool TeachingUtil::loadModelDetail(QString& strFName, ModelMasterParamPtr target
 	for (int index = 0; index < lineList.length(); index++) {
 		QString line = lineList.at(index);
 		if (line.contains("url") == false)  continue;
+    if (line.trimmed().endsWith("wrl") == false) continue;
 		QStringList itemList = line.trimmed().split(" ");
 		bool isHit = false;
 		for (int idxItem = 0; idxItem < itemList.length(); idxItem++) {
@@ -600,8 +609,11 @@ void TeachingUtil::loadTaskDetailData(TaskModelParamPtr target) {
   DDEBUG("loadTaskDetailData");
 
   for (ModelParamPtr model : target->getActiveModelList()) {
-    if (ChoreonoidUtil::makeModelItem(model->getModelMaster()) == false) {
-      model->getModelMaster()->setModelItem(0);
+    ModelMasterParamPtr master = model->getModelMaster();
+    if (master) {
+      if (ChoreonoidUtil::makeModelItem(master) == false) {
+        master->setModelItem(0);
+      }
     }
   }
   for (ImageDataParamPtr param : target->getActiveImageList()) {
@@ -629,7 +641,8 @@ bool TeachingUtil::exportTask(QString& strFName, TaskModelParamPtr targetTask) {
     Listing* modelsNode = taskNode->createListing("models");
     for (ModelParamPtr param : modelList) {
       MappingPtr modelNode = modelsNode->newMapping();
-			modelNode->write("rname", param->getRName().toUtf8(), DOUBLE_QUOTED);
+      modelNode->write("model_id", param->getId());
+      modelNode->write("rname", param->getRName().toUtf8(), DOUBLE_QUOTED);
 			modelNode->write("master_id", param->getMasterId());
 			string strType = "";
       int intType = param->getType();
@@ -725,10 +738,10 @@ bool TeachingUtil::exportTask(QString& strFName, TaskModelParamPtr targetTask) {
     for (ParameterParamPtr param : paramList) {
       MappingPtr paramNode = paramsNode->newMapping();
       paramNode->write("type", param->getType());
+      paramNode->write("param_type", param->getParamType());
       paramNode->write("name", param->getName().toUtf8(), DOUBLE_QUOTED);
       paramNode->write("rname", param->getRName().toUtf8(), DOUBLE_QUOTED);
       paramNode->write("units", param->getUnit().toUtf8(), DOUBLE_QUOTED);
-      paramNode->write("elem_num", param->getElemNum());
       paramNode->write("values", param->getDBValues().toUtf8(), DOUBLE_QUOTED);
 			paramNode->write("model_id", param->getModelId());
       paramNode->write("model_param_id", param->getModelParamId());
@@ -858,6 +871,7 @@ bool TeachingUtil::exportFlow(QString& strFName, FlowParamPtr targetFlow) {
     for (FlowParameterParamPtr param : paramList) {
       MappingPtr paramNode = paramsNode->newMapping();
       paramNode->write("id", param->getId());
+      paramNode->write("type", param->getType());
       paramNode->write("name", param->getName().toUtf8(), DOUBLE_QUOTED);
       paramNode->write("value", param->getValue().toUtf8(), DOUBLE_QUOTED);
       paramNode->write("pos_x", param->getPosX());
@@ -1025,17 +1039,18 @@ bool TeachingUtil::importFlow(QString& strFName, std::vector<FlowParamPtr>& flow
       if (paramList) {
         for (int idxParam = 0; idxParam < paramList->size(); idxParam++) {
           Mapping* paramMap = paramList->at(idxParam)->toMapping();
-          int id;
+          int id, type;
           QString name, value;
           double posX, posY;
 
           try { id = paramMap->get("id").toInt(); } catch (...) { continue; }
+          try { type = paramMap->get("type").toInt(); } catch (...) { continue; }
           try { name = QString::fromStdString(paramMap->get("name").toString()); } catch (...) { continue; }
           try { value = QString::fromStdString(paramMap->get("value").toString()); } catch (...) { continue; }
           try { posX = paramMap->get("pos_x").toDouble(); } catch (...) { continue; }
           try { posY = paramMap->get("pos_y").toDouble(); } catch (...) { continue; }
 
-          FlowParameterParamPtr paramParam = std::make_shared<FlowParameterParam>(id, name, value);
+          FlowParameterParamPtr paramParam = std::make_shared<FlowParameterParam>(id, type, name, value);
           paramParam->setPosX(posX);
           paramParam->setPosY(posY);
           paramParam->setNew();
@@ -1169,11 +1184,31 @@ QString UIUtil::getTypeName(int source) {
   QString result = "";
 
   switch (source) {
-    case 0:
+    case PARAM_KIND_NORMAL:
       result = "Normal";
       break;
-    case 1:
+    case PARAM_KIND_MODEL:
       result = "Model";
+      break;
+  }
+  return result;
+}
+
+QString UIUtil::getParamTypeName(int source) {
+  QString result = "";
+
+  switch (source) {
+    case PARAM_TYPE_INTEGER:
+      result = "Integer";
+      break;
+    case PARAM_TYPE_DOUBLE:
+      result = "Double";
+      break;
+    case PARAM_TYPE_STRING:
+      result = "String";
+      break;
+    case PARAM_TYPE_FRAME:
+      result = "Frame";
       break;
   }
   return result;

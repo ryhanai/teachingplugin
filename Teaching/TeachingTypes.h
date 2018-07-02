@@ -34,6 +34,11 @@ static const double PI = 3.14159265358979323846;
 static const int NULL_ID = -1;
 static const int MESSAGE_PERIOD = 3000;
 
+static const int PARAM_TYPE_INTEGER = 1;
+static const int PARAM_TYPE_DOUBLE = 2;
+static const int PARAM_TYPE_STRING = 3;
+static const int PARAM_TYPE_FRAME = 4;
+
 typedef std::shared_ptr<ElementStmParam> ElementStmParamPtr;
 typedef std::shared_ptr<ConnectionStmParam> ConnectionStmParamPtr;
 typedef std::shared_ptr<TaskModelParam> TaskModelParamPtr;
@@ -417,10 +422,6 @@ private:
   QString rname_;
   PostureParamPtr posture;
   PostureParamPtr postureOrg;
-  //double posX_, posY_, posZ_;
-  //double rotRx_, rotRy_, rotRz_;
-  //double orgPosX_, orgPosY_, orgPosZ_;
-  //double orgRotRx_, orgRotRy_, orgRotRz_;
   int hide_;
   bool isLoaded_;
   ModelMasterParamPtr master_;
@@ -710,10 +711,10 @@ typedef std::shared_ptr<ParameterValueParam> ParameterValueParamPtr;
 
 class ParameterParam : public DatabaseParam {
 public:
-  ParameterParam(int id, int type, int elem_num, int task_inst_id, QString name, QString rname, QString unit, int model_id, int model_param_id, int hide)
-    : type_(type), elem_num_(elem_num), parent_id_(task_inst_id), name_(name), rname_(rname),
+  ParameterParam(int id, int type, int param_type, int task_inst_id, QString name, QString rname, QString unit, int model_id, int model_param_id, int hide)
+    : type_(type), param_type_(param_type), parent_id_(task_inst_id), name_(name), rname_(rname),
       unit_(unit), model_id_(model_id), model_param_id_(model_param_id), hide_(hide),
-    //flowParam_(0),
+      flowParam_(0), flowParamParam_(0),
       DatabaseParam(id) {
     valueParam_ = std::make_shared<ParameterValueParam>();
   };
@@ -728,10 +729,10 @@ public:
     }
   }
 
-  inline int getElemNum() const { return this->elem_num_; }
-  inline void setElemNum(int value) {
-    if (this->elem_num_ != value) {
-      this->elem_num_ = value;
+  inline int getParamType() const { return this->param_type_; }
+  inline void setParamType(int value) {
+    if (this->param_type_ != value) {
+      this->param_type_ = value;
       setUpdate();
     }
   }
@@ -790,6 +791,13 @@ public:
 
   inline std::string getValues(int index) { return valueParam_->getValues(index).toStdString(); }
   inline double getNumValues(int index) { return valueParam_->getNumValues(index); }
+  inline double getNumValuesForCalc(int index) {
+    if (flowParam_) {
+      return flowParamParam_->getNumValues(index);
+    } else {
+      return valueParam_->getNumValues(index);
+    }
+  }
   inline void setDBValues(QString source) { valueParam_->setValuesByString(source); }
   inline QString getDBValues() { return valueParam_->getValuesString();  }
 
@@ -799,16 +807,11 @@ public:
   void saveValues();
   void clearControlList() { this->controlList_.clear(); }
   void setFlowValues(QString source);
-  inline void clearFlowParam() {
-    flowParam_ = 0;
-    restoreParameter();
-  }
   void restoreParameter();
-
 
 private:
   int type_;
-  int elem_num_;
+  int param_type_;
   int parent_id_;
   int model_id_;
   int model_param_id_;
@@ -819,8 +822,8 @@ private:
 
   std::vector<QLineEdit*> controlList_;
   ParameterValueParamPtr valueParam_;
-  ParameterValueParamPtr valueParam_org_;
   FlowParameterParamPtr flowParam_;
+  ParameterValueParamPtr flowParamParam_;
 };
 typedef std::shared_ptr<ParameterParam> ParameterParamPtr;
 ////
@@ -924,15 +927,15 @@ typedef std::shared_ptr<FlowModelParam> FlowModelParamPtr;
 /////
 class FlowParameterParam : public DatabaseParam {
 public:
-  FlowParameterParam(int id, QString name, QString value)
-    : name_(name), valueParam_org_(0), DatabaseParam(id) {
+  FlowParameterParam(int id, int type, QString name, QString value)
+    : name_(name), type_(type), valueParam_org_(0), DatabaseParam(id) {
     valueParam_ = std::make_shared<ParameterValueParam>();
     valueParam_->setValuesByString(value);
     valueParam_org_ = std::make_shared<ParameterValueParam>();
     valueParam_org_->setValuesByString(value);
   };
   FlowParameterParam(FlowParameterParam* source)
-    : name_(source->name_), valueParam_(source->valueParam_), valueParam_org_(source->valueParam_org_),
+    : name_(source->name_), type_(source->type_), valueParam_(source->valueParam_), valueParam_org_(source->valueParam_org_),
     posX_(source->posX_), posY_(source->posY_), realElem_(source->realElem_), DatabaseParam(source) {};
   ~FlowParameterParam() {};
 
@@ -943,6 +946,8 @@ public:
       setUpdate();
     }
   }
+
+  inline int getType() const { return this->type_; }
 
   inline QString getValue() const { return valueParam_->getValuesString(); }
   inline void setValue(QString value) {
@@ -976,6 +981,7 @@ public:
   void setInitialValue();
 
 private:
+  int type_;
   QString name_;
   double posX_;
   double posY_;
@@ -1101,8 +1107,6 @@ public:
 
   inline bool IsModelLoaded() const { return this->isModelLoaded_; }
   inline void setModelLoaded(bool value) { this->isModelLoaded_ = value; }
-
-  void initFlowParam();
 
 private:
   int flow_id_;
@@ -1239,6 +1243,16 @@ struct FlowParameterParamByNameComparator {
   }
   bool operator()(const FlowParameterParamPtr elem) const {
     return elem->getName() == name_;
+  }
+};
+
+struct ParameterParamComparator {
+  int id_;
+  ParameterParamComparator(int value) {
+    id_ = value;
+  }
+  bool operator()(const ParameterParamPtr elem) const {
+    return elem->getId() == id_;
   }
 };
 

@@ -183,11 +183,6 @@ void TaskInstanceViewImpl::taskSelectionChanged() {
   leTask->setText(newTask->getName());
 }
 
-void TaskInstanceViewImpl::taskActivated() {
-  DDEBUG("TaskInstanceViewImpl::taskActivated()");
-  TeachingEventHandler::instance()->tiv_TaskSelectionChanged(getSelectedId(), leTask->text());
-}
-
 void TaskInstanceViewImpl::searchClicked() {
   if (TeachingEventHandler::instance()->checkPaused()) return;
   DDEBUG("TaskInstanceViewImpl::searchClicked()");
@@ -198,37 +193,6 @@ void TaskInstanceViewImpl::searchClicked() {
 	TeachingEventHandler::instance()->tiv_SearchClicked(leCond->text());
 }
 
-void TaskInstanceViewImpl::modelMasterClicked() {
-	DDEBUG("TaskInstanceViewImpl::modelMasterClicked()");
-
-	ModelMasterDialog dialog(this);
-	dialog.exec();
-}
-
-void TaskInstanceViewImpl::settingClicked() {
-  DDEBUG("TaskInstanceViewImpl::settingClicked()");
-
-  SettingDialog dialog(this);
-  dialog.exec();
-  if (dialog.IsDBUpdated()) {
-    DatabaseManager::getInstance().reConnectDB();
-    searchClicked();
-  }
-}
-
-void TaskInstanceViewImpl::runTaskClicked() {
-  int selectedId = getSelectedId();
-  TeachingEventHandler::instance()->tev_RunTaskClicked(selectedId);
-}
-
-void TaskInstanceViewImpl::initPosClicked() {
-	TeachingEventHandler::instance()->tiv_InitPosClicked();
-}
-
-void TaskInstanceViewImpl::abortClicked() {
-	TeachingEventHandler::instance()->tev_AbortClicked();
-}
-
 void TaskInstanceViewImpl::loadTaskClicked() {
 	if (TeachingEventHandler::instance()->tiv_TaskImportClicked() == false) return;
 	//
@@ -237,33 +201,24 @@ void TaskInstanceViewImpl::loadTaskClicked() {
 	isSkip_ = false;
 }
 
-void TaskInstanceViewImpl::outputTaskClicked() {
-  int selectedId = getSelectedId();
-  TeachingEventHandler::instance()->tiv_TaskExportClicked(selectedId, leTask->text());
-}
-
 void TaskInstanceViewImpl::registNewTaskClicked() {
-  int selectedId = getSelectedId();
-  TeachingEventHandler::instance()->tiv_RegistNewTaskClicked(selectedId, leTask->text(), leCond->text());
+  TeachingEventHandler::instance()->tiv_RegistNewTaskClicked(getSelectedId(), leTask->text(), leCond->text());
 	lstResult->setCurrentCell(currentTaskIndex_, 0);
 }
 
 void TaskInstanceViewImpl::registTaskClicked() {
-  int selectedId = getSelectedId();
-  TeachingEventHandler::instance()->tiv_RegistTaskClicked(selectedId, leTask->text());
+  TeachingEventHandler::instance()->tiv_RegistTaskClicked(getSelectedId(), leTask->text());
 	currentTaskIndex_ = lstResult->currentRow();
 }
 
 void TaskInstanceViewImpl::deleteTaskClicked() {
-  int selectedId = getSelectedId();
-  if (TeachingEventHandler::instance()->tiv_DeleteTaskClicked(selectedId) == false) return;
+  if (TeachingEventHandler::instance()->tiv_DeleteTaskClicked(getSelectedId()) == false) return;
 
 	leTask->setText("");
 	currentTaskIndex_ = -1;
 }
 
 void TaskInstanceViewImpl::showGrid(const vector<TaskModelParamPtr>& taskList) {
-	//DDEBUG("TaskInstanceViewImpl::showGrid");
 	isSkip_ = true;
 
   lstResult->clear();
@@ -301,18 +256,12 @@ void TaskInstanceViewImpl::showGrid(const vector<TaskModelParamPtr>& taskList) {
 }
 
 void TaskInstanceViewImpl::updateGrid(TaskModelParamPtr& target) {
-	DDEBUG("TaskInstanceViewImpl::updateGrid");
-
 	leTask->setText(target->getName());
 
 	lstResult->item(currentTaskIndex_, 0)->setText(target->getName());
 	lstResult->item(currentTaskIndex_, 1)->setText(target->getComment());
 	lstResult->item(currentTaskIndex_, 2)->setText(target->getCreatedDate());
 	lstResult->item(currentTaskIndex_, 3)->setText(target->getLastUpdatedDate());
-}
-
-void TaskInstanceViewImpl::widgetClose() {
-  DatabaseManager::getInstance().closeDB();
 }
 
 void TaskInstanceViewImpl::setEditMode(bool canEdit) {
@@ -339,7 +288,46 @@ int TaskInstanceViewImpl::getSelectedId() {
   }
   return result;
 }
-/////
+
+void TaskInstanceViewImpl::modelMasterClicked() {
+  ModelMasterDialog dialog(this);
+  dialog.exec();
+}
+
+void TaskInstanceViewImpl::settingClicked() {
+  SettingDialog dialog(this);
+  dialog.exec();
+  if (dialog.IsDBUpdated()) {
+    DatabaseManager::getInstance().reConnectDB();
+    searchClicked();
+  }
+}
+
+void TaskInstanceViewImpl::taskActivated() {
+  DDEBUG("TaskInstanceViewImpl::taskActivated()");
+  TeachingEventHandler::instance()->tiv_TaskSelectionChanged(getSelectedId(), leTask->text());
+}
+
+void TaskInstanceViewImpl::runTaskClicked() {
+  TeachingEventHandler::instance()->tev_RunTaskClicked(getSelectedId());
+}
+
+void TaskInstanceViewImpl::initPosClicked() {
+  TeachingEventHandler::instance()->tiv_InitPosClicked();
+}
+
+void TaskInstanceViewImpl::abortClicked() {
+  TeachingEventHandler::instance()->tev_AbortClicked();
+}
+
+void TaskInstanceViewImpl::outputTaskClicked() {
+  TeachingEventHandler::instance()->tiv_TaskExportClicked(getSelectedId(), leTask->text());
+}
+
+void TaskInstanceViewImpl::widgetClose() {
+  DatabaseManager::getInstance().closeDB();
+}
+///////////////
 TaskInstanceView::TaskInstanceView() : viewImpl(0) {
   setName(_("TaskInstance"));
   setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Ignored);

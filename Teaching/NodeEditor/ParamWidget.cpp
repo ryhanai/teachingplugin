@@ -9,17 +9,40 @@ ParamWidget::ParamWidget(QWidget* parent) : QWidget(parent) {
   nameEdit->setText("screw pos");
   valueEdit->setText("0.0");
 
-  QHBoxLayout* layout = new QHBoxLayout();
+  QVBoxLayout* layout = new QVBoxLayout();
   layout->addWidget(nameEdit);
   layout->addWidget(valueEdit);
   setLayout(layout);
 }
 
-void ParamWidget::setParamInfo(QString name, QString value) {
-  nameEdit->setText(name);
-  valueEdit->setText(value);
-}
+FrameParamWidget::FrameParamWidget(QWidget* parent) : QWidget(parent) {
+  //setStyleSheet( "QWidget{ background-color : rgba( 160, 160, 160, 255); border-radius : 7px;  }" );
+  nameEdit = new QLineEdit(this);
+  xEdit = new QLineEdit(this);
+  yEdit = new QLineEdit(this);
+  zEdit = new QLineEdit(this);
+  rxEdit = new QLineEdit(this);
+  ryEdit = new QLineEdit(this);
+  rzEdit = new QLineEdit(this);
 
+  nameEdit->setText("screw pos");
+  xEdit->setText("0.0");
+  yEdit->setText("0.0");
+  zEdit->setText("0.0");
+  rxEdit->setText("0.0");
+  ryEdit->setText("0.0");
+  rzEdit->setText("0.0");
+
+  QGridLayout* layout = new QGridLayout();
+  layout->addWidget(nameEdit, 0, 0, 1, 3);
+  layout->addWidget(xEdit, 1, 0, 1, 1);
+  layout->addWidget(yEdit, 1, 1, 1, 1);
+  layout->addWidget(zEdit, 1, 2, 1, 1);
+  layout->addWidget(rxEdit, 2, 0, 1, 1);
+  layout->addWidget(ryEdit, 2, 1, 1, 1);
+  layout->addWidget(rzEdit, 2, 2, 1, 1);
+  setLayout(layout);
+}
 //////////
 ModelWidget::ModelWidget(QWidget* parent) : QWidget(parent), flowModelParamId_(NULL_ID){
   imageView = new QGraphicsView();

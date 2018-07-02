@@ -38,6 +38,25 @@ private:
   FlowParamPtr targetParam_;
 };
 
+class PortDispDialog : public QDialog {
+  Q_OBJECT
+public:
+  PortDispDialog(TaskModelParamPtr param, QWidget* parent = 0);
+
+  private Q_SLOTS:
+  void oKClicked();
+  void cancelClicked();
+
+private:
+  QTableWidget * lstModel_;
+  QTableWidget * lstParam_;
+
+  void showModelList();
+  void showParamList();
+
+  TaskModelParamPtr targetParam_;
+};
+
 class TaskInfoDialog : public QDialog {
   Q_OBJECT
 public:
@@ -66,7 +85,7 @@ public:
 	void createStateMachine(FlowParamPtr& target);
 
 	inline bool updateTargetFlowParam() { return grhStateMachine->updateTargetFlowParam(); };
-	inline void paramInfoUpdated(TaskModelParamPtr targetTask, ElementStmParamPtr targetState) { grhStateMachine->paramInfoUpdated(targetTask, targetState); };
+	inline void paramInfoUpdated(ElementStmParamPtr targetState) { grhStateMachine->paramInfoUpdated(targetState); };
   inline void modelParamUpdated(int flowModelId, ModelMasterParamPtr masterParam) { grhStateMachine->modelParamUpdated(flowModelId, masterParam); };
   void setEditMode(bool canEdit);
 
@@ -86,6 +105,7 @@ private Q_SLOTS :
   void importFlowClicked();
   void hideClicked();
   void dispClicked();
+  void paramDispClicked();
 
 private:
   QLineEdit* leName;
@@ -97,6 +117,7 @@ private:
 
   QPushButton* btnHide;
   QPushButton* btnDisp;
+  QPushButton* btnParamDisp;
 
   QPushButton* btnDeleteTask;
   QPushButton* btnRunFlow;
@@ -122,7 +143,7 @@ public:
 
   inline void setButtonEnableMode(bool isEnable) { viewImpl->setButtonEnableMode(isEnable); }
 	inline bool updateTargetFlowParam() { return viewImpl->updateTargetFlowParam(); };
-	inline void paramInfoUpdated(TaskModelParamPtr targetTask, ElementStmParamPtr targetState) { viewImpl->paramInfoUpdated(targetTask, targetState); };
+	inline void paramInfoUpdated(ElementStmParamPtr targetState) { viewImpl->paramInfoUpdated(targetState); };
   inline void modelParamUpdated(int flowModelId, ModelMasterParamPtr masterParam) { viewImpl->modelParamUpdated(flowModelId, masterParam); };
 
 private:

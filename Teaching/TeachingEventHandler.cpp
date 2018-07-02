@@ -15,6 +15,8 @@
 #include "ControllerManager.h"
 #include "DataBaseManager.h"
 
+#include "NodeEditor/models.hpp"
+
 #include "LoggerUtil.h"
 #include "gettext.h"
 
@@ -169,6 +171,8 @@ bool TeachingEventHandler::tiv_TaskImportClicked() {
     QString txtData = QString::fromUtf8(master->getData());
     QString strHash = TeachingUtil::getSha1Hash(txtData.toStdString().c_str(), txtData.toStdString().length());
     int ret = DatabaseManager::getInstance().checkModelMaster(strHash);
+    DDEBUG_V("ModelMaster:%s, %d", master->getName().toStdString().c_str(), ret);
+
     if (0 < ret) {
       master->setDelete();
       for (TaskModelParamPtr task : taskInstList) {
@@ -385,7 +389,7 @@ void TeachingEventHandler::flv_SelectionChanged(TaskModelParamPtr target) {
 	com_CurrentTask_ = target;
 
 	if (com_CurrentTask_) {
-		updateComViews(com_CurrentTask_);
+		updateComViews(com_CurrentTask_, false);
 
 	} else {
 		mdv_->clearTaskParam();
@@ -796,6 +800,7 @@ void TeachingEventHandler::tev_stm_ContClicked() {
 void TeachingEventHandler::tev_RunTaskClicked(int selectedId) {
 	DDEBUG("TeachingEventHandler::tev_RunTaskClicked()");
 	stv_->updateTargetParam();
+  prv_SetInputValues();
 
   if (0 <= selectedId) {
     tiv_CurrentTask_ = TeachingDataHolder::instance()->getTaskInstanceById(selectedId);
@@ -881,45 +886,67 @@ void TeachingEventHandler::flv_ModelParamChanged(int flowModelId, ModelMasterPar
   DDEBUG("TeachingEventHandler::flv_ModelParamChanged : End");
 }
 
-void TeachingEventHandler::flv_Connected(QtNodes::Connection& target) {
+bool TeachingEventHandler::flv_Connected(QtNodes::Connection& target) {
   DDEBUG("TeachingEventHandler::flv_Connected()");
 
   Node* taskNode = target.getNode(PortType::In);
-  if (!taskNode) return;
   int portIndex = target.getPortIndex(PortType::In);
-  if (portIndex <= 0) return;
+  if (portIndex <= 0) return true;
 
   int targetId = taskNode->getParamId();
-  if (!taskNode->nodeDataModel()) return;
-  if (taskNode->nodeDataModel()->portNames.size() <= portIndex - 1) return;
-  int id = taskNode->nodeDataModel()->portNames[portIndex-1].id_;
+  if (!taskNode->nodeDataModel()) return false;
+  if (taskNode->nodeDataModel()->portNames.size() <= portIndex - 1) return true;
+  int id = taskNode->nodeDataModel()->portNames[portIndex - 1].id_;
   DDEBUG_V("portIndex : %d, id : %d", portIndex, id);
 
   Node* sourceNode = target.getNode(PortType::Out);
   int sourceId = sourceNode->getParamId();
+  int sourcePortIndex = target.getPortIndex(PortType::Out);
 
+  vector<ElementStmParamPtr> stateList = flv_CurrentFlow_->getStmElementList();
+  vector<ElementStmParamPtr>::iterator targetElem = find_if(stateList.begin(), stateList.end(), ElementStmParamComparator(targetId));
+  if (targetElem == stateList.end()) return false;
+  TaskModelParamPtr taskParam = (*targetElem)->getTaskParam();
+  DDEBUG_V("Task Name : %s", taskParam->getName().toStdString().c_str());
+
+  //モデルパラメータの場合
   if (sourceNode->nodeDataModel()->name() == "Model Param") {
-    vector<ElementStmParamPtr> stateList = flv_CurrentFlow_->getStmElementList();
-    vector<ElementStmParamPtr>::iterator targetElem = find_if(stateList.begin(), stateList.end(), ElementStmParamComparator(targetId));
-    if (targetElem == stateList.end()) return;
-    TaskModelParamPtr taskParam = (*targetElem)->getTaskParam();
-    DDEBUG_V("Task Name : %s", taskParam->getName().toStdString().c_str());
+    NodeDataType dataType = sourceNode->nodeDataModel()->dataType(PortType::Out, sourcePortIndex);
+    DDEBUG_V("dataType : %s", dataType.id.toStdString().c_str());
+    //モデルポートの場合
+    if (dataType.id == "modeldata") {
+      //FlowModelParameterの検索
+      vector<FlowModelParamPtr> modelList = flv_CurrentFlow_->getActiveModelList();
+      vector<FlowModelParamPtr>::iterator modelElem = find_if(modelList.begin(), modelList.end(), FlowModelParamComparator(sourceId));
+      if (modelElem == modelList.end()) return false;
+      DDEBUG_V("Master Id : %d", (*modelElem)->getMasterId());
+      int masterId = (*modelElem)->getMasterId();
 
-    vector<FlowModelParamPtr> modelList = flv_CurrentFlow_->getModelList();
-    //FlowModelParameterの検索
-    vector<FlowModelParamPtr>::iterator modelElem = find_if(modelList.begin(), modelList.end(), FlowModelParamComparator(sourceId));
-    if (modelElem == modelList.end()) return;
-    DDEBUG_V("Master Id : %d", (*modelElem)->getMasterId());
-    int masterId = (*modelElem)->getMasterId();
-
-    ModelParamPtr model = taskParam->getModelParamById(id);
-    DDEBUG_V("Model Name : %s", model->getRName().toStdString().c_str());
-    vector<ModelMasterParamPtr> modelMasterList = TeachingDataHolder::instance()->getModelMasterList();
-    vector<ModelMasterParamPtr>::iterator masterParamItr = find_if(modelMasterList.begin(), modelMasterList.end(), ModelMasterComparator(masterId));
-    if (masterParamItr != modelMasterList.end()) {
-      ChoreonoidUtil::replaceMaster(model, *masterParamItr);
+      ModelParamPtr model = taskParam->getModelParamById(id);
+      DDEBUG_V("Model Name : %s", model->getRName().toStdString().c_str());
+      vector<ModelMasterParamPtr> modelMasterList = TeachingDataHolder::instance()->getModelMasterList();
+      vector<ModelMasterParamPtr>::iterator masterParamItr = find_if(modelMasterList.begin(), modelMasterList.end(), ModelMasterComparator(masterId));
+      if (masterParamItr != modelMasterList.end()) {
+        ChoreonoidUtil::replaceMaster(model, *masterParamItr);
+      }
     }
+  } else if (sourceNode->nodeDataModel()->name().startsWith("Flow Param")) {
+    //フローパラメータの場合
+    //FlowParameterの検索
+    vector<FlowParameterParamPtr> paramList = flv_CurrentFlow_->getActiveFlowParamList();
+    vector<FlowParameterParamPtr>::iterator paramElem = find_if(paramList.begin(), paramList.end(), FlowParameterParamComparator(sourceId));
+    if (paramElem == paramList.end()) return false;
+
+    ParameterParamPtr param = taskParam->getParameterById(id);
+    DDEBUG_V("Flow Param Type:%d, Task Param Type(id=%d):%d %s", (*paramElem)->getType(), id, param->getParamType(), param->getName().toStdString().c_str());
+    if (param->getParamType() != (*paramElem)->getType()) {
+      QMessageBox::warning(prd_, _("Flow Parameter"), _("The type of the parameter of the connection destination does not match."));
+      return false;
+    }
+    //
+    param->setFlowParam(*paramElem);
   }
+  return true;
 }
 
 void TeachingEventHandler::flv_Disconnected(QtNodes::Connection& target) {
@@ -941,26 +968,63 @@ void TeachingEventHandler::flv_Disconnected(QtNodes::Connection& target) {
   Node* sourceNode = target.getNode(PortType::Out);
   if (!sourceNode) return;
   int sourceId = sourceNode->getParamId();
+  int sourcePortIndex = target.getPortIndex(PortType::Out);
 
+  vector<ElementStmParamPtr> stateList = flv_CurrentFlow_->getStmElementList();
+  vector<ElementStmParamPtr>::iterator targetElem = find_if(stateList.begin(), stateList.end(), ElementStmParamComparator(targetId));
+  if (targetElem == stateList.end()) return;
+  TaskModelParamPtr taskParam = (*targetElem)->getTaskParam();
+  if (!taskParam) return;
+  DDEBUG_V("Task Name : %s", taskParam->getName().toStdString().c_str());
+
+  //モデルパラメータの場合
   if (sourceNode->nodeDataModel()->name() == "Model Param") {
-    vector<ElementStmParamPtr> stateList = flv_CurrentFlow_->getStmElementList();
-    vector<ElementStmParamPtr>::iterator targetElem = find_if(stateList.begin(), stateList.end(), ElementStmParamComparator(targetId));
-    if (targetElem == stateList.end()) return;
-    TaskModelParamPtr taskParam = (*targetElem)->getTaskParam();
-    if (!taskParam) return;
-    DDEBUG_V("Task Name : %s", taskParam->getName().toStdString().c_str());
-
-    ModelParamPtr model = taskParam->getModelParamById(id);
-    DDEBUG_V("Model Name : %s", model->getRName().toStdString().c_str());
-    bool isLoaded = model->isLoaded();
-    ChoreonoidUtil::unLoadModelItem(model);
-    model->restoreModelMaster();
-    if (isLoaded) {
-      ChoreonoidUtil::loadModelItem(model);
-      ChoreonoidUtil::showAllModelItem();
+    NodeDataType dataType = sourceNode->nodeDataModel()->dataType(PortType::Out, sourcePortIndex);
+    DDEBUG_V("dataType : %s", dataType.id.toStdString().c_str());
+    //モデルポートの場合
+    if (dataType.id == "modeldata") {
+      ModelParamPtr model = taskParam->getModelParamById(id);
+      DDEBUG_V("Model Name : %s", model->getRName().toStdString().c_str());
+      bool isLoaded = model->isLoaded();
+      ChoreonoidUtil::unLoadModelItem(model);
+      model->restoreModelMaster();
+      if (isLoaded) {
+        ChoreonoidUtil::loadModelItem(model);
+        ChoreonoidUtil::showAllModelItem();
+      }
     }
+  } else if (sourceNode->nodeDataModel()->name().startsWith("Flow Param")) {
+    //フローパラメータの場合
+    ParameterParamPtr param = taskParam->getParameterById(id);
+    DDEBUG_V("Task Param Type(id=%d):%d %s", id, param->getParamType(), param->getName().toStdString().c_str());
+    param->restoreParameter();
   }
   DDEBUG("TeachingEventHandler::flv_Disconnected() End");
+}
+
+void TeachingEventHandler::flv_PortDispSetting(bool isActive) {
+  if (isActive == false) {
+    QMessageBox::warning(flv_, _("Port Disp"), _("Please select target TASK"));
+    return;
+  }
+  if (!com_CurrentTask_) return;
+
+  PortDispDialog dialog(com_CurrentTask_, flv_);
+  dialog.exec();
+
+  ElementStmParamPtr targetState = 0;
+  for (ElementStmParamPtr state : flv_CurrentFlow_->getStmElementList()) {
+    TaskModelParamPtr task = state->getTaskParam();
+    if (task) {
+      if (task->getId() == com_CurrentTask_->getId()) {
+        targetState = state;
+        break;
+      }
+    }
+  }
+  if (targetState) {
+    flv_->paramInfoUpdated(targetState);
+  }
 }
 
 void TeachingEventHandler::tiv_InitPosClicked() {
@@ -1224,7 +1288,7 @@ void TeachingEventHandler::mdd_OkClicked(QString rname, int type, double posX, d
       }
     }
     if (targetState) {
-      flv_->paramInfoUpdated(com_CurrentTask_, targetState);
+      flv_->paramInfoUpdated(targetState);
     }
   }
 }
@@ -1250,16 +1314,16 @@ void TeachingEventHandler::prd_Loaded(ParameterDialog* dialog) {
 	prd_CurrentParam_ = 0;
 }
 
-void TeachingEventHandler::prd_ParamSelectionChanged(int newId, QString name, QString id, int type, QString unit, QString num, int model_id, int model_param_id, int hide) {
+void TeachingEventHandler::prd_ParamSelectionChanged(int newId, QString name, QString id, int type, int paramType, QString unit, int model_id, int model_param_id, int hide) {
   DDEBUG_V("TeachingEventHandler::prd_ParamSelectionChanged %d", newId);
 
-  prd_UpdateParam(name, id, type, unit, num, model_id, model_param_id, hide);
+  prd_UpdateParam(name, id, type, paramType, unit, model_id, model_param_id, hide);
   prd_CurrentParam_ = com_CurrentTask_->getParameterById(newId);
   prd_->updateContents(prd_CurrentParam_);
 }
 
-void TeachingEventHandler::prd_AddParamClicked(QString name, QString id, int type, QString unit, QString num, int model_id, int model_param_id, int hide) {
-  prd_UpdateParam(name, id, type, unit, num, model_id, model_param_id, hide);
+void TeachingEventHandler::prd_AddParamClicked(QString name, QString id, int type, int paramType, QString unit, int model_id, int model_param_id, int hide) {
+  prd_UpdateParam(name, id, type, paramType, unit, model_id, model_param_id, hide);
 
   ParameterParamPtr param = TeachingDataHolder::instance()->addParameter(com_CurrentTask_);
   prd_->insertParameter(param);
@@ -1271,7 +1335,10 @@ bool TeachingEventHandler::prd_DeleteParamClicked() {
 	return true;
 }
 
-bool TeachingEventHandler::prd_OkClicked(QString name, QString id, int type, QString unit, QString num, int model_id, int model_param_id, int hide) {
+bool TeachingEventHandler::prd_OkClicked(QString name, QString id, int type, int paramType, QString unit, int model_id, int model_param_id, int hide) {
+  DDEBUG("TeachingEventHandler::prd_OkClicked");
+  if (!com_CurrentTask_ || !prd_CurrentParam_) return true;
+
   for (ParameterParamPtr param : com_CurrentTask_->getParameterList()) {
     if (param->getId() == prd_CurrentParam_->getId()) continue;
     if (id == param->getRName()) {
@@ -1280,7 +1347,7 @@ bool TeachingEventHandler::prd_OkClicked(QString name, QString id, int type, QSt
     }
   }
   /////
-  prd_UpdateParam(name, id, type, unit, num, model_id, model_param_id, hide);
+  prd_UpdateParam(name, id, type, paramType, unit, model_id, model_param_id, hide);
   //
   vector<ParameterParamPtr> paramList = com_CurrentTask_->getActiveParameterList();
   for (int index = 0; index < paramList.size(); index++) {
@@ -1296,13 +1363,7 @@ bool TeachingEventHandler::prd_OkClicked(QString name, QString id, int type, QSt
     }
     //
     int type = param->getType();
-    if (type == PARAM_KIND_NORMAL) {
-      if (param->getElemNum() <= 0) {
-        QMessageBox::warning(prd_, _("Parameter"), _("Please input Element Num."));
-        return false;
-      }
-
-    } else {
+    if (type == PARAM_KIND_MODEL) {
       if (param->getModelId() < 0) continue;
       for (int idxSub = 0; idxSub < paramList.size(); idxSub++) {
         if (idxSub == index) continue;
@@ -1328,7 +1389,7 @@ bool TeachingEventHandler::prd_OkClicked(QString name, QString id, int type, QSt
       }
     }
     if (targetState) {
-      flv_->paramInfoUpdated(com_CurrentTask_, targetState);
+      flv_->paramInfoUpdated(targetState);
     }
   }
   //
@@ -1342,12 +1403,14 @@ bool TeachingEventHandler::prd_OkClicked(QString name, QString id, int type, QSt
   for (int index = 0; index < newParamList.size(); index++) {
     com_CurrentTask_->addParameter(newParamList[index]);
   }
-  prv_->setTaskParam(com_CurrentTask_);
+  prv_->setTaskParam(com_CurrentTask_, true);
+  DDEBUG("TeachingEventHandler::prd_OkClicked End");
 
   return true;
 }
 
-void TeachingEventHandler::prd_UpdateParam(QString name, QString id, int type, QString unit, QString num, int model_id, int model_param_id, int hide) {
+void TeachingEventHandler::prd_UpdateParam(QString name, QString id, int type, int paramType, QString unit, int model_id, int model_param_id, int hide) {
+  DDEBUG("TeachingEventHandler::prd_UpdateParam");
   if (prd_CurrentParam_) {
     if (prd_CurrentParam_->getName() != name) {
       prd_CurrentParam_->setName(name);
@@ -1362,12 +1425,12 @@ void TeachingEventHandler::prd_UpdateParam(QString name, QString id, int type, Q
       prd_CurrentParam_->setHide(hide);
     }
     //
-    if (type == 0) {
+    if (type == PARAM_KIND_NORMAL) {
       if (prd_CurrentParam_->getUnit() != unit) {
         prd_CurrentParam_->setUnit(unit);
       }
-      if (prd_CurrentParam_->getElemNum() != num.toInt()) {
-        prd_CurrentParam_->setElemNum(num.toInt());
+      if (prd_CurrentParam_->getParamType() != paramType) {
+        prd_CurrentParam_->setParamType(paramType);
       }
       if (prd_CurrentParam_->getModelId() != NULL_ID) {
         prd_CurrentParam_->setModelId(NULL_ID);
@@ -1386,11 +1449,12 @@ void TeachingEventHandler::prd_UpdateParam(QString name, QString id, int type, Q
       if (prd_CurrentParam_->getUnit().length() != 0) {
         prd_CurrentParam_->setUnit("");
       }
-      if (prd_CurrentParam_->getElemNum() != 6) {
-        prd_CurrentParam_->setElemNum(6);
+      if (prd_CurrentParam_->getParamType() != PARAM_TYPE_FRAME) {
+        prd_CurrentParam_->setParamType(PARAM_TYPE_FRAME);
       }
     }
   }
+  DDEBUG("TeachingEventHandler::prd_UpdateParam End");
 }
 
 void TeachingEventHandler::prd_ModelTableSelectionChanged(int selectedId) {
@@ -1679,12 +1743,6 @@ bool TeachingEventHandler::agd_OKClicked(QString strName, QString strAct, QStrin
 			if (targetParam == NULL) {
 				errorMsg << "[" << param->getName().toStdString() << "] " << "target parameter [" << targetStr.toStdString() << "] NOT Exists." << std::endl;
 				existError = true;
-			} else {
-				if (targetParam->getElemNum() < argDef->getLength()) {
-					DDEBUG_V("%d, %d", targetParam->getElemNum(), argDef->getLength());
-					errorMsg << "[" << param->getName().toStdString() << "] " << "target parameter [" << targetStr.toStdString() << "] NUM Error." << std::endl;
-					existError = true;
-				}
 			}
 
 		} else {
@@ -1755,7 +1813,7 @@ void TeachingEventHandler::unloadTaskModelItems() {
 
 }
 
-void TeachingEventHandler::updateComViews(TaskModelParamPtr targetTask) {
+void TeachingEventHandler::updateComViews(TaskModelParamPtr targetTask, bool canEdit) {
 	DDEBUG("TeachingEventHandler::updateComViews()");
 
 	TeachingUtil::loadTaskDetailData(targetTask);
@@ -1763,7 +1821,7 @@ void TeachingEventHandler::updateComViews(TaskModelParamPtr targetTask) {
 
 	mdv_->setTaskParam(targetTask);
 	stv_->setTaskParam(targetTask);
-	prv_->setTaskParam(targetTask);
+	prv_->setTaskParam(targetTask, canEdit);
 
 	//即更新を行うとエラーになってしまうため
 	if (isUpdateTree) {

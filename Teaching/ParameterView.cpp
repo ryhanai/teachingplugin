@@ -88,7 +88,8 @@ void ModelParameterGroup::disconnectKinematics() {
   }
 }
 /////
- ParameterViewImpl::ParameterViewImpl(QWidget* parent) : btnEdit(0), QWidget(parent) {
+ ParameterViewImpl::ParameterViewImpl(QWidget* parent)
+   : btnEdit(0), canEdit_(true), QWidget(parent) {
 	TeachingEventHandler::instance()->prv_Loaded(this);
 }
  
@@ -96,10 +97,11 @@ void ModelParameterGroup::disconnectKinematics() {
    DDEBUG("ParameterViewImpl Destruct");
  }
 
- void ParameterViewImpl::setTaskParam(TaskModelParamPtr param) {
+ void ParameterViewImpl::setTaskParam(TaskModelParamPtr param, bool canEdit) {
   DDEBUG_V("ParameterViewImpl::setTaskParam() %d", param->getId());
 
 	clearView();
+  this->canEdit_ = canEdit;
   //
   QFrame* topFrame = new QFrame(this);
   frameList_.push_back(topFrame);
@@ -113,7 +115,7 @@ void ModelParameterGroup::disconnectKinematics() {
   btnEdit = new QPushButton(_("Edit"));
   btnEdit->setIcon(QIcon(":/Teaching/icons/Settings.png"));
   btnEdit->setToolTip(_("Edit Parameters"));
-  btnEdit->setEnabled(TeachingEventHandler::instance()->canEdit());
+  btnEdit->setEnabled(TeachingEventHandler::instance()->canEdit() && this->canEdit_);
 
   topLayout->addWidget(btnEdit);
   connect(btnEdit, SIGNAL(clicked()), this, SLOT(editClicked()));
@@ -127,6 +129,7 @@ void ModelParameterGroup::disconnectKinematics() {
     (*itParam)->clearControlList();
     QFrame* eachFrame = new QFrame(this);
     if ((*itParam)->getType() == PARAM_KIND_MODEL) eachFrame->setVisible(false);
+    eachFrame->setEnabled(canEdit);
     frameList_.push_back(eachFrame);
     QHBoxLayout* eachLayout = new QHBoxLayout;
     eachLayout->setContentsMargins(0, 0, 0, 0);
@@ -152,7 +155,9 @@ void ModelParameterGroup::disconnectKinematics() {
       }
 
     } else {
-      int elem_num = (*itParam)->getElemNum();
+      int elem_num = 1;
+      DDEBUG_V("ParamType: %d", (*itParam)->getParamType());
+      if ((*itParam)->getParamType() == PARAM_TYPE_FRAME) elem_num = 6;
       for (int index = 0; index < elem_num; index++) {
         QLineEdit* txtEach;
         if (index < (*itParam)->getControlNum()) {
@@ -225,7 +230,7 @@ void ParameterViewImpl::editClicked() {
 
 void ParameterViewImpl::setEditMode(bool canEdit) {
   if (btnEdit) {
-    btnEdit->setEnabled(canEdit);
+    btnEdit->setEnabled(canEdit && this->canEdit_);
   }
 }
 /////

@@ -47,9 +47,8 @@ std::string evaluator::operator()(FunCallNodeSp const& node) const {
 }
 
 /////
-MemberParam::MemberParam(NodeType type, std::string source, TaskModelParamPtr targetModel, FlowParamPtr targetFlow)
+MemberParam::MemberParam(NodeType type, std::string source, TaskModelParamPtr targetModel)
   : nodeType_(type), source_(source), valueVector6d_(6) {
-  targetFlow_ = targetFlow;
   targetModel_ = targetModel;
 }
 
@@ -77,7 +76,10 @@ bool MemberParam::calcBinOpe(MemberParam* lhs, MemberParam* rhs) {
 
 		} else if (leftNode == VAL_VECTOR_6D && rightNode == VAL_VECTOR_6D) {
 			valueVector6d_ = lhs->getValueVector6d() + rhs->getValueVector6d();
-			valMode_ = VAL_VECTOR_6D;
+      DDEBUG_V("MemberParam::calcBinOpe lhs : %f %f %f %f %f %f", lhs->getValueVector6d()[0], lhs->getValueVector6d()[1], lhs->getValueVector6d()[2], lhs->getValueVector6d()[3], lhs->getValueVector6d()[4], lhs->getValueVector6d()[5]);
+      DDEBUG_V("MemberParam::calcBinOpe rhs : %f %f %f %f %f %f", rhs->getValueVector6d()[0], rhs->getValueVector6d()[1], rhs->getValueVector6d()[2], rhs->getValueVector6d()[3], rhs->getValueVector6d()[4], rhs->getValueVector6d()[5]);
+      DDEBUG_V("MemberParam::calcBinOpe 6d : %f %f %f %f %f %f", valueVector6d_[0], valueVector6d_[1], valueVector6d_[2], valueVector6d_[3], valueVector6d_[4], valueVector6d_[5]);
+      valMode_ = VAL_VECTOR_6D;
 			return true;
 		}
 
@@ -209,71 +211,52 @@ bool MemberParam::parseVector6d(MemberParam* elem01, MemberParam* elem02, Member
 bool MemberParam::parseVariable(bool isSub) {
 	DDEBUG_V("MemberParam::parseVariable source:%s", source_.c_str());
 	QString paramName = QString::fromStdString(source_);
-  //
-  //TODO FlowParamの場合
-  if (this->targetFlow_) {
-    vector<FlowParameterParamPtr> paramList = targetFlow_->getFlowParamList();
-    vector<FlowParameterParamPtr>::iterator targetParam = find_if(paramList.begin(), paramList.end(), FlowParameterParamByNameComparator(paramName));
-    if (targetParam == paramList.end()) return false;
-    //
-    QString strValue = (*targetParam)->getValue();
-    QStringList valList = strValue.split(",");
-    if (valList.size() == 1) {
-      valueScalar_ = strValue.toDouble();
-      valMode_ = VAL_SCALAR;
-
-    } else if (valList.size() == 3) {
-      valueVector3d_[0] = valList[0].toDouble();
-      valueVector3d_[1] = valList[1].toDouble();
-      valueVector3d_[2] = valList[2].toDouble();
-      valMode_ = VAL_VECTOR_3D;
-
-    } else if (valList.size() == 6) {
-      valueVector6d_[0] = valList[0].toDouble();
-      valueVector6d_[1] = valList[1].toDouble();
-      valueVector6d_[2] = valList[2].toDouble();
-      valueVector6d_[3] = valList[3].toDouble();
-      valueVector6d_[4] = valList[4].toDouble();
-      valueVector6d_[5] = valList[5].toDouble();
-      valMode_ = VAL_VECTOR_6D;
-    }
-    return true;
-  }
-
   DDEBUG("MemberParam::parseVariable : Param");
   //モデルの検索
-  QString modelName = paramName;
   QString featureName;
-  if (paramName.contains(".")) {
-    DDEBUG("MemberParam::parseVariable : ModelFeature");
-    QStringList modelList = paramName.split(".");
-    if (modelList.size() != 2) return false;
-    modelName = modelList[0];
-    featureName = modelList[1];
-    DDEBUG_V("MemberParam::parseVariable : Model : %s, Feature : %s", modelName.toStdString().c_str(), featureName.toStdString().c_str());
-  }
   vector<ModelParamPtr> modelList = targetModel_->getActiveModelList();
-  std::vector<ModelParamPtr>::iterator model = std::find_if(modelList.begin(), modelList.end(), ModelParamComparatorByRName(modelName));
+  std::vector<ModelParamPtr>::iterator model = std::find_if(modelList.begin(), modelList.end(), ModelParamComparatorByRName(paramName));
   if (model != modelList.end()) {
-    if (paramName.contains(".") == false) {
-      DDEBUG("MemberParam::parseVariable : ModelParam");
-      valueVector6d_[0] = (*model)->getPosX();
-      valueVector6d_[1] = (*model)->getPosY();
-      valueVector6d_[2] = (*model)->getPosZ();
-      valueVector6d_[3] = (*model)->getRotRx();
-      valueVector6d_[4] = (*model)->getRotRy();
-      valueVector6d_[5] = (*model)->getRotRz();
-      valMode_ = VAL_VECTOR_6D;
-      return true;
+    DDEBUG("MemberParam::parseVariable : ModelParam");
+    valueVector6d_[0] = (*model)->getPosX();
+    valueVector6d_[1] = (*model)->getPosY();
+    valueVector6d_[2] = (*model)->getPosZ();
+    valueVector6d_[3] = (*model)->getRotRx();
+    valueVector6d_[4] = (*model)->getRotRy();
+    valueVector6d_[5] = (*model)->getRotRz();
+    valMode_ = VAL_VECTOR_6D;
+    return true;
+  }
+  //パラメータの検索
+  vector<ParameterParamPtr> paramList = targetModel_->getActiveParameterList();
+  vector<ParameterParamPtr>::iterator targetParam = find_if(paramList.begin(), paramList.end(), ParameterParamComparatorByRName(paramName));
+  if (targetParam == paramList.end()) return false;
+  DDEBUG_V("type:%d, model_param_id:%d", (*targetParam)->getType(), (*targetParam)->getModelParamId());
+  //
+  if ((*targetParam)->getParamType() == PARAM_TYPE_FRAME) {
+    if ((*targetParam)->getType()==PARAM_KIND_NORMAL || (*targetParam)->getModelParamId() == NULL_ID) {
+      valueVector6d_[0] = (*targetParam)->getNumValuesForCalc(0);
+      valueVector6d_[1] = (*targetParam)->getNumValuesForCalc(1);
+      valueVector6d_[2] = (*targetParam)->getNumValuesForCalc(2);
+      valueVector6d_[3] = (*targetParam)->getNumValuesForCalc(3);
+      valueVector6d_[4] = (*targetParam)->getNumValuesForCalc(4);
+      valueVector6d_[5] = (*targetParam)->getNumValuesForCalc(5);
 
     } else {
+      int model_id = (*targetParam)->getModelId();
+      vector<ModelParamPtr> modelList = targetModel_->getActiveModelList();
+      std::vector<ModelParamPtr>::iterator model = std::find_if(modelList.begin(), modelList.end(), ModelParamComparator(model_id));
+      if (model == modelList.end()) return false;
+
+      int feature_id = (*targetParam)->getModelParamId();
+
       ModelMasterParamPtr master = (*model)->getModelMaster();
       vector<ModelParameterParamPtr> masterParamList = master->getModelParameterList();
-      vector<ModelParameterParamPtr>::iterator masterParamItr = find_if(masterParamList.begin(), masterParamList.end(), ModelMasterParamComparatorByName(featureName));
+      vector<ModelParameterParamPtr>::iterator masterParamItr = find_if(masterParamList.begin(), masterParamList.end(), ModelMasterParamComparator(feature_id));
       if (masterParamItr == masterParamList.end()) return false;
       QString desc = (*masterParamItr)->getValueDesc();
       DDEBUG_V("MemberParam::parseVariable : Model Param=%s", desc.toStdString().c_str());
-      desc = desc.replace("origin", modelName);
+      desc = desc.replace("origin", (*model)->getRName());
       DDEBUG_V("MemberParam::parseVariable : Model Param Rep=%s", desc.toStdString().c_str());
       Calculator* calc = new Calculator();
       //再計算しないようにisSubをTrueに設定
@@ -283,39 +266,15 @@ bool MemberParam::parseVariable(bool isSub) {
         return false;
       }
       valueVector6d_ = calc->getResultVector6d();
-      valMode_ = VAL_VECTOR_6D;
       delete calc;
       DDEBUG_V("MemberParam::parseVariable : Calc End %f, %f, %f, %f, %f, %f", valueVector6d_[0], valueVector6d_[1], valueVector6d_[2], valueVector6d_[3], valueVector6d_[4], valueVector6d_[5]);
-      return true;
     }
-  }
-
-  DDEBUG("MemberParam::parseVariable : NormalParam");
-
-  //パラメータの検索
-  vector<ParameterParamPtr> paramList = targetModel_->getActiveParameterList();
-  vector<ParameterParamPtr>::iterator targetParam = find_if(paramList.begin(), paramList.end(), ParameterParamComparatorByRName(paramName));
-  if (targetParam == paramList.end()) return false;
-  //
-  if ((*targetParam)->getElemNum() == 1) {
-    valueScalar_ = (*targetParam)->getNumValues(0);
-    valMode_ = VAL_SCALAR;
-
-  } else if ((*targetParam)->getElemNum() == 3) {
-    valueVector3d_[0] = (*targetParam)->getNumValues(0);
-    valueVector3d_[1] = (*targetParam)->getNumValues(1);
-    valueVector3d_[2] = (*targetParam)->getNumValues(2);
-    valMode_ = VAL_VECTOR_3D;
-
-  } else if ((*targetParam)->getElemNum() == 6) {
-    valueVector6d_[0] = (*targetParam)->getNumValues(0);
-    valueVector6d_[1] = (*targetParam)->getNumValues(1);
-    valueVector6d_[2] = (*targetParam)->getNumValues(2);
-    valueVector6d_[3] = (*targetParam)->getNumValues(3);
-    valueVector6d_[4] = (*targetParam)->getNumValues(4);
-    valueVector6d_[5] = (*targetParam)->getNumValues(5);
-
     valMode_ = VAL_VECTOR_6D;
+
+  } else {
+    valueScalar_ = (*targetParam)->getNumValuesForCalc(0);
+    DDEBUG_V("MemberParam::parseVariable : SCALA : %f", valueScalar_);
+    valMode_ = VAL_SCALAR;
   }
 
   return true;
@@ -553,7 +512,7 @@ int Calculator::extractNodeInfo(const Node& source) {
     {
       ValueNodeSp val = boost::get<ValueNodeSp>(source);
       std::string strVal = boost::lexical_cast<std::string>(val->v_);
-      memberList_.push_back(new MemberParam(TYPE_VALUE, strVal, targetModel_, targetFlow_));
+      memberList_.push_back(new MemberParam(TYPE_VALUE, strVal, targetModel_));
       ret = memberList_.size() - 1;
       break;
     }
@@ -567,7 +526,7 @@ int Calculator::extractNodeInfo(const Node& source) {
       std::string strY = boost::apply_visitor(evaluator(), nodeY);
       Node nodeZ = val->z_;
       std::string strZ = boost::apply_visitor(evaluator(), nodeZ);
-      MemberParam* member = new MemberParam(TYPE_VECTOR, "[" + strX + "," + strY + "," + strZ + "]", targetModel_, targetFlow_);
+      MemberParam* member = new MemberParam(TYPE_VECTOR, "[" + strX + "," + strY + "," + strZ + "]", targetModel_);
       member->arg01_ = strX;
       member->arg02_ = strY;
       member->arg03_ = strZ;
@@ -602,7 +561,7 @@ int Calculator::extractNodeInfo(const Node& source) {
 			Node nodeRZ = val->Rz_;
 			std::string strRZ = boost::apply_visitor(evaluator(), nodeRZ);
 
-			MemberParam* member = new MemberParam(TYPE_VECTOR6, "[" + strX + "," + strY + "," + strZ + "," + strRX + "," + strRY + "," + strRZ + "]", targetModel_, targetFlow_);
+			MemberParam* member = new MemberParam(TYPE_VECTOR6, "[" + strX + "," + strY + "," + strZ + "," + strRX + "," + strRY + "," + strRZ + "]", targetModel_);
 			member->arg01_ = strX;
 			member->arg02_ = strY;
 			member->arg03_ = strZ;
@@ -646,7 +605,7 @@ int Calculator::extractNodeInfo(const Node& source) {
       Node rhs = val->rhs_;
       std::string strRhs = boost::apply_visitor(evaluator(), rhs);
       std::string strOpe = val->op_;
-      MemberParam* member = new MemberParam(TYPE_BIN_OPE, strLhs + strOpe + strRhs, targetModel_, targetFlow_);
+      MemberParam* member = new MemberParam(TYPE_BIN_OPE, strLhs + strOpe + strRhs, targetModel_);
       member->arg01_ = strLhs;
       member->arg02_ = strRhs;
       member->arg03_ = strOpe;
@@ -666,7 +625,7 @@ int Calculator::extractNodeInfo(const Node& source) {
     {
       VariableNodeSp val = boost::get<VariableNodeSp>(source);
       std::string strVal = boost::lexical_cast<std::string>(val->nm_);
-      memberList_.push_back(new MemberParam(TYPE_VARIABLE, strVal, targetModel_, targetFlow_));
+      memberList_.push_back(new MemberParam(TYPE_VARIABLE, strVal, targetModel_));
       ret = memberList_.size() - 1;
       break;
     }
@@ -678,7 +637,7 @@ int Calculator::extractNodeInfo(const Node& source) {
       std::string strFunc = boost::apply_visitor(evaluator(), func);
       Node args = val->args_;
       std::string strArgs = boost::apply_visitor(evaluator(), args);
-      MemberParam* member = new MemberParam(TYPE_FUNC, strFunc + "(" + strArgs + ")", targetModel_, targetFlow_);
+      MemberParam* member = new MemberParam(TYPE_FUNC, strFunc + "(" + strArgs + ")", targetModel_);
       member->arg01_ = strFunc;
       member->arg02_ = strArgs;
       memberList_.push_back(member);

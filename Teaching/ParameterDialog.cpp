@@ -19,17 +19,17 @@ ParameterDialog::ParameterDialog(QWidget* parent)
   lstModelParam = UIUtil::makeTableWidget(2, true);
   lstModelParam->setColumnWidth(0, 70);
   lstModelParam->setColumnWidth(1, 200);
-  lstModelParam->setHorizontalHeaderLabels(QStringList() << "Name" << "Definition");
+  lstModelParam->setHorizontalHeaderLabels(QStringList() << "Feature Name" << "Definition");
   //
   lstParam = UIUtil::makeTableWidget(7, false);
   lstParam->setColumnWidth(0, 30);
   lstParam->setColumnWidth(1, 200);
-  lstParam->setColumnWidth(2, 50);
-  lstParam->setColumnWidth(3, 100);
-  lstParam->setColumnWidth(4, 100);
+  lstParam->setColumnWidth(2, 60);
+  lstParam->setColumnWidth(3, 80);
+  lstParam->setColumnWidth(4, 80);
   lstParam->setColumnWidth(5, 80);
-  lstParam->setColumnWidth(6, 50);
-  lstParam->setHorizontalHeaderLabels(QStringList() << "" << "Name" << "Type" << "Model" << "Model Param" << "Unit" << "Num");
+  lstParam->setColumnWidth(6, 90);
+  lstParam->setHorizontalHeaderLabels(QStringList() << "" << "Name" << "Type" << "ParamType" << "Model" << "Model Param" << "Unit");
 
   QPushButton* btnAddParam = new QPushButton(_("Add"));
   btnAddParam->setIcon(QIcon(":/Teaching/icons/Plus.png"));
@@ -58,6 +58,13 @@ ParameterDialog::ParameterDialog(QWidget* parent)
   cmbType->addItem("Normal");
   cmbType->addItem("Model");
 
+  QLabel* lblParamType = new QLabel(_("Type:"));
+  cmbParamType = new QComboBox(this);
+  cmbParamType->addItem("Integer");
+  cmbParamType->addItem("Double");
+  cmbParamType->addItem("String");
+  cmbParamType->addItem("Frame");
+
   QLabel* lblModel = new QLabel(_("Model Name:"));
   cmbModelName = new QComboBox;
   cmbModelName->addItem("");
@@ -68,8 +75,6 @@ ParameterDialog::ParameterDialog(QWidget* parent)
 
   QLabel* lblUnit = new QLabel(_("Unit:"));
   leUnit = new QLineEdit;
-  QLabel* lblNum = new QLabel(_("Num:"));
-  leNum = new QLineEdit;
 	QLabel* lblVisibility = new QLabel(_("Visibility:"));
 	cmbHide = new QComboBox(this);
 	cmbHide->addItem("public");
@@ -87,14 +92,14 @@ ParameterDialog::ParameterDialog(QWidget* parent)
   paramLayout->addWidget(leId, 3, 1, 1, 1);
   paramLayout->addWidget(lblType, 4, 0, 1, 1, Qt::AlignRight);
   paramLayout->addWidget(cmbType, 4, 1, 1, 1);
-  paramLayout->addWidget(lblModel, 5, 0, 1, 1, Qt::AlignRight);
-  paramLayout->addWidget(cmbModelName, 5, 1, 1, 1);
-  paramLayout->addWidget(lblModelParam, 6, 0, 1, 1, Qt::AlignRight);
-  paramLayout->addWidget(cmbModelParamName, 6, 1, 1, 1);
-  paramLayout->addWidget(lblUnit, 7, 0, 1, 1, Qt::AlignRight);
-  paramLayout->addWidget(leUnit, 7, 1, 1, 1);
-  paramLayout->addWidget(lblNum, 8, 0, 1, 1, Qt::AlignRight);
-  paramLayout->addWidget(leNum, 8, 1, 1, 1);
+  paramLayout->addWidget(lblParamType, 5, 0, 1, 1, Qt::AlignRight);
+  paramLayout->addWidget(cmbParamType, 5, 1, 1, 1);
+  paramLayout->addWidget(lblModel, 6, 0, 1, 1, Qt::AlignRight);
+  paramLayout->addWidget(cmbModelName, 6, 1, 1, 1);
+  paramLayout->addWidget(lblModelParam, 7, 0, 1, 1, Qt::AlignRight);
+  paramLayout->addWidget(cmbModelParamName, 7, 1, 1, 1);
+  paramLayout->addWidget(lblUnit, 8, 0, 1, 1, Qt::AlignRight);
+  paramLayout->addWidget(leUnit, 8, 1, 1, 1);
   paramLayout->addWidget(lblVisibility, 9, 0, 1, 1, Qt::AlignRight);
   paramLayout->addWidget(cmbHide, 9, 1, 1, 1);
   //
@@ -181,10 +186,10 @@ void ParameterDialog::showParamInfo(const vector<ParameterParamPtr>& paramList) 
     UIUtil::makeTableItemWithData(lstParam, row, 0, visibility, param->getId());
     UIUtil::makeTableItemWithData(lstParam, row, 1, param->getName(), param->getId());
     UIUtil::makeTableItemWithData(lstParam, row, 2, UIUtil::getTypeName(param->getType()), param->getId());
+    UIUtil::makeTableItemWithData(lstParam, row, 3, UIUtil::getParamTypeName(param->getParamType()), param->getId());
     QString strModel = "";
     QString strModelParam = "";
     QString strUnit = "";
-    QString strElemNum = "";
     if (param->getType() == PARAM_KIND_MODEL) {
       for (int index = 0; index < cmbModelName->count(); index++) {
         if (param->getModelId() == cmbModelName->itemData(index).toInt()) {
@@ -201,12 +206,10 @@ void ParameterDialog::showParamInfo(const vector<ParameterParamPtr>& paramList) 
       }
     } else {
       strUnit = param->getUnit();
-      strElemNum = QString::number(param->getElemNum());
     }
-    UIUtil::makeTableItemWithData(lstParam, row, 3, strModel, param->getId());
-    UIUtil::makeTableItemWithData(lstParam, row, 4, strModelParam, param->getId());
-    UIUtil::makeTableItemWithData(lstParam, row, 5, strUnit, param->getId());
-    UIUtil::makeTableItemWithData(lstParam, row, 6, strElemNum, param->getId());
+    UIUtil::makeTableItemWithData(lstParam, row, 4, strModel, param->getId());
+    UIUtil::makeTableItemWithData(lstParam, row, 5, strModelParam, param->getId());
+    UIUtil::makeTableItemWithData(lstParam, row, 6, strUnit, param->getId());
   }
 }
 
@@ -221,11 +224,13 @@ void ParameterDialog::updateContents(const ParameterParamPtr& param) {
   leId->setText(param->getRName());
   cmbHide->setCurrentIndex(param->getHide());
   cmbType->setCurrentIndex(param->getType());
+  cmbParamType->setCurrentIndex(param->getParamType() - 1);
   typeSelectionChanged(param->getType());
-  if (param->getType() == 0) {
+
+  if (param->getType() == PARAM_KIND_NORMAL) {
     cmbModelName->setCurrentIndex(0);
     leUnit->setText(param->getUnit());
-    leNum->setText(QString::number(param->getElemNum()));
+
   } else {
     for (int index = 0; index < cmbModelName->count(); index++) {
       if (param->getModelId() == cmbModelName->itemData(index).toInt()) {
@@ -240,7 +245,6 @@ void ParameterDialog::updateContents(const ParameterParamPtr& param) {
       }
     }
     leUnit->setText("");
-    leNum->setText("");
   }
 }
 
@@ -251,7 +255,10 @@ void ParameterDialog::paramSelectionChanged() {
   QString strId = leId->text();
   int type = cmbType->currentIndex();
   QString strUnit = leUnit->text();
-  QString strNum = leNum->text();
+  int paramType = cmbParamType->currentIndex() + 1;
+  if (type == PARAM_KIND_MODEL) {
+    paramType = PARAM_TYPE_FRAME;
+  }
   QString strModel = cmbModelName->currentText();
   int modelId = NULL_ID;
   if (0 < cmbModelName->count()) {
@@ -272,15 +279,14 @@ void ParameterDialog::paramSelectionChanged() {
     lstParam->item(currentRowIndex_, 0)->setText(visibility);
     lstParam->item(currentRowIndex_, 1)->setText(strName);
     lstParam->item(currentRowIndex_, 2)->setText(UIUtil::getTypeName(type));
+    lstParam->item(currentRowIndex_, 3)->setText(UIUtil::getParamTypeName(paramType));
     if (type == 0) {
-      lstParam->item(currentRowIndex_, 3)->setText("");
       lstParam->item(currentRowIndex_, 4)->setText("");
-      lstParam->item(currentRowIndex_, 5)->setText(strUnit);
-      lstParam->item(currentRowIndex_, 6)->setText(strNum);
-    } else {
-      lstParam->item(currentRowIndex_, 3)->setText(strModel);
-      lstParam->item(currentRowIndex_, 4)->setText(strModelParam);
       lstParam->item(currentRowIndex_, 5)->setText("");
+      lstParam->item(currentRowIndex_, 6)->setText(strUnit);
+    } else {
+      lstParam->item(currentRowIndex_, 4)->setText(strModel);
+      lstParam->item(currentRowIndex_, 5)->setText(strModelParam);
       lstParam->item(currentRowIndex_, 6)->setText("");
     }
   }
@@ -290,7 +296,7 @@ void ParameterDialog::paramSelectionChanged() {
   if (item == 0) return;
   int selected = item->data(Qt::UserRole).toInt();
 
-  TeachingEventHandler::instance()->prd_ParamSelectionChanged(selected, strName, strId, type, strUnit, strNum, modelId, modelParamId, hide);
+  TeachingEventHandler::instance()->prd_ParamSelectionChanged(selected, strName, strId, type, paramType, strUnit, modelId, modelParamId, hide);
 }
 
 void ParameterDialog::insertParameter(const ParameterParamPtr& param) {
@@ -307,10 +313,10 @@ void ParameterDialog::insertParameter(const ParameterParamPtr& param) {
   UIUtil::makeTableItemWithData(lstParam, row, 0, visibility, param->getId());
   UIUtil::makeTableItemWithData(lstParam, row, 1, param->getName(), param->getId());
   UIUtil::makeTableItemWithData(lstParam, row, 2, UIUtil::getTypeName(param->getType()), param->getId());
-  UIUtil::makeTableItemWithData(lstParam, row, 3, QString::fromLatin1(""), param->getId());
+  UIUtil::makeTableItemWithData(lstParam, row, 3, UIUtil::getParamTypeName(param->getParamType()), param->getId());
   UIUtil::makeTableItemWithData(lstParam, row, 4, QString::fromLatin1(""), param->getId());
-  UIUtil::makeTableItemWithData(lstParam, row, 5, param->getUnit(), param->getId());
-  UIUtil::makeTableItemWithData(lstParam, row, 6, QString::number(param->getElemNum()), param->getId());
+  UIUtil::makeTableItemWithData(lstParam, row, 5, QString::fromLatin1(""), param->getId());
+  UIUtil::makeTableItemWithData(lstParam, row, 6, param->getUnit(), param->getId());
   lstParam->setCurrentCell(row, 0);
 }
 
@@ -321,8 +327,8 @@ void ParameterDialog::addParamClicked() {
     leName->text(),
     leId->text(),
     cmbType->currentIndex(),
+    cmbParamType->currentIndex() + 1,
     leUnit->text(),
-    leNum->text(),
     cmbModelName->currentData().toInt(),
     cmbModelParamName->currentData().toInt(),
     cmbHide->currentIndex());
@@ -336,9 +342,9 @@ void ParameterDialog::deleteParamClicked() {
   leName->setText("");
   leId->setText("");
   cmbType->setCurrentIndex(0);
+  cmbParamType->setCurrentIndex(0);
   cmbModelName->setCurrentIndex(0);
   leUnit->setText("");
-  leNum->setText("");
   cmbHide->setCurrentIndex(0);
   currentRowIndex_ = -1;
 
@@ -349,12 +355,16 @@ void ParameterDialog::deleteParamClicked() {
 
 void ParameterDialog::oKClicked() {
   DDEBUG("ParameterDialog::oKClicked()");
+  int type = cmbType->currentIndex();
+  int paramType = cmbParamType->currentIndex() + 1;
+  if (type == PARAM_KIND_MODEL) {
+    paramType = PARAM_TYPE_FRAME;
+  }
+
   bool ret = TeachingEventHandler::instance()->prd_OkClicked(
-    leName->text(),
-    leId->text(),
-    cmbType->currentIndex(),
+    leName->text(), leId->text(),
+    type, paramType,
     leUnit->text(),
-    leNum->text(),
     cmbModelName->currentData().toInt(),
     cmbModelParamName->currentData().toInt(),
     cmbHide->currentIndex());
@@ -392,11 +402,11 @@ void ParameterDialog::typeSelectionChanged(int index) {
   if (index == 0) {
     cmbModelName->setEnabled(false);
     leUnit->setEnabled(true);
-    leNum->setEnabled(true);
+    cmbParamType->setEnabled(true);
   } else {
     cmbModelName->setEnabled(true);
     leUnit->setEnabled(false);
-    leNum->setEnabled(false);
+    cmbParamType->setEnabled(false);
   }
 }
 

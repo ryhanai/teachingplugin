@@ -509,7 +509,7 @@ void TaskExecuteManager::prepareTask() {
 
 	this->metadataView->setTaskParam(currentTask_);
 	this->statemachineView_->setTaskParam(currentTask_);
-	this->parameterView_->setTaskParam(currentTask_);
+	this->parameterView_->setTaskParam(currentTask_, true);
   if (isUpdateTree) {
     ChoreonoidUtil::showAllModelItem();
   }

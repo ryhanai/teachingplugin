@@ -61,8 +61,9 @@ public:
 	void flv_InitPosClicked();
   void flv_EditClicked(ElementStmParamPtr target);
   void flv_ModelParamChanged(int flowModelId, ModelMasterParamPtr masterParam);
-  void flv_Connected(QtNodes::Connection& target);
+  bool flv_Connected(QtNodes::Connection& target);
   void flv_Disconnected(QtNodes::Connection& target);
+  void flv_PortDispSetting(bool isActive);
 
 	//MetaDataView
 	void mdv_Loaded(MetaDataViewImpl* view);
@@ -103,10 +104,10 @@ public:
 
 	//ParameterDialog
 	void prd_Loaded(ParameterDialog* dialog);
-  void prd_ParamSelectionChanged(int newId, QString name, QString id, int type, QString unit, QString num, int model_id, int model_param_id, int hide);
-  void prd_AddParamClicked(QString name, QString id, int type, QString unit, QString num, int model_id, int model_param_id, int hide);
+  void prd_ParamSelectionChanged(int newId, QString name, QString id, int type, int paramType, QString unit, int model_id, int model_param_id, int hide);
+  void prd_AddParamClicked(QString name, QString id, int type, int paramType, QString unit, int model_id, int model_param_id, int hide);
 	bool prd_DeleteParamClicked();
-  bool prd_OkClicked(QString name, QString id, int type, QString unit, QString num, int model_id, int model_param_id, int hide);
+  bool prd_OkClicked(QString name, QString id, int type, int paramType, QString unit, int model_id, int model_param_id, int hide);
   void prd_ModelTableSelectionChanged(int selectedId);
   vector<ModelParameterParamPtr> prd_ModelSelectionChanged(int selectedId);
 
@@ -224,10 +225,10 @@ private:
   bool canEdit_;
 
 	//ParameterDialog
-  void prd_UpdateParam(QString name, QString id, int type, QString unit, QString num, int model_id, int model_param_id, int hide);
+  void prd_UpdateParam(QString name, QString id, int type, int paramType, QString unit, int model_id, int model_param_id, int hide);
 
 	void unloadTaskModelItems();
-	void updateComViews(TaskModelParamPtr targetTask);
+	void updateComViews(TaskModelParamPtr targetTask, bool canEdit=true);
 
   cnoid::Connection connectionToEditStateChanged;
   cnoid::LazyCaller updateEditStateLater;

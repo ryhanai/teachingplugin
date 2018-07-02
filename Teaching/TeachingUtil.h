@@ -48,6 +48,7 @@ public:
   static QTableWidgetItem* makeTableItem(QTableWidget* table, int rowNo, int colNo, const QString& text);
   static QTableWidgetItem* makeTableItemWithData(QTableWidget* table, int rowNo, int colNo, const QString& text, int data);
   static QString getTypeName(int source);
+  static QString getParamTypeName(int source);
 };
 /////
 class SettingManager {

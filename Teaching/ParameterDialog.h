@@ -43,8 +43,8 @@ private:
   QComboBox* cmbType;
   QComboBox* cmbModelName;
   QComboBox* cmbModelParamName;
+  QComboBox* cmbParamType;
   QLineEdit* leUnit;
-  QLineEdit* leNum;
 	QComboBox* cmbHide;
 
   int currentRowIndex_;

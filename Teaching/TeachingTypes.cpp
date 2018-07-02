@@ -58,10 +58,6 @@ void ElementStmParam::updatePos() {
 	posX_ = realElem_->nodeGraphicsObject().pos().x();
 	posY_ = realElem_->nodeGraphicsObject().pos().y();
 
-  if (taskParam_) {
-    taskParam_->initFlowParam();
-  }
-
 	setUpdate();
 }
 
@@ -250,10 +246,11 @@ void ParameterParam::updateOutValues() {
 }
 
 ParameterParam::ParameterParam(ParameterParam* source)
-  : type_(source->type_), elem_num_(source->elem_num_), parent_id_(source->parent_id_),
+  : type_(source->type_), param_type_(source->param_type_), parent_id_(source->parent_id_),
 		name_(source->name_),	rname_(source->rname_), unit_(source->unit_),
     model_id_(source->model_id_), model_param_id_(source->model_param_id_),
-    hide_(source->hide_), flowParam_(source->flowParam_), valueParam_(source->valueParam_),
+    hide_(source->hide_), valueParam_(source->valueParam_),
+    flowParam_(source->flowParam_), flowParamParam_(source->flowParamParam_),
 	  DatabaseParam(source) {
 	DDEBUG("ParameterParam copy");
 }
@@ -263,18 +260,16 @@ ParameterParam::~ParameterParam() {
 }
 
 void ParameterParam::setFlowParam(FlowParameterParamPtr value) {
+  DDEBUG("ParameterParam::setFlowParam");
   this->flowParam_ = value;
-
-  this->valueParam_org_ = this->valueParam_;
-  this->valueParam_ = value->getParameter();
+  this->flowParamParam_ = value->getParameter();
 }
 
 void ParameterParam::restoreParameter() {
-  if (!this->valueParam_org_) return;
-  this->valueParam_ = this->valueParam_org_;
-
+  DDEBUG("ParameterParam::restoreParameter");
+  this->flowParam_ = 0;
+  this->flowParamParam_ = 0;
 }
-
 /////
 void ModelMasterParam::deleteModelDetails() {
   for (ModelDetailParamPtr model : modelDetailList_) {
@@ -517,13 +512,6 @@ ImageDataParamPtr TaskModelParam::getImageById(int id) {
 	}
 	return 0;
 }
-
-void TaskModelParam::initFlowParam() {
-  DDEBUG("TaskModelParam::initFlowParam");
-  for (ParameterParamPtr target : parameterList_) {
-    target->clearFlowParam();
-  }
-}
 //////////
 void ImageDataParam::loadData() {
 	if (this->isLoaded_) return;
@@ -601,15 +589,23 @@ void FlowParameterParam::updatePos() {
   posX_ = realElem_->nodeGraphicsObject().pos().x();
   posY_ = realElem_->nodeGraphicsObject().pos().y();
 
-  name_ = ((ParamDataModel*)realElem_->nodeDataModel())->getName();
-  valueParam_->setValuesByString(((ParamDataModel*)realElem_->nodeDataModel())->getValue());
+  if (type_ == PARAM_TYPE_FRAME) {
+    DDEBUG("PARAM_TYPE_FRAME");
+    name_ = ((FrameParamDataModel*)realElem_->nodeDataModel())->getName();
+    valueParam_->setValuesByString(((FrameParamDataModel*)realElem_->nodeDataModel())->getValue());
+
+  } else {
+    DDEBUG("PARAM_TYPE_ETC");
+    name_ = ((ParamDataModel*)realElem_->nodeDataModel())->getName();
+    valueParam_->setValuesByString(((ParamDataModel*)realElem_->nodeDataModel())->getValue());
+  }
 
   setUpdate();
 }
 
 void FlowParameterParam::setInitialValue() {
   DDEBUG_V("FlowParameterParam::setInitialValue=%s", valueParam_org_->getValuesString().toStdString().c_str());
-  valueParam_ = valueParam_org_;
+  //valueParam_->setValuesByString(valueParam_org_->getValuesString());
   if (realElem_) {
     QWidget* widget = realElem_->nodeDataModel()->embeddedWidget();
     if (widget) {
@@ -812,7 +808,6 @@ std::vector<ParameterParamPtr> ActivityParam::getVisibleParameterList() {
   std::vector<ParameterParamPtr> result;
   for (ParameterParamPtr param : parameterList_) {
     if (param->getMode() == DB_MODE_DELETE || param->getMode() == DB_MODE_IGNORE) continue;
-    if (param->getType() != 0) continue;
     if (param->getHide()) continue;
     result.push_back(param);
   }

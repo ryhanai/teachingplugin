@@ -189,26 +189,8 @@ private:
 };
 
 class ParamDataModel : public NodeDataModel {
-//  Q_OBJECT
-
 public:
-
-  // ParamDataModel()
-  // : _lineEdit(new QLineEdit())
-  // {
-  //   _lineEdit->setValidator(new QDoubleValidator());
-  //   _lineEdit->setMaximumSize(_lineEdit->sizeHint());
-  //   // connect(_lineEdit, &QLineEdit::textChanged,
-  //   //         this, &ParamDataModel::onTextEdited);
-  //   _lineEdit->setText("0.0");
-  // }
-
   ParamDataModel() : _paramEdit(new ParamWidget()) {
-    //_paramEdit->setValidator(new QDoubleValidator());
-    //_paramEdit->setMaximumSize(_lineEdit->sizeHint());
-    // connect(_lineEdit, &QLineEdit::textChanged,
-    //         this, &ParamDataModel::onTextEdited);
-    // _lineEdit->setText("0.0");
 		canMany_ = true;
   }
 
@@ -288,11 +270,93 @@ public:
   // QWidget *
   // embeddedWidget() override { return _lineEdit; }
 
-private:
-
+protected:
   std::shared_ptr<ParamData> _value;
-  //QLineEdit * _lineEdit;
   ParamWidget * _paramEdit;
+};
+
+class IntParamDataModel : public ParamDataModel {
+public:
+  IntParamDataModel() : ParamDataModel(){
+  };
+
+  QString caption() const override {
+    return QString("Flow Param (Integer)");
+  }
+
+  QString name() const override {
+    return QString("Flow Param (Integer)");
+  }
+
+  std::unique_ptr<NodeDataModel> clone() const override {
+    return std::make_unique<IntParamDataModel>();
+  }
+};
+
+class DoubleParamDataModel : public ParamDataModel {
+public:
+  DoubleParamDataModel() : ParamDataModel(){
+  };
+
+  QString caption() const override {
+    return QString("Flow Param (Double)");
+  }
+
+  QString name() const override {
+    return QString("Flow Param (Double)");
+  }
+
+  std::unique_ptr<NodeDataModel> clone() const override {
+    return std::make_unique<DoubleParamDataModel>();
+  }
+};
+
+class StringParamDataModel : public ParamDataModel {
+public:
+  StringParamDataModel() : ParamDataModel() {
+  };
+
+  QString caption() const override {
+    return QString("Flow Param (String)");
+  }
+
+  QString name() const override {
+    return QString("Flow Param (String)");
+  }
+
+  std::unique_ptr<NodeDataModel> clone() const override {
+    return std::make_unique<StringParamDataModel>();
+  }
+};
+
+class FrameParamDataModel : public ParamDataModel {
+public:
+  FrameParamDataModel() : _frameParamEdit(new FrameParamWidget()), ParamDataModel() {
+  };
+
+  inline QString getName() const { return _frameParamEdit->getName(); }
+  inline QString getValue() const { return _frameParamEdit->getValue(); }
+  inline void setParamInfo(QString name, QString value) {
+    _frameParamEdit->setParamInfo(name, value);
+  }
+
+  QString caption() const override {
+    return QString("Flow Param (Frame)");
+  }
+
+  QString name() const override {
+    return QString("Flow Param (Frame)");
+  }
+
+  std::unique_ptr<NodeDataModel> clone() const override {
+    return std::make_unique<FrameParamDataModel>();
+  }
+
+  QWidget * embeddedWidget() override { return _frameParamEdit; }
+
+private:
+  FrameParamWidget * _frameParamEdit;
+
 };
 
 class InitialDataModel : public NodeDataModel {
@@ -563,7 +627,7 @@ public:
   }
 
   QString caption() const override {
-    return QString("Model Param");
+    return QString("");
   }
 
   QString name() const override {

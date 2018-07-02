@@ -201,7 +201,9 @@ void ConnectionGraphicsObject::mouseReleaseEvent(QGraphicsSceneMouseEvent* event
 
   if (node && interaction.tryConnect()) {
     node->resetReactionToConnection();
-    TeachingEventHandler::instance()->flv_Connected(_connection);
+    if (TeachingEventHandler::instance()->flv_Connected(_connection) == false) {
+      _scene.deleteConnection(_connection);
+    }
   } else if (_connection.connectionState().requiresPort()) {
     _scene.deleteConnection(_connection);
   }

@@ -64,7 +64,8 @@ void PythonWrapper::initialize(TaskModelParamPtr targetParam) {
     //タスクパラメータの設定
     for (ParameterParamPtr param : targetParam->getActiveParameterList()) {
       QString paramName = param->getRName();
-      int paramNum = param->getElemNum();
+      int paramNum = 1;
+      if(param->getParamType()== PARAM_TYPE_FRAME) paramNum = 6;
       DDEBUG_V("name : %s, %d", paramName.toStdString().c_str(), paramNum);
       vector<double> paramList;
       for (int idxElem = 0; idxElem < paramNum; idxElem++) {

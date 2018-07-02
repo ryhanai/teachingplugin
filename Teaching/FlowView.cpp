@@ -234,6 +234,147 @@ void NodeDispDialog::cancelClicked() {
   close();
 }
 //////////
+PortDispDialog::PortDispDialog(TaskModelParamPtr param, QWidget* parent)
+  : QDialog(parent, Qt::CustomizeWindowHint | Qt::WindowTitleHint) {
+  this->targetParam_ = param;
+
+  lstModel_ = UIUtil::makeTableWidget(2, false);
+  lstModel_->setColumnWidth(0, 25);
+  lstModel_->setColumnWidth(1, 200);
+  lstModel_->setHorizontalHeaderLabels(QStringList() << "" << "Model Port");
+
+  lstParam_ = UIUtil::makeTableWidget(2, false);
+  lstParam_->setColumnWidth(0, 25);
+  lstParam_->setColumnWidth(1, 200);
+  lstParam_->setHorizontalHeaderLabels(QStringList() << "" << "Param Port");
+
+  QFrame* frmGrid = new QFrame;
+  QHBoxLayout* gridLayout = new QHBoxLayout(frmGrid);
+  gridLayout->setContentsMargins(2, 2, 2, 2);
+  gridLayout->addWidget(lstModel_);
+  gridLayout->addWidget(lstParam_);
+  //
+  QFrame* frmButtons = new QFrame;
+  QPushButton* btnOK = new QPushButton(_("OK"));
+  QPushButton* btnCancel = new QPushButton(_("Cancel"));
+  QHBoxLayout* buttonLayout = new QHBoxLayout(frmButtons);
+  buttonLayout->setContentsMargins(2, 2, 2, 2);
+  buttonLayout->addWidget(btnCancel);
+  buttonLayout->addStretch();
+  buttonLayout->addWidget(btnOK);
+  //
+  QVBoxLayout* mainLayout = new QVBoxLayout;
+  mainLayout->addWidget(frmGrid);
+  mainLayout->addWidget(frmButtons);
+  setLayout(mainLayout);
+  //
+  connect(btnOK, SIGNAL(clicked()), this, SLOT(oKClicked()));
+  connect(btnCancel, SIGNAL(clicked()), this, SLOT(cancelClicked()));
+  connect(this, SIGNAL(rejected()), this, SLOT(cancelClicked()));
+
+  setWindowTitle(_("Disp"));
+  resize(600, 400);
+  //
+  showModelList();
+  showParamList();
+}
+
+void PortDispDialog::showModelList() {
+  lstModel_->setRowCount(0);
+  vector<ModelMasterParamPtr> modelMasterList = TeachingDataHolder::instance()->getModelMasterList();
+
+  for (ModelParamPtr model : targetParam_->getActiveModelList()) {
+    int row = lstModel_->rowCount();
+    lstModel_->insertRow(row);
+
+    QTableWidgetItem* itemDisp = new QTableWidgetItem;
+    lstModel_->setItem(row, 0, itemDisp);
+    if (model->getHide()) {
+      itemDisp->setCheckState(Qt::Unchecked);
+    } else {
+      itemDisp->setCheckState(Qt::Checked);
+    }
+    itemDisp->setData(Qt::UserRole, model->getId());
+    itemDisp->setTextAlignment(Qt::AlignCenter);
+
+    QTableWidgetItem* itemName = new QTableWidgetItem;
+    lstModel_->setItem(row, 1, itemName);
+    itemName->setText(model->getRName());
+    itemName->setData(Qt::UserRole, model->getId());
+  }
+}
+
+void PortDispDialog::showParamList() {
+  lstParam_->setRowCount(0);
+  for (ParameterParamPtr param : targetParam_->getActiveParameterList()) {
+    int row = lstParam_->rowCount();
+    lstParam_->insertRow(row);
+
+    QTableWidgetItem* itemDisp = new QTableWidgetItem;
+    lstParam_->setItem(row, 0, itemDisp);
+    if (param->getHide()) {
+      itemDisp->setCheckState(Qt::Unchecked);
+    } else {
+      itemDisp->setCheckState(Qt::Checked);
+    }
+    itemDisp->setData(Qt::UserRole, param->getId());
+    itemDisp->setTextAlignment(Qt::AlignCenter);
+
+    QTableWidgetItem* itemName = new QTableWidgetItem;
+    lstParam_->setItem(row, 1, itemName);
+    itemName->setText(param->getName());
+    itemName->setData(Qt::UserRole, param->getId());
+  }
+}
+
+void PortDispDialog::oKClicked() {
+  int paramNum = lstParam_->rowCount();
+  vector<ParameterParamPtr> paramList = targetParam_->getActiveParameterList();
+
+  //
+  int modelNum = lstModel_->rowCount();
+  vector<ModelParamPtr> modelList = targetParam_->getActiveModelList();
+
+  for (int index = 0; index < modelNum; index++) {
+    QTableWidgetItem* item = lstModel_->item(index, 0);
+    if (item) {
+      int targetId = item->data(Qt::UserRole).toInt();
+      vector<ModelParamPtr>::iterator targetElem = find_if(modelList.begin(), modelList.end(), ModelParamComparator(targetId));
+      if (targetElem == modelList.end()) continue;
+      //
+      Qt::CheckState state = item->checkState();
+      if (state == Qt::Checked) {
+        (*targetElem)->setHide(false);
+      } else {
+        (*targetElem)->setHide(true);
+      }
+    }
+  }
+  //
+  for (int index = 0; index < paramNum; index++) {
+    QTableWidgetItem* item = lstParam_->item(index, 0);
+    if (item) {
+      int targetId = item->data(Qt::UserRole).toInt();
+      vector<ParameterParamPtr>::iterator targetElem = find_if(paramList.begin(), paramList.end(), ParameterParamComparator(targetId));
+      if (targetElem == paramList.end()) continue;
+      //
+      Qt::CheckState state = item->checkState();
+      if (state == Qt::Checked) {
+        (*targetElem)->setHide(false);
+      } else {
+        (*targetElem)->setHide(true);
+      }
+    }
+  }
+
+  close();
+}
+
+void PortDispDialog::cancelClicked() {
+  DDEBUG("PortDispDialog::cancelClicked()");
+  close();
+}
+//////////
 TaskInfoDialog::TaskInfoDialog(ElementStmParamPtr param, QWidget* parent)
   : QDialog(parent, Qt::CustomizeWindowHint | Qt::WindowTitleHint) {
   this->targetParam_ = param;
@@ -335,6 +476,9 @@ FlowViewImpl::FlowViewImpl(QWidget* parent) {
   btnDisp = new QPushButton(_("Disp"));
   btnDisp->setToolTip(_("Set display state of node."));
 
+  btnParamDisp = new QPushButton(_("Port Disp"));
+  btnParamDisp->setToolTip(_("Set port visibility."));
+
   btnDeleteTask = new QPushButton(_("Delete"));
   btnDeleteTask->setIcon(QIcon(":/Teaching/icons/Delete.png"));
   btnDeleteTask->setToolTip(_("Delete selected Task"));
@@ -372,6 +516,7 @@ FlowViewImpl::FlowViewImpl(QWidget* parent) {
   frmTask->setLayout(taskLayout);
   taskLayout->addWidget(btnHide);
   taskLayout->addWidget(btnDisp);
+  taskLayout->addWidget(btnParamDisp);
   taskLayout->addStretch();
   taskLayout->addWidget(btnDeleteTask);
   taskLayout->addStretch();
@@ -407,6 +552,7 @@ FlowViewImpl::FlowViewImpl(QWidget* parent) {
   connect(btnImport, SIGNAL(clicked()), this, SLOT(importFlowClicked()));
   connect(btnHide, SIGNAL(clicked()), this, SLOT(hideClicked()));
   connect(btnDisp, SIGNAL(clicked()), this, SLOT(dispClicked()));
+  connect(btnParamDisp, SIGNAL(clicked()), this, SLOT(paramDispClicked()));
 
 	TeachingEventHandler::instance()->flv_Loaded(this);
 }
@@ -428,6 +574,7 @@ void FlowViewImpl::setButtonEnableMode(bool isEnable) {
   btnExport->setEnabled(isEnable);
   btnHide->setEnabled(isEnable);
   btnDisp->setEnabled(isEnable);
+  btnParamDisp->setEnabled(isEnable);
 
   btnAbort->setEnabled(!isEnable);
 
@@ -486,6 +633,10 @@ void FlowViewImpl::dispClicked() {
   grhStateMachine->dispSetting();
 }
 
+void FlowViewImpl::paramDispClicked() {
+  grhStateMachine->portDispSetting();
+}
+
 void FlowViewImpl::editClicked() {
 	DDEBUG("FlowViewImpl::editClicked()");
 
@@ -509,6 +660,7 @@ void FlowViewImpl::changeEnables(bool value) {
   btnExport->setEnabled(value);
   btnHide->setEnabled(value);
   btnDisp->setEnabled(value);
+  btnParamDisp->setEnabled(value);
 }
 
 void FlowViewImpl::exportFlowClicked() {
@@ -603,8 +755,11 @@ std::shared_ptr<DataModelRegistry> FlowViewImpl::registerDataModels() {
 
 	ret->registerModel<TaskDataModel>("Tasks");
   ret->registerModel<TransformDataModel>("3D Models");
-	ret->registerModel<ParamDataModel>("Variables");
-	ret->registerModel<MergeDataModel>("Syntaxes");
+  ret->registerModel<IntParamDataModel>("Variables");
+  ret->registerModel<DoubleParamDataModel>("Variables");
+  ret->registerModel<StringParamDataModel>("Variables");
+  ret->registerModel<FrameParamDataModel>("Variables");
+  ret->registerModel<MergeDataModel>("Syntaxes");
   ret->registerModel<DecisionDataModel>("Syntaxes");
 	ret->registerModel<FinalDataModel>("Syntaxes");
 	ret->registerModel<InitialDataModel>("Syntaxes");
@@ -628,6 +783,7 @@ void FlowViewImpl::setEditMode(bool canEdit) {
   btnImport->setEnabled(canEdit);
   btnHide->setEnabled(canEdit);
   btnDisp->setEnabled(canEdit);
+  btnParamDisp->setEnabled(canEdit);
 
   grhStateMachine->setEditMode(canEdit);
 }

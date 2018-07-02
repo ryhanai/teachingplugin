@@ -24,10 +24,10 @@ ArgumentDialog::ArgumentDialog(QWidget* parent)
   lstParam->setColumnWidth(0, 200);
   lstParam->setColumnWidth(1, 140);
   lstParam->setColumnWidth(2, 50);
-  lstParam->setColumnWidth(3, 30);
+  lstParam->setColumnWidth(3, 80);
   lstParam->setColumnWidth(4, 80);
   lstParam->setColumnWidth(5, 80);
-  lstParam->setHorizontalHeaderLabels(QStringList() << "Name" << "ID" << "Type" << "Num" << "Model" << "Model Param");
+  lstParam->setHorizontalHeaderLabels(QStringList() << "Name" << "ID" << "Type" << "ParamType" << "Model" << "Model Param");
   //
   QFrame* frmRef = new QFrame;
   frmRef->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
@@ -194,7 +194,7 @@ void ArgumentDialog::showParamInfo(const vector<ParameterParamPtr>& paramList, c
 		UIUtil::makeTableItem(lstParam, row, 0, param->getName());
     UIUtil::makeTableItem(lstParam, row, 1, param->getRName());
     UIUtil::makeTableItem(lstParam, row, 2, UIUtil::getTypeName(param->getType()));
-    UIUtil::makeTableItem(lstParam, row, 3, QString::number(param->getElemNum()));
+    UIUtil::makeTableItem(lstParam, row, 3, UIUtil::getParamTypeName(param->getParamType()));
 
     QString strModel = "";
     QString strModelParam = "";

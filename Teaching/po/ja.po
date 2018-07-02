@@ -427,10 +427,6 @@ msgstr "タスクパラメータ名を入力してください"
 msgid "Please input Parameter Id."
 msgstr "タスクパラメータIdを入力してください"
 
-#: ParameterDialog.cpp:350
-msgid "Please input Element Num."
-msgstr "タスクパラメータの要素数を設定してください"
-
 #: ParameterDialog.cpp:356
 msgid "Please input Target Model."
 msgstr "対象モデルを設定してください"
@@ -554,6 +550,10 @@ msgstr "対象コマンドを選択してください"
 
 #: StateMachineView.cpp:621 StateMachineView.cpp:633 StateMachineView.cpp:669
 msgid "Run Command"
+msgstr "コマンド実行"
+
+#: StateMachineView.cpp:621 StateMachineView.cpp:633 StateMachineView.cpp:669
+msgid "Command"
 msgstr "コマンド実行"
 
 #: StateMachineView.cpp:621
@@ -804,7 +804,11 @@ msgstr "タスクモデルのId(rname)の読み込みに失敗しました"
 
 #: TeachingUtil.cpp:80
 msgid "rname of the task model is EMPTY."
-msgstr "タスクモデルのId(rname)が設定されていません"
+msgstr "タスクモデルの名称(rname)が設定されていません"
+
+#: TeachingUtil.cpp:80
+msgid "Failed to read the model_id of the task model."
+msgstr "タスクモデルのId(model_id)が設定されていません"
 
 #: TeachingUtil.cpp:68
 msgid "Failed to read the master_id of the task model."
@@ -950,3 +954,18 @@ msgstr "対象フローの名称(flowName)が設定されていません"
 msgid "Failed to read the type of the transition."
 msgstr "遷移情報の型(type)の読み込みに失敗しました"
 
+#: TeachingUtil.cpp:68
+msgid "Flow Parameter"
+msgstr "フローパラメータ"
+
+#: TeachingUtil.cpp:68
+msgid "The type of the parameter of the connection destination does not match."
+msgstr "接続先のパラメータの型が一致していません"
+
+#: TeachingUtil.cpp:68
+msgid "Port Disp"
+msgstr "ポート表示"
+
+#: TeachingUtil.cpp:68
+msgid "Set port visibility."
+msgstr "各ポートの表示/非表示を設定します"

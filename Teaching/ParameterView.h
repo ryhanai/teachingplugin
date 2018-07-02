@@ -44,7 +44,7 @@ public:
   ParameterViewImpl(QWidget* parent = 0);
   ~ParameterViewImpl();
 
-	void setTaskParam(TaskModelParamPtr param);
+	void setTaskParam(TaskModelParamPtr param, bool canEdit);
 	void clearTaskParam();
   void setEditMode(bool canEdit);
 
@@ -52,6 +52,7 @@ private Q_SLOTS:
   void editClicked();
 
 private:
+  bool canEdit_;
   QLabel* lblName;
   QPushButton* btnEdit;
   vector<QFrame*> frameList_;
@@ -66,8 +67,8 @@ class ParameterView : public cnoid::View {
 public:
   ParameterView();
   ~ParameterView();
-	void setTaskParam(TaskModelParamPtr param) {
-		this->viewImpl->setTaskParam(param);
+	void setTaskParam(TaskModelParamPtr param, bool canEdit) {
+		this->viewImpl->setTaskParam(param, canEdit);
 	}
   void clearTaskParam() { this->viewImpl->clearTaskParam(); }
 
