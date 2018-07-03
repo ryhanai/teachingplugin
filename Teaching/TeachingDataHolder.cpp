@@ -325,9 +325,11 @@ bool TeachingDataHolder::saveModelMaster(QString& errMessage) {
 		}
 	}
   for (ModelMasterParamPtr master : modelMasterList_) {
-    QString txtData = QString::fromUtf8(master->getData());
-    QString strHash = TeachingUtil::getSha1Hash(txtData.toStdString().c_str(), txtData.toStdString().length());
-    master->setHash(strHash);
+    if (master->getMode() == DB_MODE_INSERT || master->getMode() == DB_MODE_UPDATE) {
+      QString txtData = QString::fromUtf8(master->getData());
+      QString strHash = TeachingUtil::getSha1Hash(txtData.toStdString().c_str(), txtData.toStdString().length());
+      master->setHash(strHash);
+    }
   }
 
 	bool ret = DatabaseManager::getInstance().saveModelMasterList(this->modelMasterList_);

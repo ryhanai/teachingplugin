@@ -182,6 +182,8 @@ bool TeachingEventHandler::tiv_TaskImportClicked() {
           }
         }
       }
+    } else {
+      master->setHash(strHash);
     }
   }
 	//タスクの保存
@@ -452,8 +454,7 @@ void TeachingEventHandler::flv_FlowImportClicked() {
 	}
 
   //モデルマスタのチェック
-  for (int index = 0; index < masterList.size(); index++) {
-    ModelMasterParamPtr master = masterList[index];
+  for (ModelMasterParamPtr master : masterList) {
     QString txtData = QString::fromUtf8(master->getData());
     QString strHash = TeachingUtil::getSha1Hash(txtData.toStdString().c_str(), txtData.toStdString().length());
     int ret = DatabaseManager::getInstance().checkModelMaster(strHash);
@@ -473,6 +474,8 @@ void TeachingEventHandler::flv_FlowImportClicked() {
           }
         }
       }
+    } else {
+      master->setHash(strHash);
     }
   }
   if (TeachingDataHolder::instance()->saveModelMasterList(masterList) == false) {
