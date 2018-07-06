@@ -166,6 +166,17 @@ bool TeachingEventHandler::tiv_TaskImportClicked() {
 		QMessageBox::warning(tiv_, _("Task Load Error"), errMessage);
 		return false;
 	}
+  //
+  for (TaskModelParamPtr task : taskInstList) {
+    for (ModelParamPtr model : task->getModelList()) {
+      for (ModelMasterParamPtr master : masterList) {
+        if (model->getMasterId() == master->getId()) {
+          model->setModelMaster(master);
+          break;
+        }
+      }
+    }
+  }
   //モデルマスタのチェック
   for (ModelMasterParamPtr master : masterList) {
     QString txtData = QString::fromUtf8(master->getData());
@@ -175,13 +186,7 @@ bool TeachingEventHandler::tiv_TaskImportClicked() {
 
     if (0 < ret) {
       master->setDelete();
-      for (TaskModelParamPtr task : taskInstList) {
-        for (ModelParamPtr model : task->getModelList()) {
-          if (model->getMasterId() == master->getId()) {
-            model->setMasterId(ret);
-          }
-        }
-      }
+      master->setId(ret);
     } else {
       master->setHash(strHash);
     }

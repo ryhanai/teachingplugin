@@ -360,6 +360,11 @@ bool DatabaseManager::saveImportedTaskModel(vector<TaskModelParamPtr>& source, v
         db_.rollback();
         return false;
       }
+      //
+      for (ModelParamPtr model : (*itTask)->getModelList()) {
+        model->setMasterId(model->getModelMaster()->getId());
+      }
+      //
 			if (saveDetailData(*itTask) == false) {
 				db_.rollback();
 				return false;

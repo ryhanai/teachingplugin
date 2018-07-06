@@ -553,7 +553,8 @@ bool TeachingUtil::importTaskMaster(Mapping* taskMap, vector<ModelMasterParamPtr
 }
 
 bool TeachingUtil::loadModelDetail(QString& strFName, ModelMasterParamPtr targetModel) {
-	QString strPath = QFileInfo(strFName).absolutePath();
+  DDEBUG_V("TeachingUtil::loadModelDetail:%s", strFName.toStdString().c_str());
+  QString strPath = QFileInfo(strFName).absolutePath();
 	QFile fileTxt(strFName);
   if (fileTxt.exists() == false) {
     DDEBUG_V("Target file NOT EXIST. %s", strFName.toStdString().c_str());
@@ -570,7 +571,7 @@ bool TeachingUtil::loadModelDetail(QString& strFName, ModelMasterParamPtr target
 	for (int index = 0; index < lineList.length(); index++) {
 		QString line = lineList.at(index);
 		if (line.contains("url") == false)  continue;
-    if (line.trimmed().endsWith("wrl") == false) continue;
+    if (line.contains("wrl") == false) continue;
 		QStringList itemList = line.trimmed().split(" ");
 		bool isHit = false;
 		for (int idxItem = 0; idxItem < itemList.length(); idxItem++) {
@@ -582,6 +583,7 @@ bool TeachingUtil::loadModelDetail(QString& strFName, ModelMasterParamPtr target
 				ModelDetailParamPtr detail = std::make_shared<ModelDetailParam>(NULL_ID, modelName);
 				detail->setNew();
 				QString fileName = strPath + QString("/") + modelName;
+        DDEBUG_V("TeachingUtil::loadModelDetail Target:%s", fileName.toStdString().c_str());
 				QFile fileModel(fileName);
         if (fileModel.exists() == false) {
           DDEBUG_V("Target file NOT EXIST. %s", modelName.toStdString().c_str());
