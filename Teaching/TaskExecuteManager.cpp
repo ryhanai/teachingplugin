@@ -145,6 +145,7 @@ bool TaskExecuteManager::runSingleCommand() {
 void TaskExecuteManager::runSingleTask() {
   DDEBUG("TaskExecuteManager::runSingleTask");
 	TeachingEventHandler::instance()->prv_SetInputValues();
+
 	statemachineView_->setStepStatus(false);
   if (currParam_) {
     currParam_->updateActive(false);
@@ -226,6 +227,7 @@ ExecResult TaskExecuteManager::doTaskOperation(bool updateCurrentTask) {
   //ˆø”ŒvZƒ‚ƒWƒ…[ƒ‹‚Ì‰Šú‰»
   createArgEstimator(currentTask_);
 
+	DDEBUG("Start Execution");
   std::vector<CompositeParamType> parameterList;
   while (true) {
     if (currParam_->getType() == ELEMENT_COMMAND) {
@@ -452,6 +454,7 @@ ExecResult TaskExecuteManager::doTaskOperationStep() {
 }
 //////////
 void TaskExecuteManager::parseModelInfo() {
+  DDEBUG("TaskExecuteManager::parseModelInfo");
   vector<ModelParamPtr> modelList = currentTask_->getActiveModelList();
   vector<ElementStmParamPtr> stateList = currentTask_->getActiveStateList();
   for (ElementStmParamPtr state : currentTask_->getActiveStateList()) {
@@ -461,6 +464,7 @@ void TaskExecuteManager::parseModelInfo() {
       action->setModelParam(*model);
     }
   }
+  DDEBUG("TaskExecuteManager::parseModelInfo End");
 }
 
 bool TaskExecuteManager::doModelAction() {
@@ -478,14 +482,20 @@ bool TaskExecuteManager::doModelAction() {
       }
       //
       if (action->getAction() == "attach") {
-        bool ret = TaskExecutor::instance()->attachModelItem(action->getModelParam()->getModelMaster()->getModelItem(), intTarget);
+        bool ret = false;
+        if(action->getModelParam()->getModelMaster()) {
+          ret = TaskExecutor::instance()->attachModelItem(action->getModelParam()->getModelMaster()->getModelItem(), intTarget);
+        }
         if (ret == false) {
           QMessageBox::warning(0, _("Run Task"), _("Model Attach Failed."));
           return false;
         }
 
       } else if (action->getAction() == "detach") {
-        bool ret = TaskExecutor::instance()->detachModelItem(action->getModelParam()->getModelMaster()->getModelItem(), intTarget);
+        bool ret = false;
+        if(action->getModelParam()->getModelMaster()) {
+          ret = TaskExecutor::instance()->detachModelItem(action->getModelParam()->getModelMaster()->getModelItem(), intTarget);
+        }
         if (ret == false) {
           QMessageBox::warning(0, _("Run Task"), _("Model Detach Failed."));
           return false;

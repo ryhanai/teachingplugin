@@ -228,8 +228,10 @@ void ChoreonoidUtil::showAllModelItem() {
 void ChoreonoidUtil::selectTreeItem(ModelParamPtr target) {
 	DDEBUG("ChoreonoidUtil::selectTreeItem");
 	ItemTreeView::mainInstance()->clearSelection();
-  if (target->getModelMaster()->getModelItem()) {
-    ItemTreeView::mainInstance()->selectItem(target->getModelMaster()->getModelItem());
+  if(target->getModelMaster()) {
+    if (target->getModelMaster()->getModelItem()) {
+      ItemTreeView::mainInstance()->selectItem(target->getModelMaster()->getModelItem());
+    }
   }
 }
 

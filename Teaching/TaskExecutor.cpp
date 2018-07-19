@@ -7,6 +7,7 @@
 
 #include "ControllerManager.h"
 #include "TaskExecutor.h"
+#include "TeachingUtil.h"
 #include "LoggerUtil.h"
 
 using namespace std;
@@ -20,7 +21,7 @@ TaskExecutor* TaskExecutor::instance() {
 }
 
 TaskExecutor::TaskExecutor() {
-  handler_ = ControllerManager::instance()->getController("SampleHiroController");
+  handler_ = ControllerManager::instance()->getController(SettingManager::getInstance().getController());
 }
 
 TaskExecutor::~TaskExecutor() {

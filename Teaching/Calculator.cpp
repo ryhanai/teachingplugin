@@ -251,6 +251,7 @@ bool MemberParam::parseVariable(bool isSub) {
       int feature_id = (*targetParam)->getModelParamId();
 
       ModelMasterParamPtr master = (*model)->getModelMaster();
+      if(!master) return false;
       vector<ModelParameterParamPtr> masterParamList = master->getModelParameterList();
       vector<ModelParameterParamPtr>::iterator masterParamItr = find_if(masterParamList.begin(), masterParamList.end(), ModelMasterParamComparator(feature_id));
       if (masterParamItr == masterParamList.end()) return false;
@@ -423,16 +424,19 @@ void Calculator::finalize() {
 }
 
 bool Calculator::buildArguments(TaskModelParamPtr taskParam, ElementStmParamPtr targetParam, std::vector<CompositeParamType>& parameterList) {
+  DDEBUG(" Calculator::buildArguments");
   parameterList.clear();
 
   //à¯êîÇÃëgÇ›óßÇƒ
   for (int idxArg = 0; idxArg < targetParam->getArgList().size(); idxArg++) {
 		ArgumentParamPtr arg = targetParam->getArgList()[idxArg];
     QString valueDesc = arg->getValueDesc();
+    DDEBUG_V("index:%d, desc:%s", idxArg, valueDesc.toStdString().c_str());
     //
     if (targetParam->getCommadDefParam() == 0) return false;
 
     ArgumentDefParam* argDef = targetParam->getCommadDefParam()->getArgList()[idxArg];
+    DDEBUG_V("type:%s", argDef->getType().c_str());
     if (argDef->getDirection() == 1) {
       if (argDef->getType() == "double") {
         if (argDef->getLength() == 1) {
@@ -470,13 +474,14 @@ bool Calculator::buildArguments(TaskModelParamPtr taskParam, ElementStmParamPtr 
 
     } else {
       vector<ParameterParamPtr> paramList = taskParam->getActiveParameterList();
-      vector<ParameterParamPtr>::iterator targetParam = find_if(paramList.begin(), paramList.end(), ParameterParamComparatorByRName(valueDesc));
+      vector<ParameterParamPtr>::iterator param = find_if(paramList.begin(), paramList.end(), ParameterParamComparatorByRName(valueDesc));
       QString strVal;
-      if (targetParam != paramList.end()) {
-        strVal = QString::fromStdString((*targetParam)->getValues(0));
+      if (param != paramList.end()) {
+        strVal = QString::fromStdString((*param)->getValues(0));
       } else {
         strVal = valueDesc;
       }
+      DDEBUG_V("strVal:%s",strVal.toStdString().c_str());
       if (argDef->getType() == "int") {
         parameterList.push_back(strVal.toInt());
       } else {
@@ -484,6 +489,7 @@ bool Calculator::buildArguments(TaskModelParamPtr taskParam, ElementStmParamPtr 
       }
     }
   }
+  DDEBUG(" Calculator::buildArguments End");
   return true;
 }
 

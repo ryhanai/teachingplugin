@@ -1,4 +1,6 @@
 #include "ControllerManager.h"
+#include "TeachingUtil.h"
+#include "LoggerUtil.h"
 
 namespace teaching {
 
@@ -14,17 +16,37 @@ ControllerManager::~ControllerManager() {
 }
 
 void ControllerManager::registController(string controllerName, ControllerBase* controller) {
-  controllerList_.clear();
+  DDEBUG_V("ControllerManager::registController: %s", controllerName.c_str());
   ControllerInfo param;
   param.controllerName = controllerName;
   param.controller = controller;
   controllerList_.push_back(param);
 
-  stateView_->createStateCommands();
-  taskView_->loadTaskInfo();
+  if(SettingManager::getInstance().getController()==controllerName) {
+    stateView_->createStateCommands();
+    taskView_->loadTaskInfo();
+  }
+}
+
+void ControllerManager::initialize() {
+}
+
+vector<string> ControllerManager::getControllerNameList() {
+  vector<string> result;
+
+  for(ControllerInfo target : controllerList_) {
+    result.push_back(target.controllerName);
+  }
+
+  return result;
 }
 
 ControllerBase* ControllerManager::getController(string controllerName) {
+  for(ControllerInfo target : controllerList_) {
+    if(target.controllerName == controllerName) {
+      return target.controller;
+    }
+  }
   return controllerList_[0].controller;
 }
 

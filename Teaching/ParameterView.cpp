@@ -52,7 +52,7 @@ ModelParameterGroup::ModelParameterGroup(ParameterParamPtr source, ModelParamPtr
   layout->addWidget(leRz_);
   source->addControl(leRz_);
 
-  if (targetModel_->getModelMaster()->getModelItem() == NULL) {
+  if (targetModel_->getModelMaster()==NULL || targetModel_->getModelMaster()->getModelItem() == NULL) {
     return;
   }
   currentBodyItem_ = targetModel_->getModelMaster()->getModelItem().get();
@@ -123,62 +123,61 @@ void ModelParameterGroup::disconnectKinematics() {
   QVBoxLayout* mainLayout = new QVBoxLayout;
   mainLayout->addWidget(topFrame);
 
-	vector<ParameterParamPtr> paramList = param->getActiveParameterList();
-	vector<ParameterParamPtr>::iterator itParam = paramList.begin();
-  while (itParam != paramList.end()) {
-    (*itParam)->clearControlList();
+  for(ParameterParamPtr targetParam : param->getActiveParameterList()) {
+    if (targetParam->getType() == PARAM_KIND_MODEL) continue;
+
+    targetParam->clearControlList();
     QFrame* eachFrame = new QFrame(this);
-    if ((*itParam)->getType() == PARAM_KIND_MODEL) eachFrame->setVisible(false);
     eachFrame->setEnabled(canEdit);
     frameList_.push_back(eachFrame);
     QHBoxLayout* eachLayout = new QHBoxLayout;
     eachLayout->setContentsMargins(0, 0, 0, 0);
     eachFrame->setLayout(eachLayout);
 
-    QLabel* lblName = new QLabel((*itParam)->getName());
+    QLabel* lblName = new QLabel(targetParam->getName());
     eachLayout->addWidget(lblName);
-		if ((*itParam)->getHide() != 0) {
+		if (targetParam->getHide() != 0) {
 			QPalette pal = lblName->palette();
 			pal.setColor(QPalette::WindowText, Qt::red);
 			lblName->setPalette(pal);
 		}
 
-    if ((*itParam)->getType() == PARAM_KIND_MODEL) {
-      vector<ModelParamPtr> modelList = param->getActiveModelList();
-      for (int index = 0; index < modelList.size(); index++) {
-        ModelParamPtr model = modelList[index];
-        if (model->getId() == (*itParam)->getModelId()) {
-          ModelParameterGroupPtr modelParam = std::make_shared<ModelParameterGroup>(*itParam, model, eachLayout);
-          modelList_.push_back(modelParam);
-          break;
-        }
-      }
+    //if ((*itParam)->getType() == PARAM_KIND_MODEL) {
+      //vector<ModelParamPtr> modelList = param->getActiveModelList();
+      //for (int index = 0; index < modelList.size(); index++) {
+      //  ModelParamPtr model = modelList[index];
+      //  if (model->getId() == (*itParam)->getModelId()) {
+      //    ModelParameterGroupPtr modelParam = std::make_shared<ModelParameterGroup>(*itParam, model, eachLayout);
+      //    modelList_.push_back(modelParam);
+      //    break;
+      //  }
+      //}
 
-    } else {
+    //} else {
       int elem_num = 1;
-      DDEBUG_V("ParamType: %d", (*itParam)->getParamType());
-      if ((*itParam)->getParamType() == PARAM_TYPE_FRAME) elem_num = 6;
+      //DDEBUG_V("ParamType: %d", targetParam->getParamType());
+      if (targetParam->getParamType() == PARAM_TYPE_FRAME) elem_num = 6;
       for (int index = 0; index < elem_num; index++) {
         QLineEdit* txtEach;
-        if (index < (*itParam)->getControlNum()) {
-          txtEach = (*itParam)->getControl(index);
+        if (index < targetParam->getControlNum()) {
+          txtEach = targetParam->getControl(index);
         } else {
           txtEach = new QLineEdit;
-          (*itParam)->addControl(txtEach);
+          targetParam->addControl(txtEach);
         }
-        txtEach->setText(QString::fromStdString((*itParam)->getValues(index)).trimmed());
+        txtEach->setText(QString::fromStdString(targetParam->getValues(index)).trimmed());
         eachLayout->addWidget(txtEach);
         textList_.push_back(txtEach);
       }
-    }
-    QLabel* lblUnit = new QLabel((*itParam)->getUnit());
+    //}
+    QLabel* lblUnit = new QLabel(targetParam->getUnit());
     eachLayout->addWidget(lblUnit);
     eachLayout->addStretch();
     mainLayout->addWidget(eachFrame);
-    ++itParam;
   }
   mainLayout->addStretch();
   setLayout(mainLayout);
+  DDEBUG("ParameterViewImpl::setTaskParam() End");
 }
 
 void ParameterViewImpl::clearView() {
@@ -214,6 +213,7 @@ void ParameterViewImpl::clearView() {
     //
 		delete layout();
   }
+  DDEBUG("ParameterViewImpl::clearView():End");
 }
 
 void ParameterViewImpl::clearTaskParam() {

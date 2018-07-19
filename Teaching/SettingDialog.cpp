@@ -1,5 +1,7 @@
 #include "SettingDialog.h"
 #include "TeachingUtil.h"
+#include "ControllerManager.h"
+
 #include "LoggerUtil.h"
 
 #include "gettext.h"
@@ -46,10 +48,16 @@ SettingDialog::SettingDialog(QWidget* parent)
   //
   QLabel* lblApp = new QLabel(_("Application:"));
   leApp = new QLineEdit;
-  //QPushButton* btnRef = new QPushButton(tr("Ref..."));
   QPushButton* btnRef = new QPushButton();
   btnRef->setIcon(QApplication::style()->standardIcon(QStyle::SP_DialogOpenButton));
   btnRef->setToolTip(_("Ref..."));
+
+  QLabel* lblController = new QLabel(_("Controller:"));
+  cmbController = new QComboBox(this);
+  vector<string> ctrlList = ControllerManager::instance()->getControllerNameList();
+  for(string ctrl : ctrlList) {
+    cmbController->addItem(QString::fromStdString(ctrl));
+  }
   chkReal = new QCheckBox(_("Real"));
   chkReal->setChecked(SettingManager::getInstance().getIsReal());
 
@@ -74,7 +82,10 @@ SettingDialog::SettingDialog(QWidget* parent)
   baseLayout->addWidget(leApp, 5, 1, 1, 2);
   baseLayout->addWidget(btnRef, 5, 3, 1, 1);
 
-  baseLayout->addWidget(chkReal, 6, 1, 1, 1);
+  baseLayout->addWidget(lblController, 6, 0, 1, 1, Qt::AlignRight);
+  baseLayout->addWidget(cmbController, 6, 1, 1, 2);
+
+  baseLayout->addWidget(chkReal, 7, 1, 1, 1);
   //
   QFrame* frmButtons = new QFrame;
 	QPushButton* btnOK = new QPushButton(_("OK"));
@@ -97,6 +108,7 @@ SettingDialog::SettingDialog(QWidget* parent)
   cmbLogLevel->setCurrentIndex(SettingManager::getInstance().getLogLevel());
   string strLogDir = SettingManager::getInstance().getLogDir();
   leLogDir->setText(QString::fromStdString(strLogDir));
+  cmbController->setCurrentText(QString::fromStdString(SettingManager::getInstance().getController()));
   //
   connect(btnDatabase, SIGNAL(clicked()), this, SLOT(refDBClicked()));
   connect(lstApp, SIGNAL(itemSelectionChanged()), this, SLOT(appSelectionChanged()));
@@ -240,10 +252,19 @@ void SettingDialog::oKClicked() {
     SettingManager::getInstance().setTargetApp(param.ext_.toStdString(), param.appPath_.toStdString());
   }
   SettingManager::getInstance().setIsReal(chkReal->isChecked());
+  bool needRestart = false;
+  if(SettingManager::getInstance().getController() != cmbController->currentText().toStdString()) {
+    needRestart = true;
+  }
+  SettingManager::getInstance().setController(cmbController->currentText().toStdString());
 
   SettingManager::getInstance().saveSetting();
   if (updatedLog) {
     LoggerUtil::startLog((LogLevel)SettingManager::getInstance().getLogLevel(), SettingManager::getInstance().getLogDir());
+  }
+
+  if(needRestart) {
+    QMessageBox::information(this, _("Setting"), _("Rebooting is necessary to reflect the information of the specified controller."));
   }
 
   close();

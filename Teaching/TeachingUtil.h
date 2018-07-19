@@ -69,6 +69,8 @@ public:
   inline void setLogLevel(int value) { this->logLevel_ = value; }
   inline std::string getLogDir() const { return this->logDir_; }
   inline void setLogDir(std::string value) { this->logDir_ = value; }
+  inline std::string getController() const { return this->controller_; }
+  inline void setController(std::string value) { this->controller_ = value; }
 
   inline bool getIsReal() const { return this->isReal_; }
   inline void setIsReal(bool value) { this->isReal_ = value; }
@@ -86,6 +88,7 @@ private:
   std::string robotModelName_;
   int logLevel_;
   std::string logDir_;
+  std::string controller_;
 
   std::map<std::string, std::string> appMap_;
 

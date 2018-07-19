@@ -683,6 +683,12 @@ bool ActivityParam::checkAndOrderStateMachine() {
 
     } else if ((*itElemChk)->getType() == ELEMENT_DECISION) {
       decisionNodeIds.push_back((*itElemChk)->getId());
+
+    } else if ((*itElemChk)->getType() == ELEMENT_COMMAND) {
+      (*itElemChk)->getCmdName();
+
+
+
     }
     (*itElemChk)->clearNextElems();
     ++itElemChk;

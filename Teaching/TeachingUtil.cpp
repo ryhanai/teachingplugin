@@ -1250,6 +1250,9 @@ bool SettingManager::loadSetting() {
     } else if (each.startsWith("logDir")) {
       logDir_ = value.toStdString();
 
+    } else if (each.startsWith("controller")) {
+      controller_ = value.toStdString();
+
     } else if (each.startsWith("application")) {
       QStringList elems = value.split("|");
       if (elems.size() < 2) continue;
@@ -1267,6 +1270,7 @@ bool SettingManager::saveSetting() {
   outputFs << "robotModelName : " << robotModelName_ << std::endl;
   outputFs << "logLevel : " << logLevel_ << std::endl;
   outputFs << "logDir : " << logDir_ << std::endl;
+  outputFs << "controller : " << controller_ << std::endl;
   std::map<std::string, std::string>::const_iterator itKey;
   for (itKey = appMap_.begin(); itKey != appMap_.end(); itKey++) {
     outputFs << "application : " << itKey->first << "|" << itKey->second << std::endl;

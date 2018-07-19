@@ -26,6 +26,8 @@ public:
 
   void setStateMachineView(StateMachineViewImpl* view);
   void setTaskInstanceView(TaskInstanceViewImpl* view);
+  vector<string> getControllerNameList();
+  void initialize();
 
   bool isExistController();
 

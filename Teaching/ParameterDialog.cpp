@@ -67,7 +67,7 @@ ParameterDialog::ParameterDialog(QWidget* parent)
 
   QLabel* lblModel = new QLabel(_("Model Name:"));
   cmbModelName = new QComboBox;
-  cmbModelName->addItem("");
+  cmbModelName->addItem("", -1);
 
   QLabel* lblModelParam = new QLabel(_("Model Param Name:"));
   cmbModelParamName = new QComboBox;
@@ -153,6 +153,7 @@ ParameterDialog::ParameterDialog(QWidget* parent)
 }
 
 void ParameterDialog::showModelInfo(const vector<ModelParamPtr>& modelList) {
+  DDEBUG("ParameterDialog::showModelInfo");
 	for (ModelParamPtr param : modelList) {
 		int row = lstModel->rowCount();
 		lstModel->insertRow(row);
@@ -175,6 +176,7 @@ void ParameterDialog::showModelParamInfo(const vector<ModelParameterParamPtr>& p
 }
 
 void ParameterDialog::showParamInfo(const vector<ParameterParamPtr>& paramList) {
+  DDEBUG("ParameterDialog::showParamInfo");
   for (ParameterParamPtr param : paramList) {
     int row = lstParam->rowCount();
     lstParam->insertRow(row);
@@ -197,11 +199,15 @@ void ParameterDialog::showParamInfo(const vector<ParameterParamPtr>& paramList) 
           break;
         }
       }
-      vector<ModelParameterParamPtr> paramList = TeachingEventHandler::instance()->prd_ModelSelectionChanged(param->getModelId());
-      for (int index = 0; index < paramList.size(); index++) {
-        if (param->getModelParamId() == paramList[index]->getId()) {
-          strModelParam = paramList[index]->getName();
-          break;
+      if( 0<param->getModelParamId()) {
+        vector<ModelParameterParamPtr> modelParamList = TeachingEventHandler::instance()->prd_ModelSelectionChanged(param->getModelId());
+        if(0<modelParamList.size()) {
+          for(ModelParameterParamPtr modelParam : modelParamList) {
+            if (param->getModelParamId() == modelParam->getId()) {
+              strModelParam = modelParam->getName();
+              break;
+            }
+          }
         }
       }
     } else {
@@ -238,14 +244,17 @@ void ParameterDialog::updateContents(const ParameterParamPtr& param) {
         break;
       }
     }
-    for (int index = 0; index < cmbModelParamName->count(); index++) {
-      if (param->getModelParamId() == cmbModelParamName->itemData(index).toInt()) {
-        cmbModelParamName->setCurrentIndex(index);
-        break;
+    if(0<=param->getModelParamId()) {
+      for (int index = 0; index < cmbModelParamName->count(); index++) {
+        if (param->getModelParamId() == cmbModelParamName->itemData(index).toInt()) {
+          cmbModelParamName->setCurrentIndex(index);
+          break;
+        }
       }
     }
     leUnit->setText("");
   }
+	DDEBUG("ParameterDialog::updateContents End");
 }
 
 void ParameterDialog::paramSelectionChanged() {
@@ -386,6 +395,7 @@ void ParameterDialog::modelTableSelectionChanged() {
 }
 
 void ParameterDialog::modelSelectionChanged(int index) {
+  DDEBUG("ParameterDialog::modelSelectionChanged()");
   int modelId = cmbModelName->itemData(index).toInt();
   vector<ModelParameterParamPtr> paramList = TeachingEventHandler::instance()->prd_ModelSelectionChanged(modelId);
   //

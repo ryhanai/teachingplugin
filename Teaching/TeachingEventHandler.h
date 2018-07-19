@@ -132,7 +132,7 @@ public:
   void mmd_RefImageClicked();
   void mmd_DeleteImageClicked();
   void mmd_AddModelClicked();
-	void mmd_DeleteModelClicked(int id);
+	bool mmd_DeleteModelClicked(int id);
 	void mmd_AddModelParamClicked();
 	void mmd_DeleteModelParamClicked();
 	bool mmd_OkClicked(QString name, QString fileName, QString& errMessage);

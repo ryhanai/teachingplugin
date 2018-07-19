@@ -969,3 +969,23 @@ msgstr "ポート表示"
 #: TeachingUtil.cpp:68
 msgid "Set port visibility."
 msgstr "各ポートの表示/非表示を設定します"
+
+#: TeachingUtil.cpp:68
+msgid "CANNOT delete the master because it is referenced from the following models.\n"
+msgstr "以下のモデルから参照されているため，対象のモデルマスタを削除することはできません\n"
+
+#: SettingDialog.cpp:68
+msgid "Controller:"
+msgstr "コントローラ:"
+
+#: SettingDialog.cpp:267
+msgid "Rebooting is necessary to reflect the information of the specified controller."
+msgstr "指定したコントローラの内容を反映させるためには再起動が必要です"
+
+#: TeachingEventHandler.cpp:835
+msgid "The following commands can not be executed.\n"
+msgstr "以下のコマンドが実行できません\n"
+
+#: TeachingEventHandler.cpp:775
+msgid "This command can not be executed."
+msgstr "このコマンドは実行できません"

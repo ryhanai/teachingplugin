@@ -296,7 +296,7 @@ void ModelMasterDialog::deleteModelClicked() {
 	QTableWidgetItem* item = lstModel->currentItem();
 	if (item) {
 		int modelId = item->data(Qt::UserRole).toInt();
-		TeachingEventHandler::instance()->mmd_DeleteModelClicked(modelId);
+    if (TeachingEventHandler::instance()->mmd_DeleteModelClicked(modelId) == false) return;
 
 		lstModel->removeRow(lstModel->currentRow());
 		lstModel->setFocus();

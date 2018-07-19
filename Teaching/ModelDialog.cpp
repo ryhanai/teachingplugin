@@ -174,8 +174,13 @@ void ModelDialog::showModelMasterGrid(const vector<ModelMasterParamPtr>& source)
 }
 
 void ModelDialog::updateContents(const ModelParamPtr& source) {
+	DDEBUG("ModelDialog::updateContents()");
 	if (source) {
-		leMaster->setText(source->getModelMaster()->getName());
+    if(source->getModelMaster()) {
+  		leMaster->setText(source->getModelMaster()->getName());
+    } else {
+  		leMaster->setText("");
+    }
 		leModelRName->setText(source->getRName());
 		cmbType->setCurrentIndex(source->getType());
 		leX->setText(QString::number(source->getPosX(), 'f', 6));
