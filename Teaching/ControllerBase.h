@@ -30,7 +30,7 @@ public:
   virtual bool detachModelItem(cnoid::BodyItemPtr object, int target) = 0;
   virtual std::vector<CommandDefParam*> getCommandDefList() = 0;
 
-  virtual bool executeCommand(const std::string& commandName, std::vector<CompositeParamType>& params, bool simulation = true) = 0;
+  virtual bool executeCommand(const std::string& commandName, std::vector<CompositeParamType>& params) = 0;
 
   inline void setRootName(std::string value) { this->rootName = value; }
 

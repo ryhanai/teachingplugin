@@ -119,7 +119,6 @@ TaskModelParamPtr TaskExecuteManager::getNextTask(ElementStmParamPtr target) {
 
 bool TaskExecuteManager::runSingleCommand() {
 	DDEBUG("TaskExecuteManager::runSingleCommand");
-	bool isReal = SettingManager::getInstance().getIsReal();
 
   //引数計算モジュールの初期化
   createArgEstimator(currentTask_);
@@ -132,7 +131,7 @@ bool TaskExecuteManager::runSingleCommand() {
   isAbort_ = false;
   InfoBar::instance()->showMessage(_("Running Command :") + currParam_->getCmdName());
   TaskExecutor::instance()->setRootName(SettingManager::getInstance().getRobotModelName());
-  bool cmdRet = TaskExecutor::instance()->executeCommand(currParam_->getCmdName().toStdString(), parameterList, isReal);
+  bool cmdRet = TaskExecutor::instance()->executeCommand(currParam_->getCmdName().toStdString(), parameterList);
   //out引数の設定
   setOutArgument(parameterList);
 
@@ -216,8 +215,6 @@ ExecResult TaskExecuteManager::doFlowOperationCont() {
 ExecResult TaskExecuteManager::doTaskOperation(bool updateCurrentTask) {
 	DDEBUG("TaskExecuteManager::doTaskOperation");
 
-	bool isReal = SettingManager::getInstance().getIsReal();
-
   //モデル情報の設定
   parseModelInfo();
 
@@ -246,7 +243,7 @@ ExecResult TaskExecuteManager::doTaskOperation(bool updateCurrentTask) {
 				return ExecResult::EXEC_ERROR;
       }
       //コマンド実行
-      cmdRet = TaskExecutor::instance()->executeCommand(currParam_->getCmdName().toStdString(), parameterList, isReal);
+      cmdRet = TaskExecutor::instance()->executeCommand(currParam_->getCmdName().toStdString(), parameterList);
       //out引数の設定
       setOutArgument(parameterList);
 
@@ -342,7 +339,6 @@ ExecResult TaskExecuteManager::doTaskOperationStep() {
 	DDEBUG("TaskExecuteManager::doTaskOperationStep");
 
   ElementStmParamPtr nextParam;
-  bool isReal = SettingManager::getInstance().getIsReal();
 
   if(currParam_->getType() == ELEMENT_START) {
     nextParam = currParam_->getNextElem();
@@ -369,7 +365,7 @@ ExecResult TaskExecuteManager::doTaskOperationStep() {
     return ExecResult::EXEC_ERROR;
   }
   //コマンド実行
-  cmdRet = TaskExecutor::instance()->executeCommand(currParam_->getCmdName().toStdString(), parameterList, isReal);
+  cmdRet = TaskExecutor::instance()->executeCommand(currParam_->getCmdName().toStdString(), parameterList);
   //out引数の設定
   setOutArgument(parameterList);
   //モデルアクション実行

@@ -426,9 +426,7 @@ namespace teaching {
 #endif
 
   void StateMachineViewImpl::runClicked() {
-		TeachingEventHandler::instance()->tev_stm_RunClicked(
-                SettingManager::getInstance().getIsReal(),
-                grhStateMachine->getCurrentNode());
+		TeachingEventHandler::instance()->tev_stm_RunClicked(grhStateMachine->getCurrentNode());
 	}
 
 void StateMachineViewImpl::setStyle() {

@@ -26,7 +26,7 @@ public:
   CommandDefParam* getCommandDef(const int commandId);
 
   void setRootName(std::string value);
-  bool executeCommand(const std::string& commandName, std::vector<CompositeParamType>& params, bool simulation = true);
+  bool executeCommand(const std::string& commandName, std::vector<CompositeParamType>& params);
   bool attachModelItem(cnoid::BodyItemPtr object, int target);
   bool detachModelItem(cnoid::BodyItemPtr object, int target);
   bool detachAllModelItem();

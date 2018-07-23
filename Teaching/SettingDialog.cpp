@@ -58,9 +58,6 @@ SettingDialog::SettingDialog(QWidget* parent)
   for(string ctrl : ctrlList) {
     cmbController->addItem(QString::fromStdString(ctrl));
   }
-  chkReal = new QCheckBox(_("Real"));
-  chkReal->setChecked(SettingManager::getInstance().getIsReal());
-
   baseLayout->addWidget(lblDatabase, 0, 0, 1, 1, Qt::AlignRight);
   baseLayout->addWidget(leDatabase, 0, 1, 1, 2);
   baseLayout->addWidget(btnDatabase, 0, 3, 1, 1);
@@ -84,8 +81,6 @@ SettingDialog::SettingDialog(QWidget* parent)
 
   baseLayout->addWidget(lblController, 6, 0, 1, 1, Qt::AlignRight);
   baseLayout->addWidget(cmbController, 6, 1, 1, 2);
-
-  baseLayout->addWidget(chkReal, 7, 1, 1, 1);
   //
   QFrame* frmButtons = new QFrame;
 	QPushButton* btnOK = new QPushButton(_("OK"));
@@ -251,7 +246,6 @@ void SettingDialog::oKClicked() {
   for (AppExtParam param : appList_) {
     SettingManager::getInstance().setTargetApp(param.ext_.toStdString(), param.appPath_.toStdString());
   }
-  SettingManager::getInstance().setIsReal(chkReal->isChecked());
   bool needRestart = false;
   if(SettingManager::getInstance().getController() != cmbController->currentText().toStdString()) {
     needRestart = true;
