@@ -126,13 +126,13 @@ PROTO ExtraJoint [
 
 DEF main_withHands Humanoid {
   humanoidBody [
-    DEF pedestal_link Joint {
+    DEF world_joint Joint {
       jointType "fixed"
       translation 0.0 0.0 0.0
       rotation 0 1 0 0
 
       children [
-        DEF pedestal_link Segment {
+        DEF stage_link Segment {
           mass 0.0
           centerOfMass 0.0 0.0 0.0
           momentsOfInertia [0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0]
@@ -150,12 +150,12 @@ DEF main_withHands Humanoid {
           ]
         }
 
-        DEF rbase_link Joint {
+        DEF rarm_base_link-base_fixed_joint Joint {
           jointType "fixed"
           translation 0.0 -0.135 1.15
           rotation 0.91248696 0.37796447 -0.15655801 2.41885840
           children [
-            DEF rbase_link Segment {
+            DEF rarm_base_link Segment {
               mass 2.0
               centerOfMass 0.0 0.0 0.0
               momentsOfInertia [0.00305317 0.0 0.0 0.0 0.00305317 0.0 0.0 0.0 0.005625]
@@ -173,7 +173,7 @@ DEF main_withHands Humanoid {
               ]
             }
                    
-            DEF rshoulder_pan_joint Joint {
+            DEF rarm_shoulder_pan_joint Joint {
               jointType "rotate"
               jointAxis 0.0 0.0 1.0
               jointId 0
@@ -185,7 +185,7 @@ DEF main_withHands Humanoid {
               lvlimit -2.16
               climit [330.0]
               children [
-                DEF rshoulder_link Segment {
+                DEF rarm_shoulder_link Segment {
                   mass 2.0
                   centerOfMass 0.0 0.0 0.0
                   momentsOfInertia [0.00809316 0.0 0.0 0.0 0.00809316 0.0 0.0 0.0 0.005625]
@@ -203,7 +203,7 @@ DEF main_withHands Humanoid {
                   ]
                 }
                     
-                DEF rshoulder_lift_joint Joint {
+                DEF rarm_shoulder_lift_joint Joint {
                   jointType "rotate"
                   jointAxis 0.0 1.0 0.0
                   jointId 1
@@ -215,7 +215,7 @@ DEF main_withHands Humanoid {
                   lvlimit -2.16
                   climit [330.0]
                   children [
-                    DEF rupper_arm_link Segment {
+                    DEF rarm_upper_arm_link Segment {
                       mass 3.42
                       centerOfMass 0.0 0.0 0.121825
                       momentsOfInertia [0.0217285 0.0 0.0 0.0 0.0217285 0.0 0.0 0.0 0.00961875]
@@ -233,7 +233,7 @@ DEF main_withHands Humanoid {
                       ]
                     }
                         
-                    DEF relbow_joint Joint {
+                    DEF rarm_elbow_joint Joint {
                       jointType "rotate"
                       jointAxis 1.67887183581e-11 1.0 1.80438722191e-16
                       jointId 2
@@ -245,7 +245,7 @@ DEF main_withHands Humanoid {
                       lvlimit -3.15
                       climit [150.0]
                       children [
-                        DEF rforearm_link Segment {
+                        DEF rarm_forearm_link Segment {
                           mass 1.26
                           centerOfMass 0.0 0.0 0.106625
                           momentsOfInertia [0.00654681 0.0 0.0 0.0 0.00654681 0.0 0.0 0.0 0.00354375]
@@ -263,7 +263,7 @@ DEF main_withHands Humanoid {
                           ]
                         }
                             
-                        DEF rwrist_1_joint Joint {
+                        DEF rarm_wrist_1_joint Joint {
                           jointType "rotate"
                           jointAxis 1.67887183581e-11 1.0 1.80438722191e-16
                           jointId 3
@@ -275,7 +275,7 @@ DEF main_withHands Humanoid {
                           lvlimit -3.2
                           climit [54.0]
                           children [
-                            DEF rwrist_1_link Segment {
+                            DEF rarm_wrist_1_link Segment {
                               mass 0.8
                               centerOfMass 0.0 0.0 0.0
                               momentsOfInertia [0.002085 0.0 0.0 0.0 0.002085 0.0 0.0 0.0 0.00225]
@@ -293,7 +293,7 @@ DEF main_withHands Humanoid {
                               ]
                             }
                                 
-                            DEF rwrist_2_joint Joint {
+                            DEF rarm_wrist_2_joint Joint {
                               jointType "rotate"
                               jointAxis -3.52105845973e-12 -2.65357843512e-06 0.999999999996
                               jointId 4
@@ -305,7 +305,7 @@ DEF main_withHands Humanoid {
                               lvlimit -3.2
                               climit [54.0]
                               children [
-                                DEF rwrist_2_link Segment {
+                                DEF rarm_wrist_2_link Segment {
                                   mass 0.8
                                   centerOfMass 0.0 0.0 0.0
                                   momentsOfInertia [0.002085 0.0 0.0 0.0 0.002085 0.0 0.0 0.0 0.00225]
@@ -323,7 +323,7 @@ DEF main_withHands Humanoid {
                                   ]
                                 }
                                     
-                                DEF rwrist_3_joint Joint {
+                                DEF rarm_wrist_3_joint Joint {
                                   jointType "rotate"
                                   jointAxis 2.65357843512e-06 0.999999999993 2.65357843512e-06
                                   jointId 5
@@ -335,7 +335,7 @@ DEF main_withHands Humanoid {
                                   lvlimit -3.2
                                   climit [54.0]
                                   children [
-                                    DEF rwrist_3_link Segment {
+                                    DEF rarm_wrist_3_link Segment {
                                       mass 0.35
                                       centerOfMass 0.0 0.0 0.0
                                       momentsOfInertia [0.000912187 0.0 0.0 0.0 0.000912187 0.0 0.0 0.0 0.000984375]
@@ -598,12 +598,12 @@ DEF main_withHands Humanoid {
           ]
         }
                                 
-        DEF lbase_link Joint {
+        DEF larm_base_link-base_fixed_joint Joint {
           jointType "fixed"
           translation 0.0 0.135 1.15
           rotation 0.35740674 0.86285621 0.35740674 -2.84764227
           children [
-            DEF lbase_link Segment {
+            DEF larm_base_link Segment {
               mass 2.0
               centerOfMass 0.0 0.0 0.0
               momentsOfInertia [0.00305317 0.0 0.0 0.0 0.00305317 0.0 0.0 0.0 0.005625]
@@ -620,7 +620,7 @@ DEF main_withHands Humanoid {
                 }
               ]
             }
-            DEF lshoulder_pan_joint Joint {
+            DEF larm_shoulder_pan_joint Joint {
               jointType "rotate"
               jointAxis 0.0 0.0 1.0
               jointId 6
@@ -632,7 +632,7 @@ DEF main_withHands Humanoid {
               lvlimit -2.16
               climit [330.0]
               children [
-                DEF lshoulder_link Segment {
+                DEF larm_shoulder_link Segment {
                   mass 2.0
                   centerOfMass 0.0 0.0 0.0
                   momentsOfInertia [0.00809316 0.0 0.0 0.0 0.00809316 0.0 0.0 0.0 0.005625]
@@ -649,7 +649,7 @@ DEF main_withHands Humanoid {
                     }
                   ]
                 }
-                DEF lshoulder_lift_joint Joint {
+                DEF larm_shoulder_lift_joint Joint {
                   jointType "rotate"
                   jointAxis 0.0 1.0 0.0
                   jointId 7
@@ -661,7 +661,7 @@ DEF main_withHands Humanoid {
                   lvlimit -2.16
                   climit [330.0]
                   children [
-                    DEF lupper_arm_link Segment {
+                    DEF larm_upper_arm_link Segment {
                       mass 3.42
                       centerOfMass 0.0 0.0 0.121825
                       momentsOfInertia [0.0217285 0.0 0.0 0.0 0.0217285 0.0 0.0 0.0 0.00961875]
@@ -678,7 +678,7 @@ DEF main_withHands Humanoid {
                         }
                       ]
                     }
-                    DEF lelbow_joint Joint {
+                    DEF larm_elbow_joint Joint {
                       jointType "rotate"
                       jointAxis 1.67887183581e-11 1.0 1.80438722191e-16
                       jointId 8
@@ -690,7 +690,7 @@ DEF main_withHands Humanoid {
                       lvlimit -3.15
                       climit [150.0]
                       children [
-                        DEF lforearm_link Segment {
+                        DEF larm_forearm_link Segment {
                           mass 1.26
                           centerOfMass 0.0 0.0 0.106625
                           momentsOfInertia [0.00654681 0.0 0.0 0.0 0.00654681 0.0 0.0 0.0 0.00354375]
@@ -707,7 +707,7 @@ DEF main_withHands Humanoid {
                             }
                           ]
                         }
-                        DEF lwrist_1_joint Joint {
+                        DEF larm_wrist_1_joint Joint {
                           jointType "rotate"
                           jointAxis 1.67887183581e-11 1.0 1.80438722191e-16
                           jointId 9
@@ -719,7 +719,7 @@ DEF main_withHands Humanoid {
                           lvlimit -3.2
                           climit [54.0]
                           children [
-                            DEF lwrist_1_link Segment {
+                            DEF larm_wrist_1_link Segment {
                               mass 0.8
                               centerOfMass 0.0 0.0 0.0
                               momentsOfInertia [0.002085 0.0 0.0 0.0 0.002085 0.0 0.0 0.0 0.00225]
@@ -736,7 +736,7 @@ DEF main_withHands Humanoid {
                                 }
                               ]
                             }
-                            DEF lwrist_2_joint Joint {
+                            DEF larm_wrist_2_joint Joint {
                               jointType "rotate"
                               jointAxis -3.52105845973e-12 -2.65357843512e-06 0.999999999996
                               jointId 10
@@ -748,7 +748,7 @@ DEF main_withHands Humanoid {
                               lvlimit -3.2
                               climit [54.0]
                               children [
-                                DEF lwrist_2_link Segment {
+                                DEF larm_wrist_2_link Segment {
                                   mass 0.8
                                   centerOfMass 0.0 0.0 0.0
                                   momentsOfInertia [0.002085 0.0 0.0 0.0 0.002085 0.0 0.0 0.0 0.00225]
@@ -765,7 +765,7 @@ DEF main_withHands Humanoid {
                                     }
                                   ]
                                 }
-                                DEF lwrist_3_joint Joint {
+                                DEF larm_wrist_3_joint Joint {
                                   jointType "rotate"
                                   jointAxis 2.65357843512e-06 0.999999999993 2.65357843512e-06
                                   jointId 11
@@ -777,7 +777,7 @@ DEF main_withHands Humanoid {
                                   lvlimit -3.2
                                   climit [54.0]
                                   children [
-                                    DEF lwrist_3_link Segment {
+                                    DEF larm_wrist_3_link Segment {
                                       mass 0.35
                                       centerOfMass 0.0 0.0 0.0
                                       momentsOfInertia [0.000912187 0.0 0.0 0.0 0.000912187 0.0 0.0 0.0 0.000984375]
@@ -1044,18 +1044,18 @@ DEF main_withHands Humanoid {
     }
   ]
   joints [
-    USE rwrist_3_joint,
-    USE rwrist_2_joint,
-    USE rwrist_1_joint,
-    USE relbow_joint,
-    USE rshoulder_lift_joint,
-    USE rshoulder_pan_joint
-    USE lwrist_3_joint,
-    USE lwrist_2_joint,
-    USE lwrist_1_joint,
-    USE lelbow_joint,
-    USE lshoulder_lift_joint,
-    USE lshoulder_pan_joint,
+    USE rarm_wrist_3_joint,
+    USE rarm_wrist_2_joint,
+    USE rarm_wrist_1_joint,
+    USE rarm_elbow_joint,
+    USE rarm_shoulder_lift_joint,
+    USE rarm_shoulder_pan_joint
+    USE larm_wrist_3_joint,
+    USE larm_wrist_2_joint,
+    USE larm_wrist_1_joint,
+    USE larm_elbow_joint,
+    USE larm_shoulder_lift_joint,
+    USE larm_shoulder_pan_joint,
     USE rgripper_finger1_finger_tip_joint,
     USE rgripper_finger1_inner_knuckle_joint,
     USE rgripper_finger1_joint,
