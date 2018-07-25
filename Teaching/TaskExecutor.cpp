@@ -67,7 +67,7 @@ void TaskExecutor::setRootName(std::string value) {
 
 bool TaskExecutor::executeCommand(const std::string& commandName, std::vector<CompositeParamType>& params, bool simulation) {
   try {
-    return handler_->executeCommand(commandName, params, simulation);
+    return handler_->executeCommand(commandName, params);
   }
   catch (...) {
     detachAllModelItem();
