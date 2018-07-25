@@ -72,9 +72,6 @@ public:
   inline std::string getController() const { return this->controller_; }
   inline void setController(std::string value) { this->controller_ = value; }
 
-  inline bool getIsReal() const { return this->isReal_; }
-  inline void setIsReal(bool value) { this->isReal_ = value; }
-
   void clearExtList();
   void setTargetApp(std::string strExt, std::string strApp);
   std::vector<std::string> getExtList();

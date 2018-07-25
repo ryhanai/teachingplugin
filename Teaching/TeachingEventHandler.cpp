@@ -752,7 +752,7 @@ void TeachingEventHandler::prv_SetInputValues() {
 }
 
 //TaskExecutionView
-void TeachingEventHandler::tev_stm_RunClicked(bool isReal, ElementStmParamPtr target) {
+void TeachingEventHandler::tev_stm_RunClicked(ElementStmParamPtr target) {
 	DDEBUG("TeachingEventHandler::tev_stm_RunClicked()");
 
 	if (target == NULL) return;
@@ -1752,6 +1752,12 @@ bool TeachingEventHandler::mmd_Check() {
   QString strHash = TeachingUtil::getSha1Hash(txtData.toStdString().c_str(), txtData.toStdString().length());
   int ret = DatabaseManager::getInstance().checkModelMaster(strHash);
   return 0 <= ret;
+}
+
+void TeachingEventHandler::mmd_Close() {
+	if (mmd_CurrentModel_) {
+		ChoreonoidUtil::unLoadModelMasterItem(mmd_CurrentModel_);
+	}
 }
 
 //ArgumentDialog

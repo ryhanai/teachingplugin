@@ -90,7 +90,7 @@ public:
 
 	//TaskExecutionView
 	void tev_setBreak(bool value) { executor_->setBreak(value); }
-	void tev_stm_RunClicked(bool isReal, ElementStmParamPtr target);
+	void tev_stm_RunClicked(ElementStmParamPtr target);
 	void tev_stm_StepClicked();
 	void tev_stm_ContClicked();
 	void tev_RunTaskClicked(int selectedId);
@@ -137,6 +137,7 @@ public:
 	void mmd_DeleteModelParamClicked();
 	bool mmd_OkClicked(QString name, QString fileName, QString& errMessage);
   bool mmd_Check();
+	void mmd_Close();
 
 	//ArgumentDialog
 	void agd_ModelSelectionChanged(int selectedId);

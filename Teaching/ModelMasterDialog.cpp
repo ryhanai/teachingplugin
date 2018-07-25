@@ -336,6 +336,7 @@ void ModelMasterDialog::okClicked() {
 	QString errMessage;
 	if (TeachingEventHandler::instance()->mmd_OkClicked(strName, strFile, errMessage)) {
 		QMessageBox::information(this, _("Database"), _("Database updated"));
+    TeachingEventHandler::instance()->mmd_Close();
 		close();
 	}	else {
 		QMessageBox::warning(this, _("Database Error"), errMessage);
@@ -343,6 +344,7 @@ void ModelMasterDialog::okClicked() {
 }
 
 void ModelMasterDialog::cancelClicked() {
+  TeachingEventHandler::instance()->mmd_Close();
 	close();
 }
 
