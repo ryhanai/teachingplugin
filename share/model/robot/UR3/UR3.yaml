@@ -8,15 +8,16 @@ standardPose: [
 ]
 
 linkGroup: 
-  - name: Arms
+  - name: both_arm
     links:
-      - name: R-Arm
-        links: [ rshoulder_pan_joint, rshoulder_lift_joint, relbow_joint, rwrist_1_joint, rwrist_2_joint, rwrist_3_joint ]
-      - name: L-Arm
-        links: [ lshoulder_pan_joint, lshoulder_lift_joint, lelbow_joint, lwrist_1_joint, lwrist_2_joint, lwrist_3_joint ]
+      - name: right_arm
+        links: [ rarm_shoulder_pan_joint, rarm_shoulder_lift_joint, rarm_elbow_joint, rarm_wrist_1_joint, rarm_wrist_2_joint, rarm_wrist_3_joint ]
+      - name: left_arm
+        links: [ larm_shoulder_pan_joint, larm_shoulder_lift_joint, larm_elbow_joint, larm_wrist_1_joint, larm_wrist_2_joint, larm_wrist_3_joint ]
 
 defaultIKsetup:
-  rwrist_3_joint: [ rshoulder_pan_joint ]
+  rarm_wrist_3_joint: [ rarm_shoulder_pan_joint ]
+  larm_wrist_3_joint: [ larm_shoulder_pan_joint ]
 
 divisionNumberOfPrimitiveGeometries: 16
 
