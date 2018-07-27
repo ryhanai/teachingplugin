@@ -64,7 +64,7 @@ private:
 /////
 class MemberParam {
 public:
-  MemberParam(NodeType type, std::string source, TaskModelParamPtr targetModel);
+  MemberParam(NodeType type, std::string source, TaskModelParamPtr targetModel, FlowParamPtr targetFlow);
   ~MemberParam() {};
 
   inline CalcMode getCalcMode() const { return this->calcMode_; }
@@ -99,6 +99,7 @@ private:
   Matrix3d valueMatrix_;
 
   TaskModelParamPtr targetModel_;
+  FlowParamPtr targetFlow_;
 
   CalcMode calcMode_;
 

@@ -5,6 +5,7 @@
 #include "../TaskExecutor.h"
 #include "../StateMachineView.h"
 #include "../TeachingEventHandler.h"
+#include "../TeachingUtil.h"
 
 #include "../LoggerUtil.h"
 

@@ -1,6 +1,6 @@
 #include "ModelMasterDialog.h"
 #include "TeachingUtil.h"
-#include "TeachingEventHandler.h"
+#include "TeachingMasterEventHandler.h"
 
 #include "gettext.h"
 #include "LoggerUtil.h"
@@ -147,7 +147,7 @@ namespace teaching {
   setWindowTitle(_("Models"));
   resize(1200, 500);
 
-	TeachingEventHandler::instance()->mmd_Loaded(this);
+	TeachingMasterEventHandler::instance()->mmd_Loaded(this);
 }
 
 void ModelMasterDialog::showGrid(const vector<ModelMasterParamPtr>& masterList) {
@@ -238,7 +238,7 @@ void ModelMasterDialog::modelSelectionChanged() {
 		strFile = leFile->text();
 		newId = item->data(Qt::UserRole).toInt();
 	}
-	TeachingEventHandler::instance()->mmd_ModelSelectionChanged(newId, strName, strFile);
+	TeachingMasterEventHandler::instance()->mmd_ModelSelectionChanged(newId, strName, strFile);
 }
 
 void ModelMasterDialog::modelParamSelectionChanged() {
@@ -260,7 +260,7 @@ void ModelMasterDialog::modelParamSelectionChanged() {
 		strDef = txtDef->toPlainText();
 		newId = item->data(Qt::UserRole).toInt();
 	}
-	TeachingEventHandler::instance()->mmd_ModelParameterSelectionChanged(newId, strName, strDef);
+	TeachingMasterEventHandler::instance()->mmd_ModelParameterSelectionChanged(newId, strName, strDef);
 }
 
 void ModelMasterDialog::addModel(int id, QString name) {
@@ -274,20 +274,20 @@ void ModelMasterDialog::addModel(int id, QString name) {
 
 void ModelMasterDialog::refClicked() {
 	DDEBUG("ModelMasterDialog::refClicked()");
-	TeachingEventHandler::instance()->mmd_RefClicked();
+	TeachingMasterEventHandler::instance()->mmd_RefClicked();
 }
 
 void ModelMasterDialog::refImageClicked() {
-  TeachingEventHandler::instance()->mmd_RefImageClicked();
+  TeachingMasterEventHandler::instance()->mmd_RefImageClicked();
 }
 
 void ModelMasterDialog::deleteImageClicked() {
-  TeachingEventHandler::instance()->mmd_DeleteImageClicked();
+  TeachingMasterEventHandler::instance()->mmd_DeleteImageClicked();
 }
 
 void ModelMasterDialog::addModelClicked() {
 	DDEBUG("ModelMasterDialog::addModelClicked()");
-	TeachingEventHandler::instance()->mmd_AddModelClicked();
+	TeachingMasterEventHandler::instance()->mmd_AddModelClicked();
 }
 
 void ModelMasterDialog::deleteModelClicked() {
@@ -295,8 +295,7 @@ void ModelMasterDialog::deleteModelClicked() {
 
 	QTableWidgetItem* item = lstModel->currentItem();
 	if (item) {
-		int modelId = item->data(Qt::UserRole).toInt();
-    if (TeachingEventHandler::instance()->mmd_DeleteModelClicked(modelId) == false) return;
+    if (TeachingMasterEventHandler::instance()->mmd_DeleteModelClicked() == false) return;
 
 		lstModel->removeRow(lstModel->currentRow());
 		lstModel->setFocus();
@@ -305,13 +304,13 @@ void ModelMasterDialog::deleteModelClicked() {
 }
 
 void ModelMasterDialog::addModelParamClicked() {
-	TeachingEventHandler::instance()->mmd_AddModelParamClicked();
+	TeachingMasterEventHandler::instance()->mmd_AddModelParamClicked();
 }
 
 void ModelMasterDialog::deleteModelParamClicked() {
 	QTableWidgetItem* item = lstParam->currentItem();
 	if (item) {
-		TeachingEventHandler::instance()->mmd_DeleteModelParamClicked();
+		if(TeachingMasterEventHandler::instance()->mmd_DeleteModelParamClicked()==false) return;
 
 		lstParam->removeRow(lstParam->currentRow());
 		lstParam->setFocus();
@@ -326,7 +325,7 @@ void ModelMasterDialog::okClicked() {
 		modelParamSelectionChanged();
 	}
 
-  if (TeachingEventHandler::instance()->mmd_Check()) {
+  if (TeachingMasterEventHandler::instance()->mmd_Check()) {
     QMessageBox::warning(this, _("Model Master"), _("The same model has already been registered."));
     return;
   }
@@ -334,9 +333,9 @@ void ModelMasterDialog::okClicked() {
 	QString strName = leModel->text();
 	QString strFile = leFile->text();
 	QString errMessage;
-	if (TeachingEventHandler::instance()->mmd_OkClicked(strName, strFile, errMessage)) {
+	if (TeachingMasterEventHandler::instance()->mmd_OkClicked(strName, strFile, errMessage)) {
 		QMessageBox::information(this, _("Database"), _("Database updated"));
-    TeachingEventHandler::instance()->mmd_Close();
+    TeachingMasterEventHandler::instance()->mmd_Close();
 		close();
 	}	else {
 		QMessageBox::warning(this, _("Database Error"), errMessage);
@@ -344,7 +343,7 @@ void ModelMasterDialog::okClicked() {
 }
 
 void ModelMasterDialog::cancelClicked() {
-  TeachingEventHandler::instance()->mmd_Close();
+  TeachingMasterEventHandler::instance()->mmd_Close();
 	close();
 }
 

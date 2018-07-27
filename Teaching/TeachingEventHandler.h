@@ -14,10 +14,8 @@
 #include "StateMachineView.h"
 #include "ParameterView.h"
 
-#include "FlowSearchDialog.h"
 #include "ModelDialog.h"
 #include "ParameterDialog.h"
-#include "ModelMasterDialog.h"
 #include "ArgumentDialog.h"
 
 #include "TaskExecuteManager.h"
@@ -64,6 +62,7 @@ public:
   bool flv_Connected(QtNodes::Connection& target);
   void flv_Disconnected(QtNodes::Connection& target);
   void flv_PortDispSetting(bool isActive);
+  void flv_AllModelDisp(bool checked);
 
 	//MetaDataView
 	void mdv_Loaded(MetaDataViewImpl* view);
@@ -124,21 +123,6 @@ public:
   void mdd_OkClicked(QString rname, int type, double posX, double posY, double posZ, double rotX, double rotY, double rotZ, int hide);
 	void mdd_CancelClicked();
 
-	//ModelMasterDialog
-	void mmd_Loaded(ModelMasterDialog* dialog);
-	void mmd_ModelSelectionChanged(int newId, QString name, QString fileName);
-	void mmd_ModelParameterSelectionChanged(int newId, QString name, QString desc);
-	void mmd_RefClicked();
-  void mmd_RefImageClicked();
-  void mmd_DeleteImageClicked();
-  void mmd_AddModelClicked();
-	bool mmd_DeleteModelClicked(int id);
-	void mmd_AddModelParamClicked();
-	void mmd_DeleteModelParamClicked();
-	bool mmd_OkClicked(QString name, QString fileName, QString& errMessage);
-  bool mmd_Check();
-	void mmd_Close();
-
 	//ArgumentDialog
 	void agd_ModelSelectionChanged(int selectedId);
 	void agd_Loaded(ArgumentDialog* dialog);
@@ -169,7 +153,6 @@ private:
 			mdd_CurrentMasterId_(NULL_ID), mdd_CurrentModelMaster_(0),
 			mdd_updateKinematicStateLater(bind(&TeachingEventHandler::mdd_updateKinematicState, this, true), IDLE_PRIORITY_LOW),
 			prd_(0), prd_CurrentParam_(0),
-			mmd_(0), mmd_CurrentId_(NULL_ID), mmd_CurrentModel_(0), mmd_CurrentParam_(0),
 			agd_(0), agd_Current_Stm_(0), agd_Current_Arg_(0), agd_Current_Action_(0),
 		  executor_(0),
       updateEditStateLater(bind(&TeachingEventHandler::updateEditState, this, true), IDLE_PRIORITY_LOW) {
@@ -211,11 +194,6 @@ private:
 
 	ParameterDialog* prd_;
 	ParameterParamPtr prd_CurrentParam_;
-
-	ModelMasterDialog* mmd_;
-	int mmd_CurrentId_;
-	ModelMasterParamPtr mmd_CurrentModel_;
-	ModelParameterParamPtr mmd_CurrentParam_;
 
 	ArgumentDialog* agd_;
 	ElementStmParamPtr agd_Current_Stm_;

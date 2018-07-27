@@ -7,6 +7,8 @@
 #include <iterator>
 #include "QtUtil.h"
 #include <cnoid/BodyItem>
+#include <cnoid/LazyCaller>
+#include <cnoid/ConnectionSet>
 #include "CommandDefTypes.h"
 #include "NodeEditor/Node.hpp"
 
@@ -182,7 +184,7 @@ typedef std::shared_ptr<ModelParameterParam> ModelParameterParamPtr;
 class ModelMasterParam : public DatabaseParam {
 public:
 	ModelMasterParam(int id, QString name, QString fileName)
-		: name_(name), fileName_(fileName), item_(0), isLoaded_(false), DatabaseParam(id) {};
+		: name_(name), fileName_(fileName), item_(0), isLoaded_(false), isItemLoaded_(false), DatabaseParam(id) {};
 	ModelMasterParam(const ModelMasterParam* source)
 		: name_(source->name_), fileName_(source->fileName_), data_(source->data_),
 		  item_(source->item_),
@@ -242,6 +244,9 @@ public:
 	inline void setModelItem(cnoid::BodyItemPtr value) { this->item_ = value; }
 	inline cnoid::BodyItemPtr getModelItem() const { return this->item_; }
 
+	inline void setItemLoaded(bool value) { this->isItemLoaded_ = value; }
+	inline bool isItemLoaded() const { return this->isItemLoaded_; }
+
   inline QString getImageFileName() const { return this->imageFileName_; }
   inline void setImageFileName(QString value) {
     if (this->imageFileName_ != value) {
@@ -272,6 +277,7 @@ private:
   QImage image_;
   QByteArray rawData_;
   bool isLoaded_;
+  bool isItemLoaded_;
 
   QImage db2Image(const QString& name, const QByteArray& source);
 };
@@ -313,22 +319,8 @@ typedef std::shared_ptr<PostureParam> PostureParamPtr;
 /////
 class ModelParam : public DatabaseParam {
 public:
-  ModelParam(int id, int master_id, int type, QString rname, double posX, double posY, double posZ, double rotRx, double rotRy, double rotRz, bool hide, bool isNew)
-    : master_id_(master_id), type_(type), rname_(rname),
-		hide_(hide), master_(0), isLoaded_(false),
-    master_id_org_(master_id), master_org_(0),  DatabaseParam(id) {
-    posture = std::make_shared<PostureParam>(posX, posY, posZ, rotRx, rotRy, rotRz);
-    postureOrg = std::make_shared<PostureParam>(posX, posY, posZ, rotRx, rotRy, rotRz);
-    if (isNew) setNew();
-  };
-  ModelParam(const ModelParam* source)
-    : master_id_(source->master_id_), type_(source->type_), rname_(source->rname_),
-		master_(source->master_), hide_(source->hide_), isLoaded_(false),
-    master_id_org_(source->master_id_org_), master_org_(source->master_org_), DatabaseParam(source)
-  {
-    posture = std::make_shared<PostureParam>(source->posture.get());
-    postureOrg = std::make_shared<PostureParam>(source->postureOrg.get());
-  };
+  ModelParam(int id, int master_id, int type, QString rname, double posX, double posY, double posZ, double rotRx, double rotRy, double rotRz, bool hide, bool isNew);
+  ModelParam(const ModelParam* source);
 
 	inline int getMasterId() const { return this->master_id_; }
 	inline void setMasterId(int value) {
@@ -411,10 +403,22 @@ public:
   inline void setModelMaster(ModelMasterParamPtr value) { this->master_ = value; }
 	inline ModelMasterParamPtr getModelMaster() const { return this->master_; }
 
+  inline void setPosture(PostureParamPtr value) {
+    postureOrg = std::make_shared<PostureParam>(posture.get());
+    posture = value;
+  }
+  inline PostureParamPtr getPosture() const { return posture; }
+
+  inline void clearPosture() {
+    posture = std::make_shared<PostureParam>(postureOrg.get());
+  }
+
   void setInitialPos();
   bool isChangedPosition();
   void updateModelMaster(ModelMasterParamPtr value);
   void restoreModelMaster();
+  void initializeItem();
+  void finalizeItem();
 
 private:
 	int master_id_;
@@ -428,6 +432,13 @@ private:
 
   int master_id_org_;
   ModelMasterParamPtr master_org_;
+
+  cnoid::BodyItemPtr currentBodyItem_;
+  cnoid::Connection connectionToKinematicStateChanged;
+  //cnoid::ScopedConnection connectionToKinematicStateChanged;
+  cnoid::LazyCaller updateKinematicStateLater;
+
+  void updateKinematicState(bool blockSignals);
 };
 typedef std::shared_ptr<ModelParam> ModelParamPtr;
 /////
@@ -882,10 +893,13 @@ typedef std::shared_ptr<ImageDataParam> ImageDataParamPtr;
 class FlowModelParam : public DatabaseParam {
 public:
   FlowModelParam(int id, int masterId)
-    : masterId_(masterId), DatabaseParam(id) {};
+    : masterId_(masterId), posture_(0), DatabaseParam(id) {};
+
   FlowModelParam(FlowModelParam* source)
     : masterId_(source->masterId_), 
-      posX_(source->posX_), posY_(source->posY_), realElem_(source->realElem_), DatabaseParam(source) {};
+      posX_(source->posX_), posY_(source->posY_), realElem_(source->realElem_), DatabaseParam(source) {
+    posture_ = std::make_shared<PostureParam>(source->posture_.get());
+  };
   ~FlowModelParam() {};
 
   inline int getMasterId() const { return this->masterId_; }
@@ -914,12 +928,17 @@ public:
   inline void setRealElem(QtNodes::Node* elem) { this->realElem_ = elem; }
   inline QtNodes::Node* getRealElem() const { return this->realElem_; }
 
+  inline void setPosture(PostureParamPtr param) { this->posture_ = param; }
+  inline PostureParamPtr getPosture() { return this->posture_; }
+
   void updatePos();
 
 private:
   int masterId_;
   double posX_;
   double posY_;
+
+  PostureParamPtr posture_;
 
   QtNodes::Node* realElem_;
 };
@@ -1153,108 +1172,6 @@ private:
 
 };
 typedef std::shared_ptr<FlowParam> FlowParamPtr;
-
-/////
-struct ModelParamComparator {
-  int id_;
-  ModelParamComparator(int value) {
-    id_ = value;
-  }
-  bool operator()(const ModelParamPtr elem) const {
-    return (elem->getId() == id_
-      && (elem->getMode() != DB_MODE_DELETE && elem->getMode() != DB_MODE_IGNORE));
-  }
-};
-
-struct ModelParamComparatorByRName {
-  QString rname_;
-  ModelParamComparatorByRName(QString value) {
-    rname_ = value;
-  }
-  bool operator()(const ModelParamPtr elem) const {
-    return elem->getRName() == rname_;
-  }
-};
-
-struct ModelMasterComparator {
-  int id_;
-  ModelMasterComparator(int value) {
-    id_ = value;
-  }
-  bool operator()(const ModelMasterParamPtr elem) const {
-    return elem->getId() == id_;
-  }
-};
-
-struct ModelMasterParamComparator {
-	int id_;
-  ModelMasterParamComparator(int value) {
-    id_ = value;
-	}
-	bool operator()(const ModelParameterParamPtr elem) const {
-		return elem->getId() == id_;
-	}
-};
-
-struct ModelMasterParamComparatorByName {
-  QString name_;
-  ModelMasterParamComparatorByName(QString value) {
-    name_ = value;
-  }
-  bool operator()(const ModelParameterParamPtr elem) const {
-    return elem->getName() == name_;
-  }
-};
-
-struct ElementStmParamComparator {
-  int id_;
-  ElementStmParamComparator(int value) {
-    id_ = value;
-  }
-  bool operator()(const ElementStmParamPtr elem) const {
-    return elem->getId() == id_;
-  }
-};
-
-struct FlowModelParamComparator {
-  int id_;
-  FlowModelParamComparator(int value) {
-    id_ = value;
-  }
-  bool operator()(const FlowModelParamPtr elem) const {
-    return elem->getId() == id_;
-  }
-};
-
-struct FlowParameterParamComparator {
-  int id_;
-  FlowParameterParamComparator(int value) {
-    id_ = value;
-  }
-  bool operator()(const FlowParameterParamPtr elem) const {
-    return elem->getId() == id_;
-  }
-};
-
-struct FlowParameterParamByNameComparator {
-  QString name_;
-  FlowParameterParamByNameComparator(QString value) {
-    name_ = value;
-  }
-  bool operator()(const FlowParameterParamPtr elem) const {
-    return elem->getName() == name_;
-  }
-};
-
-struct ParameterParamComparator {
-  int id_;
-  ParameterParamComparator(int value) {
-    id_ = value;
-  }
-  bool operator()(const ParameterParamPtr elem) const {
-    return elem->getId() == id_;
-  }
-};
 
 }
 #endif

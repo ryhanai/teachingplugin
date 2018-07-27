@@ -6,6 +6,7 @@
 #include "StyleCollection.hpp"
 
 #include "../TeachingEventHandler.h"
+#include "../TeachingUtil.h"
 #include "../LoggerUtil.h"
 
 using namespace std;

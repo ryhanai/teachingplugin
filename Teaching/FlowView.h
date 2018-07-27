@@ -17,6 +17,24 @@ namespace teaching {
 
 class TaskInstanceView;
 
+class FlowSearchDialog : public QDialog {
+  Q_OBJECT
+public:
+  FlowSearchDialog(bool canEdit, QWidget* parent = 0);
+
+  void showGrid(const vector<FlowParamPtr>& flowList);
+
+private Q_SLOTS:
+  void searchClicked();
+  void deleteClicked();
+  void oKClicked();
+  void cancelClicked();
+
+private:
+  QLineEdit* leCond;
+  QTableWidget* lstFlow;
+};
+
 class NodeDispDialog : public QDialog {
   Q_OBJECT
 public:
@@ -84,9 +102,10 @@ public:
 	void dispView(FlowParamPtr& target);
 	void createStateMachine(FlowParamPtr& target);
 
-	inline bool updateTargetFlowParam() { return grhStateMachine->updateTargetFlowParam(); };
+	inline bool updateTargetFlowParam(QString& errMessage) { return grhStateMachine->updateTargetFlowParam(errMessage); };
 	inline void paramInfoUpdated(ElementStmParamPtr targetState) { grhStateMachine->paramInfoUpdated(targetState); };
   inline void modelParamUpdated(int flowModelId, ModelMasterParamPtr masterParam) { grhStateMachine->modelParamUpdated(flowModelId, masterParam); };
+  inline bool checkOutConnection(int nodeId, int portIndex) { return grhStateMachine->checkOutConnection(nodeId, portIndex); }
   void setEditMode(bool canEdit);
 
 public Q_SLOTS:
@@ -106,6 +125,7 @@ private Q_SLOTS :
   void hideClicked();
   void dispClicked();
   void paramDispClicked();
+  void modelToggled();
 
 private:
   QLineEdit* leName;
@@ -118,6 +138,7 @@ private:
   QPushButton* btnHide;
   QPushButton* btnDisp;
   QPushButton* btnParamDisp;
+  QPushButton* btnModelDisp;
 
   QPushButton* btnDeleteTask;
   QPushButton* btnRunFlow;
@@ -142,9 +163,10 @@ public:
   ~FlowView();
 
   inline void setButtonEnableMode(bool isEnable) { viewImpl->setButtonEnableMode(isEnable); }
-	inline bool updateTargetFlowParam() { return viewImpl->updateTargetFlowParam(); };
+	inline bool updateTargetFlowParam(QString& errMessage) { return viewImpl->updateTargetFlowParam(errMessage); };
 	inline void paramInfoUpdated(ElementStmParamPtr targetState) { viewImpl->paramInfoUpdated(targetState); };
   inline void modelParamUpdated(int flowModelId, ModelMasterParamPtr masterParam) { viewImpl->modelParamUpdated(flowModelId, masterParam); };
+  inline bool checkOutConnection(int nodeId, int portIndex) { return viewImpl->checkOutConnection(nodeId, portIndex); }
 
 private:
   FlowViewImpl* viewImpl;

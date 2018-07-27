@@ -83,30 +83,40 @@ void TaskExecuteManager::runFlow(FlowParamPtr targetFlow) {
   //
   setButtonEnableMode(false);
   isAbort_ = false;
-  InfoBar::instance()->showMessage(_("Running Flow :") + targetFlow->getName(), MESSAGE_PERIOD);
-  TaskExecutor::instance()->setRootName(SettingManager::getInstance().getRobotModelName());
-  //
-	ElementStmParamPtr currTask = targetFlow->getStartParam();
-	ElementStmParamPtr nextTask = 0;
-  while (true) {
-    if (currTask->getType() == ELEMENT_COMMAND) {
-      currentTask_ = currTask->getTaskParam();
-      break;
-    }
-    currTask = currTask->getNextElem();
-  }
-
-  currentTask_ = currTask->getTaskParam();
-  currTask->updateActive(true);
+	currFlowParam_ = targetFlow->getStartParam();
+  currFlowParam_->updateActive(true);
   this->flowView_->repaint();
-  if (doFlowOperation() == ExecResult::EXEC_BREAK) {
+  InfoBar::instance()->showMessage(_("Running Flow :") + targetFlow->getName(), MESSAGE_PERIOD);
+
+  TaskExecutor::instance()->setRootName(SettingManager::getInstance().getRobotModelName());
+ // //
+	//ElementStmParamPtr nextTask = 0;
+ // while (true) {
+ //   if (currTask->getType() == ELEMENT_COMMAND) {
+ //     currentTask_ = currTask->getTaskParam();
+ //     break;
+ //   }
+ //   if (currTask->getType() == ELEMENT_DECISION) {
+ //     QString cond = currTask->getCondition();
+ //   }
+ //   currTask = currTask->getNextElem();
+ // }
+
+ // currentTask_ = currTask->getTaskParam();
+  ExecResult ret = doFlowSingleOperation();
+  if (ret == ExecResult::EXEC_BREAK) {
     setButtonEnableMode(true);
     statemachineView_->setStepStatus(true);
+    return;
+  } else if (ret == ExecResult::EXEC_ERROR) {
+    InfoBar::instance()->showMessage(_("Failed Flow :") + targetFlow->getName(), MESSAGE_PERIOD);
+    setButtonEnableMode(true);
     return;
   }
   setButtonEnableMode(true);
 
   InfoBar::instance()->showMessage(_("Finished Flow :") + targetFlow->getName(), MESSAGE_PERIOD);
+	DDEBUG("TaskExecuteManager::runFlow End");
 }
 
 TaskModelParamPtr TaskExecuteManager::getNextTask(ElementStmParamPtr target) {
@@ -196,6 +206,62 @@ ExecResult TaskExecuteManager::doFlowOperation(bool isSingle) {
   if (prevTask_ && prevTask_->getStateParam()) prevTask_->getStateParam()->updateActive(false);
   this->flowView_->repaint();
   return ExecResult::EXEC_FINISHED;
+}
+
+ExecResult TaskExecuteManager::doFlowSingleOperation() {
+  for(ElementStmParamPtr state : currentFlow_->getActiveStateList() ) {
+    state->updateActive(false);
+  }
+	ElementStmParamPtr nextParam;
+  prevTask_ = 0;
+
+	DDEBUG("Start Execution");
+  while (true) {
+    if (currFlowParam_->getType() == ELEMENT_COMMAND) {
+      prevTask_ = currentTask_;
+      currentTask_ = currFlowParam_->getTaskParam();
+      prepareTask();
+      ExecResult ret = doTaskOperation(false); // R.Hanai
+      if (ret != ExecResult::EXEC_FINISHED) {
+        return ret;
+      }
+      if (isAbort_) {
+        return ExecResult::EXEC_FINISHED;
+      }
+      nextParam = currFlowParam_->getNextElem();
+
+    } else if (currFlowParam_->getType() == ELEMENT_DECISION) {
+        QString cond = currFlowParam_->getCondition();
+        DDEBUG_V("FlowCondition : %s",cond.toStdString().c_str());
+        if(cond.length()==0) {
+        	return ExecResult::EXEC_ERROR;
+        }
+        createArgEstimator(currentFlow_);
+        if (argHandler_->checkFlowCondition(currentFlow_, cond.toStdString().c_str())) {
+          DDEBUG("TaskExecuteManager::doFlowSingleOperation TRUE");
+          nextParam = currFlowParam_->getTrueElem();
+        } else {
+          DDEBUG("TaskExecuteManager::doFlowSingleOperation FALSE");
+          nextParam = currFlowParam_->getFalseElem();
+        }
+
+    } else if (currFlowParam_->getType() == ELEMENT_MERGE) {
+      nextParam = currFlowParam_->getNextElem();
+
+    } else if (currFlowParam_->getType() == ELEMENT_FINAL) {
+      break;
+
+    } else if (currFlowParam_->getType() == ELEMENT_START) {
+      nextParam = currFlowParam_->getNextElem();
+    }
+    //
+    currFlowParam_->updateActive(false);
+    nextParam->updateActive(true);
+    this->flowView_->repaint();
+    currFlowParam_ = nextParam;
+
+  }
+	return ExecResult::EXEC_FINISHED;
 }
 
 ExecResult TaskExecuteManager::doFlowOperationCont() {
@@ -311,16 +377,12 @@ ExecResult TaskExecuteManager::doTaskOperation(bool updateCurrentTask) {
       } else {
         QString cond = currentTask_->getFlowCondition();
         DDEBUG_V("FlowCondition : %s", cond.toStdString().c_str());
-        if (0 == cond.length()) {
-          currentTask_ = 0;
+        if (argHandler_->checkFlowCondition(currentFlow_, cond.toStdString().c_str())) {
+          DDEBUG("TaskExecuteManager::doTaskOperation TRUE");
+          currentTask_ = currentTask_->getTrueTask();
         } else {
-          if (argHandler_->checkFlowCondition(currentFlow_, cond.toStdString().c_str())) {
-            DDEBUG("TaskExecuteManager::doTaskOperation TRUE");
-            currentTask_ = currentTask_->getTrueTask();
-          } else {
-            DDEBUG("TaskExecuteManager::doTaskOperation FALSE");
-            currentTask_ = currentTask_->getFalseTask();
-          }
+          DDEBUG("TaskExecuteManager::doTaskOperation FALSE");
+          currentTask_ = currentTask_->getFalseTask();
         }
       }
       //
@@ -578,7 +640,12 @@ void TaskExecuteManager::createArgEstimator(TaskModelParamPtr targetParam) {
   argHandler_ = EstimatorFactory::getInstance().createArgEstimator(targetParam);
 }
 
+void TaskExecuteManager::createArgEstimator(FlowParamPtr targetParam) {
+  argHandler_ = EstimatorFactory::getInstance().createArgEstimator(targetParam);
+}
+
 void TaskExecuteManager::deleteArgEstimator() {
+  DDEBUG("TaskExecuteManager::deleteArgEstimator");
   EstimatorFactory::getInstance().deleteArgEstimator(argHandler_);
 }
 

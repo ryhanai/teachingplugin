@@ -27,11 +27,13 @@ public:
 	FlowEditor operator=(const FlowEditor&) = delete;
 
   void createStateMachine(FlowParamPtr target);
-	bool updateTargetFlowParam();
+	bool updateTargetFlowParam(QString& errMessage);
 	void paramInfoUpdated(ElementStmParamPtr targetState);
   void modelParamUpdated(int flowModelId, ModelMasterParamPtr masterParam);
   void dispSetting();
   void portDispSetting();
+
+  bool checkOutConnection(int nodeId, int portIndex);
 
 public Q_SLOTS:
   void deleteSelectedNodes();

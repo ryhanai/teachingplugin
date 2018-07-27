@@ -15,11 +15,11 @@ set(sources
   Calculator.cpp
   ChoreonoidUtil.cpp
   ControllerManager.cpp
-  DataBaseDetailManager.cpp
   DataBaseManager.cpp
+  DataBaseDetailManager.cpp
+  DataBaseFlowManager.cpp
+  DataBaseMasterManager.cpp
   DecisionDialog.cpp
-  ExecEnvDialog.cpp
-  FlowSearchDialog.cpp
   FlowView.cpp
   LoggerUtil.cpp
   MetaDataView.cpp
@@ -35,9 +35,14 @@ set(sources
   TaskInstanceView.cpp
   TeachingDataHolder.cpp
   TeachingEventHandler.cpp
+  TeachingFlowEventHandler.cpp
+  TeachingDialogEventHandler.cpp
+  TeachingMasterEventHandler.cpp
   TeachingPlugin.cpp
   TeachingTypes.cpp
   TeachingUtil.cpp
+  TeachingUtilFlow.cpp
+  TeachingUtilTask.cpp
 
   NodeEditor/ActivityEditorBase.cpp
   NodeEditor/Connection.cpp
@@ -76,8 +81,6 @@ set(headers
   ControllerManager.h
   DataBaseManager.h
   DecisionDialog.h
-  ExecEnvDialog.h
-  FlowSearchDialog.h
   FlowView.h
   LoggerUtil.h
   MetaDataView.h
@@ -93,6 +96,7 @@ set(headers
   TaskInstanceView.h
   TeachingDataHolder.h
   TeachingEventHandler.h
+  TeachingMasterEventHandler.h
   TeachingTypes.h
   TeachingUtil.h
   QtUtil.h
@@ -138,8 +142,6 @@ set(headers
 set(qtheaders
   ArgumentDialog.h
   DecisionDialog.h
-  ExecEnvDialog.h
-  FlowSearchDialog.h
   FlowView.h
   ModelDialog.h
   ModelMasterDialog.h

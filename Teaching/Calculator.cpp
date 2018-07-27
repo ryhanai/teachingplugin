@@ -1,6 +1,8 @@
 #include "Calculator.h"
 #include <QStringList>
 
+#include "TeachingUtil.h"
+
 #include "LoggerUtil.h"
 
 using namespace std;
@@ -47,8 +49,9 @@ std::string evaluator::operator()(FunCallNodeSp const& node) const {
 }
 
 /////
-MemberParam::MemberParam(NodeType type, std::string source, TaskModelParamPtr targetModel)
+MemberParam::MemberParam(NodeType type, std::string source, TaskModelParamPtr targetModel, FlowParamPtr targetFlow)
   : nodeType_(type), source_(source), valueVector6d_(6) {
+  targetFlow_ = targetFlow;
   targetModel_ = targetModel;
 }
 
@@ -212,6 +215,21 @@ bool MemberParam::parseVariable(bool isSub) {
 	DDEBUG_V("MemberParam::parseVariable source:%s", source_.c_str());
 	QString paramName = QString::fromStdString(source_);
   DDEBUG("MemberParam::parseVariable : Param");
+  if (this->targetFlow_) {
+    vector<FlowParameterParamPtr> paramList = targetFlow_->getFlowParamList();
+    vector<FlowParameterParamPtr>::iterator targetParam = find_if(paramList.begin(), paramList.end(), FlowParameterParamByNameComparator(paramName));
+    if (targetParam == paramList.end()) return false;
+    //
+    QString strValue = (*targetParam)->getValue();
+    QStringList valList = strValue.split(",");
+    if (valList.size() == 1) {
+      valueScalar_ = strValue.toDouble();
+      valMode_ = VAL_SCALAR;
+      return true;
+    } else {
+      return false;
+    }
+  }
   //ÉÇÉfÉãÇÃåüçı
   QString featureName;
   vector<ModelParamPtr> modelList = targetModel_->getActiveModelList();
@@ -421,6 +439,7 @@ void Calculator::initialize(TaskModelParamPtr targetParam) {
 }
 
 void Calculator::finalize() {
+  DDEBUG(" Calculator::finalize");
 }
 
 bool Calculator::buildArguments(TaskModelParamPtr taskParam, ElementStmParamPtr targetParam, std::vector<CompositeParamType>& parameterList) {
@@ -518,7 +537,7 @@ int Calculator::extractNodeInfo(const Node& source) {
     {
       ValueNodeSp val = boost::get<ValueNodeSp>(source);
       std::string strVal = boost::lexical_cast<std::string>(val->v_);
-      memberList_.push_back(new MemberParam(TYPE_VALUE, strVal, targetModel_));
+      memberList_.push_back(new MemberParam(TYPE_VALUE, strVal, targetModel_, targetFlow_));
       ret = memberList_.size() - 1;
       break;
     }
@@ -532,7 +551,7 @@ int Calculator::extractNodeInfo(const Node& source) {
       std::string strY = boost::apply_visitor(evaluator(), nodeY);
       Node nodeZ = val->z_;
       std::string strZ = boost::apply_visitor(evaluator(), nodeZ);
-      MemberParam* member = new MemberParam(TYPE_VECTOR, "[" + strX + "," + strY + "," + strZ + "]", targetModel_);
+      MemberParam* member = new MemberParam(TYPE_VECTOR, "[" + strX + "," + strY + "," + strZ + "]", targetModel_, targetFlow_);
       member->arg01_ = strX;
       member->arg02_ = strY;
       member->arg03_ = strZ;
@@ -567,7 +586,7 @@ int Calculator::extractNodeInfo(const Node& source) {
 			Node nodeRZ = val->Rz_;
 			std::string strRZ = boost::apply_visitor(evaluator(), nodeRZ);
 
-			MemberParam* member = new MemberParam(TYPE_VECTOR6, "[" + strX + "," + strY + "," + strZ + "," + strRX + "," + strRY + "," + strRZ + "]", targetModel_);
+			MemberParam* member = new MemberParam(TYPE_VECTOR6, "[" + strX + "," + strY + "," + strZ + "," + strRX + "," + strRY + "," + strRZ + "]", targetModel_, targetFlow_);
 			member->arg01_ = strX;
 			member->arg02_ = strY;
 			member->arg03_ = strZ;
@@ -611,7 +630,7 @@ int Calculator::extractNodeInfo(const Node& source) {
       Node rhs = val->rhs_;
       std::string strRhs = boost::apply_visitor(evaluator(), rhs);
       std::string strOpe = val->op_;
-      MemberParam* member = new MemberParam(TYPE_BIN_OPE, strLhs + strOpe + strRhs, targetModel_);
+      MemberParam* member = new MemberParam(TYPE_BIN_OPE, strLhs + strOpe + strRhs, targetModel_, targetFlow_);
       member->arg01_ = strLhs;
       member->arg02_ = strRhs;
       member->arg03_ = strOpe;
@@ -631,7 +650,7 @@ int Calculator::extractNodeInfo(const Node& source) {
     {
       VariableNodeSp val = boost::get<VariableNodeSp>(source);
       std::string strVal = boost::lexical_cast<std::string>(val->nm_);
-      memberList_.push_back(new MemberParam(TYPE_VARIABLE, strVal, targetModel_));
+      memberList_.push_back(new MemberParam(TYPE_VARIABLE, strVal, targetModel_, targetFlow_));
       ret = memberList_.size() - 1;
       break;
     }
@@ -643,7 +662,7 @@ int Calculator::extractNodeInfo(const Node& source) {
       std::string strFunc = boost::apply_visitor(evaluator(), func);
       Node args = val->args_;
       std::string strArgs = boost::apply_visitor(evaluator(), args);
-      MemberParam* member = new MemberParam(TYPE_FUNC, strFunc + "(" + strArgs + ")", targetModel_);
+      MemberParam* member = new MemberParam(TYPE_FUNC, strFunc + "(" + strArgs + ")", targetModel_, targetFlow_);
       member->arg01_ = strFunc;
       member->arg02_ = strArgs;
       memberList_.push_back(member);

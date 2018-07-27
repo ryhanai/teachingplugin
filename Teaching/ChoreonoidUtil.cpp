@@ -111,20 +111,25 @@ bool ChoreonoidUtil::loadModelItem(ModelParamPtr target) {
     ChoreonoidUtil::makeModelItem(target->getModelMaster());
   }
   DDEBUG("ChoreonoidUtil::loadModelItem Loading");
-  string robotModel = SettingManager::getInstance().getRobotModelName();
-  BodyItemPtr item = target->getModelMaster()->getModelItem();
-  ChoreonoidUtil::updateModelItemPosition(item,
-    target->getPosX(), target->getPosY(), target->getPosZ(),
-    target->getRotRx(), target->getRotRy(), target->getRotRz());
-  if (target->getType() == MODEL_EE) {
-    BodyItem* parentModel = searchParentModel(robotModel);
-    if (parentModel) {
-      parentModel->addChildItem(item);
+  if(target->getModelMaster()->isItemLoaded()==false) {
+    BodyItemPtr item = target->getModelMaster()->getModelItem();
+    ChoreonoidUtil::updateModelItemPosition(item,
+      target->getPosX(), target->getPosY(), target->getPosZ(),
+      target->getRotRx(), target->getRotRy(), target->getRotRz());
+
+    if (target->getType() == MODEL_EE) {
+      string robotModel = SettingManager::getInstance().getRobotModelName();
+      BodyItem* parentModel = searchParentModel(robotModel);
+      if (parentModel) {
+        parentModel->addChildItem(item);
+      }
+    } else {
+      RootItem::mainInstance()->addChildItem(item);
     }
-  } else {
-    RootItem::mainInstance()->addChildItem(item);
+    target->initializeItem();
+    target->setLoaded(true);
+    target->getModelMaster()->setItemLoaded(true);
   }
-  target->setLoaded(true);
   return true;
 }
 
@@ -133,11 +138,15 @@ bool ChoreonoidUtil::unLoadModelItem(ModelParamPtr target) {
   if (target->isLoaded()==false)  return true;
 
   if (target->getModelMaster()) {
-    if (target->getModelMaster()->getModelItem()) {
-      target->getModelMaster()->getModelItem()->detachFromParentItem();
+    if(target->getModelMaster()->isItemLoaded()) {
+      if (target->getModelMaster()->getModelItem()) {
+        target->getModelMaster()->getModelItem()->detachFromParentItem();
+      }
     }
+    target->finalizeItem();
+    target->setLoaded(false);
+    target->getModelMaster()->setItemLoaded(false);
   }
-  target->setLoaded(false);
   return true;
 }
 

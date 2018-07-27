@@ -1,6 +1,7 @@
 #include "TeachingTypes.h"
 #include "ChoreonoidUtil.h"
 #include "TeachingUtil.h"
+#include <boost/bind.hpp>
 //
 #include "NodeEditor/models.hpp"
 
@@ -305,8 +306,37 @@ QImage ModelMasterParam::db2Image(const QString& name, const QByteArray& source)
   return result;
 }
 /////
+ModelParam::ModelParam(int id, int master_id, int type, QString rname, double posX, double posY, double posZ, double rotRx, double rotRy, double rotRz, bool hide, bool isNew)
+    : master_id_(master_id), type_(type), rname_(rname),
+	  	hide_(hide), master_(0), isLoaded_(false),
+      master_id_org_(master_id), master_org_(0),
+      updateKinematicStateLater(bind(&ModelParam::updateKinematicState, this, true), IDLE_PRIORITY_LOW),
+      currentBodyItem_(0), DatabaseParam(id) {
+    posture = std::make_shared<PostureParam>(posX, posY, posZ, rotRx, rotRy, rotRz);
+    postureOrg = std::make_shared<PostureParam>(posX, posY, posZ, rotRx, rotRy, rotRz);
+    if (isNew) setNew();
+}
+
+ModelParam::ModelParam(const ModelParam* source)
+    : master_id_(source->master_id_), type_(source->type_), rname_(source->rname_),
+  		master_(source->master_), hide_(source->hide_), isLoaded_(false),
+      master_id_org_(source->master_id_org_), master_org_(source->master_org_),
+      updateKinematicStateLater(bind(&ModelParam::updateKinematicState, this, true), IDLE_PRIORITY_LOW),
+      currentBodyItem_(source->currentBodyItem_),
+      DatabaseParam(source)
+  {
+    posture = std::make_shared<PostureParam>(source->posture.get());
+    postureOrg = std::make_shared<PostureParam>(source->postureOrg.get());
+  };
+
 bool ModelParam::isChangedPosition() {
-	//DDEBUG_V("ModelParam::isChangedPosition x:%f, %f, y:%f, %f, z:%f, %f, Rx:%f, %f, Ry:%f, %f, Rz:%f, %f", posX_, orgPosX_, posY_, orgPosY_, posZ_, orgPosZ_, rotRx_, orgRotRx_, rotRy_, orgRotRy_, rotRz_, orgRotRz_);
+	DDEBUG_V("ModelParam::isChangedPosition x:%f, %f, y:%f, %f, z:%f, %f, Rx:%f, %f, Ry:%f, %f, Rz:%f, %f",
+    posture->getPosX(), postureOrg->getPosX(),
+    posture->getPosY(), postureOrg->getPosY(),
+    posture->getPosZ(), postureOrg->getPosZ(),
+    posture->getRotRx(), postureOrg->getRotRx(),
+    posture->getRotRy(), postureOrg->getRotRy(),
+    posture->getRotRz(), postureOrg->getRotRz());
 
 	if (dbl_eq(posture->getPosX(), postureOrg->getPosX())
       && dbl_eq(posture->getPosY(), postureOrg->getPosY())
@@ -318,7 +348,8 @@ bool ModelParam::isChangedPosition() {
 }
 
 void ModelParam::setInitialPos() {
-  if (master_->getModelItem()) {
+  DDEBUG("ModelParam::setInitialPos");
+  if (master_ && master_->getModelItem()) {
     ChoreonoidUtil::updateModelItemPosition(master_->getModelItem(),
       postureOrg->getPosX(), postureOrg->getPosY(), postureOrg->getPosZ(),
       postureOrg->getRotRx(), postureOrg->getRotRy(), postureOrg->getRotRz());
@@ -337,6 +368,10 @@ void ModelParam::updateModelMaster(ModelMasterParamPtr value) {
   //
   this->master_ = value;
   this->master_id_ = value->getId();
+  if (!value->getModelItem()) {
+    ChoreonoidUtil::makeModelItem(value);
+  }
+  currentBodyItem_ = value->getModelItem();
 
   DDEBUG_V("ModelParam::updateModelMaster org : %d, new : %d", master_org_->getId(), master_->getId());
 }
@@ -353,7 +388,39 @@ void ModelParam::restoreModelMaster() {
 
   DDEBUG_V("ModelParam::restoreModelMaster new : %d", master_->getId());
 }
-/////
+
+void ModelParam::initializeItem() {
+  DDEBUG("ModelParam::initializeItem");
+  if(this->master_ && this->master_->getModelItem()) {
+    currentBodyItem_ = this->master_->getModelItem().get();
+    connectionToKinematicStateChanged = this->master_->getModelItem().get()->sigKinematicStateChanged().connect(updateKinematicStateLater);
+  }
+}
+
+ void ModelParam::updateKinematicState(bool blockSignals) {
+  DDEBUG("ModelParam::updateKinematicState");
+  if (currentBodyItem_) {
+    Link* currentLink = currentBodyItem_->body()->rootLink();
+    posture->setPosX(currentLink->p()[0]);
+    posture->setPosY(currentLink->p()[1]);
+    posture->setPosZ(currentLink->p()[2]);
+
+    const Matrix3 R = currentLink->attitude();
+    const Vector3 rpy = rpyFromRot(R);
+    posture->setRotRx(degree(rpy[0]));
+    posture->setRotRy(degree(rpy[1]));
+    posture->setRotRz(degree(rpy[2]));
+  }
+ }
+
+ void ModelParam::finalizeItem() {
+  DDEBUG("ModelParam::finalizeItem");
+	if (connectionToKinematicStateChanged.connected()) {
+		connectionToKinematicStateChanged.disconnect();
+	}
+  currentBodyItem_ = 0;
+ }
+ /////
 void TaskModelParam::setAllNewData() {
   this->mode_ = DB_MODE_INSERT;
   //

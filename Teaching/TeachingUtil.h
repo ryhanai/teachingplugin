@@ -105,7 +105,109 @@ public:
   }
 
   ArgumentEstimator* createArgEstimator(TaskModelParamPtr targetParam);
+  ArgumentEstimator* createArgEstimator(FlowParamPtr targetParam);
   void deleteArgEstimator(ArgumentEstimator* handler);
+};
+
+struct ModelParamComparator {
+  int id_;
+  ModelParamComparator(int value) {
+    id_ = value;
+  }
+  bool operator()(const ModelParamPtr elem) const {
+    return (elem->getId() == id_
+      && (elem->getMode() != DB_MODE_DELETE && elem->getMode() != DB_MODE_IGNORE));
+  }
+};
+
+struct ModelParamComparatorByRName {
+  QString rname_;
+  ModelParamComparatorByRName(QString value) {
+    rname_ = value;
+  }
+  bool operator()(const ModelParamPtr elem) const {
+    return elem->getRName() == rname_;
+  }
+};
+
+struct ModelMasterComparator {
+  int id_;
+  ModelMasterComparator(int value) {
+    id_ = value;
+  }
+  bool operator()(const ModelMasterParamPtr elem) const {
+    return elem->getId() == id_;
+  }
+};
+
+struct ModelMasterParamComparator {
+	int id_;
+  ModelMasterParamComparator(int value) {
+    id_ = value;
+	}
+	bool operator()(const ModelParameterParamPtr elem) const {
+		return elem->getId() == id_;
+	}
+};
+
+struct ModelMasterParamComparatorByName {
+  QString name_;
+  ModelMasterParamComparatorByName(QString value) {
+    name_ = value;
+  }
+  bool operator()(const ModelParameterParamPtr elem) const {
+    return elem->getName() == name_;
+  }
+};
+
+struct ElementStmParamComparator {
+  int id_;
+  ElementStmParamComparator(int value) {
+    id_ = value;
+  }
+  bool operator()(const ElementStmParamPtr elem) const {
+    return elem->getId() == id_;
+  }
+};
+
+struct FlowModelParamComparator {
+  int id_;
+  FlowModelParamComparator(int value) {
+    id_ = value;
+  }
+  bool operator()(const FlowModelParamPtr elem) const {
+    return elem->getId() == id_;
+  }
+};
+
+struct FlowParameterParamComparator {
+  int id_;
+  FlowParameterParamComparator(int value) {
+    id_ = value;
+  }
+  bool operator()(const FlowParameterParamPtr elem) const {
+    return elem->getId() == id_;
+  }
+};
+
+struct FlowParameterParamByNameComparator {
+  QString name_;
+  FlowParameterParamByNameComparator(QString value) {
+    name_ = value;
+  }
+  bool operator()(const FlowParameterParamPtr elem) const {
+    return elem->getName() == name_;
+  }
+};
+
+struct ParameterParamComparator {
+  int id_;
+  ParameterParamComparator(int value) {
+    id_ = value;
+  }
+  bool operator()(const ParameterParamPtr elem) const {
+    return elem->getId() == id_;
+  }
 };
 
 }

@@ -305,7 +305,7 @@ void TaskInstanceViewImpl::settingClicked() {
 
 void TaskInstanceViewImpl::taskActivated() {
   DDEBUG("TaskInstanceViewImpl::taskActivated()");
-  TeachingEventHandler::instance()->tiv_TaskSelectionChanged(getSelectedId(), leTask->text());
+  //TeachingEventHandler::instance()->tiv_TaskSelectionChanged(getSelectedId(), leTask->text());
 }
 
 void TaskInstanceViewImpl::runTaskClicked() {

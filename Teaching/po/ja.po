@@ -460,10 +460,6 @@ msgid "The specified ID is duplicated with the model ID."
 msgstr "指定されたIDがモデルIDと重複しています"
 
 #: TeachingEventHandler.cpp:786
-msgid "Incorrect flow parameter connection."
-msgstr "フローパラメータの接続が不適切です"
-
-#: TeachingEventHandler.cpp:786
 msgid "Save Flow"
 msgstr "フロー保存"
 
@@ -974,6 +970,10 @@ msgstr "各ポートの表示/非表示を設定します"
 msgid "CANNOT delete the master because it is referenced from the following models.\n"
 msgstr "以下のモデルから参照されているため，対象のモデルマスタを削除することはできません\n"
 
+#: TeachingUtil.cpp:68
+msgid "CANNOT delete the master feature because it is referenced from the following parameters.\n"
+msgstr "以下のパラメータから参照されているため，対象のモデルフィーチャを削除することはできません\n"
+
 #: SettingDialog.cpp:68
 msgid "Controller:"
 msgstr "コントローラ:"
@@ -989,3 +989,23 @@ msgstr "以下のコマンドが実行できません\n"
 #: TeachingEventHandler.cpp:775
 msgid "This command can not be executed."
 msgstr "このコマンドは実行できません"
+
+#: TeachingEventHandler.cpp:775
+msgid "Duplicate flow parameter names."
+msgstr "フローパラメータの名称が重複しています"
+
+#: TeachingEventHandler.cpp:775
+msgid "Condition is not set for Decision node."
+msgstr "デシジョンノードに条件が設定されていません"
+
+#: TeachingEventHandler.cpp:775
+msgid "Decision node condition is INVALID."
+msgstr "デシジョンノードに設定された条件が不正です"
+
+#: TeachingEventHandler.cpp:775
+msgid "Model Disp"
+msgstr "モデル表示"
+
+#: TeachingEventHandler.cpp:775
+msgid "Show all models used in flow."
+msgstr "フローで使用している全モデルを表示"

@@ -154,6 +154,8 @@ ParameterDialog::ParameterDialog(QWidget* parent)
 
 void ParameterDialog::showModelInfo(const vector<ModelParamPtr>& modelList) {
   DDEBUG("ParameterDialog::showModelInfo");
+  lstModel->setRowCount(0);
+
 	for (ModelParamPtr param : modelList) {
 		int row = lstModel->rowCount();
 		lstModel->insertRow(row);

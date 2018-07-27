@@ -49,6 +49,7 @@ public:
   ExecResult doFlowOperationCont();
   ExecResult doTaskOperation(bool updateCurrentTask = true);
   ExecResult doTaskOperationStep();
+  ExecResult doFlowSingleOperation();
 
 private:
   bool isBreak_;
@@ -58,6 +59,7 @@ private:
   TaskModelParamPtr currentTask_;
 	TaskModelParamPtr prevTask_;
 	ElementStmParamPtr currParam_;
+	ElementStmParamPtr currFlowParam_;
 
   ArgumentEstimator* argHandler_;
 
@@ -74,6 +76,7 @@ private:
   void setButtonEnableMode(bool isEnable);
 
   void createArgEstimator(TaskModelParamPtr targetParam = NULL);
+  void createArgEstimator(FlowParamPtr targetParam = NULL);
   void deleteArgEstimator();
 
   TaskModelParamPtr getNextTask(ElementStmParamPtr target);
