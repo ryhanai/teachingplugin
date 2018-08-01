@@ -80,6 +80,7 @@ private Q_SLOTS:
   void modelSelectionChanged(int index);
 
 private:
+  QLineEdit* nameEdit;
   QComboBox * cmbModelName;
   QGraphicsView* imageView;
   QGraphicsScene* scene;

@@ -50,12 +50,15 @@ ModelWidget::ModelWidget(QWidget* parent) : QWidget(parent), flowModelParamId_(N
   scene = new QGraphicsScene();
   imageView->setScene(scene);
 
+  nameEdit = new QLineEdit;
+  nameEdit->setText("New Model Param");
   cmbModelName = new QComboBox;
   cmbModelName->addItem("XXXXXXXXXXXXXXX");
   //
   QGridLayout* layout = new QGridLayout();
   layout->addWidget(imageView, 0, 0, 2, 1);
-  layout->addWidget(cmbModelName, 0, 1, 1, 1);
+  layout->addWidget(nameEdit, 0, 1, 1, 1);
+  layout->addWidget(cmbModelName, 1, 1, 1, 1);
   setLayout(layout);
 
   connect(cmbModelName, SIGNAL(currentIndexChanged(int)), this, SLOT(modelSelectionChanged(int)));

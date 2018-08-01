@@ -570,7 +570,10 @@ bool TeachingUtil::loadModelDetail(QString& strFName, ModelMasterParamPtr target
 			QString item = itemList.at(idxItem);
 			if (isHit) {
 				QString modelName = item.replace("\"", "");
-				if (loaded.contains(modelName)) continue;
+				if (loaded.contains(modelName)) {
+          isHit = false;
+          continue;
+        }
 				loaded.append(modelName);
 				ModelDetailParamPtr detail = std::make_shared<ModelDetailParam>(NULL_ID, modelName);
 				detail->setNew();
