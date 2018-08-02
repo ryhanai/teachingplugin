@@ -113,6 +113,9 @@ bool ChoreonoidUtil::loadModelItem(ModelParamPtr target) {
   DDEBUG("ChoreonoidUtil::loadModelItem Loading");
   if(target->getModelMaster()->isItemLoaded()==false) {
     BodyItemPtr item = target->getModelMaster()->getModelItem();
+    //TODO GA
+    //item->setName(target->getRName().toStdString());
+    //TODO GA
     ChoreonoidUtil::updateModelItemPosition(item,
       target->getPosX(), target->getPosY(), target->getPosZ(),
       target->getRotRx(), target->getRotRy(), target->getRotRz());
