@@ -535,6 +535,7 @@ vector<ModelParamPtr> TaskModelParam::getVisibleModelList() {
 }
 
 ModelParamPtr TaskModelParam::getModelParamById(int id) {
+	DDEBUG_V("TaskModelParam::getModelParamById : %d", id);
   for (ModelParamPtr param : modelList_) {
     if (param->getId() == id) {
       return param;
@@ -645,6 +646,7 @@ void FlowModelParam::updatePos() {
   posY_ = realElem_->nodeGraphicsObject().pos().y();
 
   masterId_ = ((TransformDataModel*)realElem_->nodeDataModel())->getMasterId();
+  name_  = ((TransformDataModel*)realElem_->nodeDataModel())->getName();
 
   setUpdate();
 }

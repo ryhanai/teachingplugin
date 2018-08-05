@@ -892,12 +892,13 @@ typedef std::shared_ptr<ImageDataParam> ImageDataParamPtr;
 /////
 class FlowModelParam : public DatabaseParam {
 public:
-  FlowModelParam(int id, int masterId)
-    : masterId_(masterId), posture_(0), DatabaseParam(id) {};
+  FlowModelParam(int id, int masterId, QString name)
+    : masterId_(masterId), posture_(0), name_(name), DatabaseParam(id) {};
 
   FlowModelParam(FlowModelParam* source)
     : masterId_(source->masterId_), 
-      posX_(source->posX_), posY_(source->posY_), realElem_(source->realElem_), DatabaseParam(source) {
+      posX_(source->posX_), posY_(source->posY_), name_(source->name_),
+      realElem_(source->realElem_), DatabaseParam(source) {
     posture_ = std::make_shared<PostureParam>(source->posture_.get());
   };
   ~FlowModelParam() {};
@@ -925,6 +926,14 @@ public:
     }
   }
 
+  inline QString getName() const { return this->name_; }
+  inline void setName(QString value) {
+    if (this->name_ != value) {
+      this->name_ = value;
+      setUpdate();
+    }
+  }
+
   inline void setRealElem(QtNodes::Node* elem) { this->realElem_ = elem; }
   inline QtNodes::Node* getRealElem() const { return this->realElem_; }
 
@@ -937,6 +946,7 @@ private:
   int masterId_;
   double posX_;
   double posY_;
+  QString name_;
 
   PostureParamPtr posture_;
 

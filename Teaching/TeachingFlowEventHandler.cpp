@@ -419,6 +419,11 @@ bool TeachingEventHandler::flv_Connected(QtNodes::Connection& target) {
       DDEBUG_V("portName : %s", portName.toStdString().c_str());
       if(portName=="origin") {
         ParameterParamPtr paramTask = taskParam->getParameterById(id);
+        if(paramTask->getType()==PARAM_KIND_NORMAL) {
+          QMessageBox::warning(flv_, _("Flow Parameter"), _("The type of the parameter of the connection destination does not match."));
+          isFlowSkip_ = true;
+          return false;
+        }
         DDEBUG_V("Param Name : %s", paramTask->getName().toStdString().c_str());
         ModelParamPtr model = taskParam->getModelParamById(paramTask->getModelId());
         DDEBUG_V("Model Name : %s", model->getRName().toStdString().c_str());
@@ -440,7 +445,7 @@ bool TeachingEventHandler::flv_Connected(QtNodes::Connection& target) {
     ParameterParamPtr param = taskParam->getParameterById(id);
     DDEBUG_V("Flow Param Type:%d, Task Param Type(id=%d):%d %s", (*paramElem)->getType(), id, param->getParamType(), param->getName().toStdString().c_str());
     if (param->getParamType() != (*paramElem)->getType()) {
-      QMessageBox::warning(prd_, _("Flow Parameter"), _("The type of the parameter of the connection destination does not match."));
+      QMessageBox::warning(flv_, _("Flow Parameter"), _("The type of the parameter of the connection destination does not match."));
       return false;
     }
     //
@@ -450,6 +455,10 @@ bool TeachingEventHandler::flv_Connected(QtNodes::Connection& target) {
 }
 
 void TeachingEventHandler::flv_Disconnected(QtNodes::Connection& target) {
+  if(isFlowSkip_) {
+    isFlowSkip_ = false;
+    return;
+  }
   DDEBUG("TeachingEventHandler::flv_Disconnected()");
 
   Node* taskNode = target.getNode(PortType::In);

@@ -73,8 +73,14 @@ public:
     int index = cmbModelName->currentIndex();
     return this->cmbModelName->itemData(index).toInt();
   }
-
   void setMasterInfo(int masterId);
+
+  inline QString getNameInfo() {
+    return nameEdit->text();
+  }
+  inline void setNameInfo(QString name) {
+    nameEdit->setText(name);
+  }
 
 private Q_SLOTS:
   void modelSelectionChanged(int index);

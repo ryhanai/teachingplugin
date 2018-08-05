@@ -48,6 +48,7 @@ bool TeachingUtil::exportFlow(QString& strFName, FlowParamPtr targetFlow) {
     for (FlowModelParamPtr param : modelList) {
       MappingPtr modelNode = modelsNode->newMapping();
       modelNode->write("id", param->getId());
+      modelNode->write("name", param->getName().toUtf8(), DOUBLE_QUOTED);
       modelNode->write("master_id", param->getMasterId());
       modelNode->write("pos_x", param->getPosX());
       modelNode->write("pos_y", param->getPosY());
@@ -209,13 +210,15 @@ bool TeachingUtil::importFlow(QString& strFName, std::vector<FlowParamPtr>& flow
           Mapping* modelMap = modelList->at(idxModel)->toMapping();
           int id, master_id;
           double posX, posY;
+          QString name;
 
           try { id = modelMap->get("id").toInt(); } catch (...) { continue; }
           try { master_id = modelMap->get("master_id").toInt(); } catch (...) { continue; }
           try { posX = modelMap->get("pos_x").toDouble(); } catch (...) { continue; }
           try { posY = modelMap->get("pos_y").toDouble(); } catch (...) { continue; }
+          try { name = QString::fromStdString(modelMap->get("name").toString()); } catch (...) { continue; }
 
-          FlowModelParamPtr modelParam = std::make_shared<FlowModelParam>(id, master_id);
+          FlowModelParamPtr modelParam = std::make_shared<FlowModelParam>(id, master_id, name);
           modelParam->setPosX(posX);
           modelParam->setPosY(posY);
           modelParam->setNew();

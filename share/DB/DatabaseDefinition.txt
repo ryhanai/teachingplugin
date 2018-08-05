@@ -34,6 +34,7 @@ CREATE TABLE T_FLOW_MODEL_PARAM (
 	master_id		integer not null,
 	pos_x			real not null,
 	pos_y			real not null,
+	name 			text,
 	primary key(flow_id, model_id)
 );
 

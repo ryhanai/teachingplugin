@@ -111,7 +111,7 @@ void FlowEditor::contextMenuEvent(QContextMenuEvent *event) {
       if (0 < modelMasterList.size()) {
         masterId = modelMasterList[0]->getId();
       }
-      FlowModelParamPtr fmParam = std::make_shared<FlowModelParam>(newId, masterId);
+      FlowModelParamPtr fmParam = std::make_shared<FlowModelParam>(newId, masterId, "New Model Param");
       fmParam->setPosX(posView.x());
       fmParam->setPosY(posView.y());
       fmParam->setNew();
@@ -439,6 +439,7 @@ void FlowEditor::createFlowModelNode(FlowModelParamPtr target) {
     node.nodeGraphicsObject().setPos(target->getPosX(), target->getPosY());
     ((TransformDataModel*)(node.nodeDataModel()))->initialize();
     ((TransformDataModel*)(node.nodeDataModel()))->setMasterInfo(target->getMasterId());
+    ((TransformDataModel*)(node.nodeDataModel()))->setName(target->getName());
     target->setRealElem(&node);
     node.setParamId(target->getId());
     ((TransformDataModel*)(node.nodeDataModel()))->setFlowModelParamId(target->getId());
@@ -460,8 +461,9 @@ bool FlowEditor::updateTargetFlowParam(QString& errMessage) {
       delete handler;
       return false;
     }
-    if (handler->checkFlowCondition(flowParam, cond.toStdString().c_str()) == false) {
-      errMessage = _("Decision node condition is INVALID.");
+    string errmsg;
+    if (handler->checkSyntax(flowParam, 0, cond, errmsg) == false) {
+      errMessage = _("Decision node condition is INVALID.") + QString::fromStdString(errmsg);
       delete handler;
       return false;
     }

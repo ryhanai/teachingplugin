@@ -512,8 +512,12 @@ bool Calculator::buildArguments(TaskModelParamPtr taskParam, ElementStmParamPtr 
   return true;
 }
 
-bool Calculator::checkSyntax(TaskModelParamPtr taskParam, QString script, string& errStr) {
-  this->setTaskModelParam(taskParam);
+bool Calculator::checkSyntax(FlowParamPtr flowParam, TaskModelParamPtr taskParam, QString script, string& errStr) {
+  if(flowParam) {
+    this->setFlowParam(flowParam);
+  } else {
+    this->setTaskModelParam(taskParam);
+  }
   return calculate(script);
 }
 
@@ -523,8 +527,7 @@ bool Calculator::checkCondition(bool cmdRet, string script) {
 
 bool Calculator::checkFlowCondition(FlowParamPtr flowParam, string script) {
   DDEBUG_V("Calculator::checkFlowCondition : %s", script.c_str());
-  this->targetFlow_ = flowParam;
-  this->targetModel_ = 0;
+  this->setFlowParam(flowParam);
   if (calculate(QString::fromStdString(script)) == false) return false;
   return this->getResultScalar();
 }

@@ -160,7 +160,7 @@ bool PythonWrapper::buildArguments(TaskModelParamPtr taskParam, ElementStmParamP
   return true;
 }
 
-bool PythonWrapper::checkSyntax(TaskModelParamPtr taskParam, QString script, string& errStr) {
+bool PythonWrapper::checkSyntax(FlowParamPtr flowParam, TaskModelParamPtr taskParam, QString script, string& errStr) {
   std::stringstream strNum;
   strNum << funcNum_;
 

@@ -581,7 +581,7 @@ bool TeachingEventHandler::agd_OKClicked(QString strName, QString strAct, QStrin
 		} else {
 			if (0 < param->getValueDesc().trimmed().length()) {
 				string strError;
-				if (handler->checkSyntax(com_CurrentTask_, param->getValueDesc(), strError) == false) {
+				if (handler->checkSyntax(0, com_CurrentTask_, param->getValueDesc(), strError) == false) {
 					DDEBUG_V("checkSyntax Error : %s", param->getValueDesc().toStdString().c_str());
 					errorMsg << "[" << param->getName().toStdString() << "]" << strError << std::endl;
 					existError = true;

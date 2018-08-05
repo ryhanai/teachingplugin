@@ -626,6 +626,11 @@ public:
     _modelEdit->setMasterInfo(masterId);
   }
 
+  inline QString getName() const { return _modelEdit->getNameInfo(); }
+  inline void setName(QString name) {
+    _modelEdit->setNameInfo(name);
+  }
+
   QString caption() const override {
     return QString("");
   }

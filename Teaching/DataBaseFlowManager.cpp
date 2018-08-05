@@ -275,7 +275,7 @@ vector<FlowModelParamPtr> DatabaseManager::getFlowModelParams(int flowId) {
 
   string strStmId = toStr(flowId);
   string strStmQuery = "SELECT ";
-  strStmQuery += "flow_id, model_id, master_id, pos_x, pos_y ";
+  strStmQuery += "flow_id, model_id, master_id, pos_x, pos_y, name ";
   strStmQuery += "FROM T_FLOW_MODEL_PARAM ";
   strStmQuery += "WHERE flow_id = " + strStmId + " ORDER BY model_id";
   QSqlQuery stmQuery(db_);
@@ -285,8 +285,9 @@ vector<FlowModelParamPtr> DatabaseManager::getFlowModelParams(int flowId) {
     int master_id = stmQuery.value(2).toInt();
     double pos_x = stmQuery.value(3).toDouble();
     double pos_y = stmQuery.value(4).toDouble();
+    QString name = stmQuery.value(5).toString();
     //
-    FlowModelParamPtr param = std::make_shared<FlowModelParam>(model_id, master_id);
+    FlowModelParamPtr param = std::make_shared<FlowModelParam>(model_id, master_id, name);
     param->setPosX(pos_x);
     param->setPosY(pos_y);
     result.push_back(param);
@@ -311,8 +312,8 @@ bool DatabaseManager::saveFlowModelParam(int parentId, vector<FlowModelParamPtr>
     if (param->getMode() == DB_MODE_DELETE || param->getMode() == DB_MODE_IGNORE) continue;
 
     string strQuery = "INSERT INTO T_FLOW_MODEL_PARAM ";
-    strQuery += "(flow_id, model_id, master_id, pos_x, pos_y) ";
-    strQuery += "VALUES ( ?, ?, ?, ?, ? )";
+    strQuery += "(flow_id, model_id, master_id, pos_x, pos_y, name) ";
+    strQuery += "VALUES ( ?, ?, ?, ?, ?, ? )";
 
     QSqlQuery queryTra(QString::fromStdString(strQuery));
     queryTra.addBindValue(parentId);
@@ -320,6 +321,7 @@ bool DatabaseManager::saveFlowModelParam(int parentId, vector<FlowModelParamPtr>
     queryTra.addBindValue(param->getMasterId());
     queryTra.addBindValue(param->getPosX());
     queryTra.addBindValue(param->getPosY());
+    queryTra.addBindValue(param->getName());
 
     if (!queryTra.exec()) {
       errorStr_ = "INSERT(T_FLOW_MODEL_PARAM) error:" + queryTra.lastError().databaseText();
