@@ -250,7 +250,24 @@ void FlowEditor::dropEvent(QDropEvent* event) {
         portList.push_back(info);
       }
       for (ParameterParamPtr param : targetTask->getVisibleParameterList()) {
-        PortInfo info(param->getId(), param->getName(), 0);
+        int type = 0;
+        QString typeName;
+        if(param->getType() == PARAM_KIND_MODEL) {
+          type = 2;
+          typeName = ":Mdl";
+        } else {
+          switch(param->getParamType()) {
+            case 1:
+              typeName = ":Int"; break;
+            case 2:
+              typeName = ":Dbl"; break;
+            case 3:
+              typeName = ":Str"; break;
+            case 4:
+              typeName = ":Frm"; break;
+          }
+        }
+        PortInfo info(param->getId(), param->getName() + typeName, type);
         portList.push_back(info);
       }
 			type->portNames = portList;
@@ -351,7 +368,24 @@ void FlowEditor::createFlowTaskNode(ElementStmParamPtr target) {
       portList.push_back(info);
     }
     for(ParameterParamPtr param : targetTask->getVisibleParameterList()) {
-      PortInfo info(param->getId(), param->getName(), 0);
+      int type = 0;
+      QString typeName;
+      if(param->getType() == PARAM_KIND_MODEL) {
+        type = 2;
+        typeName = ":Mdl";
+      } else {
+        switch(param->getParamType()) {
+          case 1:
+            typeName = ":Int"; break;
+          case 2:
+            typeName = ":Dbl"; break;
+          case 3:
+            typeName = ":Str"; break;
+          case 4:
+            typeName = ":Frm"; break;
+        }
+      }
+      PortInfo info(param->getId(), param->getName() + typeName, type);
       portList.push_back(info);
     }
     type->portNames = portList;

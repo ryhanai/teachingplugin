@@ -41,18 +41,12 @@ void TeachingMasterEventHandler::mmd_ModelSelectionChanged(int newId, QString na
 		TeachingDataHolder::instance()->updateModelMaster(mmd_CurrentId_, name, fileName);
 	}
 	mmd_CurrentId_ = newId;
-	ModelMasterParamPtr model = TeachingDataHolder::instance()->getModelMasterById(newId);
+	mmd_CurrentModel_ = TeachingDataHolder::instance()->getModelMasterById(newId);
 
-	if (mmd_CurrentModel_) {
-		ChoreonoidUtil::unLoadModelMasterItem(mmd_CurrentModel_);
-	}
-	ChoreonoidUtil::loadModelMasterItem(model);
-	ChoreonoidUtil::showAllModelItem();
-	mmd_CurrentModel_ = model;
-
-  QImage targetImage = model->getImage();
-	this->mmd_->updateContents(model->getName(), model->getFileName(), model->getImageFileName(), &targetImage);
-	this->mmd_->showParamGrid(model->getActiveModelParamList());
+  QImage targetImage = mmd_CurrentModel_->getImage();
+	this->mmd_->updateContents(mmd_CurrentModel_->getName(), mmd_CurrentModel_->getFileName(),
+                             mmd_CurrentModel_->getImageFileName(), &targetImage);
+	this->mmd_->showParamGrid(mmd_CurrentModel_->getActiveModelParamList());
 	mmd_CurrentParam_ = 0;
 }
 
@@ -84,23 +78,9 @@ void TeachingMasterEventHandler::mmd_RefClicked() {
 	QString strName = QFileInfo(strFName).fileName();
 	QString strPath = QFileInfo(strFName).absolutePath();
 
-	QString currFile = mmd_CurrentModel_->getFileName();
-	if (strFName == currFile) return;
-
-	if (mmd_CurrentModel_->getModelItem()) {
-	  ChoreonoidUtil::unLoadModelMasterItem(mmd_CurrentModel_);
-	}
+	if (strFName == mmd_CurrentModel_->getFileName()) return;
 	mmd_CurrentModel_->setFileName(strName);
 
-	QFile file(strFName);
-	file.open(QIODevice::ReadOnly);
-	mmd_CurrentModel_->setData(file.readAll());
-	if (ChoreonoidUtil::readModelItem(mmd_CurrentModel_, strFName)) {
-	  ChoreonoidUtil::loadModelMasterItem(mmd_CurrentModel_);
-	  ChoreonoidUtil::showAllModelItem();
-	}
-	//ŽQÆƒ‚ƒfƒ‹‚Ì“Ç‚Ýž‚Ý
-	TeachingUtil::loadModelDetail(strFName, mmd_CurrentModel_);
 
   QImage targetImage = mmd_CurrentModel_->getImage();
 	this->mmd_->updateContents(mmd_CurrentModel_->getName(), mmd_CurrentModel_->getFileName(), mmd_CurrentModel_->getImageFileName(), &targetImage);

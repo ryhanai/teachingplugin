@@ -166,8 +166,15 @@ void NodePainter::drawConnectionPoints(QPainter* painter,
             << QPoint(p.x() - r / 2.0, p.y() + r * sqrt(3.0))
             << QPoint(p.x() - r / 2.0, p.y() - r * sqrt(3.0));
           painter->drawPolygon(poly);
-        } else if(dataType.id == "modeldata") {
+        } else if(dataType.id == "modelshape") {
           painter->drawRect(p.x() -  (reducedDiameter * r), p.y() - (reducedDiameter * r), reducedDiameter * r * 2.0, reducedDiameter * r * 2.0);
+        } else if(dataType.id == "modeldata") {
+          QPolygon poly;
+          poly << QPoint(p.x()                               , p.y() - (reducedDiameter * r * 1.3))
+               << QPoint(p.x() +  (reducedDiameter * r * 1.3), p.y()                              )
+               << QPoint(p.x()                               , p.y() + (reducedDiameter * r * 1.3))
+               << QPoint(p.x() -  (reducedDiameter * r * 1.3), p.y()                              );
+          painter->drawPolygon(poly);
         } else {
           painter->drawEllipse(p, reducedDiameter * r, reducedDiameter * r);
         }

@@ -35,7 +35,7 @@ public:
 	PortInfo(int id, QString name, int type) : id_(id), name_(name), type_(type) {};
 	int id_;
 	QString name_;
-  int type_;      //0:Param Port, 1:Model Port
+  int type_;      //0:Param Port, 1:Model Shape Port, 2:Model Param Port
 };
 
 class NODE_EDITOR_PUBLIC NodeDataModel : public QObject, public Serializable {

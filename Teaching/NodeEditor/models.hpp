@@ -23,68 +23,51 @@ using QtNodes::NodeValidationState;
 
 /// The class can potentially incapsulate any user data which
 /// need to be transferred within the Node Editor graph
-class ControlData : public NodeData
-{
+class ControlData : public NodeData {
 public:
+  ControlData() {}
 
-  ControlData() 
-  {}
-
-  NodeDataType type() const override
-  {
+  NodeDataType type() const override {
     return NodeDataType {"cntl", "ctrl"};
   }
 };
 
-class ParamData : public NodeData
-{
+class ParamData : public NodeData {
 public:
+  ParamData() {}
 
-  ParamData() : _value(0.0)
-  {}
-
-  ParamData(double const value) : _value(value)
-  {}
-
-  NodeDataType type() const override
-  { 
+  NodeDataType type() const override { 
     return NodeDataType {"data", ""};
   }
+};
 
-private:
+class ModelShapeData : public NodeData {
+public:
+  ModelShapeData() {}
 
-  double _value;
+  NodeDataType type() const override {
+    return NodeDataType{ "modelshape", "" };
+  }
 };
 
 class ModelParamData : public NodeData {
 public:
-
-  ModelParamData() : _value(0.0) {}
-
-  ModelParamData(double const value) : _value(value) {}
+  ModelParamData() {}
 
   NodeDataType type() const override {
     return NodeDataType{ "modeldata", "" };
   }
-
-private:
-
-  double _value;
 };
 //------------------------------------------------------------------------------
 
 /// The model dictates the number of inputs and outputs for the Node.
 /// In this example it has no logic.
 class TaskDataModel : public NodeDataModel {
-  //Q_OBJECT
-
 public:
 	TaskDataModel() {
 		canMany_ = false;
 	}
   virtual ~TaskDataModel() {}
-
-public:
 
   QString caption() const override {
     return _taskName;
@@ -108,7 +91,6 @@ public:
     return std::make_unique<TaskDataModel>();
   }
 
-public:
   QJsonObject save() const override {
     QJsonObject modelJson;
 
@@ -116,8 +98,6 @@ public:
 
     return modelJson;
   }
-
-public:
 
   unsigned int nPorts(PortType portType) const override {
     if (portType == PortType::In) {
@@ -129,20 +109,6 @@ public:
 
   void onTextEdited(QString const &string) {
     Q_UNUSED(string);
-  
-    // bool ok = false;
-    // double number = _lineEdit->text().toDouble(&ok);
-  
-    // if (ok)
-    // {
-    //   _number = std::make_shared<DecimalData>(number);
-  
-    //   emit dataUpdated(0);
-    // }
-    // else
-    // {
-    //   emit dataInvalidated(0);
-    // }
   }
 
   NodeDataType dataType(PortType portType, PortIndex portIndex) const override {
@@ -150,6 +116,8 @@ public:
   		return ControlData().type();
 		} else {
       if (portNames[portIndex - 1].type_ == 1) {
+        return ModelShapeData().type();
+      } else if (portNames[portIndex - 1].type_ == 2) {
         return ModelParamData().type();
       } else {
         return ParamData().type();
@@ -162,18 +130,13 @@ public:
   }
 
   void setInData(std::shared_ptr<NodeData>, int) override {
-    //
   }
 
   QWidget * embeddedWidget() override { return nullptr; }
 
-  // bool
-  // resizable() const override { return true; }
-
 public:
   void setTaskName(QString const &taskName) override {
     _taskName = taskName;
-    // _lineEdit->setText(_taskName);
     std::cout << "task name changed: " << _taskName.toStdString() << std::endl;
   }
 
@@ -182,10 +145,7 @@ public:
   }
 
 private:
-
-  // std::shared_ptr<TaskData> _task;
   QString _taskName = "unknown task";
-  // QLineEdit * _lineEdit;
 };
 
 class ParamDataModel : public NodeDataModel {
@@ -238,20 +198,6 @@ public:
 
   void onTextEdited(QString const &string) {
     Q_UNUSED(string);
-  
-    // bool ok = false;
-    // double value = _lineEdit->text().toDouble(&ok);
-  
-    // if (ok)
-    // {
-    //   _value = std::make_shared<ParamData>(value);
-  
-    //   emit dataUpdated(0);
-    // }
-    // else
-    // {
-    //   emit dataInvalidated(0);
-    // }
   }
 
   NodeDataType dataType(PortType, PortIndex) const override {
@@ -263,12 +209,9 @@ public:
   }
 
   void setInData(std::shared_ptr<NodeData>, int) override {
-    //
   }
 
   QWidget * embeddedWidget() override { return _paramEdit; }
-  // QWidget *
-  // embeddedWidget() override { return _lineEdit; }
 
 protected:
   std::shared_ptr<ParamData> _value;
@@ -360,8 +303,6 @@ private:
 };
 
 class InitialDataModel : public NodeDataModel {
-//Q_OBJECT
-
 public:
 	InitialDataModel() {
 		canMany_ = false;
@@ -410,14 +351,9 @@ public:
   void setInData(std::shared_ptr<NodeData>, int) override { }
 
   QWidget * embeddedWidget() override { return nullptr; }
-
-//private slots:
-
 };
 
 class FinalDataModel : public NodeDataModel {
-//Q_OBJECT
-
 public:
 	FinalDataModel() {
 		canMany_ = false;
@@ -465,13 +401,9 @@ public:
 
   QWidget * embeddedWidget() override { return nullptr; }
 
-//private slots:
-
 };
 
 class DecisionDataModel : public NodeDataModel {
-//Q_OBJECT
-
 public:
 	DecisionDataModel() {
 		canMany_ = false;
@@ -537,15 +469,10 @@ public:
   void setInData(std::shared_ptr<NodeData>, int) override { }
 
   QWidget * embeddedWidget() override { return nullptr; }
-
-//private slots:
-
 };
 
 
 class MergeDataModel : public NodeDataModel {
-//Q_OBJECT
-
 public:
 	MergeDataModel() {
 		canMany_ = false;
@@ -596,15 +523,10 @@ public:
   void setInData(std::shared_ptr<NodeData>, int) override { }
 
   QWidget * embeddedWidget() override { return nullptr; }
-
-//private slots:
-
 };
 
 
 class TransformDataModel : public NodeDataModel {
-//  Q_OBJECT
-
 public:
   
   TransformDataModel() : _modelEdit(new ModelWidget()) {
@@ -673,15 +595,15 @@ public:
   
   NodeDataType dataType(PortType portType, PortIndex portIndex) const override {
     if (portNames[portIndex].type_ == 1) {
-      return ModelParamData().type();
+      return ModelShapeData().type();
     } else {
-      return ParamData().type();
+      return ModelParamData().type();
     }
 
   }
 
   std::shared_ptr<NodeData> outData(PortIndex) override {
-    return std::make_shared<ModelParamData>();
+    return std::make_shared<ModelShapeData>();
   }
 
   void setInData(std::shared_ptr<NodeData>, int) override {
