@@ -54,6 +54,7 @@ public:
 private:
   bool isBreak_;
   bool isAbort_;
+  bool lastResult_;
 
   FlowParamPtr currentFlow_;
   TaskModelParamPtr currentTask_;

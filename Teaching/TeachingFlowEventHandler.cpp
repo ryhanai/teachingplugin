@@ -24,6 +24,7 @@ void TeachingEventHandler::flv_NewFlowClicked() {
 	DDEBUG("TeachingEventHandler::flv_NewFlowClicked()");
 
 	stv_->setStepStatus(false);
+  if(allModelDisp_) flv_HideAllModels();
 
 	flv_CurrentFlow_.reset(new FlowParam(NULL_ID, "", "", "", ""));
 	flv_CurrentFlow_->setNew();
@@ -35,6 +36,7 @@ void TeachingEventHandler::flv_SearchClicked(bool canEdit) {
 	if (checkPaused()) return;
 
 	stv_->setStepStatus(false);
+  if(allModelDisp_) flv_HideAllModels();
 
 	FlowSearchDialog dialog(canEdit, flv_);
 	int ret = dialog.exec();
@@ -86,7 +88,11 @@ void TeachingEventHandler::flv_SelectionChanged(TaskModelParamPtr target) {
 	stv_->setStepStatus(false);
 
 	stv_->updateTargetParam();
+  if(allModelDisp_) {
+    flv_HideAllModels();
+  } else {
 	unloadTaskModelItems();
+  }
 
 	com_CurrentTask_ = target;
 
@@ -137,6 +143,7 @@ void TeachingEventHandler::flv_FlowImportClicked() {
 	DDEBUG("TeachingEventHandler::flv_FlowImportClicked()");
 
 	stv_->setStepStatus(false);
+  if(allModelDisp_) flv_HideAllModels();
 
 	QString strFName = QFileDialog::getOpenFileName(
 		flv_, "TaskFlow File", ".", "YAML(*.yaml);;all(*.*)");
@@ -556,8 +563,11 @@ void TeachingEventHandler::flv_PortDispSetting(bool isActive) {
 }
 
 void TeachingEventHandler::flv_AllModelDisp(bool checked) {
+  allModelDisp_ = checked;
   if(checked) {
   	if (!flv_CurrentFlow_) return;
+
+    unloadTaskModelItems();
 
     for(ElementStmParamPtr state : flv_CurrentFlow_->getActiveStateList()) {
       if(state->getType()!=ELEMENT_COMMAND) continue;
@@ -569,13 +579,19 @@ void TeachingEventHandler::flv_AllModelDisp(bool checked) {
 		ChoreonoidUtil::showAllModelItem();
 
   } else {
-  	ChoreonoidUtil::deselectTreeItem();
-    for(ElementStmParamPtr state : flv_CurrentFlow_->getActiveStateList()) {
-      if(state->getType()!=ELEMENT_COMMAND) continue;
-  		TaskModelParamPtr task = state->getTaskParam();
-	    ChoreonoidUtil::unLoadTaskModelItem(task);
-    }
+    flv_HideAllModels();
   }
+}
+
+void TeachingEventHandler::flv_HideAllModels() {
+  DDEBUG("TeachingEventHandler::flv_HideAllModels");
+  ChoreonoidUtil::deselectTreeItem();
+  for(ElementStmParamPtr state : flv_CurrentFlow_->getActiveStateList()) {
+    if(state->getType()!=ELEMENT_COMMAND) continue;
+  	TaskModelParamPtr task = state->getTaskParam();
+	  ChoreonoidUtil::unLoadTaskModelItem(task);
+  }
+  flv_->cancelAllModel();
 }
 
 }

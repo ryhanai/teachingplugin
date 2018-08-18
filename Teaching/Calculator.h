@@ -107,7 +107,7 @@ private:
   bool calcBinOpe(MemberParam* lhs, MemberParam* rhs);
 	bool parseVector3d(MemberParam* elem01, MemberParam* elem02, MemberParam* elem03);
 	bool parseVector6d(MemberParam* elem01, MemberParam* elem02, MemberParam* elem03, MemberParam* elem04, MemberParam* elem05, MemberParam* elem06);
-  bool parseVariable(bool isSub);
+  bool parseVariable(bool isSub, bool lastRet);
   bool calcFunc(MemberParam* args);
   bool calcTranslation(VectorXd& arg);
   bool calcRotation(VectorXd& arg);
@@ -137,7 +137,7 @@ public:
   bool buildArguments(TaskModelParamPtr taskParam, ElementStmParamPtr targetParam, std::vector<CompositeParamType>& parameterList);
   bool checkSyntax(FlowParamPtr flowParam, TaskModelParamPtr taskParam, QString script, string& errStr);
   bool checkCondition(bool cmdRet, string script);
-  bool checkFlowCondition(FlowParamPtr flowParam, string script);
+  bool checkFlowCondition(FlowParamPtr flowParam, string script, bool lastRet);
 
 private:
   ValueMode valMode_;
@@ -145,6 +145,7 @@ private:
   Vector3d resultVector3d_;
 	VectorXd resultVector6d_;
 	Matrix3d resultMatrix_;
+  bool lastRet_;
 
 	TaskModelParamPtr targetModel_;
   FlowParamPtr targetFlow_;

@@ -38,7 +38,11 @@ void TeachingEventHandler::tiv_TaskSelectionChanged(int selectedId, QString strT
 	mdv_->updateTaskParam();
 	prv_SetInputValues();
 
-	unloadTaskModelItems();
+  if(allModelDisp_) {
+    flv_HideAllModels();
+  } else {
+  	unloadTaskModelItems();
+  }
 	if (tiv_CurrentTask_) {
 		if (tiv_CurrentTask_->getName() != strTask) {
 			tiv_CurrentTask_->setName(strTask);
@@ -247,12 +251,6 @@ void TeachingEventHandler::tiv_RegistTaskClicked(int selectedId, QString strTask
 
 	stv_->setStepStatus(false);
 
-  //íœ‚µ‚½Transition‚ª•œŠˆ‚µ‚Ä‚µ‚Ü‚¤‚½‚ß
-  //if (0 <= selectedId) {
-  //  tiv_CurrentTask_ = TeachingDataHolder::instance()->getTaskInstanceById(selectedId);
-  //  com_CurrentTask_ = tiv_CurrentTask_;
-  //  updateComViews(tiv_CurrentTask_);
-  //}
   if (tiv_CurrentTask_ == 0) return;
 
 	for (ModelParamPtr model : tiv_CurrentTask_->getActiveModelList()) {

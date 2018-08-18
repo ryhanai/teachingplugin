@@ -107,6 +107,7 @@ public:
   inline void modelParamUpdated(int flowModelId, ModelMasterParamPtr masterParam) { grhStateMachine->modelParamUpdated(flowModelId, masterParam); };
   inline bool checkOutConnection(int nodeId, int portIndex) { return grhStateMachine->checkOutConnection(nodeId, portIndex); }
   void setEditMode(bool canEdit);
+  void cancelAllModel();
 
 public Q_SLOTS:
   void editClicked();
@@ -167,6 +168,7 @@ public:
 	inline void paramInfoUpdated(ElementStmParamPtr targetState) { viewImpl->paramInfoUpdated(targetState); };
   inline void modelParamUpdated(int flowModelId, ModelMasterParamPtr masterParam) { viewImpl->modelParamUpdated(flowModelId, masterParam); };
   inline bool checkOutConnection(int nodeId, int portIndex) { return viewImpl->checkOutConnection(nodeId, portIndex); }
+  inline void cancelAllModel() { viewImpl->cancelAllModel(); };
 
 private:
   FlowViewImpl* viewImpl;

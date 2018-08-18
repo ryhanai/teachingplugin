@@ -63,6 +63,7 @@ public:
   void flv_Disconnected(QtNodes::Connection& target);
   void flv_PortDispSetting(bool isActive);
   void flv_AllModelDisp(bool checked);
+  void flv_HideAllModels();
 
 	//MetaDataView
 	void mdv_Loaded(MetaDataViewImpl* view);
@@ -142,7 +143,7 @@ public:
 private:
 	TeachingEventHandler() 
 		: canEdit_(false), 
-      flv_(0), flv_CurrentId_(NULL_ID), flv_CurrentFlow_(0), isFlowDeleted_(false), isFlowSkip_(false),
+      flv_(0), flv_CurrentId_(NULL_ID), flv_CurrentFlow_(0), isFlowDeleted_(false), isFlowSkip_(false), allModelDisp_(false),
 			tiv_(0), tiv_CurrentTask_(0),
 			com_CurrentTask_(0), com_CurrParam_(0),
 			mdv_(0), m_FigDialog_(0),
@@ -169,6 +170,7 @@ private:
 	FlowParamPtr flv_CurrentFlow_;
 	bool isFlowDeleted_;
   bool isFlowSkip_;
+  bool allModelDisp_;
 
 	TaskModelParamPtr com_CurrentTask_;
 	ElementStmParamPtr com_CurrParam_;

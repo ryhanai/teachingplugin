@@ -29,7 +29,7 @@ public:
   bool buildArguments(TaskModelParamPtr taskParam, ElementStmParamPtr targetParam, std::vector<CompositeParamType>& parameterList);
   bool checkSyntax(FlowParamPtr flowParam, TaskModelParamPtr taskParam, QString script, string& errStr);
   bool checkCondition(bool cmdRet, string script);
-  bool checkFlowCondition(FlowParamPtr flowParam, string script);
+  bool checkFlowCondition(FlowParamPtr flowParam, string script, bool lastRet);
 
 private:
   bool usePython_;

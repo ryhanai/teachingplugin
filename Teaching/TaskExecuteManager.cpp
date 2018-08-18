@@ -19,7 +19,7 @@ namespace teaching {
 TaskExecuteManager::TaskExecuteManager()
   : currParam_(0), currentTask_(0), prevTask_(0),
   taskInstView(0), statemachineView_(0), parameterView_(0), metadataView(0),
-  isBreak_(false), isAbort_(false){
+  isBreak_(false), isAbort_(false), lastResult_(false) {
 }
 
 TaskExecuteManager::~TaskExecuteManager() {
@@ -89,20 +89,6 @@ void TaskExecuteManager::runFlow(FlowParamPtr targetFlow) {
   InfoBar::instance()->showMessage(_("Running Flow :") + targetFlow->getName(), MESSAGE_PERIOD);
 
   TaskExecutor::instance()->setRootName(SettingManager::getInstance().getRobotModelName());
- // //
-	//ElementStmParamPtr nextTask = 0;
- // while (true) {
- //   if (currTask->getType() == ELEMENT_COMMAND) {
- //     currentTask_ = currTask->getTaskParam();
- //     break;
- //   }
- //   if (currTask->getType() == ELEMENT_DECISION) {
- //     QString cond = currTask->getCondition();
- //   }
- //   currTask = currTask->getNextElem();
- // }
-
- // currentTask_ = currTask->getTaskParam();
   ExecResult ret = doFlowSingleOperation();
   if (ret == ExecResult::EXEC_BREAK) {
     setButtonEnableMode(true);
@@ -237,7 +223,7 @@ ExecResult TaskExecuteManager::doFlowSingleOperation() {
         	return ExecResult::EXEC_ERROR;
         }
         createArgEstimator(currentFlow_);
-        if (argHandler_->checkFlowCondition(currentFlow_, cond.toStdString().c_str())) {
+        if (argHandler_->checkFlowCondition(currentFlow_, cond.toStdString().c_str(), lastResult_)) {
           DDEBUG("TaskExecuteManager::doFlowSingleOperation TRUE");
           nextParam = currFlowParam_->getTrueElem();
         } else {
@@ -285,7 +271,7 @@ ExecResult TaskExecuteManager::doTaskOperation(bool updateCurrentTask) {
   parseModelInfo();
 
 	ElementStmParamPtr nextParam;
-  bool cmdRet = false;
+  lastResult_ = false;
 
   //引数計算モジュールの初期化
   createArgEstimator(currentTask_);
@@ -309,7 +295,7 @@ ExecResult TaskExecuteManager::doTaskOperation(bool updateCurrentTask) {
 				return ExecResult::EXEC_ERROR;
       }
       //コマンド実行
-      cmdRet = TaskExecutor::instance()->executeCommand(currParam_->getCmdName().toStdString(), parameterList);
+      lastResult_ = TaskExecutor::instance()->executeCommand(currParam_->getCmdName().toStdString(), parameterList);
       //out引数の設定
       setOutArgument(parameterList);
 
@@ -321,7 +307,7 @@ ExecResult TaskExecuteManager::doTaskOperation(bool updateCurrentTask) {
 				return ExecResult::EXEC_ERROR;
       }
       //コマンドの実行結果がFalseで次の要素がデシジョンではない場合は終了
-      if (cmdRet == false) {
+      if (lastResult_ == false) {
 				ElementStmParamPtr checkNext = currParam_->getNextElem();
         if (checkNext == 0 || checkNext->getType() != ELEMENT_DECISION) {
           InfoBar::instance()->showMessage("");
@@ -340,7 +326,7 @@ ExecResult TaskExecuteManager::doTaskOperation(bool updateCurrentTask) {
       if (0<strCond.length()) {
         strTarget = strCond.toStdString();
       }
-      bool checkCond = argHandler_->checkCondition(cmdRet, strTarget);
+      bool checkCond = argHandler_->checkCondition(lastResult_, strTarget);
       if (checkCond) {
         nextParam = currParam_->getTrueElem();
       } else {
@@ -377,7 +363,7 @@ ExecResult TaskExecuteManager::doTaskOperation(bool updateCurrentTask) {
       } else {
         QString cond = currentTask_->getFlowCondition();
         DDEBUG_V("FlowCondition : %s", cond.toStdString().c_str());
-        if (argHandler_->checkFlowCondition(currentFlow_, cond.toStdString().c_str())) {
+        if (argHandler_->checkFlowCondition(currentFlow_, cond.toStdString().c_str(), lastResult_)) {
           DDEBUG("TaskExecuteManager::doTaskOperation TRUE");
           currentTask_ = currentTask_->getTrueTask();
         } else {
@@ -418,7 +404,7 @@ ExecResult TaskExecuteManager::doTaskOperationStep() {
   //モデル情報の設定
   parseModelInfo();
 
-  bool cmdRet = false;
+  lastResult_ = false;
   std::vector<CompositeParamType> parameterList;
 
   //引数の組み立て
@@ -427,7 +413,7 @@ ExecResult TaskExecuteManager::doTaskOperationStep() {
     return ExecResult::EXEC_ERROR;
   }
   //コマンド実行
-  cmdRet = TaskExecutor::instance()->executeCommand(currParam_->getCmdName().toStdString(), parameterList);
+  lastResult_ = TaskExecutor::instance()->executeCommand(currParam_->getCmdName().toStdString(), parameterList);
   //out引数の設定
   setOutArgument(parameterList);
   //モデルアクション実行
@@ -436,7 +422,7 @@ ExecResult TaskExecuteManager::doTaskOperationStep() {
     return ExecResult::EXEC_ERROR;
   }
   //コマンドの実行結果がFalseで次の要素がデシジョンではない場合は終了
-  if (cmdRet == false) {
+  if (lastResult_ == false) {
 		ElementStmParamPtr checkNext = currParam_->getNextElem();
     if (checkNext == 0 || checkNext->getType() != ELEMENT_DECISION) {
       InfoBar::instance()->showMessage("");
@@ -454,7 +440,7 @@ ExecResult TaskExecuteManager::doTaskOperationStep() {
       if (0<strCond.length()) {
         strTarget = strCond.toStdString();
       }
-      bool checkCond = argHandler_->checkCondition(cmdRet, strCond.toStdString());
+      bool checkCond = argHandler_->checkCondition(lastResult_, strCond.toStdString());
       if (checkCond) {
         nextParam = currParam_->getTrueElem();
       } else {
@@ -487,7 +473,7 @@ ExecResult TaskExecuteManager::doTaskOperationStep() {
         if (0 == cond.length()) {
           currentTask_ = 0;
         } else {
-          if (argHandler_->checkFlowCondition(currentFlow_, cond.toStdString().c_str())) {
+          if (argHandler_->checkFlowCondition(currentFlow_, cond.toStdString().c_str(), lastResult_)) {
             DDEBUG("TaskExecuteManager::doTaskOperation TRUE");
             currentTask_ = currentTask_->getTrueTask();
           } else {

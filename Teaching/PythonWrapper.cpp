@@ -198,7 +198,7 @@ bool PythonWrapper::checkCondition(bool cmdRet, string script) {
   return calcResult.at(0) == 1 ? true : false;
 }
 
-bool PythonWrapper::checkFlowCondition(FlowParamPtr flowParam, string script) {
+bool PythonWrapper::checkFlowCondition(FlowParamPtr flowParam, string script, bool lastRet) {
   //TODO
   return true;
   //TODO

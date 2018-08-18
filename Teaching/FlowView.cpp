@@ -850,6 +850,10 @@ void FlowViewImpl::flowSelectionChanged(TaskModelParamPtr target) {
 	TeachingEventHandler::instance()->flv_SelectionChanged(target);
 }
 
+void FlowViewImpl::cancelAllModel() {
+  btnModelDisp->setChecked(false);
+}
+
 void FlowViewImpl::setStyle() {
 	FlowViewStyle::setStyle(
 		R"(

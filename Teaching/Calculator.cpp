@@ -211,11 +211,17 @@ bool MemberParam::parseVector6d(MemberParam* elem01, MemberParam* elem02, Member
 	return true;
 }
 
-bool MemberParam::parseVariable(bool isSub) {
+bool MemberParam::parseVariable(bool isSub, bool lastRet) {
 	DDEBUG_V("MemberParam::parseVariable source:%s", source_.c_str());
 	QString paramName = QString::fromStdString(source_);
   DDEBUG("MemberParam::parseVariable : Param");
   if (this->targetFlow_) {
+    if(paramName == "_RESULT") {
+      valueScalar_ = lastRet;
+      valMode_ = VAL_SCALAR;
+      return true;
+    }
+
     vector<FlowParameterParamPtr> paramList = targetFlow_->getFlowParamList();
     vector<FlowParameterParamPtr>::iterator targetParam = find_if(paramList.begin(), paramList.end(), FlowParameterParamByNameComparator(paramName));
     if (targetParam == paramList.end()) return false;
@@ -525,9 +531,10 @@ bool Calculator::checkCondition(bool cmdRet, string script) {
   return cmdRet;
 }
 
-bool Calculator::checkFlowCondition(FlowParamPtr flowParam, string script) {
+bool Calculator::checkFlowCondition(FlowParamPtr flowParam, string script, bool lastRet) {
   DDEBUG_V("Calculator::checkFlowCondition : %s", script.c_str());
   this->setFlowParam(flowParam);
+  this->lastRet_ = lastRet;
   if (calculate(QString::fromStdString(script)) == false) return false;
   return this->getResultScalar();
 }
@@ -764,7 +771,7 @@ bool Calculator::calculate(QString source, bool isSub) {
 
       case TYPE_VARIABLE:
       {
-        if (member->parseVariable(isSub) == false) {
+        if (member->parseVariable(isSub, lastRet_) == false) {
           DDEBUG("Calculator::calculate ERROR TYPE_VARIABLE");
           return false;
         }
