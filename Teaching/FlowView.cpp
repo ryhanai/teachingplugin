@@ -124,7 +124,7 @@ void FlowSearchDialog::showGrid(const vector<FlowParamPtr>& flowList) {
 
 void FlowSearchDialog::searchClicked() {
   DDEBUG("FlowSearchDialog::searchClicked()");
-	TeachingEventHandler::instance()->fsd_SeachClicked(leCond->text());
+	TeachingEventHandler::instance()->fsd_SearchClicked(leCond->text());
 }
 
 void FlowSearchDialog::deleteClicked() {

@@ -107,7 +107,7 @@ public:
 
 	//FlowSearchDialog
 	void fsd_Loaded(FlowSearchDialog* dialog);
-	void fsd_SeachClicked(QString condition);
+	void fsd_SearchClicked(QString condition);
 	bool fsd_DeleteClicked(int targetId);
 	void fsd_OKClicked(int targetId);
 
