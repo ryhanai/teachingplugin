@@ -854,6 +854,28 @@ void FlowViewImpl::cancelAllModel() {
   btnModelDisp->setChecked(false);
 }
 
+
+  bool FlowViewImpl::renameNode(QString currentName, QString newName) {
+    return grhStateMachine->renameNode(currentName, newName);
+  }
+
+  void FlowViewImpl::getNodeByName(QString name) {
+    grhStateMachine->getNodeByName(name);
+  }
+
+  bool FlowViewImpl::connectNodes(QString from, QString fromPort, QString to, QString toPort) {
+    return grhStateMachine->connectNodes(from, fromPort, to, toPort);
+  }
+
+  bool FlowViewImpl::createNode(QString modelName, QPoint pos) {
+    return grhStateMachine->createFlowNodeAux(modelName, pos);
+  }
+
+  void FlowViewImpl::clearFlowScene() {
+    grhStateMachine->clearFlowScene();
+  }
+
+
 void FlowViewImpl::setStyle() {
 	FlowViewStyle::setStyle(
 		R"(

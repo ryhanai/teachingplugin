@@ -35,6 +35,12 @@ public:
 
   bool checkOutConnection(int nodeId, int portIndex);
 
+  bool renameNode(QString currentName, QString newName);
+  Node* getNodeByName(QString name);
+  bool connectNodes(QString from, QString fromPort, QString to, QString toPort);
+  bool createFlowNodeAux(QString modelName, QPoint posView);
+  void clearFlowScene();
+
 public Q_SLOTS:
   void deleteSelectedNodes();
   void hideSelectedNodes();

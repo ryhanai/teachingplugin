@@ -109,6 +109,14 @@ public:
   void setEditMode(bool canEdit);
   void cancelAllModel();
 
+  
+  bool renameNode(QString currentName, QString newName);
+  void getNodeByName(QString name);
+  bool connectNodes(QString from, QString fromPort, QString to, QString toPort);
+  bool createNode(QString modelName, QPoint pos);
+  void clearFlowScene();
+
+  
 public Q_SLOTS:
   void editClicked();
 
