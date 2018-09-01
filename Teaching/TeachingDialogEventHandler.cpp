@@ -22,7 +22,7 @@ void TeachingEventHandler::fsd_Loaded(FlowSearchDialog* dialog) {
 	fsd_->showGrid(flowList);
 }
 
-void TeachingEventHandler::fsd_SeachClicked(QString condition) {
+void TeachingEventHandler::fsd_SearchClicked(QString condition) {
 	vector<string> condList;
 	QStringList conditionList;
 	bool isOr = false;

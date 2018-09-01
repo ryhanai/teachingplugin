@@ -24,7 +24,7 @@ using namespace cnoid;
 
 namespace teaching {
 
-class TeachingEventHandler {
+class CNOID_EXPORT TeachingEventHandler {
 public:
   static TeachingEventHandler* instance();
 	~TeachingEventHandler();
@@ -38,6 +38,7 @@ public:
 	bool tiv_DeleteTaskClicked(int selectedId);
 	void tiv_TaskExportClicked(int selectedId, QString strTask);
 	bool tiv_TaskImportClicked();
+        bool tiv_TaskImport(QString strFName);
 	void tiv_SearchClicked(QString cond);
 	void tiv_RegistTaskClicked(int selectedId, QString strTask);
 	void tiv_RegistNewTaskClicked(int selectedId, QString strTask, QString strCond);
@@ -65,6 +66,14 @@ public:
   void flv_AllModelDisp(bool checked);
   void flv_HideAllModels();
 
+  bool flv_RenameNode(QString currentName, QString newName);
+  void flv_GetNodeByName(QString name);
+  bool flv_ConnectNodes(QString from, QString fromPort, QString to, QString toPort);
+  bool flv_CreateNode(QString modelName, QPoint posView);
+  bool tst_DeleteAllFlows();
+  bool tst_DeleteAllTasks();
+  void tst_ClearFlowScene();
+  
 	//MetaDataView
 	void mdv_Loaded(MetaDataViewImpl* view);
 	void mdv_ModelClicked();
@@ -98,7 +107,7 @@ public:
 
 	//FlowSearchDialog
 	void fsd_Loaded(FlowSearchDialog* dialog);
-	void fsd_SeachClicked(QString condition);
+	void fsd_SearchClicked(QString condition);
 	bool fsd_DeleteClicked(int targetId);
 	void fsd_OKClicked(int targetId);
 

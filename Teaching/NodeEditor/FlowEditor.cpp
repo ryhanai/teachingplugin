@@ -102,63 +102,65 @@ void FlowEditor::contextMenuEvent(QContextMenuEvent *event) {
     if (modelName == skipText) return;
 
     QPoint pos = event->pos();
-		QPointF posView = this->mapToScene(pos);
-    if (modelName == "Model Param") {
-      FlowParamPtr flowParam = std::dynamic_pointer_cast<FlowParam>(targetParam_);
-      int newId = flowParam->getMaxModelId();
-      int masterId = NULL_ID;
-      vector<ModelMasterParamPtr> modelMasterList = TeachingDataHolder::instance()->getModelMasterList();
-      if (0 < modelMasterList.size()) {
-        masterId = modelMasterList[0]->getId();
-      }
-      FlowModelParamPtr fmParam = std::make_shared<FlowModelParam>(newId, masterId, "New Model Param");
-      fmParam->setPosX(posView.x());
-      fmParam->setPosY(posView.y());
-      fmParam->setNew();
-      flowParam->addModel(fmParam);
-      createFlowModelNode(fmParam);
+    createFlowNodeAux(modelName, pos);
+    
+    // QPointF posView = this->mapToScene(pos);
+    // if (modelName == "Model Param") {
+    //   FlowParamPtr flowParam = std::dynamic_pointer_cast<FlowParam>(targetParam_);
+    //   int newId = flowParam->getMaxModelId();
+    //   int masterId = NULL_ID;
+    //   vector<ModelMasterParamPtr> modelMasterList = TeachingDataHolder::instance()->getModelMasterList();
+    //   if (0 < modelMasterList.size()) {
+    //     masterId = modelMasterList[0]->getId();
+    //   }
+    //   FlowModelParamPtr fmParam = std::make_shared<FlowModelParam>(newId, masterId, "New Model Param");
+    //   fmParam->setPosX(posView.x());
+    //   fmParam->setPosY(posView.y());
+    //   fmParam->setNew();
+    //   flowParam->addModel(fmParam);
+    //   createFlowModelNode(fmParam);
 
-    } else if (modelName.startsWith("Flow Param")) {
-      FlowParamPtr flowParam = std::dynamic_pointer_cast<FlowParam>(targetParam_);
-      int newId = flowParam->getMaxParamId();
-      int type = 0;
-      if (modelName == "Flow Param (Integer)") {
-        type = PARAM_TYPE_INTEGER;
-      } else if (modelName == "Flow Param (Double)") {
-        type = PARAM_TYPE_DOUBLE;
-      } else if (modelName == "Flow Param (String)") {
-        type = PARAM_TYPE_STRING;
-      } else if (modelName == "Flow Param (Frame)") {
-        type = PARAM_TYPE_FRAME;
-      }
-      FlowParameterParamPtr fmParam = std::make_shared<FlowParameterParam>(newId, type, "ParamName", "0.0");
-      fmParam->setPosX(posView.x());
-      fmParam->setPosY(posView.y());
-      fmParam->setNew();
-      flowParam->addFlowParam(fmParam);
-      createFlowParamNode(fmParam);
+    // } else if (modelName.startsWith("Flow Param")) {
+    //   FlowParamPtr flowParam = std::dynamic_pointer_cast<FlowParam>(targetParam_);
+    //   int newId = flowParam->getMaxParamId();
+    //   int type = 0;
+    //   if (modelName == "Flow Param (Integer)") {
+    //     type = PARAM_TYPE_INTEGER;
+    //   } else if (modelName == "Flow Param (Double)") {
+    //     type = PARAM_TYPE_DOUBLE;
+    //   } else if (modelName == "Flow Param (String)") {
+    //     type = PARAM_TYPE_STRING;
+    //   } else if (modelName == "Flow Param (Frame)") {
+    //     type = PARAM_TYPE_FRAME;
+    //   }
+    //   FlowParameterParamPtr fmParam = std::make_shared<FlowParameterParam>(newId, type, "ParamName", "0.0");
+    //   fmParam->setPosX(posView.x());
+    //   fmParam->setPosY(posView.y());
+    //   fmParam->setNew();
+    //   flowParam->addFlowParam(fmParam);
+    //   createFlowParamNode(fmParam);
 
-    } else {
-      ElementType typeId = ELEMENT_COMMAND;
-      if (modelName == "Initial") {
-        typeId = ELEMENT_START;
-      } else if (modelName == "Final") {
-        typeId = ELEMENT_FINAL;
-      } else if (modelName == "Decision") {
-        typeId = ELEMENT_DECISION;
-      } else if (modelName == "Merge") {
-        typeId = ELEMENT_MERGE;
-      } else {
-        DDEBUG("Etc Node");
-        qDebug() << "Model not found";
-      }
+    // } else {
+    //   ElementType typeId = ELEMENT_COMMAND;
+    //   if (modelName == "Initial") {
+    //     typeId = ELEMENT_START;
+    //   } else if (modelName == "Final") {
+    //     typeId = ELEMENT_FINAL;
+    //   } else if (modelName == "Decision") {
+    //     typeId = ELEMENT_DECISION;
+    //   } else if (modelName == "Merge") {
+    //     typeId = ELEMENT_MERGE;
+    //   } else {
+    //     DDEBUG("Etc Node");
+    //     qDebug() << "Model not found";
+    //   }
 
-      int newId = targetParam_->getMaxStateId();
-      ElementStmParamPtr newParam = std::make_shared<ElementStmParam>(newId, typeId, modelName, modelName, posView.x(), posView.y(), "");
-      newParam->setNew();
-      targetParam_->addStmElement(newParam);
-      createFlowExtNode(typeId, newParam);
-    }
+    //   int newId = targetParam_->getMaxStateId();
+    //   ElementStmParamPtr newParam = std::make_shared<ElementStmParam>(newId, typeId, modelName, modelName, posView.x(), posView.y(), "");
+    //   newParam->setNew();
+    //   targetParam_->addStmElement(newParam);
+    //   createFlowExtNode(typeId, newParam);
+    // }
     modelMenu.close();
   });
 
@@ -182,6 +184,191 @@ void FlowEditor::contextMenuEvent(QContextMenuEvent *event) {
 
   modelMenu.exec(event->globalPos());
 }
+
+bool FlowEditor::renameNode(QString currentName, QString newName) {
+  Node* node = getNodeByName(currentName);
+  if (node->nodeDataModel()->name() == "Model Param") {
+    ((TransformDataModel*)(node->nodeDataModel()))->setName(newName);
+    return true;
+  }
+
+  return false;
+}
+
+Node* FlowEditor::getNodeByName(QString name) {
+  Node* node = NULL;
+  this->_scene->iterateOverNodes(
+    [&](Node* nd) {
+      // name() of Task node returns just "Task" instead of the name of the task
+      // std::cout << nd->nodeDataModel()->caption().toStdString() << std::endl;
+      if ((nd->nodeDataModel()->name() == "Model Param" && ((TransformDataModel*)nd->nodeDataModel())->getName() == name)
+          || nd->nodeDataModel()->caption() == name) {
+        node = nd;
+      }
+    }
+  );
+
+  if (node) {
+    std::cout << "NODE " << name.toStdString() << " found." << std::endl;
+  } else {
+    std::cout << "NODE " << name.toStdString() << " not found." << std::endl;
+  }
+  return node;
+}
+
+bool FlowEditor::connectNodes(QString from, QString fromPort, QString to, QString toPort) {
+//bool FlowEditor::connectNodes(QString from, PortIndex fromIdx, QString to, PortIndex toIdx) {
+  Node* fromNode = getNodeByName(from);
+  Node* toNode = getNodeByName(to);
+
+  PortIndex fromIdx = 0;
+  PortIndex toIdx = 0;
+  if (from == "Decision" && fromPort == "false") { fromIdx = 1; }
+  if (to == "Merge" && toPort == "2nd") { toIdx = 1; }
+  // "Task"
+  if (toNode->nodeDataModel()->name() == "Task") {
+    std::cout << "TASK:" << std::endl;
+    auto portNames = toNode->nodeDataModel()->portNames;
+    for (auto p : portNames) {
+      std::cout << "P: " << p.name_.toStdString() << std::endl;
+    }
+    auto result = std::find_if(portNames.begin(), portNames.end(), [&](PortInfo info) { return info.name_ == toPort; });
+    if (result != portNames.end()) {
+      toIdx = std::distance(portNames.begin(), result) + 1;
+    }
+    // control flow
+  }
+  // "Model"
+  if (fromNode->nodeDataModel()->name() == "Model Param") {
+    auto portNames = fromNode->nodeDataModel()->portNames;
+    auto result = std::find_if(portNames.begin(), portNames.end(), [&](PortInfo info) { return info.name_ == fromPort; });
+    if (result != portNames.end()) {
+      fromIdx = std::distance(portNames.begin(), result);
+    }
+  }
+
+  if (fromNode && toNode) {
+    this->_scene->createConnection(*toNode, toIdx, *fromNode, fromIdx);
+    return true;
+  }
+
+  return false;
+}
+
+bool FlowEditor::createFlowNodeAux(QString modelName, QPoint pos) {
+  QPointF posView = this->mapToScene(pos);
+
+  if (modelName == "Model Param") {
+    FlowParamPtr flowParam = std::dynamic_pointer_cast<FlowParam>(targetParam_);
+    int newId = flowParam->getMaxModelId();
+    int masterId = NULL_ID;
+    vector<ModelMasterParamPtr> modelMasterList = TeachingDataHolder::instance()->getModelMasterList();
+    if (0 < modelMasterList.size()) {
+      masterId = modelMasterList[0]->getId();
+    }
+    FlowModelParamPtr fmParam = std::make_shared<FlowModelParam>(newId, masterId, "New Model Param");
+    fmParam->setPosX(posView.x());
+    fmParam->setPosY(posView.y());
+    fmParam->setNew();
+    flowParam->addModel(fmParam);
+    createFlowModelNode(fmParam);
+    return true;
+
+  } else if (modelName.startsWith("Flow Param")) {
+    FlowParamPtr flowParam = std::dynamic_pointer_cast<FlowParam>(targetParam_);
+    int newId = flowParam->getMaxParamId();
+    int type = 0;
+    if (modelName == "Flow Param (Integer)") {
+      type = PARAM_TYPE_INTEGER;
+    } else if (modelName == "Flow Param (Double)") {
+      type = PARAM_TYPE_DOUBLE;
+    } else if (modelName == "Flow Param (String)") {
+      type = PARAM_TYPE_STRING;
+    } else if (modelName == "Flow Param (Frame)") {
+      type = PARAM_TYPE_FRAME;
+    }
+    FlowParameterParamPtr fmParam = std::make_shared<FlowParameterParam>(newId, type, "ParamName", "0.0");
+    fmParam->setPosX(posView.x());
+    fmParam->setPosY(posView.y());
+    fmParam->setNew();
+    flowParam->addFlowParam(fmParam);
+    createFlowParamNode(fmParam);
+    return true;
+
+  } else if (modelName == "Initial" || modelName == "Final" || modelName == "Decision" || modelName == "Merge") {
+    ElementType typeId = ELEMENT_START;
+    if (modelName == "Initial") {
+      typeId = ELEMENT_START;
+    } else if (modelName == "Final") {
+      typeId = ELEMENT_FINAL;
+    } else if (modelName == "Decision") {
+      typeId = ELEMENT_DECISION;
+    } else if (modelName == "Merge") {
+      typeId = ELEMENT_MERGE;
+    } else {
+      DDEBUG("Etc Node");
+      qDebug() << "Model not found";
+    }
+
+    int newId = targetParam_->getMaxStateId();
+    ElementStmParamPtr newParam = std::make_shared<ElementStmParam>(newId, typeId, modelName, modelName, posView.x(), posView.y(), "");
+    newParam->setNew();
+    targetParam_->addStmElement(newParam);
+    createFlowExtNode(typeId, newParam);
+    return true;
+
+ } else {
+    //if (TeachingEventHandler::instance()->canEdit() == false) return;
+    QString strDispName = modelName;
+    QString strName = "";
+
+    auto type = _scene->registry().create("Task");
+    if (type) {
+      type->setTaskName(strDispName);
+      auto taskList = teaching::TeachingDataHolder::instance()->getTaskList();
+      auto result = std::find_if(taskList.begin(), taskList.end(),
+                                 [&](teaching::TaskModelParamPtr task) { return task->getName() == modelName; });
+      if (result == taskList.end()) { return false; }
+
+      teaching::TaskModelParamPtr targetTask = *result;
+      vector<PortInfo> portList;
+      for (ModelParamPtr model : targetTask->getVisibleModelList()) {
+        PortInfo info(model->getId(), model->getRName(), 1);
+        portList.push_back(info);
+      }
+      for (ParameterParamPtr param : targetTask->getVisibleParameterList()) {
+        PortInfo info(param->getId(), param->getName(), 0);
+        portList.push_back(info);
+      }
+      type->portNames = portList;
+
+      auto& node = _scene->createNode(std::move(type));
+      QPointF posView = this->mapToScene(pos);
+      node.nodeGraphicsObject().setPos(posView);
+      //
+      int newId = targetParam_->getMaxStateId();
+      ElementStmParamPtr newParam = std::make_shared<ElementStmParam>(newId, ELEMENT_COMMAND, strName, strDispName, pos.x(), pos.y(), "");
+      TaskModelParamPtr newTaskParam(new TaskModelParam(targetTask.get()));
+      newTaskParam->setNewForce();
+      newParam->setTaskParam(newTaskParam);
+      newTaskParam->setStateParam(newParam);
+
+      newParam->setRealElem(&node);
+      newParam->setNew();
+      node.setParamId(newParam->getId());
+      targetParam_->addStmElement(newParam);
+
+      return true;
+    }
+  }
+
+  return false;
+}
+
+void FlowEditor::clearFlowScene() {
+  this->_scene->clearScene();
+}
+
 ///////////
 void FlowEditor::dragEnterEvent(QDragEnterEvent* event) {
   if (TeachingEventHandler::instance()->canEdit() == false) return;

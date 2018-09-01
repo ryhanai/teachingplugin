@@ -156,52 +156,56 @@ bool TeachingEventHandler::tiv_TaskImportClicked() {
 		tiv_, "TaskModel File", ".", "YAML(*.yaml);;all(*.*)");
 	if (strFName.isEmpty()) return false;
 
-	//タスク定義ファイルの読み込み
-	vector<TaskModelParamPtr> taskInstList;
-	vector<ModelMasterParamPtr> masterList;
-  QString errMessage;
-	if (TeachingUtil::importTask(strFName, taskInstList, masterList, errMessage) == false) {
-		QMessageBox::warning(tiv_, _("Task Load Error"), errMessage);
-		return false;
-	}
-  //
-  for (TaskModelParamPtr task : taskInstList) {
-    for (ModelParamPtr model : task->getModelList()) {
-      for (ModelMasterParamPtr master : masterList) {
-        if (model->getMasterId() == master->getId()) {
-          model->setModelMaster(master);
-          break;
+        return tiv_TaskImport(strFName);
+}
+
+  bool TeachingEventHandler::tiv_TaskImport(QString strFName) {
+    //タスク定義ファイルの読み込み
+    vector<TaskModelParamPtr> taskInstList;
+    vector<ModelMasterParamPtr> masterList;
+    QString errMessage;
+    if (TeachingUtil::importTask(strFName, taskInstList, masterList, errMessage) == false) {
+      QMessageBox::warning(tiv_, _("Task Load Error"), errMessage);
+      return false;
+    }
+    //
+    for (TaskModelParamPtr task : taskInstList) {
+      for (ModelParamPtr model : task->getModelList()) {
+        for (ModelMasterParamPtr master : masterList) {
+          if (model->getMasterId() == master->getId()) {
+            model->setModelMaster(master);
+            break;
+          }
         }
       }
     }
-  }
-  //モデルマスタのチェック
-  for (ModelMasterParamPtr master : masterList) {
-    QString txtData = QString::fromUtf8(master->getData());
-    QString strHash = TeachingUtil::getSha1Hash(txtData.toStdString().c_str(), txtData.toStdString().length());
-    int ret = DatabaseManager::getInstance().checkModelMaster(strHash);
-    DDEBUG_V("ModelMaster:%s, %d", master->getName().toStdString().c_str(), ret);
+    //モデルマスタのチェック
+    for (ModelMasterParamPtr master : masterList) {
+      QString txtData = QString::fromUtf8(master->getData());
+      QString strHash = TeachingUtil::getSha1Hash(txtData.toStdString().c_str(), txtData.toStdString().length());
+      int ret = DatabaseManager::getInstance().checkModelMaster(strHash);
+      DDEBUG_V("ModelMaster:%s, %d", master->getName().toStdString().c_str(), ret);
 
-    if (0 < ret) {
-      master->setDelete();
-      master->setId(ret);
-    } else {
-      master->setHash(strHash);
+      if (0 < ret) {
+        master->setDelete();
+        master->setId(ret);
+      } else {
+        master->setHash(strHash);
+      }
     }
-  }
-	//タスクの保存
-	if (TeachingDataHolder::instance()->saveImportedTaskModel(taskInstList, masterList) == false) {
-		QMessageBox::warning(tiv_, _("Task Import"), TeachingDataHolder::instance()->getErrorStr());
-		return false;
-	}
+    //タスクの保存
+    if (TeachingDataHolder::instance()->saveImportedTaskModel(taskInstList, masterList) == false) {
+      QMessageBox::warning(tiv_, _("Task Import"), TeachingDataHolder::instance()->getErrorStr());
+      return false;
+    }
 
-	vector<TaskModelParamPtr> taskList = TeachingDataHolder::instance()->getTaskList();
-	tiv_->showGrid(taskList);
+    vector<TaskModelParamPtr> taskList = TeachingDataHolder::instance()->getTaskList();
+    tiv_->showGrid(taskList);
 
-	QMessageBox::information(tiv_, _("Task Import"), _("target TASK imported"));
+    QMessageBox::information(tiv_, _("Task Import"), _("target TASK imported"));
 
 	return true;
-}
+  }
 
 void TeachingEventHandler::tiv_SearchClicked(QString cond) {
 	DDEBUG("TeachingEventHandler::tiv_SearchClicked");
