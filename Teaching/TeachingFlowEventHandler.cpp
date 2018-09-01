@@ -412,7 +412,8 @@ bool TeachingEventHandler::flv_Connected(QtNodes::Connection& target) {
       //モデルポートの場合
       int masterId = (*modelElem)->getMasterId();
 
-      ModelParamPtr model = taskParam->getModelParamById(id);
+      ParameterParamPtr paramTask = taskParam->getParameterById(id);
+      ModelParamPtr model = taskParam->getModelParamById(paramTask->getModelId());
       DDEBUG_V("Model Name : %s", model->getRName().toStdString().c_str());
       vector<ModelMasterParamPtr> modelMasterList = TeachingDataHolder::instance()->getModelMasterList();
       vector<ModelMasterParamPtr>::iterator masterParamItr = find_if(modelMasterList.begin(), modelMasterList.end(), ModelMasterComparator(masterId));

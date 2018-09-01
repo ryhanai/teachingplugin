@@ -770,6 +770,7 @@ void FlowEditor::modelParamUpdated(int flowModelId, ModelMasterParamPtr masterPa
     }
   }
 
+  (*modelElem)->setName(((TransformDataModel*)targetNode->nodeDataModel())->getName());
   (*modelElem)->setMasterId(masterParam->getId());
   (*modelElem)->setPosX(targetNode->nodeGraphicsObject().pos().x());
   (*modelElem)->setPosY(targetNode->nodeGraphicsObject().pos().y());
