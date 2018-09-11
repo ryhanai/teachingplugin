@@ -142,16 +142,16 @@ void ModelParameterGroup::disconnectKinematics() {
 			lblName->setPalette(pal);
 		}
 
-    //if ((*itParam)->getType() == PARAM_KIND_MODEL) {
-      //vector<ModelParamPtr> modelList = param->getActiveModelList();
-      //for (int index = 0; index < modelList.size(); index++) {
-      //  ModelParamPtr model = modelList[index];
-      //  if (model->getId() == (*itParam)->getModelId()) {
-      //    ModelParameterGroupPtr modelParam = std::make_shared<ModelParameterGroup>(*itParam, model, eachLayout);
-      //    modelList_.push_back(modelParam);
-      //    break;
-      //  }
-      //}
+    //if (targetParam->getType() == PARAM_KIND_MODEL) {
+    //  vector<ModelParamPtr> modelList = param->getActiveModelList();
+    //  for (int index = 0; index < modelList.size(); index++) {
+    //    ModelParamPtr model = modelList[index];
+    //    if (model->getId() == targetParam->getModelId()) {
+    //      ModelParameterGroupPtr modelParam = std::make_shared<ModelParameterGroup>(targetParam, model, eachLayout);
+    //      modelList_.push_back(modelParam);
+    //      break;
+    //    }
+    //  }
 
     //} else {
       int elem_num = 1;
