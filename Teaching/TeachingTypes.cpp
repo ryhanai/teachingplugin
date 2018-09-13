@@ -537,6 +537,7 @@ vector<ModelParamPtr> TaskModelParam::getVisibleModelList() {
 ModelParamPtr TaskModelParam::getModelParamById(int id) {
 	DDEBUG_V("TaskModelParam::getModelParamById : %d", id);
   for (ModelParamPtr param : modelList_) {
+	DDEBUG_V("Param Id : %d", param->getId());
     if (param->getId() == id) {
       return param;
     }

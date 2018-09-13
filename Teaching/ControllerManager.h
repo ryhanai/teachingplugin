@@ -5,6 +5,7 @@
 #include "ControllerBase.h"
 #include "StateMachineView.h"
 #include "TaskInstanceView.h"
+#include "exportdecl.h"
 
 using namespace std;
 

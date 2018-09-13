@@ -178,6 +178,7 @@ bool ChoreonoidUtil::unLoadModelMasterItem(ModelMasterParamPtr target) {
 }
 
 void ChoreonoidUtil::replaceMaster(ModelParamPtr source, ModelMasterParamPtr target) {
+  DDEBUG("ChoreonoidUtil::replaceMaster");
   bool isLoaded = source->isLoaded();
   ChoreonoidUtil::unLoadModelItem(source);
   source->updateModelMaster(target);
@@ -185,6 +186,7 @@ void ChoreonoidUtil::replaceMaster(ModelParamPtr source, ModelMasterParamPtr tar
     ChoreonoidUtil::loadModelItem(source);
     ChoreonoidUtil::showAllModelItem();
   }
+  DDEBUG("ChoreonoidUtil::replaceMaster End");
 }
 
 

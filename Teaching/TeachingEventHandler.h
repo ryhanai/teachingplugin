@@ -19,6 +19,7 @@
 #include "ArgumentDialog.h"
 
 #include "TaskExecuteManager.h"
+#include "exportdecl.h"
 
 using namespace cnoid;
 
