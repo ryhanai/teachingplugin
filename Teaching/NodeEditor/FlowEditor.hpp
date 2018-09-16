@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include "Export.hpp"
 #include "ActivityEditorBase.hpp"
@@ -68,5 +68,6 @@ private:
   void createFlowParamNode(FlowParameterParamPtr target);
   void createFlowModelNode(FlowModelParamPtr target);
   void removeModelNodeLater();
+  void createPortInfo(TaskModelParamPtr targetTask, std::vector<PortInfo>& portList);
 };
 }

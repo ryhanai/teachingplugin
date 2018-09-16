@@ -1,4 +1,4 @@
-#include <cnoid/InfoBar>
+﻿#include <cnoid/InfoBar>
 
 #include "FlowView.h"
 
@@ -88,43 +88,43 @@ FlowSearchDialog::FlowSearchDialog(bool canEdit, QWidget* parent)
   //
   btnDelete->setEnabled(canEdit);
   //
-	TeachingEventHandler::instance()->fsd_Loaded(this);
+  TeachingEventHandler::instance()->fsd_Loaded(this);
 }
 
 void FlowSearchDialog::showGrid(const vector<FlowParamPtr>& flowList) {
-	lstFlow->clear();
-	lstFlow->setRowCount(0);
-	lstFlow->setHorizontalHeaderLabels(QStringList() << "Name" << "Comment" << "Created" << "Last Updated");
+  lstFlow->clear();
+  lstFlow->setRowCount(0);
+  lstFlow->setHorizontalHeaderLabels(QStringList() << "Name" << "Comment" << "Created" << "Last Updated");
 
-	for (FlowParamPtr param : flowList) {
-		int row = lstFlow->rowCount();
-		lstFlow->insertRow(row);
+  for (FlowParamPtr param : flowList) {
+    int row = lstFlow->rowCount();
+    lstFlow->insertRow(row);
 
-		QTableWidgetItem* itemName = new QTableWidgetItem;
-		lstFlow->setItem(row, 0, itemName);
-		itemName->setText(param->getName());
-		itemName->setData(Qt::UserRole, param->getId());
+    QTableWidgetItem* itemName = new QTableWidgetItem;
+    lstFlow->setItem(row, 0, itemName);
+    itemName->setText(param->getName());
+    itemName->setData(Qt::UserRole, param->getId());
 
-		QTableWidgetItem* itemComment = new QTableWidgetItem;
-		lstFlow->setItem(row, 1, itemComment);
-		itemComment->setText(param->getComment());
-		itemComment->setData(Qt::UserRole, param->getId());
+    QTableWidgetItem* itemComment = new QTableWidgetItem;
+    lstFlow->setItem(row, 1, itemComment);
+    itemComment->setText(param->getComment());
+    itemComment->setData(Qt::UserRole, param->getId());
 
-		QTableWidgetItem* itemCreated = new QTableWidgetItem;
-		lstFlow->setItem(row, 2, itemCreated);
-		itemCreated->setText(param->getCreatedDate());
-		itemCreated->setData(Qt::UserRole, param->getId());
+    QTableWidgetItem* itemCreated = new QTableWidgetItem;
+    lstFlow->setItem(row, 2, itemCreated);
+    itemCreated->setText(param->getCreatedDate());
+    itemCreated->setData(Qt::UserRole, param->getId());
 
-		QTableWidgetItem* itemLastUpdated = new QTableWidgetItem;
-		lstFlow->setItem(row, 3, itemLastUpdated);
-		itemLastUpdated->setText(param->getLastUpdatedDate());
-		itemLastUpdated->setData(Qt::UserRole, param->getId());
-	}
+    QTableWidgetItem* itemLastUpdated = new QTableWidgetItem;
+    lstFlow->setItem(row, 3, itemLastUpdated);
+    itemLastUpdated->setText(param->getLastUpdatedDate());
+    itemLastUpdated->setData(Qt::UserRole, param->getId());
+  }
 }
 
 void FlowSearchDialog::searchClicked() {
   DDEBUG("FlowSearchDialog::searchClicked()");
-	TeachingEventHandler::instance()->fsd_SearchClicked(leCond->text());
+  TeachingEventHandler::instance()->fsd_SearchClicked(leCond->text());
 }
 
 void FlowSearchDialog::deleteClicked() {
@@ -150,70 +150,70 @@ void FlowSearchDialog::oKClicked() {
   QTableWidgetItem* item = lstFlow->currentItem();
   if (item) {
     int targetId = item->data(Qt::UserRole).toInt();
-		TeachingEventHandler::instance()->fsd_OKClicked(targetId);
+    TeachingEventHandler::instance()->fsd_OKClicked(targetId);
   } else {
     QMessageBox::warning(this, _("Flow List"), _("Select Target Flow"));
     return;
   }
-	this->setResult(QDialog::Accepted);
+  this->setResult(QDialog::Accepted);
 }
 
 void FlowSearchDialog::cancelClicked() {
   DDEBUG("FlowSearchDialog::cancelClicked()");
-	this->setResult(QDialog::Rejected);
-	close();
+  this->setResult(QDialog::Rejected);
+  close();
 }
 //////////
 NodeDispDialog::NodeDispDialog(FlowParamPtr param, QWidget* parent)
   : QDialog(parent, Qt::CustomizeWindowHint | Qt::WindowTitleHint) {
-    this->targetParam_ = param;
+  this->targetParam_ = param;
 
-    lstNode_ = UIUtil::makeTableWidget(2, false);
-    lstNode_->setColumnWidth(0, 25);
-    lstNode_->setColumnWidth(1, 200);
-    lstNode_->setHorizontalHeaderLabels(QStringList() << "" << "Node");
+  lstNode_ = UIUtil::makeTableWidget(2, false);
+  lstNode_->setColumnWidth(0, 25);
+  lstNode_->setColumnWidth(1, 200);
+  lstNode_->setHorizontalHeaderLabels(QStringList() << "" << "Node");
 
-    lstModel_ = UIUtil::makeTableWidget(2, false);
-    lstModel_->setColumnWidth(0, 25);
-    lstModel_->setColumnWidth(1, 200);
-    lstModel_->setHorizontalHeaderLabels(QStringList() << "" << "Model");
+  lstModel_ = UIUtil::makeTableWidget(2, false);
+  lstModel_->setColumnWidth(0, 25);
+  lstModel_->setColumnWidth(1, 200);
+  lstModel_->setHorizontalHeaderLabels(QStringList() << "" << "Model");
 
-    lstParam_ = UIUtil::makeTableWidget(2, false);
-    lstParam_->setColumnWidth(0, 25);
-    lstParam_->setColumnWidth(1, 200);
-    lstParam_->setHorizontalHeaderLabels(QStringList() << "" << "Param");
+  lstParam_ = UIUtil::makeTableWidget(2, false);
+  lstParam_->setColumnWidth(0, 25);
+  lstParam_->setColumnWidth(1, 200);
+  lstParam_->setHorizontalHeaderLabels(QStringList() << "" << "Param");
 
-    QFrame* frmGrid = new QFrame;
-    QHBoxLayout* gridLayout = new QHBoxLayout(frmGrid);
-    gridLayout->setContentsMargins(2, 2, 2, 2);
-    gridLayout->addWidget(lstNode_);
-    gridLayout->addWidget(lstModel_);
-    gridLayout->addWidget(lstParam_);
-    //
-    QFrame* frmButtons = new QFrame;
-    QPushButton* btnOK = new QPushButton(_("OK"));
-    QPushButton* btnCancel = new QPushButton(_("Cancel"));
-    QHBoxLayout* buttonLayout = new QHBoxLayout(frmButtons);
-    buttonLayout->setContentsMargins(2, 2, 2, 2);
-    buttonLayout->addWidget(btnCancel);
-    buttonLayout->addStretch();
-    buttonLayout->addWidget(btnOK);
-    //
-    QVBoxLayout* mainLayout = new QVBoxLayout;
-    mainLayout->addWidget(frmGrid);
-    mainLayout->addWidget(frmButtons);
-    setLayout(mainLayout);
-    //
-    connect(btnOK, SIGNAL(clicked()), this, SLOT(oKClicked()));
-    connect(btnCancel, SIGNAL(clicked()), this, SLOT(cancelClicked()));
-    connect(this, SIGNAL(rejected()), this, SLOT(cancelClicked()));
+  QFrame* frmGrid = new QFrame;
+  QHBoxLayout* gridLayout = new QHBoxLayout(frmGrid);
+  gridLayout->setContentsMargins(2, 2, 2, 2);
+  gridLayout->addWidget(lstNode_);
+  gridLayout->addWidget(lstModel_);
+  gridLayout->addWidget(lstParam_);
+  //
+  QFrame* frmButtons = new QFrame;
+  QPushButton* btnOK = new QPushButton(_("OK"));
+  QPushButton* btnCancel = new QPushButton(_("Cancel"));
+  QHBoxLayout* buttonLayout = new QHBoxLayout(frmButtons);
+  buttonLayout->setContentsMargins(2, 2, 2, 2);
+  buttonLayout->addWidget(btnCancel);
+  buttonLayout->addStretch();
+  buttonLayout->addWidget(btnOK);
+  //
+  QVBoxLayout* mainLayout = new QVBoxLayout;
+  mainLayout->addWidget(frmGrid);
+  mainLayout->addWidget(frmButtons);
+  setLayout(mainLayout);
+  //
+  connect(btnOK, SIGNAL(clicked()), this, SLOT(oKClicked()));
+  connect(btnCancel, SIGNAL(clicked()), this, SLOT(cancelClicked()));
+  connect(this, SIGNAL(rejected()), this, SLOT(cancelClicked()));
 
-    setWindowTitle(_("Disp"));
-    resize(800, 300);
-    //
-    showNodeList();
-    showModelList();
-    showParamList();
+  setWindowTitle(_("Disp"));
+  resize(800, 300);
+  //
+  showNodeList();
+  showModelList();
+  showParamList();
 }
 
 void NodeDispDialog::showNodeList() {
@@ -471,6 +471,7 @@ void PortDispDialog::showParamList() {
 }
 
 void PortDispDialog::oKClicked() {
+  DDEBUG("PortDispDialog::oKClicked()");
   int paramNum = lstParam_->rowCount();
   vector<ParameterParamPtr> paramList = targetParam_->getActiveParameterList();
 
@@ -511,6 +512,7 @@ void PortDispDialog::oKClicked() {
   }
 
   close();
+  DDEBUG("PortDispDialog::oKClicked() end");
 }
 
 void PortDispDialog::cancelClicked() {
@@ -559,10 +561,10 @@ void TaskInfoDialog::oKClicked() {
     txtName->setSelection(0, strName.length());
     return;
   }
-	targetParam_->getTaskParam()->setName(strName);
-	targetParam_->getTaskParam()->setUpdate();
-	targetParam_->getRealElem()->nodeDataModel()->setTaskName(strName);
-	targetParam_->getRealElem()->nodeGraphicsObject().update();
+  targetParam_->getTaskParam()->setName(strName);
+  targetParam_->getTaskParam()->setUpdate();
+  targetParam_->getRealElem()->nodeDataModel()->setTaskName(strName);
+  targetParam_->getRealElem()->nodeGraphicsObject().update();
   //
   close();
 }
@@ -603,13 +605,13 @@ FlowViewImpl::FlowViewImpl(QWidget* parent) {
   flowLayout->addWidget(lblComment, 1, 0, 1, 1, Qt::AlignRight);
   flowLayout->addWidget(leComment, 1, 1, 1, 5);
   //
-	setStyle();
-	FlowScene* scene = new FlowScene(registerDataModels());
-	grhStateMachine = new FlowEditor(scene, this);
-	grhStateMachine->setAcceptDrops(true);
-	grhStateMachine->setEnabled(false);
-	
-	setAcceptDrops(true);
+  setStyle();
+  FlowScene* scene = new FlowScene(registerDataModels());
+  grhStateMachine = new FlowEditor(scene, this);
+  grhStateMachine->setAcceptDrops(true);
+  grhStateMachine->setEnabled(false);
+
+  setAcceptDrops(true);
 
   //
   QFrame* frmTask = new QFrame;
@@ -703,7 +705,7 @@ FlowViewImpl::FlowViewImpl(QWidget* parent) {
   connect(btnParamDisp, SIGNAL(clicked()), this, SLOT(paramDispClicked()));
   connect(btnModelDisp, SIGNAL(clicked()), this, SLOT(modelToggled()));
 
-	TeachingEventHandler::instance()->flv_Loaded(this);
+  TeachingEventHandler::instance()->flv_Loaded(this);
 }
 
 FlowViewImpl::~FlowViewImpl() {
@@ -731,38 +733,38 @@ void FlowViewImpl::setButtonEnableMode(bool isEnable) {
 }
 
 void FlowViewImpl::dispView(FlowParamPtr& target) {
-	changeEnables(true);
+  changeEnables(true);
   setEditMode(TeachingEventHandler::instance()->canEdit());
-	leName->setText(target->getName());
-	leComment->setText(target->getComment());
-	createStateMachine(target);
+  leName->setText(target->getName());
+  leComment->setText(target->getComment());
+  createStateMachine(target);
 }
 
 void FlowViewImpl::createStateMachine(FlowParamPtr& target) {
-	grhStateMachine->setTargetParam(target);
-	grhStateMachine->createStateMachine(target);
+  grhStateMachine->setTargetParam(target);
+  grhStateMachine->createStateMachine(target);
 }
 
 void FlowViewImpl::clearView() {
-	  leName->setText("");
-	  leComment->setText("");
-	  grhStateMachine->setTargetParam(0);
-    grhStateMachine->removeAll();
-	  changeEnables(false);
+  leName->setText("");
+  leComment->setText("");
+  grhStateMachine->setTargetParam(0);
+  grhStateMachine->removeAll();
+  changeEnables(false);
 }
 /////
 void FlowViewImpl::searchClicked() {
-	TeachingEventHandler::instance()->flv_SearchClicked(TeachingEventHandler::instance()->canEdit());
+  TeachingEventHandler::instance()->flv_SearchClicked(TeachingEventHandler::instance()->canEdit());
   setEditMode(TeachingEventHandler::instance()->canEdit());
 }
 
 void FlowViewImpl::newFlowClicked() {
-	TeachingEventHandler::instance()->flv_NewFlowClicked();
+  TeachingEventHandler::instance()->flv_NewFlowClicked();
   leName->setFocus();
 }
 
 void FlowViewImpl::registFlowClicked() {
-	TeachingEventHandler::instance()->flv_RegistFlowClicked(leName->text(), leComment->text());
+  TeachingEventHandler::instance()->flv_RegistFlowClicked(leName->text(), leComment->text());
 }
 
 void FlowViewImpl::deleteTaskClicked() {
@@ -770,7 +772,7 @@ void FlowViewImpl::deleteTaskClicked() {
 
   DDEBUG("FlowViewImpl::deleteTaskClicked()");
   grhStateMachine->deleteSelectedNodes();
-	TeachingEventHandler::instance()->flv_DeleteTaskClicked();
+  TeachingEventHandler::instance()->flv_DeleteTaskClicked();
 }
 
 void FlowViewImpl::hideClicked() {
@@ -787,14 +789,14 @@ void FlowViewImpl::paramDispClicked() {
 }
 
 void FlowViewImpl::modelToggled() {
-	DDEBUG("FlowViewImpl::modelToggled()");
-	TeachingEventHandler::instance()->flv_AllModelDisp(btnModelDisp->isChecked());
+  DDEBUG("FlowViewImpl::modelToggled()");
+  TeachingEventHandler::instance()->flv_AllModelDisp(btnModelDisp->isChecked());
 }
 
 void FlowViewImpl::editClicked() {
-	DDEBUG("FlowViewImpl::editClicked()");
+  DDEBUG("FlowViewImpl::editClicked()");
 
-	ElementStmParamPtr target = grhStateMachine->getCurrentNode();
+  ElementStmParamPtr target = grhStateMachine->getCurrentNode();
   TeachingEventHandler::instance()->flv_EditClicked(target);
 }
 
@@ -818,15 +820,15 @@ void FlowViewImpl::changeEnables(bool value) {
 }
 
 void FlowViewImpl::exportFlowClicked() {
-	TeachingEventHandler::instance()->flv_FlowExportClicked(leName->text(), leComment->text());
+  TeachingEventHandler::instance()->flv_FlowExportClicked(leName->text(), leComment->text());
 }
 
 void FlowViewImpl::importFlowClicked() {
-	TeachingEventHandler::instance()->flv_FlowImportClicked();
+  TeachingEventHandler::instance()->flv_FlowImportClicked();
 }
 
 void FlowViewImpl::runFlowClicked() {
-	TeachingEventHandler::instance()->flv_RunFlowClicked();
+  TeachingEventHandler::instance()->flv_RunFlowClicked();
 }
 
 void FlowViewImpl::runTaskClicked() {
@@ -835,19 +837,19 @@ void FlowViewImpl::runTaskClicked() {
     QMessageBox::warning(this, _("FlowView"), errMessage);
     return;
   }
-	TeachingEventHandler::instance()->tev_RunTaskClicked(NULL_ID);
+  TeachingEventHandler::instance()->tev_RunTaskClicked(NULL_ID);
 }
 
 void FlowViewImpl::abortClicked() {
-	TeachingEventHandler::instance()->tev_AbortClicked();
+  TeachingEventHandler::instance()->tev_AbortClicked();
 }
 
 void FlowViewImpl::initPosClicked() {
-	TeachingEventHandler::instance()->flv_InitPosClicked();
+  TeachingEventHandler::instance()->flv_InitPosClicked();
 }
 
 void FlowViewImpl::flowSelectionChanged(TaskModelParamPtr target) {
-	TeachingEventHandler::instance()->flv_SelectionChanged(target);
+  TeachingEventHandler::instance()->flv_SelectionChanged(target);
 }
 
 void FlowViewImpl::cancelAllModel() {
@@ -855,30 +857,30 @@ void FlowViewImpl::cancelAllModel() {
 }
 
 
-  bool FlowViewImpl::renameNode(QString currentName, QString newName) {
-    return grhStateMachine->renameNode(currentName, newName);
-  }
+bool FlowViewImpl::renameNode(QString currentName, QString newName) {
+  return grhStateMachine->renameNode(currentName, newName);
+}
 
-  void FlowViewImpl::getNodeByName(QString name) {
-    grhStateMachine->getNodeByName(name);
-  }
+void FlowViewImpl::getNodeByName(QString name) {
+  grhStateMachine->getNodeByName(name);
+}
 
-  bool FlowViewImpl::connectNodes(QString from, QString fromPort, QString to, QString toPort) {
-    return grhStateMachine->connectNodes(from, fromPort, to, toPort);
-  }
+bool FlowViewImpl::connectNodes(QString from, QString fromPort, QString to, QString toPort) {
+  return grhStateMachine->connectNodes(from, fromPort, to, toPort);
+}
 
-  bool FlowViewImpl::createNode(QString modelName, QPoint pos) {
-    return grhStateMachine->createFlowNodeAux(modelName, pos);
-  }
+bool FlowViewImpl::createNode(QString modelName, QPoint pos) {
+  return grhStateMachine->createFlowNodeAux(modelName, pos);
+}
 
-  void FlowViewImpl::clearFlowScene() {
-    grhStateMachine->clearFlowScene();
-  }
+void FlowViewImpl::clearFlowScene() {
+  grhStateMachine->clearFlowScene();
+}
 
 
 void FlowViewImpl::setStyle() {
-	FlowViewStyle::setStyle(
-		R"(
+  FlowViewStyle::setStyle(
+    R"(
   {
     "FlowViewStyle": {
       "BackgroundColor": [255, 255, 240],
@@ -888,8 +890,8 @@ void FlowViewImpl::setStyle() {
   }
   )");
 
-	NodeStyle::setNodeStyle(
-		R"(
+  NodeStyle::setNodeStyle(
+    R"(
   {
     "NodeStyle": {
       "NormalBoundaryColor": "darkgray",
@@ -910,8 +912,8 @@ void FlowViewImpl::setStyle() {
   }
   )");
 
-	ConnectionStyle::setConnectionStyle(
-		R"(
+  ConnectionStyle::setConnectionStyle(
+    R"(
   {
     "ConnectionStyle": {
       "ConstructionColor": "gray",
@@ -931,10 +933,10 @@ void FlowViewImpl::setStyle() {
 }
 
 std::shared_ptr<DataModelRegistry> FlowViewImpl::registerDataModels() {
-	auto ret = std::make_shared<DataModelRegistry>();
+  auto ret = std::make_shared<DataModelRegistry>();
 
 
-	ret->registerModel<TaskDataModel>("Tasks");
+  ret->registerModel<TaskDataModel>("Tasks");
   ret->registerModel<TransformDataModel>("3D Models");
   ret->registerModel<IntParamDataModel>("Variables");
   ret->registerModel<DoubleParamDataModel>("Variables");
@@ -942,10 +944,10 @@ std::shared_ptr<DataModelRegistry> FlowViewImpl::registerDataModels() {
   ret->registerModel<FrameParamDataModel>("Variables");
   ret->registerModel<MergeDataModel>("Syntaxes");
   ret->registerModel<DecisionDataModel>("Syntaxes");
-	ret->registerModel<FinalDataModel>("Syntaxes");
-	ret->registerModel<InitialDataModel>("Syntaxes");
+  ret->registerModel<FinalDataModel>("Syntaxes");
+  ret->registerModel<InitialDataModel>("Syntaxes");
 
-	return ret;
+  return ret;
 }
 
 void FlowViewImpl::setEditMode(bool canEdit) {
@@ -981,7 +983,6 @@ FlowView::FlowView() : viewImpl(0) {
   setDefaultLayoutArea(View::CENTER);
 }
 
-FlowView::~FlowView() {
-};
+FlowView::~FlowView() {};
 
 }
