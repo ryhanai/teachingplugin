@@ -1,4 +1,4 @@
-#ifndef TEACHING_TEACHING_TYPES_H_INCLUDED
+﻿#ifndef TEACHING_TEACHING_TYPES_H_INCLUDED
 #define TEACHING_TEACHING_TYPES_H_INCLUDED
 
 #include <string>
@@ -800,7 +800,13 @@ public:
 	inline int getControlNum() const { return this->controlList_.size(); }
 	inline QLineEdit* getControl(int index) { return this->controlList_[index]; }
 
-  inline std::string getValues(int index) { return valueParam_->getValues(index).toStdString(); }
+  inline std::string getValues(int index) {
+    if (flowParam_) {
+      return flowParamParam_->getValues(index).toStdString();
+    } else {
+      return valueParam_->getValues(index).toStdString();
+    }
+  }
   inline double getNumValues(int index) { return valueParam_->getNumValues(index); }
   inline double getNumValuesForCalc(int index) {
     if (flowParam_) {
