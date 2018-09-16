@@ -28,6 +28,17 @@ void TeachingEventHandler::flv_NewFlowClicked() {
 
 	flv_CurrentFlow_.reset(new FlowParam(NULL_ID, "", "", "", ""));
 	flv_CurrentFlow_->setNew();
+
+  ElementStmParamPtr newInitParam =
+    std::make_shared<ElementStmParam>(flv_CurrentFlow_->getMaxStateId(), ELEMENT_START, "Initial", "Initial", 0, 0, "");
+  newInitParam->setNew();
+  flv_CurrentFlow_->addStmElement(newInitParam);
+
+  ElementStmParamPtr newFinalParam =
+    std::make_shared<ElementStmParam>(flv_CurrentFlow_->getMaxStateId(), ELEMENT_FINAL, "Final", "Final", 300, 0, "");
+  newFinalParam->setNew();
+  flv_CurrentFlow_->addStmElement(newFinalParam);
+
 	flv_->dispView(flv_CurrentFlow_);
 }
 
