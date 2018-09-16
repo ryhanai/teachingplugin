@@ -457,6 +457,9 @@ bool TeachingEventHandler::flv_Connected(QtNodes::Connection& target) {
     }
     //
     param->setFlowParam(*paramElem);
+    if ((*paramElem)->isFirst()) {
+      (*paramElem)->setWidgetValue(param->getDBValues());
+    }
   }
   return true;
 }

@@ -4,6 +4,7 @@
 #include <boost/bind.hpp>
 //
 #include "NodeEditor/models.hpp"
+#include "NodeEditor/NodeState.hpp"
 
 #include "LoggerUtil.h"
 
@@ -217,7 +218,6 @@ void ParameterParam::setFlowValues(QString source) {
   for (int index = 0; index < valList.size(); index++) {
     QString each = valList.at(index);
     valueParam_->setValue(index, each);
-    //valueList_[index] = each.toUtf8().constData();
     if (index < controlList_.size()) {
       controlList_[index] = new QLineEdit();
       controlList_[index]->setText(each);
@@ -235,14 +235,7 @@ void ParameterParam::updateOutValues() {
   if (flowParam_) {
     QString strValues = getDBValues();
     flowParam_->setValue(strValues);
-    QtNodes::Node* node = flowParam_->getRealElem();
-    if (node) {
-      QWidget* widget = node->nodeDataModel()->embeddedWidget();
-      if (widget) {
-        ParamWidget* target = (ParamWidget*)widget;
-        target->setValue(strValues);
-      }
-    }
+    flowParam_->setWidgetValue(strValues);
   }
 }
 
@@ -675,21 +668,34 @@ void FlowParameterParam::updatePos() {
 
 void FlowParameterParam::setInitialValue() {
   DDEBUG_V("FlowParameterParam::setInitialValue=%s", valueParam_org_->getValuesString().toStdString().c_str());
+  setWidgetValue(valueParam_->getValuesString());
+}
+
+bool FlowParameterParam::isFirst() {
+  if (realElem_) {
+    QtNodes::NodeState::ConnectionPtrSet conns = realElem_->nodeState().connections(PortType::Out, 0);
+    DDEBUG_V("conns size:%d", conns.size());
+    if (conns.size() == 1) return true;
+  }
+  return false;
+}
+
+void FlowParameterParam::setWidgetValue(QString value) {
   if (realElem_) {
     QWidget* widget = realElem_->nodeDataModel()->embeddedWidget();
     if (widget) {
       NodeDataModel* model = realElem_->nodeDataModel();
-      DDEBUG_V("%s", model->name().toStdString().c_str());
       if(model->name()=="Flow Param (Frame)") {
         FrameParamWidget* target = (FrameParamWidget*)widget;
-        target->setValue(valueParam_->getValuesString());
+        target->setValue(value);
       } else {
         ParamWidget* target = (ParamWidget*)widget;
-        target->setValue(valueParam_->getValuesString());
+        target->setValue(value);
       }
     }
   }
 }
+
 //////////
 ActivityParam::ActivityParam(const ActivityParam* source)
   : name_(source->name_), comment_(source->comment_),

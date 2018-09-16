@@ -1014,6 +1014,8 @@ public:
 
   void updatePos();
   void setInitialValue();
+  void setWidgetValue(QString value);
+  bool isFirst();
 
 private:
   int type_;
