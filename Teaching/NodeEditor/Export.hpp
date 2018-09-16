@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include "Compiler.hpp"
 #include "OperatingSystem.hpp"

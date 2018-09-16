@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include <QtCore/QUuid>
 #include <QtWidgets/QGraphicsScene>

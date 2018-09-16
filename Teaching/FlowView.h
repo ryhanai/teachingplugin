@@ -1,4 +1,4 @@
-#ifndef TEACHING_FLOW_VIEW_H_INCLUDED
+﻿#ifndef TEACHING_FLOW_VIEW_H_INCLUDED
 #define TEACHING_FLOW_VIEW_H_INCLUDED
 
 #include <cnoid/View>
