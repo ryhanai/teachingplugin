@@ -14,7 +14,7 @@ namespace QtNodes {
 class FlowScene;
 
 struct ConnectionInfo {
-  Node* sourceNode;
+  //Node* sourceNode;
   Node* node;
   int portindex;
 };

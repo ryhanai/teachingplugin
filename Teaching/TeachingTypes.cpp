@@ -675,12 +675,18 @@ void FlowParameterParam::updatePos() {
 
 void FlowParameterParam::setInitialValue() {
   DDEBUG_V("FlowParameterParam::setInitialValue=%s", valueParam_org_->getValuesString().toStdString().c_str());
-  //valueParam_->setValuesByString(valueParam_org_->getValuesString());
   if (realElem_) {
     QWidget* widget = realElem_->nodeDataModel()->embeddedWidget();
     if (widget) {
-      ParamWidget* target = (ParamWidget*)widget;
-      target->setValue(valueParam_->getValuesString());
+      NodeDataModel* model = realElem_->nodeDataModel();
+      DDEBUG_V("%s", model->name().toStdString().c_str());
+      if(model->name()=="Flow Param (Frame)") {
+        FrameParamWidget* target = (FrameParamWidget*)widget;
+        target->setValue(valueParam_->getValuesString());
+      } else {
+        ParamWidget* target = (ParamWidget*)widget;
+        target->setValue(valueParam_->getValuesString());
+      }
     }
   }
 }
