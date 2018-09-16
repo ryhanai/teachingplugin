@@ -1,4 +1,4 @@
-#include "TeachingTypes.h"
+ï»¿#include "TeachingTypes.h"
 #include "ChoreonoidUtil.h"
 #include "TeachingUtil.h"
 #include <boost/bind.hpp>
@@ -795,7 +795,7 @@ bool ActivityParam::checkAndOrderStateMachine() {
     ++itConnChk;
   }
   /////
-  //Às‡˜‚Ì‘g‚İ—§‚Ä
+  //å®Ÿè¡Œé †åºã®çµ„ã¿ç«‹ã¦
   std::vector<ElementStmParamPtr>::iterator itElem = stmElemList_.begin();
 	DDEBUG_V("Build Order states:%d, trans:%d", stmElemList_.size(), stmConnectionList_.size());
 
