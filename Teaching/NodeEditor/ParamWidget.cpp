@@ -1,4 +1,4 @@
-#include "ParamWidget.hpp"
+﻿#include "ParamWidget.hpp"
 #include "TeachingEventHandler.h"
 #include "TeachingUtil.h"
 

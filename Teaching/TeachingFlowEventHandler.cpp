@@ -408,12 +408,11 @@ bool TeachingEventHandler::flv_Connected(QtNodes::Connection& target) {
     if (modelElem == modelList.end()) return false;
     DDEBUG_V("Master Id : %d", (*modelElem)->getMasterId());
 
-    if (dataType.id == "modeldata") {
+    if (dataType.id == "modelshape") {
       //モデルポートの場合
       int masterId = (*modelElem)->getMasterId();
 
-      ParameterParamPtr paramTask = taskParam->getParameterById(id);
-      ModelParamPtr model = taskParam->getModelParamById(paramTask->getModelId());
+      ModelParamPtr model = taskParam->getModelParamById(id);
       DDEBUG_V("Model Name : %s", model->getRName().toStdString().c_str());
       vector<ModelMasterParamPtr> modelMasterList = TeachingDataHolder::instance()->getModelMasterList();
       vector<ModelMasterParamPtr>::iterator masterParamItr = find_if(modelMasterList.begin(), modelMasterList.end(), ModelMasterComparator(masterId));
@@ -421,7 +420,7 @@ bool TeachingEventHandler::flv_Connected(QtNodes::Connection& target) {
         ChoreonoidUtil::replaceMaster(model, *masterParamItr);
       }
 
-    } else if (dataType.id == "data") {
+    } else if (dataType.id == "modeldata") {
       //データポートの場合
       QString portName = sourceNode->nodeDataModel()->portNames[sourcePortIndex].name_;
       DDEBUG_V("portName : %s", portName.toStdString().c_str());
@@ -498,10 +497,11 @@ void TeachingEventHandler::flv_Disconnected(QtNodes::Connection& target) {
   if (sourceNode->nodeDataModel()->name() == "Model Param") {
     NodeDataType dataType = sourceNode->nodeDataModel()->dataType(PortType::Out, sourcePortIndex);
     DDEBUG_V("dataType : %s", dataType.id.toStdString().c_str());
-    if (dataType.id == "modeldata") {
+    if (dataType.id == "modelshape") {
       //モデルポートの場合
-      ParameterParamPtr paramTask = taskParam->getParameterById(id);
-      ModelParamPtr model = taskParam->getModelParamById(paramTask->getModelId());
+      //ParameterParamPtr paramTask = taskParam->getParameterById(id);
+      //ModelParamPtr model = taskParam->getModelParamById(paramTask->getModelId());
+      ModelParamPtr model = taskParam->getModelParamById(id);
       DDEBUG_V("Model Name : %s", model->getRName().toStdString().c_str());
       bool isLoaded = model->isLoaded();
       ChoreonoidUtil::unLoadModelItem(model);
@@ -510,7 +510,7 @@ void TeachingEventHandler::flv_Disconnected(QtNodes::Connection& target) {
         ChoreonoidUtil::loadModelItem(model);
         ChoreonoidUtil::showAllModelItem();
       }
-    } else if (dataType.id == "data") {
+    } else if (dataType.id == "modeldata") {
       //データポートの場合
       QString portName = sourceNode->nodeDataModel()->portNames[sourcePortIndex].name_;
       DDEBUG_V("portName : %s", portName.toStdString().c_str());
