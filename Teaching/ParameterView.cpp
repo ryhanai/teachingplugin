@@ -1,4 +1,4 @@
-#include "ParameterView.h"
+﻿#include "ParameterView.h"
 #include <cnoid/BodyBar>
 #include <cnoid/EigenUtil>
 #include <boost/bind.hpp>
@@ -89,7 +89,7 @@ void ModelParameterGroup::disconnectKinematics() {
 }
 /////
  ParameterViewImpl::ParameterViewImpl(QWidget* parent)
-   : btnEdit(0), canEdit_(true), QWidget(parent) {
+   : btnEdit(0), canEdit_(true), isFlowView_(false), QWidget(parent) {
 	TeachingEventHandler::instance()->prv_Loaded(this);
 }
  
@@ -97,11 +97,11 @@ void ModelParameterGroup::disconnectKinematics() {
    DDEBUG("ParameterViewImpl Destruct");
  }
 
- void ParameterViewImpl::setTaskParam(TaskModelParamPtr param, bool canEdit) {
+ void ParameterViewImpl::setTaskParam(TaskModelParamPtr param, bool isFlowView) {
   DDEBUG_V("ParameterViewImpl::setTaskParam() %d", param->getId());
 
+  this->isFlowView_ = isFlowView;
 	clearView();
-  this->canEdit_ = canEdit;
   //
   QFrame* topFrame = new QFrame(this);
   frameList_.push_back(topFrame);
@@ -115,7 +115,7 @@ void ModelParameterGroup::disconnectKinematics() {
   btnEdit = new QPushButton(_("Edit"));
   btnEdit->setIcon(QIcon(":/Teaching/icons/Settings.png"));
   btnEdit->setToolTip(_("Edit Parameters"));
-  btnEdit->setEnabled(TeachingEventHandler::instance()->canEdit() && this->canEdit_);
+  btnEdit->setEnabled(TeachingEventHandler::instance()->canEdit() && this->canEdit_ && !isFlowView);
 
   topLayout->addWidget(btnEdit);
   connect(btnEdit, SIGNAL(clicked()), this, SLOT(editClicked()));
@@ -125,10 +125,11 @@ void ModelParameterGroup::disconnectKinematics() {
 
   for(ParameterParamPtr targetParam : param->getActiveParameterList()) {
     if (targetParam->getType() == PARAM_KIND_MODEL) continue;
+    if (isFlowView && targetParam->getHide() == 0) continue;
 
     targetParam->clearControlList();
     QFrame* eachFrame = new QFrame(this);
-    eachFrame->setEnabled(canEdit);
+    eachFrame->setEnabled(TeachingEventHandler::instance()->canEdit() && this->canEdit_);
     frameList_.push_back(eachFrame);
     QHBoxLayout* eachLayout = new QHBoxLayout;
     eachLayout->setContentsMargins(0, 0, 0, 0);
@@ -230,7 +231,10 @@ void ParameterViewImpl::editClicked() {
 
 void ParameterViewImpl::setEditMode(bool canEdit) {
   if (btnEdit) {
-    btnEdit->setEnabled(canEdit && this->canEdit_);
+    btnEdit->setEnabled(canEdit && this->canEdit_ && !isFlowView_);
+    for(QFrame* frame : frameList_) {
+      frame->setEnabled(canEdit && this->canEdit_);
+    }
   }
 }
 /////

@@ -220,7 +220,7 @@ private:
   void prd_UpdateParam(QString name, QString id, int type, int paramType, QString unit, int model_id, int model_param_id, int hide);
 
 	void unloadTaskModelItems();
-	void updateComViews(TaskModelParamPtr targetTask, bool canEdit=true);
+	void updateComViews(TaskModelParamPtr targetTask, bool isFlowView=false);
 
   cnoid::Connection connectionToEditStateChanged;
   cnoid::LazyCaller updateEditStateLater;

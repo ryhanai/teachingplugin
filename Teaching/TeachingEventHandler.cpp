@@ -1,4 +1,4 @@
-#include "TeachingEventHandler.h"
+ï»¿#include "TeachingEventHandler.h"
 
 #include "TeachingUtil.h"
 #include "ChoreonoidUtil.h"
@@ -160,7 +160,7 @@ bool TeachingEventHandler::tiv_TaskImportClicked() {
 }
 
   bool TeachingEventHandler::tiv_TaskImport(QString strFName) {
-    //ƒ^ƒXƒN’è‹`ƒtƒ@ƒCƒ‹‚Ì“Ç‚İ‚İ
+    //ã‚¿ã‚¹ã‚¯å®šç¾©ãƒ•ã‚¡ã‚¤ãƒ«ã®èª­ã¿è¾¼ã¿
     vector<TaskModelParamPtr> taskInstList;
     vector<ModelMasterParamPtr> masterList;
     QString errMessage;
@@ -179,7 +179,7 @@ bool TeachingEventHandler::tiv_TaskImportClicked() {
         }
       }
     }
-    //ƒ‚ƒfƒ‹ƒ}ƒXƒ^‚Ìƒ`ƒFƒbƒN
+    //ãƒ¢ãƒ‡ãƒ«ãƒã‚¹ã‚¿ã®ãƒã‚§ãƒƒã‚¯
     for (ModelMasterParamPtr master : masterList) {
       QString txtData = QString::fromUtf8(master->getData());
       QString strHash = TeachingUtil::getSha1Hash(txtData.toStdString().c_str(), txtData.toStdString().length());
@@ -193,7 +193,7 @@ bool TeachingEventHandler::tiv_TaskImportClicked() {
         master->setHash(strHash);
       }
     }
-    //ƒ^ƒXƒN‚Ì•Û‘¶
+    //ã‚¿ã‚¹ã‚¯ã®ä¿å­˜
     if (TeachingDataHolder::instance()->saveImportedTaskModel(taskInstList, masterList) == false) {
       QMessageBox::warning(tiv_, _("Task Import"), TeachingDataHolder::instance()->getErrorStr());
       return false;
@@ -508,7 +508,7 @@ void TeachingEventHandler::tev_stm_RunClicked(ElementStmParamPtr target) {
 		QMessageBox::warning(stv_, _("Run Command"), _("Please select Command Element."));
 		return;
 	}
-  //ƒRƒ}ƒ“ƒhƒ`ƒFƒbƒN
+  //ã‚³ãƒãƒ³ãƒ‰ãƒã‚§ãƒƒã‚¯
   vector<CommandDefParam*>commandList = TaskExecutor::instance()->getCommandDefList();
   bool isExist = false;
   for(CommandDefParam* command : commandList) {
@@ -576,7 +576,7 @@ void TeachingEventHandler::tev_RunTaskClicked(int selectedId) {
     com_CurrentTask_ = tiv_CurrentTask_;
     updateComViews(tiv_CurrentTask_);
   }
-  //ƒRƒ}ƒ“ƒhƒ`ƒFƒbƒN
+  //ã‚³ãƒãƒ³ãƒ‰ãƒã‚§ãƒƒã‚¯
   vector<CommandDefParam*>commandList = TaskExecutor::instance()->getCommandDefList();
   QStringList errorList;
   for(ElementStmParamPtr state : com_CurrentTask_->getActiveStateList()) {
@@ -654,7 +654,7 @@ void TeachingEventHandler::unloadTaskModelItems() {
 
 }
 
-void TeachingEventHandler::updateComViews(TaskModelParamPtr targetTask, bool canEdit) {
+void TeachingEventHandler::updateComViews(TaskModelParamPtr targetTask, bool isFlowView) {
 	DDEBUG("TeachingEventHandler::updateComViews()");
 
 	TeachingUtil::loadTaskDetailData(targetTask);
@@ -662,9 +662,9 @@ void TeachingEventHandler::updateComViews(TaskModelParamPtr targetTask, bool can
 
 	mdv_->setTaskParam(targetTask);
 	stv_->setTaskParam(targetTask);
-	prv_->setTaskParam(targetTask, canEdit);
+	prv_->setTaskParam(targetTask, isFlowView);
 
-	//‘¦XV‚ğs‚¤‚ÆƒGƒ‰[‚É‚È‚Á‚Ä‚µ‚Ü‚¤‚½‚ß
+	//å³æ›´æ–°ã‚’è¡Œã†ã¨ã‚¨ãƒ©ãƒ¼ã«ãªã£ã¦ã—ã¾ã†ãŸã‚
 	if (isUpdateTree) {
 		ChoreonoidUtil::showAllModelItem();
 	}

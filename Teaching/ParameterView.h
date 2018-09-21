@@ -44,7 +44,7 @@ public:
   ParameterViewImpl(QWidget* parent = 0);
   ~ParameterViewImpl();
 
-	void setTaskParam(TaskModelParamPtr param, bool canEdit);
+	void setTaskParam(TaskModelParamPtr param, bool isFlowView);
 	void clearTaskParam();
   void setEditMode(bool canEdit);
 
@@ -53,6 +53,7 @@ private Q_SLOTS:
 
 private:
   bool canEdit_;
+  bool isFlowView_;
   QLabel* lblName;
   QPushButton* btnEdit;
   vector<QFrame*> frameList_;

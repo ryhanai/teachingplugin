@@ -102,13 +102,13 @@ void TeachingEventHandler::flv_SelectionChanged(TaskModelParamPtr target) {
   if(allModelDisp_) {
     flv_HideAllModels();
   } else {
-	unloadTaskModelItems();
+    unloadTaskModelItems();
   }
 
 	com_CurrentTask_ = target;
 
 	if (com_CurrentTask_) {
-		updateComViews(com_CurrentTask_, false);
+		updateComViews(com_CurrentTask_, true);
 
 	} else {
 		mdv_->clearTaskParam();
