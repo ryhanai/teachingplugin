@@ -393,6 +393,7 @@ void ModelParam::initializeItem() {
  void ModelParam::updateKinematicState(bool blockSignals) {
   DDEBUG("ModelParam::updateKinematicState");
   if (currentBodyItem_) {
+    DDEBUG("currentBodyItem_");
     Link* currentLink = currentBodyItem_->body()->rootLink();
     posture->setPosX(currentLink->p()[0]);
     posture->setPosY(currentLink->p()[1]);
@@ -403,6 +404,8 @@ void ModelParam::initializeItem() {
     posture->setRotRx(degree(rpy[0]));
     posture->setRotRy(degree(rpy[1]));
     posture->setRotRz(degree(rpy[2]));
+
+    setUpdate();
   }
  }
 
@@ -413,6 +416,17 @@ void ModelParam::initializeItem() {
 	}
   currentBodyItem_ = 0;
  }
+
+void ModelParam::setPosture(PostureParamPtr value) {
+  DDEBUG("ModelParam::setPosture");
+  postureOrg = std::make_shared<PostureParam>(posture.get());
+  posture = value;
+}
+
+void ModelParam::clearPosture() {
+  DDEBUG("ModelParam::clearPosture");
+  posture = std::make_shared<PostureParam>(postureOrg.get());
+}
  /////
 void TaskModelParam::setAllNewData() {
   this->mode_ = DB_MODE_INSERT;

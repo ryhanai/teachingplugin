@@ -403,16 +403,10 @@ public:
   inline void setModelMaster(ModelMasterParamPtr value) { this->master_ = value; }
 	inline ModelMasterParamPtr getModelMaster() const { return this->master_; }
 
-  inline void setPosture(PostureParamPtr value) {
-    postureOrg = std::make_shared<PostureParam>(posture.get());
-    posture = value;
-  }
   inline PostureParamPtr getPosture() const { return posture; }
 
-  inline void clearPosture() {
-    posture = std::make_shared<PostureParam>(postureOrg.get());
-  }
-
+  void setPosture(PostureParamPtr value);
+  void clearPosture();
   void setInitialPos();
   bool isChangedPosition();
   void updateModelMaster(ModelMasterParamPtr value);
