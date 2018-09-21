@@ -1,4 +1,4 @@
-#include "Calculator.h"
+ï»¿#include "Calculator.h"
 #include <QStringList>
 
 #include "TeachingUtil.h"
@@ -222,7 +222,7 @@ bool MemberParam::parseVariable(bool isSub, bool lastRet) {
       return true;
     }
 
-    vector<FlowParameterParamPtr> paramList = targetFlow_->getFlowParamList();
+    vector<FlowParameterParamPtr> paramList = targetFlow_->getActiveFlowParamList();
     vector<FlowParameterParamPtr>::iterator targetParam = find_if(paramList.begin(), paramList.end(), FlowParameterParamByNameComparator(paramName));
     if (targetParam == paramList.end()) return false;
     //
@@ -236,7 +236,7 @@ bool MemberParam::parseVariable(bool isSub, bool lastRet) {
       return false;
     }
   }
-  //ƒ‚ƒfƒ‹‚ÌŒŸõ
+  //ãƒ¢ãƒ‡ãƒ«ã®æ¤œç´¢
   QString featureName;
   vector<ModelParamPtr> modelList = targetModel_->getActiveModelList();
   std::vector<ModelParamPtr>::iterator model = std::find_if(modelList.begin(), modelList.end(), ModelParamComparatorByRName(paramName));
@@ -251,7 +251,7 @@ bool MemberParam::parseVariable(bool isSub, bool lastRet) {
     valMode_ = VAL_VECTOR_6D;
     return true;
   }
-  //ƒpƒ‰ƒ[ƒ^‚ÌŒŸõ
+  //ãƒ‘ãƒ©ãƒ¡ãƒ¼ã‚¿ã®æ¤œç´¢
   vector<ParameterParamPtr> paramList = targetModel_->getActiveParameterList();
   vector<ParameterParamPtr>::iterator targetParam = find_if(paramList.begin(), paramList.end(), ParameterParamComparatorByRName(paramName));
   if (targetParam == paramList.end()) return false;
@@ -298,7 +298,7 @@ bool MemberParam::parseVariable(bool isSub, bool lastRet) {
               desc = desc.replace("origin", (*model)->getRName());
               DDEBUG_V("MemberParam::parseVariable : Model Param Rep=%s", desc.toStdString().c_str());
               Calculator* calc = new Calculator();
-              //ÄŒvZ‚µ‚È‚¢‚æ‚¤‚ÉisSub‚ğTrue‚Éİ’è
+              //å†è¨ˆç®—ã—ãªã„ã‚ˆã†ã«isSubã‚’Trueã«è¨­å®š
               calc->setTaskModelParam(targetModel_);
               if (calc->calculate(desc, true) == false) {
                   DDEBUG("MemberParam::parseVariable : Calc Error");
@@ -467,7 +467,7 @@ bool Calculator::buildArguments(TaskModelParamPtr taskParam, ElementStmParamPtr 
   DDEBUG(" Calculator::buildArguments");
   parameterList.clear();
 
-  //ˆø”‚Ì‘g‚İ—§‚Ä
+  //å¼•æ•°ã®çµ„ã¿ç«‹ã¦
   for (int idxArg = 0; idxArg < targetParam->getArgList().size(); idxArg++) {
 		ArgumentParamPtr arg = targetParam->getArgList()[idxArg];
     QString valueDesc = arg->getValueDesc();

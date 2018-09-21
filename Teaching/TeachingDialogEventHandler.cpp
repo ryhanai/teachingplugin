@@ -1,4 +1,4 @@
-#include "TeachingEventHandler.h"
+﻿#include "TeachingEventHandler.h"
 
 #include "TeachingUtil.h"
 #include "ChoreonoidUtil.h"
@@ -93,7 +93,7 @@ void TeachingEventHandler::mdd_ModelSelectionChanged(int newId, QString rname, i
   }
 
 	mdd_CurrentModel_ = 0;
-	for (ModelParamPtr model : com_CurrentTask_->getModelList()) {
+	for (ModelParamPtr model : com_CurrentTask_->getActiveModelList()) {
 		if (model->getId() == newId) {
 			mdd_CurrentModel_ = model;
 			break;
@@ -243,7 +243,7 @@ void TeachingEventHandler::mdd_OkClicked(QString rname, int type, double posX, d
   /////
   if (flv_CurrentFlow_) {
     ElementStmParamPtr targetState = 0;
-    for (ElementStmParamPtr state : flv_CurrentFlow_->getStmElementList()) {
+    for (ElementStmParamPtr state : flv_CurrentFlow_->getActiveStateList()) {
       TaskModelParamPtr task = state->getTaskParam();
       if (task) {
         if (task->getId() == com_CurrentTask_->getId()) {
@@ -356,7 +356,7 @@ bool TeachingEventHandler::prd_OkClicked(QString name, QString id, int type, int
   //
   if (flv_CurrentFlow_) {
     ElementStmParamPtr targetState = 0;
-    for (ElementStmParamPtr state : flv_CurrentFlow_->getStmElementList()) {
+    for (ElementStmParamPtr state : flv_CurrentFlow_->getActiveStateList()) {
       TaskModelParamPtr task = state->getTaskParam();
       if (task) {
         if (task->getId() == com_CurrentTask_->getId()) {

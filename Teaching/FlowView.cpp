@@ -348,7 +348,7 @@ void NodeDispDialog::oKClicked() {
   }
   //
   int paramNum = lstParam_->rowCount();
-  vector<FlowParameterParamPtr> paramList = targetParam_->getFlowParamList();
+  vector<FlowParameterParamPtr> paramList = targetParam_->getActiveFlowParamList();
 
   for (int index = 0; index < paramNum; index++) {
     QTableWidgetItem* item = lstParam_->item(index, 0);

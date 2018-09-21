@@ -1,4 +1,4 @@
-#include "StateMachineEditor.hpp"
+﻿#include "StateMachineEditor.hpp"
 
 #include "StyleCollection.hpp"
 //
@@ -203,7 +203,7 @@ void StateMachineEditor::mouseDoubleClickEvent(QMouseEvent * event) {
 		if (auto n = qgraphicsitem_cast<NodeGraphicsObject*>(item)) {
 			//QGraphicsView::mouseReleaseEvent(event);
 			int targetId = n->node().getParamId();
-			std::vector<ElementStmParamPtr> stateList = targetParam_->getStmElementList();
+			std::vector<ElementStmParamPtr> stateList = targetParam_->getActiveStateList();
 			vector<ElementStmParamPtr>::iterator targetElem = find_if(stateList.begin(), stateList.end(), ElementStmParamComparator(targetId));
 			if (targetElem == stateList.end()) return;
 			stateView_->editClicked();
@@ -317,7 +317,7 @@ void StateMachineEditor::createStateMachine(const std::vector<ElementStmParamPtr
 void StateMachineEditor::updateTargetParam() {
 	if (targetParam_ == 0) return;
 
-	for (ElementStmParamPtr target : targetParam_->getStmElementList()) {
+	for (ElementStmParamPtr target : targetParam_->getActiveStateList()) {
 		target->updatePos();
 	}
 	//
@@ -358,7 +358,7 @@ void StateMachineEditor::deleteSelectedNodes() {
   for (QGraphicsItem * item : _scene->selectedItems()) {
     if (auto n = qgraphicsitem_cast<NodeGraphicsObject*>(item)) {
       int targetId = n->node().getParamId();
-      std::vector<ElementStmParamPtr> stateList = targetParam_->getStmElementList();
+      std::vector<ElementStmParamPtr> stateList = targetParam_->getActiveStateList();
       vector<ElementStmParamPtr>::iterator targetElem = find_if(stateList.begin(), stateList.end(), ElementStmParamComparator(targetId));
       if (targetElem != stateList.end()) {
         (*targetElem)->setDelete();

@@ -343,7 +343,7 @@ void FlowEditor::mouseDoubleClickEvent(QMouseEvent * event) {
   if (item) {
     if (auto n = qgraphicsitem_cast<NodeGraphicsObject*>(item)) {
       int targetId = n->node().getParamId();
-      std::vector<ElementStmParamPtr> stateList = targetParam_->getStmElementList();
+      std::vector<ElementStmParamPtr> stateList = targetParam_->getActiveStateList();
       vector<ElementStmParamPtr>::iterator targetElem = find_if(stateList.begin(), stateList.end(), ElementStmParamComparator(targetId));
       if (targetElem == stateList.end()) return;
       flowView_->editClicked();
@@ -588,12 +588,12 @@ bool FlowEditor::updateTargetFlowParam(QString& errMessage) {
     }
     checkList.append(target->getName());
   }
-  vector<FlowModelParamPtr> modelList = flowParam->getModelList();
+  vector<FlowModelParamPtr> modelList = flowParam->getActiveModelList();
   for (FlowModelParamPtr target : modelList) {
     target->updatePos();
   }
 
-  vector<ElementStmParamPtr> stateList = targetParam_->getStmElementList();
+  vector<ElementStmParamPtr> stateList = targetParam_->getActiveStateList();
   for (ElementStmParamPtr target : stateList) {
     target->updatePos();
   }
@@ -709,7 +709,7 @@ void FlowEditor::deleteSelectedNodes() {
 
       if (n->node().nodeDataModel()->name() == "Model Param") {
         FlowParamPtr flowParam = std::dynamic_pointer_cast<FlowParam>(targetParam_);
-        vector<FlowModelParamPtr> modelList = flowParam->getModelList();
+        vector<FlowModelParamPtr> modelList = flowParam->getActiveModelList();
         vector<FlowModelParamPtr>::iterator targetElem = find_if(modelList.begin(), modelList.end(), FlowModelParamComparator(targetId));
         if (targetElem != modelList.end()) {
           DDEBUG_V("DELETE Flow Model Param:%d", targetId);
@@ -718,7 +718,7 @@ void FlowEditor::deleteSelectedNodes() {
 
       } else if (n->node().nodeDataModel()->name().startsWith("Flow Param")) {
         FlowParamPtr flowParam = std::dynamic_pointer_cast<FlowParam>(targetParam_);
-        vector<FlowParameterParamPtr> paramList = flowParam->getFlowParamList();
+        vector<FlowParameterParamPtr> paramList = flowParam->getActiveFlowParamList();
         vector<FlowParameterParamPtr>::iterator targetElem = find_if(paramList.begin(), paramList.end(), FlowParameterParamComparator(targetId));
         if (targetElem != paramList.end()) {
           DDEBUG_V("DELETE Flow Param:%d", targetId);
@@ -726,7 +726,7 @@ void FlowEditor::deleteSelectedNodes() {
         }
 
       } else {
-        std::vector<ElementStmParamPtr> stateList = targetParam_->getStmElementList();
+        std::vector<ElementStmParamPtr> stateList = targetParam_->getActiveStateList();
         vector<ElementStmParamPtr>::iterator targetElem = find_if(stateList.begin(), stateList.end(), ElementStmParamComparator(targetId));
         if (targetElem != stateList.end()) {
           (*targetElem)->setDelete();
@@ -770,7 +770,7 @@ void FlowEditor::dispSetting() {
     }
   }
   //
-  for (FlowModelParamPtr node : flowParam->getModelList()) {
+  for (FlowModelParamPtr node : flowParam->getActiveModelList()) {
     QtNodes::Node* target = node->getRealElem();
     if (target) {
       QWidget* widget = target->nodeDataModel()->embeddedWidget();
@@ -781,7 +781,7 @@ void FlowEditor::dispSetting() {
     }
   }
   //
-  for (FlowParameterParamPtr node : flowParam->getFlowParamList()) {
+  for (FlowParameterParamPtr node : flowParam->getActiveFlowParamList()) {
     QtNodes::Node* target = node->getRealElem();
     if (target) {
       QWidget* widget = target->nodeDataModel()->embeddedWidget();
@@ -808,7 +808,7 @@ void FlowEditor::modelParamUpdated(int flowModelId, ModelMasterParamPtr masterPa
   DDEBUG_V("FlowEditor::modelParamUpdated : %d, %d", flowModelId, masterParam->getId());
   //対象ノードの検索
   FlowParamPtr flowParam = std::dynamic_pointer_cast<FlowParam>(targetParam_);
-  vector<FlowModelParamPtr> modelList = flowParam->getModelList();
+  vector<FlowModelParamPtr> modelList = flowParam->getActiveModelList();
   vector<FlowModelParamPtr>::iterator modelElem = find_if(modelList.begin(), modelList.end(), FlowModelParamComparator(flowModelId));
   if (modelElem == modelList.end()) {
     DDEBUG("FlowModelParam NOT FOUND");
@@ -844,7 +844,7 @@ void FlowEditor::modelParamUpdated(int flowModelId, ModelMasterParamPtr masterPa
   (*modelElem)->setPosY(targetNode->nodeGraphicsObject().pos().y());
   createFlowModelNode(*modelElem);
 
-  vector<ElementStmParamPtr> stateList = flowParam->getStmElementList();
+  vector<ElementStmParamPtr> stateList = flowParam->getActiveStateList();
   for (ConnectionInfo info : connectionList) {
     _scene->createConnection(*info.node, info.portindex, *(*modelElem)->getRealElem(), 0);
 

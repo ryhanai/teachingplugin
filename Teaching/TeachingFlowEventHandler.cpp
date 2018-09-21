@@ -204,7 +204,7 @@ void TeachingEventHandler::flv_FlowImportClicked() {
 	TeachingDataHolder::instance()->updateModelMaster();
 	flv_CurrentFlow_ = flowModelList[0];
 
-	for (ElementStmParamPtr state : flv_CurrentFlow_->getStmElementList()) {
+	for (ElementStmParamPtr state : flv_CurrentFlow_->getActiveStateList()) {
 		TaskModelParamPtr task = state->getTaskParam();
 		if (task) {
 			for (ModelParamPtr model : task->getModelList()) {
@@ -242,7 +242,7 @@ void TeachingEventHandler::flv_RegistFlowClicked(QString name, QString comment) 
 	}
 	//
 	bool isChanged = false;
-	for (ElementStmParamPtr state : flv_CurrentFlow_->getStmElementList()) {
+	for (ElementStmParamPtr state : flv_CurrentFlow_->getActiveStateList()) {
 		if (state->getType() != ELEMENT_COMMAND) continue;
 		TaskModelParamPtr task = state->getTaskParam();
 		if (task) {
@@ -337,13 +337,13 @@ void TeachingEventHandler::flv_InitPosClicked() {
 	if (!flv_CurrentFlow_) return;
 	stv_->setStepStatus(false);
 
-  for (FlowParameterParamPtr targetParam : flv_CurrentFlow_->getFlowParamList()) {
+  for (FlowParameterParamPtr targetParam : flv_CurrentFlow_->getActiveFlowParamList()) {
     targetParam->setInitialValue();
   }
-	for (ElementStmParamPtr targetState : flv_CurrentFlow_->getStmElementList()) {
+	for (ElementStmParamPtr targetState : flv_CurrentFlow_->getActiveStateList()) {
 		if (targetState->getType() == ELEMENT_COMMAND) {
 			TaskModelParamPtr task = targetState->getTaskParam();
-			for (ModelParamPtr model : task->getModelList()) {
+			for (ModelParamPtr model : task->getActiveModelList()) {
         model->setInitialPos();
 			}
 		}
@@ -403,7 +403,7 @@ bool TeachingEventHandler::flv_Connected(QtNodes::Connection& target) {
   int sourcePortIndex = target.getPortIndex(PortType::Out);
   DDEBUG_V("sourcePortIndex : %d", sourcePortIndex);
 
-  vector<ElementStmParamPtr> stateList = flv_CurrentFlow_->getStmElementList();
+  vector<ElementStmParamPtr> stateList = flv_CurrentFlow_->getActiveStateList();
   vector<ElementStmParamPtr>::iterator targetElem = find_if(stateList.begin(), stateList.end(), ElementStmParamComparator(targetId));
   if (targetElem == stateList.end()) return false;
   TaskModelParamPtr taskParam = (*targetElem)->getTaskParam();
@@ -500,7 +500,7 @@ void TeachingEventHandler::flv_Disconnected(QtNodes::Connection& target) {
   int sourceId = sourceNode->getParamId();
   int sourcePortIndex = target.getPortIndex(PortType::Out);
 
-  vector<ElementStmParamPtr> stateList = flv_CurrentFlow_->getStmElementList();
+  vector<ElementStmParamPtr> stateList = flv_CurrentFlow_->getActiveStateList();
   vector<ElementStmParamPtr>::iterator targetElem = find_if(stateList.begin(), stateList.end(), ElementStmParamComparator(targetId));
   if (targetElem == stateList.end()) return;
   TaskModelParamPtr taskParam = (*targetElem)->getTaskParam();
@@ -564,7 +564,7 @@ void TeachingEventHandler::flv_PortDispSetting(bool isActive) {
   dialog.exec();
 
   ElementStmParamPtr targetState = 0;
-  for (ElementStmParamPtr state : flv_CurrentFlow_->getStmElementList()) {
+  for (ElementStmParamPtr state : flv_CurrentFlow_->getActiveStateList()) {
     TaskModelParamPtr task = state->getTaskParam();
     if (task) {
       if (task->getId() == com_CurrentTask_->getId()) {

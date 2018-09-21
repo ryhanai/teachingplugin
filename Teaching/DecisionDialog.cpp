@@ -1,4 +1,4 @@
-#include "DecisionDialog.h"
+﻿#include "DecisionDialog.h"
 #include "PythonWrapper.h"
 #include "TeachingUtil.h"
 
@@ -193,7 +193,7 @@ FlowDesisionDialog::FlowDesisionDialog(FlowParamPtr param, ElementStmParamPtr st
 }
 
 void FlowDesisionDialog::showParamInfo() {
-  vector<FlowParameterParamPtr> paramList = targetFlow_->getFlowParamList();
+  vector<FlowParameterParamPtr> paramList = targetFlow_->getActiveFlowParamList();
   for (FlowParameterParamPtr param : paramList) {
     int row = lstParam->rowCount();
     lstParam->insertRow(row);
