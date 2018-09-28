@@ -1,4 +1,4 @@
-#include "DataBaseManager.h"
+ï»¿#include "DataBaseManager.h"
 
 #include <qsqlerror.h>
 #include "TeachingUtil.h"
@@ -148,11 +148,27 @@ bool DatabaseManager::saveModelMasterList(vector<ModelMasterParamPtr> target) {
       string strQuery = "DELETE FROM M_MODEL WHERE model_id = ? ";
 			QSqlQuery query(QString::fromStdString(strQuery));
 			query.addBindValue(source->getId());
-
 			if (!query.exec()) {
 				errorStr_ = "DELETE(M_MODEL) error:" + query.lastError().databaseText() + "-" + QString::fromStdString(strQuery);
 				return false;
 			}
+      //
+      string strQuerydetail = "DELETE FROM M_MODEL_DETAIL WHERE model_id = ? ";
+			QSqlQuery queryDetail(QString::fromStdString(strQuerydetail));
+			queryDetail.addBindValue(source->getId());
+			if (!queryDetail.exec()) {
+				errorStr_ = "DELETE(M_MODEL_DETAIL) error:" + queryDetail.lastError().databaseText() + "-" + QString::fromStdString(strQuerydetail);
+				return false;
+			}
+      //
+      string strQueryParam = "DELETE FROM M_MODEL_PARAMETER WHERE model_id = ? ";
+			QSqlQuery queryParam(QString::fromStdString(strQueryParam));
+			queryParam.addBindValue(source->getId());
+			if (!queryParam.exec()) {
+				errorStr_ = "DELETE(M_MODEL_PARAMETER) error:" + queryParam.lastError().databaseText() + "-" + QString::fromStdString(strQueryParam);
+				return false;
+			}
+      //
 			source->setIgnore();
 		}
 		//
@@ -224,7 +240,7 @@ bool DatabaseManager::saveModelDetailData(int modelId, ModelDetailParamPtr sourc
     source->setIgnore();
   }
   return true;
-}
+  }
 
 /////M_MODEL_PARAMETER/////
 bool DatabaseManager::saveModelParameter(int modelId, ModelParameterParamPtr source) {
@@ -291,14 +307,14 @@ bool DatabaseManager::saveModelParameter(int modelId, ModelParameterParamPtr sou
 
 //
 void DatabaseManager::reNewModelMaster(ModelMasterParamPtr target) {
-  //‘ÎÛƒf[ƒ^‚Ì‘¶İƒ`ƒFƒbƒN
+  //å¯¾è±¡ãƒ‡ãƒ¼ã‚¿ã®å­˜åœ¨ãƒã‚§ãƒƒã‚¯
   {
     string strQuery = "SELECT name FROM M_MODEL WHERE model_id = '" + toStr(target->getId()) + "'";
     QSqlQuery query(db_);
     if (query.exec(strQuery.c_str()) == false) return;
     if (!query.next()) return;
   }
-  //“¯ˆêƒnƒbƒVƒ…ƒf[ƒ^‚Ìæ“¾
+  //åŒä¸€ãƒãƒƒã‚·ãƒ¥ãƒ‡ãƒ¼ã‚¿ã®å–å¾—
   {
     vector<int> idList;
     string strQuery = "SELECT model_id FROM M_MODEL WHERE hash = '" + target->getHash().toStdString() + "'";
