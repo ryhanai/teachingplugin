@@ -221,16 +221,23 @@ bool FlowEditor::createFlowNodeAux(QString modelName, QPoint pos) {
     FlowParamPtr flowParam = std::dynamic_pointer_cast<FlowParam>(targetParam_);
     int newId = flowParam->getMaxParamId();
     int type = 0;
+    FlowParameterParamPtr fmParam;
     if (modelName == "Flow Param (Integer)") {
       type = PARAM_TYPE_INTEGER;
+      fmParam = std::make_shared<FlowParameterParam>(newId, type, "ParamName", "0");
+
     } else if (modelName == "Flow Param (Double)") {
       type = PARAM_TYPE_DOUBLE;
+      fmParam = std::make_shared<FlowParameterParam>(newId, type, "ParamName", "0.0");
+
     } else if (modelName == "Flow Param (String)") {
       type = PARAM_TYPE_STRING;
+      fmParam = std::make_shared<FlowParameterParam>(newId, type, "ParamName", "");
+
     } else if (modelName == "Flow Param (Frame)") {
       type = PARAM_TYPE_FRAME;
+      fmParam = std::make_shared<FlowParameterParam>(newId, type, "ParamName", "0.0");
     }
-    FlowParameterParamPtr fmParam = std::make_shared<FlowParameterParam>(newId, type, "ParamName", "0.0");
     fmParam->setPosX(posView.x());
     fmParam->setPosY(posView.y());
     fmParam->setNew();
