@@ -358,6 +358,9 @@ void TeachingEventHandler::flv_EditClicked(ElementStmParamPtr target) {
       return;
     }
     if (target->getType() == ELEMENT_DECISION) {
+      for (FlowParameterParamPtr target : flv_CurrentFlow_->getActiveFlowParamList()) {
+        target->updatePos();
+      }
       FlowDesisionDialog dialog(flv_CurrentFlow_, target, flv_);
       dialog.exec();
     } else {
