@@ -148,15 +148,15 @@ void TeachingEventHandler::tiv_TaskExportClicked(int selectedId, QString strTask
 }
 
 bool TeachingEventHandler::tiv_TaskImportClicked() {
-	if (checkPaused()) return false;
-	DDEBUG("TeachingEventHandler::tiv_TaskImportClicked()");
-	stv_->setStepStatus(false);
+  if (checkPaused()) return false;
+  DDEBUG("TeachingEventHandler::tiv_TaskImportClicked()");
+  stv_->setStepStatus(false);
 
-	QString strFName = QFileDialog::getOpenFileName(
-		tiv_, "TaskModel File", ".", "YAML(*.yaml);;all(*.*)");
-	if (strFName.isEmpty()) return false;
+  QString strFName = QFileDialog::getOpenFileName(
+    tiv_, "TaskModel File", ".", "YAML(*.yaml);;all(*.*)");
+  if (strFName.isEmpty()) return false;
 
-        return tiv_TaskImport(strFName);
+  return tiv_TaskImport(strFName);
 }
 
   bool TeachingEventHandler::tiv_TaskImport(QString strFName) {
@@ -187,8 +187,14 @@ bool TeachingEventHandler::tiv_TaskImportClicked() {
       DDEBUG_V("ModelMaster:%s, %d", master->getName().toStdString().c_str(), ret);
 
       if (0 < ret) {
-        master->setDelete();
+        master->setIgnore();
         master->setId(ret);
+        for(ModelDetailParamPtr detail : master->getModelDetailList() ) {
+          detail->setIgnore();
+        }
+        for(ModelParameterParamPtr param : master->getModelParameterList() ) {
+          param->setIgnore();
+        }
       } else {
         master->setHash(strHash);
       }

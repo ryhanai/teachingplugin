@@ -24,14 +24,14 @@ public:
 
   void showGrid(const vector<FlowParamPtr>& flowList);
 
-private Q_SLOTS:
+  private Q_SLOTS:
   void searchClicked();
   void deleteClicked();
   void oKClicked();
   void cancelClicked();
 
 private:
-  QLineEdit* leCond;
+  QLineEdit * leCond;
   QTableWidget* lstFlow;
 };
 
@@ -40,7 +40,7 @@ class NodeDispDialog : public QDialog {
 public:
   NodeDispDialog(FlowParamPtr param, QWidget* parent = 0);
 
-private Q_SLOTS:
+  private Q_SLOTS:
   void oKClicked();
   void cancelClicked();
 
@@ -80,14 +80,14 @@ class TaskInfoDialog : public QDialog {
 public:
   TaskInfoDialog(ElementStmParamPtr param, QWidget* parent = 0);
 
-private Q_SLOTS:
+  private Q_SLOTS:
   void oKClicked();
   void cancelClicked();
 
 private:
-  QLineEdit* txtName;
+  QLineEdit * txtName;
 
-	ElementStmParamPtr targetParam_;
+  ElementStmParamPtr targetParam_;
 };
 
 class FlowViewImpl : public QWidget {
@@ -98,29 +98,29 @@ public:
 
   void flowSelectionChanged(TaskModelParamPtr target);
   void setButtonEnableMode(bool isEnable);
-	void clearView();
-	void dispView(FlowParamPtr& target);
-	void createStateMachine(FlowParamPtr& target);
+  void clearView();
+  void dispView(FlowParamPtr& target);
+  void createStateMachine(FlowParamPtr& target);
 
-	inline bool updateTargetFlowParam(QString& errMessage) { return grhStateMachine->updateTargetFlowParam(errMessage); };
-	inline void paramInfoUpdated(ElementStmParamPtr targetState) { grhStateMachine->paramInfoUpdated(targetState); };
+  inline bool updateTargetFlowParam(QString& errMessage) { return grhStateMachine->updateTargetFlowParam(errMessage); };
+  inline void paramInfoUpdated(ElementStmParamPtr targetState) { grhStateMachine->paramInfoUpdated(targetState); };
   inline void modelParamUpdated(int flowModelId, ModelMasterParamPtr masterParam) { grhStateMachine->modelParamUpdated(flowModelId, masterParam); };
   inline bool checkOutConnection(int nodeId, int portIndex) { return grhStateMachine->checkOutConnection(nodeId, portIndex); }
   void setEditMode(bool canEdit);
   void cancelAllModel();
 
-  
+
   bool renameNode(QString currentName, QString newName);
   void getNodeByName(QString name);
   bool connectNodes(QString from, QString fromPort, QString to, QString toPort);
   bool createNode(QString modelName, QPoint pos);
   void clearFlowScene();
 
-  
-public Q_SLOTS:
+
+  public Q_SLOTS:
   void editClicked();
 
-private Q_SLOTS :
+  private Q_SLOTS :
   void searchClicked();
   void newFlowClicked();
   void registFlowClicked();
@@ -137,7 +137,7 @@ private Q_SLOTS :
   void modelToggled();
 
 private:
-  QLineEdit* leName;
+  QLineEdit * leName;
   QLineEdit* leComment;
 
   QPushButton* btnSearch;
@@ -162,8 +162,8 @@ private:
 
   void changeEnables(bool value);
 
-	void setStyle();
-	std::shared_ptr<DataModelRegistry> registerDataModels();
+  void setStyle();
+  std::shared_ptr<DataModelRegistry> registerDataModels();
 };
 
 class FlowView : public cnoid::View {
@@ -172,14 +172,14 @@ public:
   ~FlowView();
 
   inline void setButtonEnableMode(bool isEnable) { viewImpl->setButtonEnableMode(isEnable); }
-	inline bool updateTargetFlowParam(QString& errMessage) { return viewImpl->updateTargetFlowParam(errMessage); };
-	inline void paramInfoUpdated(ElementStmParamPtr targetState) { viewImpl->paramInfoUpdated(targetState); };
+  inline bool updateTargetFlowParam(QString& errMessage) { return viewImpl->updateTargetFlowParam(errMessage); };
+  inline void paramInfoUpdated(ElementStmParamPtr targetState) { viewImpl->paramInfoUpdated(targetState); };
   inline void modelParamUpdated(int flowModelId, ModelMasterParamPtr masterParam) { viewImpl->modelParamUpdated(flowModelId, masterParam); };
   inline bool checkOutConnection(int nodeId, int portIndex) { return viewImpl->checkOutConnection(nodeId, portIndex); }
   inline void cancelAllModel() { viewImpl->cancelAllModel(); };
 
 private:
-  FlowViewImpl* viewImpl;
+  FlowViewImpl * viewImpl;
 };
 
 }
