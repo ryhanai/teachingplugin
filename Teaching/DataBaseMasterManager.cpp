@@ -68,6 +68,61 @@ vector<ModelMasterParamPtr> DatabaseManager::getModelMasterList() {
 	return result;
 }
 
+ModelMasterParamPtr DatabaseManager::getModelMaster(int master_id) {
+	ModelMasterParamPtr result;
+
+	string strQuery = "SELECT ";
+	strQuery += "model_id, name, file_name, model_data, hash, image_file_name, image_data ";
+	strQuery += "FROM M_MODEL ";
+	strQuery += "WHERE model_id = " + toStr(master_id);
+	QSqlQuery query(db_);
+	query.exec(strQuery.c_str());
+	if (query.next()) {
+		int model_id = query.value(0).toInt();
+		QString name = query.value(1).toString();
+		QString fileName = query.value(2).toString();
+
+		result = std::make_shared<ModelMasterParam>(model_id, name, fileName);
+		result->setData(query.value(3).toByteArray());
+    result->setHash(query.value(4).toString());
+    result->setImageFileName(query.value(5).toByteArray());
+    result->setRawData(query.value(6).toByteArray());
+    result->loadData();
+    result->setNormal();
+		//
+		{
+			string strSubQuery = "SELECT ";
+			strSubQuery += "model_detail_id, file_name, model_data ";
+			strSubQuery += "FROM M_MODEL_DETAIL WHERE model_id = " + toStr(model_id) + " ORDER BY model_detail_id";
+			QSqlQuery subQuery(db_);
+			subQuery.exec(strSubQuery.c_str());
+			while (subQuery.next()) {
+				int detail_id = subQuery.value(0).toInt();
+				QString detailName = subQuery.value(1).toString();
+				ModelDetailParamPtr detailParam = std::make_shared<ModelDetailParam>(detail_id, detailName);
+				detailParam->setData(subQuery.value(2).toByteArray());
+				result->addModelDetail(detailParam);
+			}
+		}
+		//
+		{
+			string strSubQuery = "SELECT ";
+			strSubQuery += "model_param_id, name, value ";
+			strSubQuery += "FROM M_MODEL_PARAMETER WHERE model_id = " + toStr(model_id) + " ORDER BY model_param_id";
+			QSqlQuery subQuery(db_);
+			subQuery.exec(strSubQuery.c_str());
+			while (subQuery.next()) {
+				int param_id = subQuery.value(0).toInt();
+				QString parmName = subQuery.value(1).toString();
+				QString parmDesc = subQuery.value(2).toString();
+				ModelParameterParamPtr modelParam = std::make_shared<ModelParameterParam>(model_id, param_id, parmName, parmDesc);
+				result->addModelParameter(modelParam);
+			}
+		}
+	}
+	return result;
+}
+
 int DatabaseManager::checkModelMaster(QString target) {
   DDEBUG_V("DatabaseManager::checkModelMaster : %s", target.toStdString().c_str());
   int result = -1;
@@ -175,8 +230,7 @@ bool DatabaseManager::saveModelMasterList(vector<ModelMasterParamPtr> target) {
 		vector<ModelDetailParamPtr> detailList = source->getModelDetailList();
 		DDEBUG_V("detailList: %d", detailList.size());
 		if (0 < detailList.size()) {
-			for (int idxDet = 0; idxDet < detailList.size(); idxDet++) {
-				ModelDetailParamPtr detail = detailList[idxDet];
+			for (ModelDetailParamPtr detail : source->getModelDetailList()) {
 				if (saveModelDetailData(source->getId(), detail) == false) {
 					return false;
 				}
@@ -184,9 +238,9 @@ bool DatabaseManager::saveModelMasterList(vector<ModelMasterParamPtr> target) {
 		}
 		//
 		vector<ModelParameterParamPtr> paramList = source->getModelParameterList();
+		DDEBUG_V("paramList: %d", paramList.size());
 		if (0 < paramList.size()) {
-			for (int idxDet = 0; idxDet < paramList.size(); idxDet++) {
-				ModelParameterParamPtr detail = paramList[idxDet];
+			for (ModelParameterParamPtr detail : paramList) {
 				if (saveModelParameter(source->getId(), detail) == false) {
 					return false;
 				}

@@ -52,6 +52,7 @@ public:
   int getModelMaxIndex();
 
 	vector<ModelMasterParamPtr> getModelMasterList();
+  ModelMasterParamPtr getModelMaster(int master_id);
   int checkModelMaster(QString target);
 	bool saveModelMasterList(vector<ModelMasterParamPtr> target);
 

@@ -1,5 +1,6 @@
-#include "TeachingUtil.h"
+Ôªø#include "TeachingUtil.h"
 #include "ChoreonoidUtil.h"
+#include "DataBaseManager.h"
 #include <cnoid/YAMLReader>
 #include <cnoid/YAMLWriter>
 
@@ -476,6 +477,7 @@ bool TeachingUtil::importTaskMaster(Mapping* taskMap, vector<ModelMasterParamPtr
       int Id;
       QString name = "";
       QString fileName = "";
+      QString imageFileName = "";
 
       try {
         Id = masterMap->get("id").toInt();
@@ -498,6 +500,13 @@ bool TeachingUtil::importTaskMaster(Mapping* taskMap, vector<ModelMasterParamPtr
         DDEBUG(errMessage.toStdString().c_str());
         return false;
       }
+      try {
+        imageFileName = QString::fromStdString(masterMap->get("image_file_name").toString());
+      } catch (...) {
+        errMessage = _("Failed to read the image_file_name of the modelMaster.");
+        DDEBUG(errMessage.toStdString().c_str());
+        return false;
+      }
 
       ModelMasterParamPtr masterParam = std::make_shared<ModelMasterParam>(Id, name, fileName);
       masterParam->setNew();
@@ -516,15 +525,29 @@ bool TeachingUtil::importTaskMaster(Mapping* taskMap, vector<ModelMasterParamPtr
         }
         masterParam->setData(file.readAll());
         //
-        //éQè∆ÉÇÉfÉãÇÃì«Ç›çûÇ›
+        //ÂèÇÁÖß„É¢„Éá„É´„ÅÆË™≠„ÅøËæº„Åø
         if (TeachingUtil::loadModelDetail(strFullModelFile, masterParam) == false) {
           errMessage = "Failed to load Model Detail file. " + strFullModelFile;
           return false;
         }
       }
+      //
+      DDEBUG_V("imageFileName:%s", imageFileName.toStdString().c_str());
+      if (0 < imageFileName.length()) {
+        QString strImageFile = path + QString("/") + imageFileName;
+        QFile file(strImageFile);
+        if (file.exists() == false) {
+          errMessage = "Target Master Image file NOT EXIST. " + strImageFile;
+          DDEBUG(errMessage.toStdString().c_str());
+          return false;
+        }
+        masterParam->setImageFileName(imageFileName);
+        QImage image(strImageFile);
+        masterParam->setImage(image);
+      }
       modelMasterList.push_back(masterParam);
       //
-      Listing* featureList = taskMap->findListing("features");
+      Listing* featureList = masterMap->findListing("features");
       if (featureList) {
         for (int idxFeat = 0; idxFeat < featureList->size(); idxFeat++) {
           Mapping* featMap = featureList->at(idxFeat)->toMapping();
@@ -778,20 +801,26 @@ bool TeachingUtil::exportTask(QString& strFName, TaskModelParamPtr targetTask) {
 	if (0 < masterList.size()) {
 		Listing* mastesrNode = taskNode->createListing("model_master");
 		for (ModelMasterParamPtr master : masterList) {
+      ModelMasterParamPtr targetMaster = DatabaseManager::getInstance().getModelMaster(master->getId());
 			MappingPtr masterNode = mastesrNode->newMapping();
-			masterNode->write("id", master->getId());
-			masterNode->write("name", master->getName().toUtf8(), DOUBLE_QUOTED);
-			masterNode->write("file_name", master->getFileName().toUtf8(), DOUBLE_QUOTED);
-			if (0 < master->getFileName().length()) {
-			  QFile file(path + QString("/") + master->getFileName());
+			masterNode->write("id", targetMaster->getId());
+			masterNode->write("name", targetMaster->getName().toUtf8(), DOUBLE_QUOTED);
+			masterNode->write("file_name", targetMaster->getFileName().toUtf8(), DOUBLE_QUOTED);
+			if (0 < targetMaster->getFileName().length()) {
+			  QFile file(path + QString("/") + targetMaster->getFileName());
 			  file.open(QIODevice::WriteOnly);
-			  QByteArray data = master->getData();
+			  QByteArray data = targetMaster->getData();
 			  file.write(data);
 			  file.close();
 			}
+			masterNode->write("image_file_name", targetMaster->getImageFileName().toUtf8(), DOUBLE_QUOTED);
+			if (0 < targetMaster->getImageFileName().length()) {
+			  QImage data = targetMaster->getImage();
+        data.save(path + QString("/") + targetMaster->getImageFileName());
+			}
 			
-			for (int idxSub = 0; idxSub < master->getModelDetailList().size(); idxSub++) {
-			  ModelDetailParamPtr detail = master->getModelDetailList()[idxSub];
+			for (int idxSub = 0; idxSub < targetMaster->getModelDetailList().size(); idxSub++) {
+			  ModelDetailParamPtr detail = targetMaster->getModelDetailList()[idxSub];
 			  if (0 < detail->getFileName().length()) {
 			    QFile fileSub(path + QString("/") + detail->getFileName());
 			    fileSub.open(QIODevice::WriteOnly);
@@ -801,7 +830,7 @@ bool TeachingUtil::exportTask(QString& strFName, TaskModelParamPtr targetTask) {
 			  }
 			}
 
-      vector<ModelParameterParamPtr> paramList = master->getActiveModelParamList();
+      vector<ModelParameterParamPtr> paramList = targetMaster->getActiveModelParamList();
       if (0 < paramList.size()) {
         Listing* featuresNode = masterNode->createListing("features");
         for (ModelParameterParamPtr feature : paramList) {
