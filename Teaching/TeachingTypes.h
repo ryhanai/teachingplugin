@@ -1006,7 +1006,7 @@ public:
 
   inline ParameterValueParamPtr getParameter() { return this->valueParam_; }
 
-  void updatePos();
+  bool updateParamInfo();
   void setInitialValue();
   void setWidgetValue(QString value);
   bool isFirst();

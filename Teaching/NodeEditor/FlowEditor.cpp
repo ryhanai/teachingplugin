@@ -617,15 +617,17 @@ bool FlowEditor::updateTargetFlowParam(QString& errMessage) {
 
   QStringList checkList;
   for (FlowParameterParamPtr target : flowParam->getActiveFlowParamList()) {
-    target->updatePos();
-  }
-  for (FlowParameterParamPtr target : flowParam->getActiveFlowParamList()) {
+    if (target->updateParamInfo() == false) {
+      errMessage = _("Parameter setting value is invalid.") + QString::fromStdString(" ") + target->getName();
+      return false;
+    }
     if (checkList.contains(target->getName())) {
       errMessage = _("Duplicate flow parameter names.");
       return false;
     }
     checkList.append(target->getName());
   }
+
   vector<FlowModelParamPtr> modelList = flowParam->getActiveModelList();
   for (FlowModelParamPtr target : modelList) {
     target->updatePos();

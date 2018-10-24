@@ -659,9 +659,9 @@ void FlowModelParam::updatePos() {
   setUpdate();
 }
 
-void FlowParameterParam::updatePos() {
+bool FlowParameterParam::updateParamInfo() {
   DDEBUG_V("FlowParameterParam::updatePos:%d=%d", id_, mode_);
-  if (mode_ == DB_MODE_DELETE || mode_ == DB_MODE_IGNORE) return;
+  if (mode_ == DB_MODE_DELETE || mode_ == DB_MODE_IGNORE) return true;
 
   posX_ = realElem_->nodeGraphicsObject().pos().x();
   posY_ = realElem_->nodeGraphicsObject().pos().y();
@@ -669,15 +669,38 @@ void FlowParameterParam::updatePos() {
   if (type_ == PARAM_TYPE_FRAME) {
     DDEBUG("PARAM_TYPE_FRAME");
     name_ = ((FrameParamDataModel*)realElem_->nodeDataModel())->getName();
-    valueParam_->setValuesByString(((FrameParamDataModel*)realElem_->nodeDataModel())->getValue());
+    QString targetVal = ((FrameParamDataModel*)realElem_->nodeDataModel())->getValue();
+
+    QStringList valList = targetVal.split(",");
+    if (valList.size() != 6) return false;
+    for (int index = 0; index < valList.size(); index++) {
+      bool is_ok;
+      valList.at(index).toDouble(&is_ok);
+      if (is_ok == false) return false;
+    }
+
+    valueParam_->setValuesByString(targetVal);
 
   } else {
     DDEBUG("PARAM_TYPE_ETC");
     name_ = ((ParamDataModel*)realElem_->nodeDataModel())->getName();
-    valueParam_->setValuesByString(((ParamDataModel*)realElem_->nodeDataModel())->getValue());
+    QString targetVal = ((ParamDataModel*)realElem_->nodeDataModel())->getValue();
+    if (type_ == PARAM_TYPE_DOUBLE) {
+      bool is_ok;
+      targetVal.toDouble(&is_ok);
+      if (is_ok == false) return false;
+    } else if (type_ == PARAM_TYPE_INTEGER) {
+      bool is_ok;
+      targetVal.toInt(&is_ok);
+      if (is_ok == false) return false;
+    }
+
+    valueParam_->setValuesByString(targetVal);
   }
 
   setUpdate();
+
+  return true;
 }
 
 void FlowParameterParam::setInitialValue() {

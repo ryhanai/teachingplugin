@@ -995,6 +995,10 @@ msgid "Duplicate flow parameter names."
 msgstr "フローパラメータの名称が重複しています"
 
 #: TeachingEventHandler.cpp:775
+msgid "Parameter setting value is invalid."
+msgstr "フローパラメータの設定値が不正です"
+
+#: TeachingEventHandler.cpp:775
 msgid "Condition is not set for Decision node."
 msgstr "デシジョンノードに条件が設定されていません"
 
