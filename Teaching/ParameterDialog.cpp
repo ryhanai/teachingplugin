@@ -155,13 +155,19 @@ ParameterDialog::ParameterDialog(QWidget* parent)
 void ParameterDialog::showModelInfo(const vector<ModelParamPtr>& modelList) {
   DDEBUG("ParameterDialog::showModelInfo");
   lstModel->setRowCount(0);
-  cmbModelName->clear();
 
 	for (ModelParamPtr param : modelList) {
 		int row = lstModel->rowCount();
 		lstModel->insertRow(row);
 		UIUtil::makeTableItemWithData(lstModel, row, 0, param->getRName(), param->getId());
-    //
+	}
+}
+
+void ParameterDialog::showModelCombo(const std::vector<ModelParamPtr>& modelList) {
+  DDEBUG("ParameterDialog::showModelCombo");
+  cmbModelName->clear();
+
+	for (ModelParamPtr param : modelList) {
     cmbModelName->addItem(param->getRName(), param->getId());
 	}
 }
@@ -247,10 +253,13 @@ void ParameterDialog::updateContents(const ParameterParamPtr& param) {
         break;
       }
     }
+    DDEBUG_V("Feature Id : %d", param->getModelParamId());
     if(0<=param->getModelParamId()) {
       for (int index = 0; index < cmbModelParamName->count(); index++) {
+        DDEBUG_V("Combo Id : %d", cmbModelParamName->itemData(index).toInt());
         if (param->getModelParamId() == cmbModelParamName->itemData(index).toInt()) {
           cmbModelParamName->setCurrentIndex(index);
+          DDEBUG_V("Matched %d", index);
           break;
         }
       }
@@ -414,10 +423,12 @@ void ParameterDialog::typeSelectionChanged(int index) {
 
   if (index == 0) {
     cmbModelName->setEnabled(false);
+    cmbModelParamName->setEnabled(false);
     leUnit->setEnabled(true);
     cmbParamType->setEnabled(true);
   } else {
     cmbModelName->setEnabled(true);
+    cmbModelParamName->setEnabled(true);
     leUnit->setEnabled(false);
     cmbParamType->setEnabled(false);
   }

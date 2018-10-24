@@ -291,13 +291,16 @@ void TeachingEventHandler::flv_RunFlowClicked() {
     QMessageBox::warning(prd_, _("FlowView"), errMessage);
     return;
   }
-  //コマンドチェック
+  //コマンド,マスタチェック
   vector<CommandDefParam*>commandList = TaskExecutor::instance()->getCommandDefList();
+  vector<ModelMasterParamPtr> modelMasterList = TeachingDataHolder::instance()->getModelMasterList();
   QStringList errorList;
   for(ElementStmParamPtr flowElem : flv_CurrentFlow_->getActiveStateList()) {
     if (flowElem->getType() != ELEMENT_COMMAND) continue;
     TaskModelParamPtr targetTask = flowElem->getTaskParam();
     if(targetTask==0) continue;
+    //
+    DDEBUG("Check Command");
     for(ElementStmParamPtr state : targetTask->getActiveStateList()) {
       if(state->getType() != ELEMENT_COMMAND) continue;
       bool isExist = false;
@@ -311,6 +314,35 @@ void TeachingEventHandler::flv_RunFlowClicked() {
         errorList.append(flowElem->getCmdDspName() + ":" + state->getCmdName());
       }
     }
+    DDEBUG("Check Command End");
+    //
+    DDEBUG("Check Feature");
+    vector<ModelParamPtr> modelList = targetTask->getActiveModelList();
+    for(ParameterParamPtr param : targetTask->getActiveParameterList() ) {
+      if (param->getType() == PARAM_KIND_NORMAL) continue;
+      int modelId = param->getModelId();
+      vector<ModelParamPtr>::iterator modelElem = find_if(modelList.begin(), modelList.end(), ModelParamComparator(modelId));
+      if (modelElem == modelList.end()) {
+        errorList.append("Model Param. NOT EXIST :" + param->getName());
+        continue;
+      }
+      int masterId = (*modelElem)->getMasterId();
+      vector<ModelMasterParamPtr>::iterator masterParamItr = find_if(modelMasterList.begin(), modelMasterList.end(), ModelMasterComparator(masterId));
+      if (masterParamItr == modelMasterList.end()) {
+        errorList.append("Model Master NOT EXIST :" + param->getName());
+        continue;
+      }
+      int modelParamId = param->getModelParamId();
+      DDEBUG_V("modelParamId %d", modelParamId);
+      if (0 <= modelParamId) {
+        vector<ModelParameterParamPtr> masterParamList = (*masterParamItr)->getModelParameterList();
+        vector<ModelParameterParamPtr>::iterator featureItr = find_if(masterParamList.begin(), masterParamList.end(), ModelMasterParamComparator(modelParamId));
+        if (featureItr == masterParamList.end()) {
+          errorList.append("Feature NOT EXIST :" + param->getName());
+        }
+      }
+    }
+    DDEBUG("Check Feature End");
   }
   if (0 < errorList.size()) {
     QString errMsg = _("The following commands can not be executed.\n");

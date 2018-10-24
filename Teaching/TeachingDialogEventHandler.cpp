@@ -273,6 +273,7 @@ void TeachingEventHandler::prd_Loaded(ParameterDialog* dialog) {
 	this->prd_ = dialog;
 	vector<ModelParamPtr> modelList = com_CurrentTask_->getActiveModelList();
 	prd_->showModelInfo(modelList);
+	prd_->showModelCombo(modelList);
 	vector<ParameterParamPtr> paramList = com_CurrentTask_->getActiveParameterList();
 	prd_->showParamInfo(paramList);
 	prd_->setTaskName(com_CurrentTask_->getName());
