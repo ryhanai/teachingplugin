@@ -38,6 +38,7 @@ public:
   bool renameNode(QString currentName, QString newName);
   Node* getNodeByName(QString name);
   bool connectNodes(QString from, QString fromPort, QString to, QString toPort);
+  bool connectModelToTask(Node* fromNode, QString fromPort, Node* toNode, QString toPort);
   bool createFlowNodeAux(QString modelName, QPoint posView);
   void clearFlowScene();
 

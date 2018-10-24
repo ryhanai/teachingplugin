@@ -115,6 +115,7 @@ public:
   bool connectNodes(QString from, QString fromPort, QString to, QString toPort);
   bool createNode(QString modelName, QPoint pos);
   void clearFlowScene();
+  bool connectModelToTask(Node* fromNode, QString fromPort, Node* toNode, QString toPort);
 
 
   public Q_SLOTS:

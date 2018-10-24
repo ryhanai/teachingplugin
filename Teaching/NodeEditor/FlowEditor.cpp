@@ -198,6 +198,35 @@ bool FlowEditor::connectNodes(QString from, QString fromPort, QString to, QStrin
   return false;
 }
 
+bool FlowEditor::connectModelToTask(Node* fromNode, QString fromPort, Node* toNode, QString toPort) {
+  PortIndex fromIdx = 0;
+  PortIndex toIdx = 0;
+
+  if (fromNode->nodeDataModel()->name() != "Model Param") return false;
+  if (toNode->nodeDataModel()->name() != "Task") return false;
+
+  {
+    auto portNames = fromNode->nodeDataModel()->portNames;
+    auto result = std::find_if(portNames.begin(), portNames.end(), [&](PortInfo info) { return info.name_ == fromPort; });
+    if (result != portNames.end()) {
+      fromIdx = std::distance(portNames.begin(), result);
+    }
+  }
+  {
+    auto portNames = toNode->nodeDataModel()->portNames;
+    auto result = std::find_if(portNames.begin(), portNames.end(), [&](PortInfo info) { return info.name_ == toPort; });
+    if (result != portNames.end()) {
+      toIdx = std::distance(portNames.begin(), result) + 1;
+    }
+  }
+
+  if (fromIdx == 0 || toIdx == 0) return false;
+  std::shared_ptr<QtNodes::Connection> connection = this->_scene->createConnection(*toNode, toIdx, *fromNode, fromIdx);
+  TeachingEventHandler::instance()->flv_Connected(*connection);
+
+  return true;
+}
+
 bool FlowEditor::createFlowNodeAux(QString modelName, QPoint pos) {
   QPointF posView = this->mapToScene(pos);
 
@@ -589,6 +618,8 @@ bool FlowEditor::updateTargetFlowParam(QString& errMessage) {
   QStringList checkList;
   for (FlowParameterParamPtr target : flowParam->getActiveFlowParamList()) {
     target->updatePos();
+  }
+  for (FlowParameterParamPtr target : flowParam->getActiveFlowParamList()) {
     if (checkList.contains(target->getName())) {
       errMessage = _("Duplicate flow parameter names.");
       return false;

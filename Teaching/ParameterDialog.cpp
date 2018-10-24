@@ -1,4 +1,4 @@
-#include "ParameterDialog.h"
+﻿#include "ParameterDialog.h"
 #include "TeachingUtil.h"
 
 #include "TeachingEventHandler.h"
@@ -155,6 +155,7 @@ ParameterDialog::ParameterDialog(QWidget* parent)
 void ParameterDialog::showModelInfo(const vector<ModelParamPtr>& modelList) {
   DDEBUG("ParameterDialog::showModelInfo");
   lstModel->setRowCount(0);
+  cmbModelName->clear();
 
 	for (ModelParamPtr param : modelList) {
 		int row = lstModel->rowCount();

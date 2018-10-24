@@ -433,6 +433,16 @@ bool TeachingEventHandler::flv_Connected(QtNodes::Connection& target) {
       if (masterParamItr != modelMasterList.end()) {
         ChoreonoidUtil::replaceMaster(model, *masterParamItr);
       }
+      ///////////////
+      DDEBUG("Connect Origin");
+      QString sourcePort = "origin";
+	    for (ParameterParamPtr targetParam : taskParam->getActiveParameterList()) {
+		    if (targetParam->getType() != PARAM_KIND_MODEL) continue;
+        if (targetParam->getModelId() != model->getId()) continue;
+        QString targetPort = targetParam->getName() + ":Mdl";
+        flv_->connectModelToTask(sourceNode, sourcePort, taskNode, targetPort);
+	    }
+      ///////////////
 
     } else if (dataType.id == "modeldata") {
       //データポートの場合
@@ -499,7 +509,7 @@ void TeachingEventHandler::flv_Disconnected(QtNodes::Connection& target) {
   DDEBUG_V("portIndex : %d, id : %d", portIndex, id);
 
   Node* sourceNode = target.getNode(PortType::Out);
-  if (!sourceNode) return;
+  if (!sourceNode || !sourceNode->nodeDataModel()) return;
   int sourceId = sourceNode->getParamId();
   int sourcePortIndex = target.getPortIndex(PortType::Out);
 
@@ -516,9 +526,8 @@ void TeachingEventHandler::flv_Disconnected(QtNodes::Connection& target) {
     DDEBUG_V("dataType : %s", dataType.id.toStdString().c_str());
     if (dataType.id == "modelshape") {
       //モデルポートの場合
-      //ParameterParamPtr paramTask = taskParam->getParameterById(id);
-      //ModelParamPtr model = taskParam->getModelParamById(paramTask->getModelId());
       ModelParamPtr model = taskParam->getModelParamById(id);
+      if (!model) return;
       DDEBUG_V("Model Name : %s", model->getRName().toStdString().c_str());
       bool isLoaded = model->isLoaded();
       ChoreonoidUtil::unLoadModelItem(model);
@@ -533,7 +542,9 @@ void TeachingEventHandler::flv_Disconnected(QtNodes::Connection& target) {
       DDEBUG_V("portName : %s", portName.toStdString().c_str());
       if(portName=="origin") {
         ParameterParamPtr paramTask = taskParam->getParameterById(id);
+        if (!paramTask) return;
         ModelParamPtr model = taskParam->getModelParamById(paramTask->getModelId());
+        if (!model) return;
         model->clearPosture();
         //
         //FlowParam側の処理
@@ -550,6 +561,7 @@ void TeachingEventHandler::flv_Disconnected(QtNodes::Connection& target) {
   } else if (sourceNode->nodeDataModel()->name().startsWith("Flow Param")) {
     //フローパラメータの場合
     ParameterParamPtr param = taskParam->getParameterById(id);
+    if (!param) return;
     DDEBUG_V("Task Param Type(id=%d):%d %s", id, param->getParamType(), param->getName().toStdString().c_str());
     param->restoreParameter();
   }
