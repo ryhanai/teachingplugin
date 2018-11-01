@@ -1,9 +1,9 @@
-#include "TeachingUtil.h"
+﻿#include "TeachingUtil.h"
 
-//#include "ChoreonoidUtil.h"
 #include <cnoid/YAMLReader>
 #include <cnoid/YAMLWriter>
 
+#include "DataBaseManager.h"
 #include "LoggerUtil.h"
 #include "gettext.h"
 
@@ -43,6 +43,7 @@ bool TeachingUtil::exportFlow(QString& strFName, FlowParamPtr targetFlow) {
   }
   //
   vector<FlowModelParamPtr> modelList = targetFlow->getActiveModelList();
+	vector<int> masterIdList;
   if (0 < modelList.size()) {
     Listing* modelsNode = flowNode->createListing("models");
     for (FlowModelParamPtr param : modelList) {
@@ -52,6 +53,12 @@ bool TeachingUtil::exportFlow(QString& strFName, FlowParamPtr targetFlow) {
       modelNode->write("master_id", param->getMasterId());
       modelNode->write("pos_x", param->getPosX());
       modelNode->write("pos_y", param->getPosY());
+      //
+      int masterId = param->getMasterId();
+      auto result = std::find(masterIdList.begin(), masterIdList.end(), masterId);
+      if (result == masterIdList.end()) {
+        masterIdList.push_back(masterId);
+      }
     }
   }
   //
@@ -82,6 +89,50 @@ bool TeachingUtil::exportFlow(QString& strFName, FlowParamPtr targetFlow) {
       connNode->write("target_index", param->getTargetIndex());
     }
   }
+  //
+  if (0 < masterIdList.size()) {
+		Listing* mastesrNode = flowNode->createListing("model_master");
+		for (int master : masterIdList) {
+      ModelMasterParamPtr targetMaster = DatabaseManager::getInstance().getModelMaster(master);
+			MappingPtr masterNode = mastesrNode->newMapping();
+			masterNode->write("id", targetMaster->getId());
+			masterNode->write("name", targetMaster->getName().toUtf8(), DOUBLE_QUOTED);
+			masterNode->write("file_name", targetMaster->getFileName().toUtf8(), DOUBLE_QUOTED);
+			if (0 < targetMaster->getFileName().length()) {
+			  QFile file(path + QString("/") + targetMaster->getFileName());
+			  file.open(QIODevice::WriteOnly);
+			  QByteArray data = targetMaster->getData();
+			  file.write(data);
+			  file.close();
+			}
+			masterNode->write("image_file_name", targetMaster->getImageFileName().toUtf8(), DOUBLE_QUOTED);
+			if (0 < targetMaster->getImageFileName().length()) {
+			  QImage data = targetMaster->getImage();
+        data.save(path + QString("/") + targetMaster->getImageFileName());
+			}
+			
+			for (int idxSub = 0; idxSub < targetMaster->getModelDetailList().size(); idxSub++) {
+			  ModelDetailParamPtr detail = targetMaster->getModelDetailList()[idxSub];
+			  if (0 < detail->getFileName().length()) {
+			    QFile fileSub(path + QString("/") + detail->getFileName());
+			    fileSub.open(QIODevice::WriteOnly);
+			    QByteArray dataSub = detail->getData();
+			    fileSub.write(dataSub);
+			    fileSub.close();
+			  }
+			}
+
+      vector<ModelParameterParamPtr> paramList = targetMaster->getActiveModelParamList();
+      if (0 < paramList.size()) {
+        Listing* featuresNode = masterNode->createListing("features");
+        for (ModelParameterParamPtr feature : paramList) {
+          MappingPtr featureNode = featuresNode->newMapping();
+          featureNode->write("name", feature->getName().toUtf8(), DOUBLE_QUOTED);
+          featureNode->write("value", feature->getValueDesc().toUtf8(), DOUBLE_QUOTED);
+        }
+      }
+		}
+	}
   //
   YAMLWriter writer(strFName.toUtf8().constData());
   writer.setKeyOrderPreservationMode(true);
@@ -302,9 +353,112 @@ bool TeachingUtil::importFlow(QString& strFName, std::vector<FlowParamPtr>& flow
         }
         DDEBUG("Load Transactions Finished");
       }
+      /////
+      if(importFlowMaster(flowMap, modelMasterList, path, errMessage)==false) return false;
     }
   } catch (...) {
     DDEBUG("Flow File parse ERROR");
+  }
+  return true;
+}
+
+bool TeachingUtil::importFlowMaster(Mapping* flowMap, vector<ModelMasterParamPtr>& modelMasterList, QString& path, QString& errMessage) {
+  Listing* masterList = flowMap->findListing("model_master");
+  if (masterList) {
+    for (int idxMaster = 0; idxMaster < masterList->size(); idxMaster++) {
+      Mapping* masterMap = masterList->at(idxMaster)->toMapping();
+
+      int Id;
+      QString name = "";
+      QString fileName = "";
+      QString imageFileName = "";
+
+      try {
+        Id = masterMap->get("id").toInt();
+      } catch (...) {
+        errMessage = _("Failed to read the id of the modelMaster.");
+        DDEBUG(errMessage.toStdString().c_str());
+        return false;
+      }
+      vector<ModelMasterParamPtr>::iterator modelElem = find_if(modelMasterList.begin(), modelMasterList.end(), ModelMasterComparator(Id));
+      if (modelElem != modelMasterList.end()) continue;
+      try {
+        name = QString::fromStdString(masterMap->get("name").toString());
+      } catch (...) {
+        errMessage = _("Failed to read the name of the modelMaster.");
+        DDEBUG(errMessage.toStdString().c_str());
+        return false;
+      }
+      try {
+        fileName = QString::fromStdString(masterMap->get("file_name").toString());
+      } catch (...) {
+        errMessage = _("Failed to read the file_name of the modelMaster.");
+        DDEBUG(errMessage.toStdString().c_str());
+        return false;
+      }
+      try {
+        imageFileName = QString::fromStdString(masterMap->get("image_file_name").toString());
+      } catch (...) {
+        errMessage = _("Failed to read the image_file_name of the modelMaster.");
+        DDEBUG(errMessage.toStdString().c_str());
+        return false;
+      }
+
+      ModelMasterParamPtr masterParam = std::make_shared<ModelMasterParam>(Id, name, fileName);
+      masterParam->setNew();
+      if (0 < fileName.length()) {
+        QString strFullModelFile = path + QString("/") + fileName;
+        QFile file(strFullModelFile);
+        if (file.exists() == false) {
+          errMessage = "Target Master file NOT EXIST. " + strFullModelFile;
+          DDEBUG(errMessage.toStdString().c_str());
+          return false;
+        }
+        if (file.open(QIODevice::ReadOnly) == false) {
+          errMessage = "Failed to open Master file. " + strFullModelFile;
+          DDEBUG(errMessage.toStdString().c_str());
+          return false;
+        }
+        masterParam->setData(file.readAll());
+        //
+        //参照モデルの読み込み
+        if (TeachingUtil::loadModelDetail(strFullModelFile, masterParam) == false) {
+          errMessage = "Failed to load Model Detail file. " + strFullModelFile;
+          return false;
+        }
+      }
+      //
+      DDEBUG_V("imageFileName:%s", imageFileName.toStdString().c_str());
+      if (0 < imageFileName.length()) {
+        QString strImageFile = path + QString("/") + imageFileName;
+        QFile file(strImageFile);
+        if (file.exists() == false) {
+          errMessage = "Target Master Image file NOT EXIST. " + strImageFile;
+          DDEBUG(errMessage.toStdString().c_str());
+          return false;
+        }
+        masterParam->setImageFileName(imageFileName);
+        QImage image(strImageFile);
+        masterParam->setImage(image);
+      }
+      modelMasterList.push_back(masterParam);
+      //
+      Listing* featureList = masterMap->findListing("features");
+      if (featureList) {
+        for (int idxFeat = 0; idxFeat < featureList->size(); idxFeat++) {
+          Mapping* featMap = featureList->at(idxFeat)->toMapping();
+
+          QString nameFet = "";
+          QString valueFet = "";
+          try { nameFet = QString::fromStdString(featMap->get("name").toString()); } catch (...) {}
+          try { valueFet = QString::fromStdString(featMap->get("value").toString()); } catch (...) {}
+
+          ModelParameterParamPtr featureParam = std::make_shared<ModelParameterParam>(NULL_ID, NULL_ID, nameFet, valueFet);
+          featureParam->setNew();
+          masterParam->addModelParameter(featureParam);
+        }
+      }
+    }
   }
   return true;
 }

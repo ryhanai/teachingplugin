@@ -225,6 +225,15 @@ void TeachingEventHandler::flv_FlowImportClicked() {
 			}
 		}
 	}
+  for (FlowModelParamPtr model : flv_CurrentFlow_->getActiveModelList()) {
+    for (ModelMasterParamPtr master : masterList) {
+      if (master->getOrgId() == model->getMasterId()) {
+        model->setMasterId(master->getId());
+        break;
+      }
+    }
+  }
+
 	if (TeachingDataHolder::instance()->saveFlowModel(flv_CurrentFlow_) == false) {
 		QMessageBox::warning(flv_, _("Import Flow"), _("FLOW save FAILED"));
 	  return;

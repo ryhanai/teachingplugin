@@ -58,7 +58,7 @@ bool TeachingUtil::importTask(QString& strFName, std::vector<TaskModelParamPtr>&
       if (importTaskState(taskMap, taskParam, taskNameErr, errMessage) == false) return false;
       if (importTaskFile(taskMap, taskParam, path, taskNameErr, errMessage) == false) return false;
       if (importTaskImage(taskMap, taskParam, path, taskNameErr, errMessage) == false) return false;
-      if (importTaskMaster(taskMap, modelMasterList, path, taskNameErr, errMessage) == false) return false;
+      if (importTaskMaster(taskMap, modelMasterList, path, errMessage) == false) return false;
       //
       taskInstList.push_back(taskParam);
     }
@@ -468,7 +468,7 @@ bool TeachingUtil::importTaskImage(Mapping* taskMap, TaskModelParamPtr taskParam
   return true;
 }
 
-bool TeachingUtil::importTaskMaster(Mapping* taskMap, vector<ModelMasterParamPtr>& modelMasterList, QString& path, QString taskNameErr, QString& errMessage) {
+bool TeachingUtil::importTaskMaster(Mapping* taskMap, vector<ModelMasterParamPtr>& modelMasterList, QString& path, QString& errMessage) {
   Listing* masterList = taskMap->findListing("model_master");
   if (masterList) {
     for (int idxMaster = 0; idxMaster < masterList->size(); idxMaster++) {

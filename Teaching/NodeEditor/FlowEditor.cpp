@@ -574,7 +574,7 @@ void FlowEditor::createFlowParamNode(FlowParameterParamPtr target) {
 }
 
 void FlowEditor::createFlowModelNode(FlowModelParamPtr target) {
-  DDEBUG("FlowEditor::createFlowModelNode");
+  DDEBUG_V("FlowEditor::createFlowModelNode %d", target->getMasterId());
   auto type = _scene->registry().create("Model Param");
   if (type) {
     vector<PortInfo> portList;
