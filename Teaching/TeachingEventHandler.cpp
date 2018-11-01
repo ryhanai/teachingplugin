@@ -573,7 +573,12 @@ void TeachingEventHandler::tev_stm_ContClicked() {
 }
 
 void TeachingEventHandler::tev_RunTaskClicked(int selectedId) {
-	DDEBUG("TeachingEventHandler::tev_RunTaskClicked()");
+	DDEBUG_V("TeachingEventHandler::tev_RunTaskClicked() %d", selectedId);
+  if(selectedId<0) {
+    QMessageBox::warning(tiv_, _("Run Task"), _("Please select target TASK"));
+    return;
+  }
+
 	stv_->updateTargetParam();
   prv_SetInputValues();
 

@@ -1,4 +1,4 @@
-#ifndef TEACHING_TASK_EXECUTE_MANAGER_H_INCLUDED
+﻿#ifndef TEACHING_TASK_EXECUTE_MANAGER_H_INCLUDED
 #define TEACHING_TASK_EXECUTE_MANAGER_H_INCLUDED
 
 #include "QtUtil.h"
@@ -72,7 +72,7 @@ private:
 
   void parseModelInfo();
   bool doModelAction();
-  void prepareTask();
+  void prepareTask(bool isFlow);
   void setOutArgument(std::vector<CompositeParamType>& parameterList);
   void setButtonEnableMode(bool isEnable);
 

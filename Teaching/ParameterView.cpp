@@ -98,7 +98,7 @@ void ModelParameterGroup::disconnectKinematics() {
  }
 
  void ParameterViewImpl::setTaskParam(TaskModelParamPtr param, bool isFlowView) {
-  DDEBUG_V("ParameterViewImpl::setTaskParam() %d", param->getId());
+  DDEBUG_V("ParameterViewImpl::setTaskParam() %d, %d", param->getId(), isFlowView);
 
   this->isFlowView_ = isFlowView;
 	clearView();
@@ -124,9 +124,11 @@ void ModelParameterGroup::disconnectKinematics() {
   mainLayout->addWidget(topFrame);
 
   for(ParameterParamPtr targetParam : param->getActiveParameterList()) {
+    targetParam->setActive(false);
     if (targetParam->getType() == PARAM_KIND_MODEL) continue;
     if (isFlowView && targetParam->getHide() == 0) continue;
 
+    targetParam->setActive(true);
     targetParam->clearControlList();
     QFrame* eachFrame = new QFrame(this);
     eachFrame->setEnabled(TeachingEventHandler::instance()->canEdit() && this->canEdit_);

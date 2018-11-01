@@ -176,7 +176,6 @@ void ParameterValueParam::setValue(int index, QString value) {
 
 void ParameterValueParam::clear() {
   valueList_.clear();
-
 }
 
 void ParameterValueParam::setValuesByString(QString source) {
@@ -203,7 +202,8 @@ QString ParameterValueParam::getValuesString() {
 
 /////
 void ParameterParam::saveValues() {
-	DDEBUG("ParameterParam::saveValues");
+  if (isActive_ == false) return;
+	DDEBUG_V("ParameterParam::saveValues %d",controlList_.size());
   for (int index = 0; index < controlList_.size(); index++) {
     QLineEdit* target = controlList_[index];
     valueParam_->setValue(index, target->text());
@@ -356,14 +356,13 @@ void ModelParam::setInitialPos() {
 }
 
 void ModelParam::updateModelMaster(ModelMasterParamPtr value) {
+  DDEBUG_V("ModelParam::updateModelMaster:%d, %d", value->getId(), this->master_id_);
   this->master_org_ = this->master_;
   this->master_id_org_ = this->master_id_;
   //
   this->master_ = value;
   this->master_id_ = value->getId();
-  if (!value->getModelItem()) {
-    ChoreonoidUtil::makeModelItem(value);
-  }
+  ChoreonoidUtil::makeModelItem(value);
   currentBodyItem_ = value->getModelItem();
 
   DDEBUG_V("ModelParam::updateModelMaster org : %d, new : %d", master_org_->getId(), master_->getId());
@@ -544,11 +543,13 @@ vector<ModelParamPtr> TaskModelParam::getVisibleModelList() {
 ModelParamPtr TaskModelParam::getModelParamById(int id) {
 	DDEBUG_V("TaskModelParam::getModelParamById : %d", id);
   for (ModelParamPtr param : modelList_) {
-	DDEBUG_V("Param Id : %d", param->getId());
+  	DDEBUG_V("Model Param Id : %d", param->getId());
     if (param->getId() == id) {
+      DDEBUG("Model FOUND");
       return param;
     }
   }
+  DDEBUG("Model NOT FOUND");
   return 0;
 }
 

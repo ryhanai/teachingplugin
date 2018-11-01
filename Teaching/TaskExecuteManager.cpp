@@ -181,7 +181,7 @@ void TaskExecuteManager::runSingleTask() {
 ExecResult TaskExecuteManager::doFlowOperation(bool isSingle) {
   DDEBUG("TaskExecuteManager::doFlowOperation");
   prevTask_ = 0;
-  if (currentTask_) prepareTask();
+  if (currentTask_) prepareTask(!isSingle);
   while (true) {
     if (currentTask_ == 0) break;
 
@@ -206,7 +206,7 @@ ExecResult TaskExecuteManager::doFlowSingleOperation() {
     if (currFlowParam_->getType() == ELEMENT_COMMAND) {
       prevTask_ = currentTask_;
       currentTask_ = currFlowParam_->getTaskParam();
-      prepareTask();
+      prepareTask(true);
       ExecResult ret = doTaskOperation(false); // R.Hanai
       if (ret != ExecResult::EXEC_FINISHED) {
         return ret;
@@ -373,7 +373,7 @@ ExecResult TaskExecuteManager::doTaskOperation(bool updateCurrentTask) {
       }
       //
       if (currentTask_) {
-        prepareTask();
+        prepareTask(false);
       }
       break;
     }
@@ -484,7 +484,7 @@ ExecResult TaskExecuteManager::doTaskOperationStep() {
       }
       //
       if (currentTask_) {
-        prepareTask();
+        prepareTask(false);
         TeachingEventHandler::instance()->setComCurrentTask(currentTask_);
         DDEBUG("TaskExecuteManager::doTaskOperation EXEC_BREAK");
         return ExecResult::EXEC_BREAK;
@@ -550,7 +550,7 @@ bool TaskExecuteManager::doModelAction() {
   return true;
 }
 
-void TaskExecuteManager::prepareTask() {
+void TaskExecuteManager::prepareTask(bool isFlow) {
 	DDEBUG("TaskExecuteManager::prepareTask");
 
 	if (prevTask_) {
@@ -563,7 +563,7 @@ void TaskExecuteManager::prepareTask() {
 
 	this->metadataView->setTaskParam(currentTask_);
 	this->statemachineView_->setTaskParam(currentTask_);
-	this->parameterView_->setTaskParam(currentTask_, true);
+	this->parameterView_->setTaskParam(currentTask_, isFlow);
   if (isUpdateTree) {
     ChoreonoidUtil::showAllModelItem();
   }

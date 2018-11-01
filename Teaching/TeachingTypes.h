@@ -790,6 +790,9 @@ public:
     }
   }
 
+	inline int isActive() const { return this->isActive_; }
+	inline void setActive(bool value) { this->isActive_ = value; }
+
   inline void addControl(QLineEdit* target) { this->controlList_.push_back(target); }
 	inline int getControlNum() const { return this->controlList_.size(); }
 	inline QLineEdit* getControl(int index) { return this->controlList_[index]; }
@@ -830,6 +833,7 @@ private:
   QString rname_;
   QString unit_;
 	int hide_;
+	bool isActive_;
 
   std::vector<QLineEdit*> controlList_;
   ParameterValueParamPtr valueParam_;

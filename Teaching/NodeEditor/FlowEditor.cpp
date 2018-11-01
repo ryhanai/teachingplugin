@@ -431,6 +431,7 @@ void FlowEditor::dropEvent(QDropEvent* event) {
 }
 
 void FlowEditor::createStateMachine(FlowParamPtr target) {
+  DDEBUG("FlowEditor::createStateMachine");
   removeAll();
   //
   vector<ElementStmParamPtr> elemList = target->getActiveStateList();
@@ -459,6 +460,7 @@ void FlowEditor::createStateMachine(FlowParamPtr target) {
 
     Node* sourceNode;
     if (targetCon->getType() == TYPE_MODEL_PARAM) {
+      DDEBUG("FlowEditor::createStateMachine connect Model Param");
       vector<FlowModelParamPtr>::iterator sourceElem = find_if(modelList.begin(), modelList.end(), FlowModelParamComparator(targetCon->getSourceId()));
       if (sourceElem == modelList.end()) continue;
       sourceNode = (*sourceElem)->getRealElem();
@@ -470,10 +472,12 @@ void FlowEditor::createStateMachine(FlowParamPtr target) {
 
       TaskModelParamPtr taskParam = (*targetElem)->getTaskParam();
       ModelParamPtr model = taskParam->getModelParamById(id);
-      int masterId = (*sourceElem)->getMasterId();
-      vector<ModelMasterParamPtr>::iterator masterParamItr = find_if(modelMasterList.begin(), modelMasterList.end(), ModelMasterComparator(masterId));
-      if (masterParamItr != modelMasterList.end()) {
-        model->updateModelMaster(*masterParamItr);
+      if (model) {
+        int masterId = (*sourceElem)->getMasterId();
+        vector<ModelMasterParamPtr>::iterator masterParamItr = find_if(modelMasterList.begin(), modelMasterList.end(), ModelMasterComparator(masterId));
+        if (masterParamItr != modelMasterList.end()) {
+          model->updateModelMaster(*masterParamItr);
+        }
       }
 
     } else if (targetCon->getType() == TYPE_FLOW_PARAM) {
@@ -489,9 +493,11 @@ void FlowEditor::createStateMachine(FlowParamPtr target) {
 
     _scene->createConnection(*targetNode, targetCon->getTargetIndex(), *sourceNode, targetCon->getSourceIndex());
   }
+  DDEBUG("FlowEditor::createStateMachine End");
 }
 
 void FlowEditor::createFlowTaskNode(ElementStmParamPtr target) {
+  DDEBUG("FlowEditor::createFlowTaskNode");
   auto type = _scene->registry().create("Task");
   type->setTaskName(target->getCmdDspName());
 
@@ -510,6 +516,7 @@ void FlowEditor::createFlowTaskNode(ElementStmParamPtr target) {
 }
 
 void FlowEditor::createFlowExtNode(int typeId, ElementStmParamPtr target) {
+  DDEBUG("FlowEditor::createFlowExtNode");
   QString typeName = "";
   if (typeId == ELEMENT_START) {
     typeName = "Initial";
@@ -536,6 +543,7 @@ void FlowEditor::createFlowExtNode(int typeId, ElementStmParamPtr target) {
 }
 
 void FlowEditor::createFlowParamNode(FlowParameterParamPtr target) {
+  DDEBUG("FlowEditor::createFlowParamNode");
   QString typeName = "";
   switch (target->getType()) {
     case PARAM_TYPE_INTEGER:  typeName = "Flow Param (Integer)"; break;
@@ -559,6 +567,7 @@ void FlowEditor::createFlowParamNode(FlowParameterParamPtr target) {
 }
 
 void FlowEditor::createFlowModelNode(FlowModelParamPtr target) {
+  DDEBUG("FlowEditor::createFlowModelNode");
   auto type = _scene->registry().create("Model Param");
   if (type) {
     vector<PortInfo> portList;
@@ -589,6 +598,7 @@ void FlowEditor::createFlowModelNode(FlowModelParamPtr target) {
     node.setParamId(target->getId());
     ((TransformDataModel*)(node.nodeDataModel()))->setFlowModelParamId(target->getId());
   }
+  DDEBUG("FlowEditor::createFlowModelNode End");
 }
 
 bool FlowEditor::updateTargetFlowParam(QString& errMessage) {
