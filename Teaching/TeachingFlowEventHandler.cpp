@@ -178,7 +178,15 @@ void TeachingEventHandler::flv_FlowImportClicked() {
     QString strHash = TeachingUtil::getSha1Hash(txtData.toStdString().c_str(), txtData.toStdString().length());
     int ret = DatabaseManager::getInstance().checkModelMaster(strHash);
     if (0 < ret) {
-      master->setDelete();
+      master->setIgnore();
+      master->setId(ret);
+      for(ModelDetailParamPtr detail : master->getModelDetailList() ) {
+        detail->setIgnore();
+      }
+      for(ModelParameterParamPtr param : master->getModelParameterList() ) {
+        param->setIgnore();
+      }
+
       for (int idxFlow = 0; idxFlow < flowModelList.size(); idxFlow++) {
         DDEBUG_V("idxFlow : %d", idxFlow);
         FlowParamPtr targetFlow = flowModelList[idxFlow];

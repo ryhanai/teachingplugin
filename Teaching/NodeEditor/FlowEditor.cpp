@@ -459,30 +459,37 @@ void FlowEditor::createStateMachine(FlowParamPtr target) {
     Node* targetNode = (*targetElem)->getRealElem();
 
     Node* sourceNode;
+    int sourcePortIndex = targetCon->getSourceIndex();
     if (targetCon->getType() == TYPE_MODEL_PARAM) {
       DDEBUG("FlowEditor::createStateMachine connect Model Param");
       vector<FlowModelParamPtr>::iterator sourceElem = find_if(modelList.begin(), modelList.end(), FlowModelParamComparator(targetCon->getSourceId()));
       if (sourceElem == modelList.end()) continue;
+      DDEBUG("Model Param Found");
       sourceNode = (*sourceElem)->getRealElem();
       //
-      //モデルの差し替え
-      int targetId = targetNode->getParamId();
-      int id = targetNode->nodeDataModel()->portNames[targetCon->getTargetIndex() - 1].id_;
-      int sourceId = sourceNode->getParamId();
+      NodeDataType dataType = sourceNode->nodeDataModel()->dataType(PortType::Out, targetCon->getSourceIndex());
+      if (dataType.id == "modelshape") {
+        //モデルの差し替え
+        int targetId = targetNode->getParamId();
+        int id = targetNode->nodeDataModel()->portNames[targetCon->getTargetIndex() - 1].id_;
+        int sourceId = sourceNode->getParamId();
 
-      TaskModelParamPtr taskParam = (*targetElem)->getTaskParam();
-      ModelParamPtr model = taskParam->getModelParamById(id);
-      if (model) {
-        int masterId = (*sourceElem)->getMasterId();
-        vector<ModelMasterParamPtr>::iterator masterParamItr = find_if(modelMasterList.begin(), modelMasterList.end(), ModelMasterComparator(masterId));
-        if (masterParamItr != modelMasterList.end()) {
-          model->updateModelMaster(*masterParamItr);
+        TaskModelParamPtr taskParam = (*targetElem)->getTaskParam();
+        ModelParamPtr model = taskParam->getModelParamById(id);
+        if (model) {
+          int masterId = (*sourceElem)->getMasterId();
+          vector<ModelMasterParamPtr>::iterator masterParamItr = find_if(modelMasterList.begin(), modelMasterList.end(), ModelMasterComparator(masterId));
+          if (masterParamItr != modelMasterList.end()) {
+            model->updateModelMaster(*masterParamItr);
+          }
         }
       }
 
     } else if (targetCon->getType() == TYPE_FLOW_PARAM) {
+      DDEBUG_V("FlowEditor::createStateMachine connect Flow Param: source %d",targetCon->getSourceId());
       vector<FlowParameterParamPtr>::iterator sourceElem = find_if(paramList.begin(), paramList.end(), FlowParameterParamComparator(targetCon->getSourceId()));
       if (sourceElem == paramList.end()) continue;
+      DDEBUG("Flow Param Found");
       sourceNode = (*sourceElem)->getRealElem();
 
     } else {
@@ -491,7 +498,7 @@ void FlowEditor::createStateMachine(FlowParamPtr target) {
       sourceNode = (*sourceElem)->getRealElem();
     }
 
-    _scene->createConnection(*targetNode, targetCon->getTargetIndex(), *sourceNode, targetCon->getSourceIndex());
+    _scene->createConnection(*targetNode, targetCon->getTargetIndex(), *sourceNode, sourcePortIndex);
   }
   DDEBUG("FlowEditor::createStateMachine End");
 }

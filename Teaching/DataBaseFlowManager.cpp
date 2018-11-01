@@ -1,4 +1,4 @@
-#include "DataBaseManager.h"
+﻿#include "DataBaseManager.h"
 
 #include <qsqlerror.h>
 #include "TeachingUtil.h"
@@ -383,7 +383,7 @@ bool DatabaseManager::saveFlowParameter(int parentId, vector<FlowParameterParamP
 
     QSqlQuery queryTra(QString::fromStdString(strQuery));
     queryTra.addBindValue(parentId);
-    queryTra.addBindValue(index + 1);
+    queryTra.addBindValue(param->getId());
     queryTra.addBindValue(param->getType());
     queryTra.addBindValue(param->getName());
     queryTra.addBindValue(param->getValue());
