@@ -566,7 +566,13 @@ void FlowEditor::createFlowParamNode(FlowParameterParamPtr target) {
     if (target->getType() == PARAM_TYPE_FRAME) {
       ((FrameParamDataModel*)(node.nodeDataModel()))->setParamInfo(target->getName(), target->getValue());
     } else {
-      ((ParamDataModel*)(node.nodeDataModel()))->setParamInfo(target->getName(), target->getValue());
+      QString strValue;
+      if (target->getType() == PARAM_TYPE_DOUBLE) {
+        strValue = QString::number(target->getValue().toDouble(), 'f', 6);
+      } else {
+        strValue = target->getValue();
+      }
+      ((ParamDataModel*)(node.nodeDataModel()))->setParamInfo(target->getName(), strValue);
     }
     target->setRealElem(&node);
     node.setParamId(target->getId());

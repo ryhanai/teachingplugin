@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include "QtUtil.h"
 #include "../TeachingDataHolder.h"
@@ -38,12 +38,12 @@ public:
   }
   inline void setValue(QString value) {
     QStringList valList = value.split(",");
-    if (0 < valList.size()) xEdit->setText(valList[0]);
-    if (1 < valList.size()) yEdit->setText(valList[1]);
-    if (2 < valList.size()) zEdit->setText(valList[2]);
-    if (3 < valList.size()) rxEdit->setText(valList[3]);
-    if (4 < valList.size()) ryEdit->setText(valList[4]);
-    if (5 < valList.size()) rzEdit->setText(valList[5]);
+    if (0 < valList.size()) xEdit->setText(QString::number(valList[0].toDouble(), 'f', 6));
+    if (1 < valList.size()) yEdit->setText(QString::number(valList[1].toDouble(), 'f', 6));
+    if (2 < valList.size()) zEdit->setText(QString::number(valList[2].toDouble(), 'f', 6));
+    if (3 < valList.size()) rxEdit->setText(QString::number(valList[3].toDouble(), 'f', 6));
+    if (4 < valList.size()) ryEdit->setText(QString::number(valList[4].toDouble(), 'f', 6));
+    if (5 < valList.size()) rzEdit->setText(QString::number(valList[5].toDouble(), 'f', 6));
   }
 
   void setParamInfo(QString name, QString value) {
