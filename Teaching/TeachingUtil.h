@@ -31,6 +31,9 @@ public:
 
   static QString getSha1Hash(const void *data, const std::size_t byte_count);
 
+  static QString getTypeName(const int type);
+  static QString getTypeRName(const int type);
+
 private:
   static int getModelType(QString& source);
   static bool importTaskModel(Mapping* taskMap, TaskModelParamPtr taskParam, QString taskNameErr, QString& errMessage);

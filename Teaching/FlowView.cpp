@@ -170,25 +170,27 @@ NodeDispDialog::NodeDispDialog(FlowParamPtr param, QWidget* parent)
 
   lstNode_ = UIUtil::makeTableWidget(2, false);
   lstNode_->setColumnWidth(0, 25);
-  lstNode_->setColumnWidth(1, 200);
+  lstNode_->setColumnWidth(1, 180);
   lstNode_->setHorizontalHeaderLabels(QStringList() << "" << "Node");
 
-  lstModel_ = UIUtil::makeTableWidget(2, false);
+  lstModel_ = UIUtil::makeTableWidget(3, false);
   lstModel_->setColumnWidth(0, 25);
-  lstModel_->setColumnWidth(1, 200);
-  lstModel_->setHorizontalHeaderLabels(QStringList() << "" << "Model");
+  lstModel_->setColumnWidth(1, 180);
+  lstModel_->setColumnWidth(2, 100);
+  lstModel_->setHorizontalHeaderLabels(QStringList() << "" << "Model" << "Master");
 
-  lstParam_ = UIUtil::makeTableWidget(2, false);
+  lstParam_ = UIUtil::makeTableWidget(3, false);
   lstParam_->setColumnWidth(0, 25);
-  lstParam_->setColumnWidth(1, 200);
-  lstParam_->setHorizontalHeaderLabels(QStringList() << "" << "Param");
+  lstParam_->setColumnWidth(1, 160);
+  lstParam_->setColumnWidth(2, 110);
+  lstParam_->setHorizontalHeaderLabels(QStringList() << "" << "Param" << "Type");
 
   QFrame* frmGrid = new QFrame;
   QHBoxLayout* gridLayout = new QHBoxLayout(frmGrid);
   gridLayout->setContentsMargins(2, 2, 2, 2);
-  gridLayout->addWidget(lstNode_);
-  gridLayout->addWidget(lstModel_);
-  gridLayout->addWidget(lstParam_);
+  gridLayout->addWidget(lstNode_, 2);
+  gridLayout->addWidget(lstModel_, 3);
+  gridLayout->addWidget(lstParam_, 3);
   //
   QFrame* frmButtons = new QFrame;
   QPushButton* btnOK = new QPushButton(_("OK"));
@@ -209,7 +211,7 @@ NodeDispDialog::NodeDispDialog(FlowParamPtr param, QWidget* parent)
   connect(this, SIGNAL(rejected()), this, SLOT(cancelClicked()));
 
   setWindowTitle(_("Disp"));
-  resize(800, 300);
+  resize(900, 300);
   //
   showNodeList();
   showModelList();
@@ -265,11 +267,16 @@ void NodeDispDialog::showModelList() {
 
       QTableWidgetItem* itemName = new QTableWidgetItem;
       lstModel_->setItem(row, 1, itemName);
+      itemName->setText(model->getName());
+      itemName->setData(Qt::UserRole, model->getId());
+
+      QTableWidgetItem* itemMaster = new QTableWidgetItem;
+      lstModel_->setItem(row, 2, itemMaster);
       int masterId = model->getMasterId();
       vector<ModelMasterParamPtr>::iterator masterParamItr = find_if(modelMasterList.begin(), modelMasterList.end(), ModelMasterComparator(masterId));
       if (masterParamItr == modelMasterList.end()) return;
-      itemName->setText((*masterParamItr)->getName());
-      itemName->setData(Qt::UserRole, model->getId());
+      itemMaster->setText((*masterParamItr)->getName());
+      itemMaster->setData(Qt::UserRole, model->getId());
     }
   }
 }
@@ -296,6 +303,11 @@ void NodeDispDialog::showParamList() {
       lstParam_->setItem(row, 1, itemName);
       itemName->setText(param->getName());
       itemName->setData(Qt::UserRole, param->getId());
+
+      QTableWidgetItem* itemType = new QTableWidgetItem;
+      lstParam_->setItem(row, 2, itemType);
+      itemType->setText(TeachingUtil::getTypeName(param->getType()));
+      itemType->setData(Qt::UserRole, param->getId());
     }
   }
 }
@@ -386,10 +398,11 @@ PortDispDialog::PortDispDialog(TaskModelParamPtr param, QWidget* parent)
   lstModel_->setColumnWidth(1, 200);
   lstModel_->setHorizontalHeaderLabels(QStringList() << "" << "Model Port");
 
-  lstParam_ = UIUtil::makeTableWidget(2, false);
+  lstParam_ = UIUtil::makeTableWidget(3, false);
   lstParam_->setColumnWidth(0, 25);
-  lstParam_->setColumnWidth(1, 200);
-  lstParam_->setHorizontalHeaderLabels(QStringList() << "" << "Param Port");
+  lstParam_->setColumnWidth(1, 180);
+  lstParam_->setColumnWidth(2, 70);
+  lstParam_->setHorizontalHeaderLabels(QStringList() << "" << "Param Port" << "Type");
 
   QFrame* frmGrid = new QFrame;
   QHBoxLayout* gridLayout = new QHBoxLayout(frmGrid);
@@ -467,6 +480,11 @@ void PortDispDialog::showParamList() {
     lstParam_->setItem(row, 1, itemName);
     itemName->setText(param->getName());
     itemName->setData(Qt::UserRole, param->getId());
+
+    QTableWidgetItem* itemType = new QTableWidgetItem;
+    lstParam_->setItem(row, 2, itemType);
+    itemType->setText(TeachingUtil::getTypeName(param->getParamType()));
+    itemType->setData(Qt::UserRole, param->getId());
   }
 }
 

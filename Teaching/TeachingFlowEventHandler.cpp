@@ -644,9 +644,9 @@ void TeachingEventHandler::flv_PortDispSetting(bool isActive) {
 
 void TeachingEventHandler::flv_AllModelDisp(bool checked) {
   allModelDisp_ = checked;
-  if(checked) {
-  	if (!flv_CurrentFlow_) return;
+  if (!flv_CurrentFlow_) return;
 
+  if(checked) {
     unloadTaskModelItems();
 
     for(ElementStmParamPtr state : flv_CurrentFlow_->getActiveStateList()) {

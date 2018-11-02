@@ -820,6 +820,7 @@ void FlowEditor::hideSelectedNodes() {
 }
 
 void FlowEditor::dispSetting() {
+  if (!targetParam_) return;
   QString errMessage;
   updateTargetFlowParam(errMessage);
   FlowParamPtr flowParam = std::dynamic_pointer_cast<FlowParam>(targetParam_);
@@ -976,16 +977,7 @@ void FlowEditor::createPortInfo(TaskModelParamPtr targetTask, vector<PortInfo>& 
       type = 2;
       typeName = ":Mdl";
     } else {
-      switch (param->getParamType()) {
-        case 1:
-          typeName = ":Int"; break;
-        case 2:
-          typeName = ":Dbl"; break;
-        case 3:
-          typeName = ":Str"; break;
-        case 4:
-          typeName = ":Frm"; break;
-      }
+      typeName = ":" + TeachingUtil::getTypeRName(param->getParamType());
     }
     PortInfo info(param->getId(), param->getName() + typeName, type);
     portList.push_back(info);

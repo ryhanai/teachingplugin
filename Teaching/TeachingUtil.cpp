@@ -1,4 +1,4 @@
-#include <fstream>
+﻿#include <fstream>
 #include <iostream>
 #include "TeachingUtil.h"
 //
@@ -25,6 +25,36 @@ int TeachingUtil::getModelType(QString& source) {
     result = 2;
   }
   return result;
+}
+
+QString TeachingUtil::getTypeName(const int type) {
+  QString typeName;
+  switch (type) {
+    case PARAM_TYPE_INTEGER:
+      typeName = "Integer"; break;
+    case PARAM_TYPE_DOUBLE:
+      typeName = "Double"; break;
+    case PARAM_TYPE_STRING:
+      typeName = "String"; break;
+    case PARAM_TYPE_FRAME:
+      typeName = "Frame"; break;
+  }
+  return typeName;
+}
+
+QString TeachingUtil::getTypeRName(const int type) {
+  QString typeName;
+  switch (type) {
+    case PARAM_TYPE_INTEGER:
+      typeName = "Int"; break;
+    case PARAM_TYPE_DOUBLE:
+      typeName = "Dbl"; break;
+    case PARAM_TYPE_STRING:
+      typeName = "Str"; break;
+    case PARAM_TYPE_FRAME:
+      typeName = "Frm"; break;
+  }
+  return typeName;
 }
 
 QString TeachingUtil::getSha1Hash(const void *data, const std::size_t byte_count) {
