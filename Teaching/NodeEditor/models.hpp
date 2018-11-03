@@ -137,7 +137,7 @@ public:
 public:
   void setTaskName(QString const &taskName) override {
     _taskName = taskName;
-    std::cout << "task name changed: " << _taskName.toStdString() << std::endl;
+    //std::cout << "task name changed: " << _taskName.toStdString() << std::endl;
   }
 
   QString taskName() const override {

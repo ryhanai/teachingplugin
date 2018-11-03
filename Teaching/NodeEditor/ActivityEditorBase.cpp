@@ -1,4 +1,4 @@
-#include "ActivityEditorBase.hpp"
+﻿#include "ActivityEditorBase.hpp"
 
 #include <memory>
 #include <QTouchEvent>
@@ -195,19 +195,7 @@ FlowScene* ActivityEditorBase::scene() {
 }
 //////////
 void ActivityEditorBase::removeAll() {
-	unordered_map<QUuid, shared_ptr<Connection> > connMap = _scene->connections();
-	for (auto it = connMap.begin(); it != connMap.end(); ++it) {
-		shared_ptr<Connection> target = it->second;
-		_scene->deleteConnection(*target);
-	}
-	//
-	QList<QGraphicsItem*> itemsList = _scene->items();
-	QList<QGraphicsItem*>::iterator iter = itemsList.begin();
-	while (iter != itemsList.end()) {
-		QGraphicsItem* item = (*iter);
-		_scene->removeItem(item);
-		iter++;
-	}
+  _scene->clearScene();
 }
 
 ElementStmParamPtr ActivityEditorBase::getCurrentNode() {
