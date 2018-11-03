@@ -575,15 +575,17 @@ void TeachingEventHandler::flv_Disconnected(QtNodes::Connection& target) {
     DDEBUG_V("dataType : %s", dataType.id.toStdString().c_str());
     if (dataType.id == "modelshape") {
       //モデルポートの場合
-      ModelParamPtr model = taskParam->getModelParamById(id);
-      if (!model) return;
-      DDEBUG_V("Model Name : %s", model->getRName().toStdString().c_str());
-      bool isLoaded = model->isLoaded();
-      ChoreonoidUtil::unLoadModelItem(model);
-      model->restoreModelMaster();
-      if (isLoaded) {
-        ChoreonoidUtil::loadModelItem(model);
-        ChoreonoidUtil::showAllModelItem();
+      if (taskParam->IsKeepMaster() == false) {
+        ModelParamPtr model = taskParam->getModelParamById(id);
+        if (!model) return;
+        DDEBUG_V("Model Name : %s", model->getRName().toStdString().c_str());
+        bool isLoaded = model->isLoaded();
+        ChoreonoidUtil::unLoadModelItem(model);
+        model->restoreModelMaster();
+        if (isLoaded) {
+          ChoreonoidUtil::loadModelItem(model);
+          ChoreonoidUtil::showAllModelItem();
+        }
       }
     } else if (dataType.id == "modeldata") {
       //データポートの場合

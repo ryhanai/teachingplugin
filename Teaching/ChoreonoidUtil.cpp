@@ -1,4 +1,4 @@
-#include "ChoreonoidUtil.h"
+﻿#include "ChoreonoidUtil.h"
 #include <cnoid/RootItem>
 #include <cnoid/EigenUtil>
 #include <cnoid/InverseKinematics>
@@ -181,7 +181,7 @@ void ChoreonoidUtil::replaceMaster(ModelParamPtr source, ModelMasterParamPtr tar
   DDEBUG("ChoreonoidUtil::replaceMaster");
   bool isLoaded = source->isLoaded();
   ChoreonoidUtil::unLoadModelItem(source);
-  source->updateModelMaster(target);
+  source->replaceModelMaster(target);
   if (isLoaded) {
     ChoreonoidUtil::loadModelItem(source);
     ChoreonoidUtil::showAllModelItem();

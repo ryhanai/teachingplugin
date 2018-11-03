@@ -409,7 +409,7 @@ public:
   void clearPosture();
   void setInitialPos();
   bool isChangedPosition();
-  void updateModelMaster(ModelMasterParamPtr value);
+  void replaceModelMaster(ModelMasterParamPtr value);
   void restoreModelMaster();
   void initializeItem();
   void finalizeItem();
@@ -1143,12 +1143,16 @@ public:
   inline bool IsModelLoaded() const { return this->isModelLoaded_; }
   inline void setModelLoaded(bool value) { this->isModelLoaded_ = value; }
 
+  inline bool IsKeepMaster() const { return this->keepMaster_; }
+  inline void setKeepMaster(bool value) { this->keepMaster_ = value; }
+
 private:
   int flow_id_;
   QString exec_env_;
 
   bool isLoaded_;
   bool isModelLoaded_;
+  bool keepMaster_;
 
   std::vector<ModelParamPtr> modelList_;
   std::vector<FileDataParamPtr> fileList_;

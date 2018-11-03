@@ -355,7 +355,7 @@ void ModelParam::setInitialPos() {
   posture->setRotRz(postureOrg->getRotRz());
 }
 
-void ModelParam::updateModelMaster(ModelMasterParamPtr value) {
+void ModelParam::replaceModelMaster(ModelMasterParamPtr value) {
   DDEBUG_V("ModelParam::updateModelMaster:%d, %d", value->getId(), this->master_id_);
   this->master_org_ = this->master_;
   this->master_id_org_ = this->master_id_;
@@ -472,13 +472,13 @@ void TaskModelParam::setAllNewData() {
 
 TaskModelParam::TaskModelParam(int id, QString name, QString comment, QString execEnv, int flow_id, QString created_date, QString last_updated_date)
   : exec_env_(execEnv), flow_id_(flow_id),
-  isLoaded_(false), isModelLoaded_(false), nextTask_(0), trueTask_(0), falseTask_(0), stateParam_(0),
+  isLoaded_(false), isModelLoaded_(false), keepMaster_(false), nextTask_(0), trueTask_(0), falseTask_(0), stateParam_(0),
 	ActivityParam(id, name, comment, created_date, last_updated_date) {
 }
 
 TaskModelParam::TaskModelParam(const TaskModelParam* source)
   :	exec_env_(source->exec_env_), flow_id_(source->flow_id_),
-  isLoaded_(source->isLoaded_), isModelLoaded_(source->isModelLoaded_),
+  isLoaded_(source->isLoaded_), isModelLoaded_(source->isModelLoaded_), keepMaster_(source->keepMaster_),
   nextTask_(source->nextTask_), stateParam_(source->stateParam_),
   trueTask_(source->trueTask_), falseTask_(source->falseTask_), flowCondition_(source->flowCondition_),
 	ActivityParam(source) {

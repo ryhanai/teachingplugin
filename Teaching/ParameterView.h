@@ -13,30 +13,30 @@ using namespace std;
 
 namespace teaching {
 
-class ModelParameterGroup : public QWidget {
-    Q_OBJECT
-  public:
-    ModelParameterGroup(ParameterParamPtr source, ModelParamPtr model, QHBoxLayout* layout, QWidget* parent = 0);
-    void disconnectKinematics();
-
-  private:
-    QLineEdit * leX_;
-    QLineEdit* leY_;
-    QLineEdit* leZ_;
-    QLineEdit* leRx_;
-    QLineEdit* leRy_;
-    QLineEdit* leRz_;
-
-    ParameterParamPtr targetParam_;
-    ModelParamPtr targetModel_;
-
-    BodyItemPtr currentBodyItem_;
-    cnoid::Connection connectionToKinematicStateChanged;
-    LazyCaller updateKinematicStateLater;
-
-    void updateKinematicState(bool blockSignals);
-};
-typedef std::shared_ptr<ModelParameterGroup> ModelParameterGroupPtr;
+//class ModelParameterGroup : public QWidget {
+//    Q_OBJECT
+//  public:
+//    ModelParameterGroup(ParameterParamPtr source, ModelParamPtr model, QHBoxLayout* layout, QWidget* parent = 0);
+//    void disconnectKinematics();
+//
+//  private:
+//    QLineEdit * leX_;
+//    QLineEdit* leY_;
+//    QLineEdit* leZ_;
+//    QLineEdit* leRx_;
+//    QLineEdit* leRy_;
+//    QLineEdit* leRz_;
+//
+//    ParameterParamPtr targetParam_;
+//    ModelParamPtr targetModel_;
+//
+//    BodyItemPtr currentBodyItem_;
+//    cnoid::Connection connectionToKinematicStateChanged;
+//    LazyCaller updateKinematicStateLater;
+//
+//    void updateKinematicState(bool blockSignals);
+//};
+//typedef std::shared_ptr<ModelParameterGroup> ModelParameterGroupPtr;
  
  class ParameterViewImpl : public QWidget {
   Q_OBJECT
@@ -59,7 +59,7 @@ private:
   vector<QFrame*> frameList_;
   vector<QLineEdit*> textList_;
 
-  vector<ModelParameterGroupPtr> modelList_;
+  //vector<ModelParameterGroupPtr> modelList_;
 
   void clearView();
 };

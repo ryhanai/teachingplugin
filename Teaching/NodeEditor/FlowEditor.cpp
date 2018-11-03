@@ -472,7 +472,6 @@ void FlowEditor::createStateMachine(FlowParamPtr target) {
         //モデルの差し替え
         int targetId = targetNode->getParamId();
         int id = targetNode->nodeDataModel()->portNames[targetCon->getTargetIndex() - 1].id_;
-        int sourceId = sourceNode->getParamId();
 
         TaskModelParamPtr taskParam = (*targetElem)->getTaskParam();
         ModelParamPtr model = taskParam->getModelParamById(id);
@@ -480,7 +479,7 @@ void FlowEditor::createStateMachine(FlowParamPtr target) {
           int masterId = (*sourceElem)->getMasterId();
           vector<ModelMasterParamPtr>::iterator masterParamItr = find_if(modelMasterList.begin(), modelMasterList.end(), ModelMasterComparator(masterId));
           if (masterParamItr != modelMasterList.end()) {
-            model->updateModelMaster(*masterParamItr);
+            model->replaceModelMaster(*masterParamItr);
           }
         }
       }
@@ -704,11 +703,12 @@ void FlowEditor::paramInfoUpdated(ElementStmParamPtr targetState) {
   type->setTaskName(targetState->getCmdDspName());
   type->portNames = portList;
 
-  Node* orgNode = targetState->getRealElem();
   auto& node = _scene->createNode(std::move(type));
-  node.nodeGraphicsObject().setPos(orgNode->nodeGraphicsObject().pos().x(), orgNode->nodeGraphicsObject().pos().y());
   node.setParamId(targetState->getId());
   node.setBreak(targetState->isBreak());
+
+  Node* orgNode = targetState->getRealElem();
+  node.nodeGraphicsObject().setPos(orgNode->nodeGraphicsObject().pos().x(), orgNode->nodeGraphicsObject().pos().y());
 
   std::unordered_map<QUuid, Connection*> outMap = orgNode->nodeState().connections(PortType::Out, 0);
   for (auto it = outMap.begin(); it != outMap.end(); ++it) {
@@ -738,6 +738,7 @@ void FlowEditor::paramInfoUpdated(ElementStmParamPtr targetState) {
     } else {
       ModelParamPtr targetParam = targetTask->getModelParamById(targetId);
       if (targetParam->getHide()) {
+        targetParam->restoreModelMaster();
         continue;
       }
     }
@@ -754,11 +755,15 @@ void FlowEditor::paramInfoUpdated(ElementStmParamPtr targetState) {
     std::unordered_map<QUuid, Connection*> inMap = orgNode->nodeState().connections(PortType::In, index);
     for (auto it = inMap.begin(); it != inMap.end(); ++it) {
       Connection* target = it->second;
+      //
       Node* oppNode = target->getNode(PortType::Out);
-      _scene->createConnection(node, targetIndex + 1, *oppNode, 0);
+      PortIndex oppIndex = target-> getPortIndex(PortType::Out);
+      _scene->createConnection(node, targetIndex + 1, *oppNode, oppIndex);
     }
   }
+  targetTask->setKeepMaster(true);
   _scene->removeNode(*orgNode);
+  targetTask->setKeepMaster(false);
   targetState->setRealElem(&node);
 }
 
