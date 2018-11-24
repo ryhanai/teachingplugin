@@ -74,7 +74,6 @@ private:
   bool doModelAction();
   void prepareTask(bool isFlow);
   void setOutArgument(std::vector<CompositeParamType>& parameterList);
-  void setButtonEnableMode(bool isEnable);
 
   void createArgEstimator(TaskModelParamPtr targetParam = NULL);
   void createArgEstimator(FlowParamPtr targetParam = NULL);

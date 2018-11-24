@@ -1,4 +1,4 @@
-#include <cnoid/InfoBar>
+﻿#include <cnoid/InfoBar>
 
 #include "StateMachineView.h"
 #include "TeachingUtil.h"
@@ -151,16 +151,6 @@ namespace teaching {
     DDEBUG("StateMachineViewImpl Destruct");
   }
 
-  void StateMachineViewImpl::setButtonEnableMode(bool isEnable) {
-    DDEBUG("StateMachineViewImpl::setExecuteMode");
-    btnDelete->setEnabled(isEnable);
-    btnEdit->setEnabled(isEnable);
-    btnRun->setEnabled(isEnable);
-    isExec_ = !isEnable;
-
-    setEditMode(TeachingEventHandler::instance()->canEdit());
-  }
-
   void StateMachineViewImpl::setBPStatus(bool isActive, bool isSet) {
     btnBP->setEnabled(isActive);
     btnBP->setChecked(isSet);
@@ -198,8 +188,6 @@ namespace teaching {
     //
     grhStateMachine->setTargetParam(param);
 	  grhStateMachine->createStateMachine(param->getActiveStateList(), param->getActiveTransitionList());
-
-    btnRun->setEnabled(true);
   }
 
   void StateMachineViewImpl::clearTaskParam() {
@@ -426,6 +414,7 @@ namespace teaching {
 #endif
 
   void StateMachineViewImpl::runClicked() {
+    TeachingEventHandler::instance()->updateExecState(false);
 		TeachingEventHandler::instance()->tev_stm_RunClicked(grhStateMachine->getCurrentNode());
 	}
 
@@ -513,6 +502,11 @@ void StateMachineViewImpl::setEditMode(bool canEdit) {
 
   grhStateMachine->setEditMode(canEdit);
 }
+
+void StateMachineViewImpl::setExecState(bool isActive) {
+  btnRun->setEnabled(isActive);
+}
+
 /////
 StateMachineView::StateMachineView() : viewImpl(0) {
   setName(_("StateMachine"));

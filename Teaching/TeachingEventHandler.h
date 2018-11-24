@@ -103,7 +103,7 @@ public:
 	void tev_stm_RunClicked(ElementStmParamPtr target);
 	void tev_stm_StepClicked();
 	void tev_stm_ContClicked();
-	void tev_RunTaskClicked(int selectedId);
+	void tev_RunTaskClicked(int selectedId, bool isFlow);
 	void tev_AbortClicked();
 
 	//FlowSearchDialog
@@ -149,6 +149,8 @@ public:
 	//TaskExecuteManager
 	inline void setTaskExecutor(TaskExecuteManager* executor) { this->executor_ = executor; }
 	bool checkPaused();
+
+  void updateExecState(bool isActive);
 
 private:
 	TeachingEventHandler() 

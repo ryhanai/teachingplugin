@@ -108,6 +108,7 @@ public:
   inline bool checkOutConnection(int nodeId, int portIndex) { return grhStateMachine->checkOutConnection(nodeId, portIndex); }
   void setEditMode(bool canEdit);
   void cancelAllModel();
+  void setExecState(bool isActive);
 
 
   bool renameNode(QString currentName, QString newName);
@@ -172,7 +173,6 @@ public:
   FlowView();
   ~FlowView();
 
-  inline void setButtonEnableMode(bool isEnable) { viewImpl->setButtonEnableMode(isEnable); }
   inline bool updateTargetFlowParam(QString& errMessage) { return viewImpl->updateTargetFlowParam(errMessage); };
   inline void paramInfoUpdated(ElementStmParamPtr targetState) { viewImpl->paramInfoUpdated(targetState); };
   inline void modelParamUpdated(int flowModelId, ModelMasterParamPtr masterParam) { viewImpl->modelParamUpdated(flowModelId, masterParam); };

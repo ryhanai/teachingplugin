@@ -1,4 +1,4 @@
-#ifndef TEACHING_TASK_INSTANCE_VIEW_H_INCLUDED
+﻿#ifndef TEACHING_TASK_INSTANCE_VIEW_H_INCLUDED
 #define TEACHING_TASK_INSTANCE_VIEW_H_INCLUDED
 
 #include <cnoid/View>
@@ -23,6 +23,7 @@ public:
 	void showGrid(const vector<TaskModelParamPtr>& taskList);
 	void updateGrid(TaskModelParamPtr& target);
   void setEditMode(bool canEdit);
+  void setExecState(bool isActive);
 
 
 private Q_SLOTS:
@@ -71,9 +72,6 @@ class TaskInstanceView : public cnoid::View {
 public:
   TaskInstanceView();
   ~TaskInstanceView();
-
-  inline void setButtonEnableMode(bool isEnable) { viewImpl->setButtonEnableMode(isEnable); }
-
 
 private:
   TaskInstanceViewImpl* viewImpl;

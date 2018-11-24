@@ -1,4 +1,4 @@
-#include "TaskInstanceView.h"
+﻿#include "TaskInstanceView.h"
 
 #include "ControllerManager.h"
 #include "ModelMasterDialog.h"
@@ -280,6 +280,10 @@ void TaskInstanceViewImpl::setEditMode(bool canEdit) {
   btnRegistTask->setEnabled(canEdit);
 }
 
+void TaskInstanceViewImpl::setExecState(bool isActive) {
+  btnRunTask->setEnabled(isActive);
+}
+
 int TaskInstanceViewImpl::getSelectedId() {
   int result = NULL_ID;
   QTableWidgetItem* item = lstResult->currentItem();
@@ -309,7 +313,8 @@ void TaskInstanceViewImpl::taskActivated() {
 }
 
 void TaskInstanceViewImpl::runTaskClicked() {
-  TeachingEventHandler::instance()->tev_RunTaskClicked(getSelectedId());
+  TeachingEventHandler::instance()->updateExecState(false);
+  TeachingEventHandler::instance()->tev_RunTaskClicked(getSelectedId(), false);
 }
 
 void TaskInstanceViewImpl::initPosClicked() {

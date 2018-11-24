@@ -71,7 +71,6 @@ public:
 	void setTaskParam(TaskModelParamPtr param, bool canEdit) {
 		this->viewImpl->setTaskParam(param, canEdit);
 	}
-  void clearTaskParam() { this->viewImpl->clearTaskParam(); }
 
 private:
   ParameterViewImpl* viewImpl;

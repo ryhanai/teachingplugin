@@ -1,4 +1,4 @@
-#include <cnoid/Plugin>
+﻿#include <cnoid/Plugin>
 #include <cnoid/ViewManager>
 
 #include "TaskInstanceView.h"
@@ -35,8 +35,6 @@ public:
 		TaskInstanceView* taskView = viewManager().findView<TaskInstanceView>("TaskInstance");
     StateMachineView* statemachineView = viewManager().findView<StateMachineView>("StateMachine");
     //
-    statemachineView->setParameterView(parameterView);
-
     TaskExecuteManager* executor = new TaskExecuteManager();
     executor->setTaskInstanceView(taskView);
     executor->setFlowView(flowView);

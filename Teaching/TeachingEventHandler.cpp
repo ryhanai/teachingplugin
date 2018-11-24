@@ -506,12 +506,17 @@ void TeachingEventHandler::prv_SetInputValues() {
 //TaskExecutionView
 void TeachingEventHandler::tev_stm_RunClicked(ElementStmParamPtr target) {
 	DDEBUG("TeachingEventHandler::tev_stm_RunClicked()");
+	if (checkPaused()) return;
 
-	if (target == NULL) return;
+  if (target == NULL) {
+    TeachingEventHandler::instance()->updateExecState(true);
+    return;
+  }
 
 	prv_SetInputValues();
 	if (target->getType() != ELEMENT_COMMAND) {
 		QMessageBox::warning(stv_, _("Run Command"), _("Please select Command Element."));
+    TeachingEventHandler::instance()->updateExecState(true);
 		return;
 	}
   //コマンドチェック
@@ -526,6 +531,7 @@ void TeachingEventHandler::tev_stm_RunClicked(ElementStmParamPtr target) {
   }
   if(isExist==false) {
     QMessageBox::warning(prd_, _("Run Command"), _("This command can not be executed."));
+    TeachingEventHandler::instance()->updateExecState(true);
     return;
   }
 	//
@@ -534,6 +540,7 @@ void TeachingEventHandler::tev_stm_RunClicked(ElementStmParamPtr target) {
 	if (executor_->runSingleCommand() == false) {
 		QMessageBox::information(stv_, _("Run Command"), _("Target Command FAILED."));
 	}
+  TeachingEventHandler::instance()->updateExecState(true);
 }
 
 void TeachingEventHandler::tev_stm_StepClicked() {
@@ -572,17 +579,23 @@ void TeachingEventHandler::tev_stm_ContClicked() {
 	flv_->setButtonEnableMode(true);
 }
 
-void TeachingEventHandler::tev_RunTaskClicked(int selectedId) {
+void TeachingEventHandler::tev_RunTaskClicked(int selectedId, bool isFlow) {
 	DDEBUG_V("TeachingEventHandler::tev_RunTaskClicked() %d", selectedId);
+  if(isFlow) {
+    if (com_CurrentTask_) {
+      selectedId = com_CurrentTask_->getId();
+    }
+  }
   if(selectedId<0) {
     QMessageBox::warning(tiv_, _("Run Task"), _("Please select target TASK"));
+    TeachingEventHandler::instance()->updateExecState(true);
     return;
   }
 
 	stv_->updateTargetParam();
   prv_SetInputValues();
 
-  if (0 <= selectedId) {
+  if (0 <= selectedId && !isFlow) {
     tiv_CurrentTask_ = TeachingDataHolder::instance()->getTaskInstanceById(selectedId);
     com_CurrentTask_ = tiv_CurrentTask_;
     updateComViews(tiv_CurrentTask_);
@@ -613,12 +626,14 @@ void TeachingEventHandler::tev_RunTaskClicked(int selectedId) {
     }
 
     QMessageBox::warning(prd_, _("Run Task"), errMsg);
+    TeachingEventHandler::instance()->updateExecState(true);
     return;
   }
   //
 	executor_->setCurrentTask(com_CurrentTask_);
 	executor_->setCurrentElement(com_CurrParam_);
 	executor_->runSingleTask();
+  TeachingEventHandler::instance()->updateExecState(true);
 }
 
 void TeachingEventHandler::tev_AbortClicked() {
@@ -649,6 +664,7 @@ bool TeachingEventHandler::checkPaused() {
 	if (ret == QMessageBox::No) return true;
 	//
 	executor_->setBreak(false);
+  stv_->setStepStatus(false);
 	return false;
 }
 ///////////
@@ -692,5 +708,12 @@ void TeachingEventHandler::updateEditState(bool blockSignals) {
   mdv_->setEditMode(canEdit_);
   flv_->setEditMode(canEdit_);
 }
+
+void TeachingEventHandler::updateExecState(bool isActive) {
+  flv_->setExecState(isActive);
+  tiv_->setExecState(isActive);
+  stv_->setExecState(isActive);
+}
+
 
 }

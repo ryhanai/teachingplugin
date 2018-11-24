@@ -301,11 +301,13 @@ void TeachingEventHandler::flv_DeleteTaskClicked() {
 }
 
 void TeachingEventHandler::flv_RunFlowClicked() {
-	DDEBUG("TeachingEventHandler::flv_RunFlowClicked()");
+  DDEBUG("TeachingEventHandler::flv_RunFlowClicked()");
+
   stv_->updateTargetParam();
   QString errMessage;
   if (flv_->updateTargetFlowParam(errMessage) == false) {
     QMessageBox::warning(prd_, _("FlowView"), errMessage);
+    TeachingEventHandler::instance()->updateExecState(true);
     return;
   }
   //コマンド,マスタチェック
@@ -371,12 +373,14 @@ void TeachingEventHandler::flv_RunFlowClicked() {
     }
 
     QMessageBox::warning(prd_, _("Flow"), errMsg);
+    TeachingEventHandler::instance()->updateExecState(true);
     return;
   }
   //
   executor_->setCurrentTask(com_CurrentTask_);
 	executor_->runFlow(flv_CurrentFlow_);
 	com_CurrentTask_ = executor_->getCurrentTask();
+  TeachingEventHandler::instance()->updateExecState(true);
 }
 
 void TeachingEventHandler::flv_InitPosClicked() {

@@ -1,4 +1,4 @@
-#ifndef TEACHING_STATEMACHINE_VIEW_H_INCLUDED
+﻿#ifndef TEACHING_STATEMACHINE_VIEW_H_INCLUDED
 #define TEACHING_STATEMACHINE_VIEW_H_INCLUDED
 
 #include <cnoid/View>
@@ -6,7 +6,6 @@
 #include "QtUtil.h"
 #include "TeachingTypes.h"
 #include "CommandDefTypes.h"
-#include "ParameterView.h"
 
 #include "NodeEditor/StateMachineEditor.hpp"
 #include "NodeEditor/DataModelRegistry.hpp"
@@ -55,7 +54,6 @@ class StateMachineViewImpl : public QWidget {
 public:
   StateMachineViewImpl(QWidget* parent = 0);
   ~StateMachineViewImpl();
-  inline void setParameterView(ParameterView* view) { this->parameterView_ = view; }
 
   void setTaskParam(TaskModelParamPtr param);
   void clearTaskParam();
@@ -63,10 +61,10 @@ public:
 
   void setBPStatus(bool isActive, bool isSet);
   void setStepStatus(bool isActive);
-  void setButtonEnableMode(bool isEnable);
 
 	inline void updateTargetParam() { grhStateMachine->updateTargetParam(); };
   void setEditMode(bool canEdit);
+  void setExecState(bool isActive);
 
 public Q_SLOTS:
   void editClicked();
@@ -107,8 +105,6 @@ private:
 	StateMachineEditor* grhStateMachine;
   vector<CommandDefParam*> commandList_;
 
-  ParameterView* parameterView_;
-
   bool isExec_;
   void createCommandNodeTarget(int id, QString name);
 
@@ -120,14 +116,9 @@ class StateMachineView : public cnoid::View {
 public:
   StateMachineView();
   ~StateMachineView();
-  inline void setParameterView(ParameterView* view) { viewImpl->setParameterView(view); }
 
   void setTaskParam(TaskModelParamPtr param) { this->viewImpl->setTaskParam(param); }
-  void clearTaskParam() { this->viewImpl->clearTaskParam(); }
-
   void setStepStatus(bool isActive) { this->viewImpl->setStepStatus(isActive); }
-  inline void setButtonEnableMode(bool isEnable) { viewImpl->setButtonEnableMode(isEnable); }
-	inline void updateTargetParam() { viewImpl->updateTargetParam(); }
 
 private:
   StateMachineViewImpl* viewImpl;

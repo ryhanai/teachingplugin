@@ -26,12 +26,6 @@ TaskExecuteManager::~TaskExecuteManager() {
   DDEBUG("TaskExecuteManager Destructor");
 }
 
-void TaskExecuteManager::setButtonEnableMode(bool isEnable) {
-  taskInstView->setButtonEnableMode(isEnable);
-  flowView_->setButtonEnableMode(isEnable);
-  statemachineView_->setButtonEnableMode(isEnable);
-}
-
 void TaskExecuteManager::abortOperation() {
   isAbort_ = true;
 }
@@ -81,7 +75,6 @@ void TaskExecuteManager::runFlow(FlowParamPtr targetFlow) {
     }
   }
   //
-  setButtonEnableMode(false);
   isAbort_ = false;
 	currFlowParam_ = targetFlow->getStartParam();
   currFlowParam_->updateActive(true);
@@ -91,16 +84,12 @@ void TaskExecuteManager::runFlow(FlowParamPtr targetFlow) {
   TaskExecutor::instance()->setRootName(SettingManager::getInstance().getRobotModelName());
   ExecResult ret = doFlowSingleOperation();
   if (ret == ExecResult::EXEC_BREAK) {
-    setButtonEnableMode(true);
     statemachineView_->setStepStatus(true);
     return;
   } else if (ret == ExecResult::EXEC_ERROR) {
     InfoBar::instance()->showMessage(_("Failed Flow :") + targetFlow->getName(), MESSAGE_PERIOD);
-    setButtonEnableMode(true);
     return;
   }
-  setButtonEnableMode(true);
-
   InfoBar::instance()->showMessage(_("Finished Flow :") + targetFlow->getName(), MESSAGE_PERIOD);
 	DDEBUG("TaskExecuteManager::runFlow End");
 }
@@ -156,7 +145,6 @@ void TaskExecuteManager::runSingleTask() {
     return;
   }
   //
-  setButtonEnableMode(false);
   isAbort_ = false;
   currParam_ = currentTask_->getStartParam();
   currParam_->updateActive(true);
@@ -166,7 +154,6 @@ void TaskExecuteManager::runSingleTask() {
 
   TaskExecutor::instance()->setRootName(SettingManager::getInstance().getRobotModelName());
   ExecResult ret = doFlowOperation(true);
-  setButtonEnableMode(true);
   if (ret == ExecResult::EXEC_BREAK) {
     statemachineView_->setStepStatus(true);
     InfoBar::instance()->notify(_("Paused Task :") + taskName);
@@ -385,6 +372,7 @@ ExecResult TaskExecuteManager::doTaskOperation(bool updateCurrentTask) {
 
 ExecResult TaskExecuteManager::doTaskOperationStep() {
 	DDEBUG("TaskExecuteManager::doTaskOperationStep");
+  if(isBreak_==false) return ExecResult::EXEC_FINISHED;
 
   ElementStmParamPtr nextParam;
 

@@ -846,16 +846,19 @@ void FlowViewImpl::importFlowClicked() {
 }
 
 void FlowViewImpl::runFlowClicked() {
+  TeachingEventHandler::instance()->updateExecState(false);
   TeachingEventHandler::instance()->flv_RunFlowClicked();
 }
 
 void FlowViewImpl::runTaskClicked() {
+  TeachingEventHandler::instance()->updateExecState(false);
   QString errMessage;
   if (updateTargetFlowParam(errMessage) == false) {
+    TeachingEventHandler::instance()->updateExecState(true);
     QMessageBox::warning(this, _("FlowView"), errMessage);
     return;
   }
-  TeachingEventHandler::instance()->tev_RunTaskClicked(NULL_ID);
+  TeachingEventHandler::instance()->tev_RunTaskClicked(NULL_ID, true);
 }
 
 void FlowViewImpl::abortClicked() {
@@ -993,6 +996,14 @@ void FlowViewImpl::setEditMode(bool canEdit) {
 
   grhStateMachine->setEditMode(canEdit);
 }
+
+void FlowViewImpl::setExecState(bool isActive) {
+  btnRunFlow->setEnabled(isActive);
+  btnRunTask->setEnabled(isActive);
+
+  btnAbort->setEnabled(!isActive);
+}
+
 /////
 FlowView::FlowView() : viewImpl(0) {
   setName(_("FlowModel"));
