@@ -1,4 +1,4 @@
-#include "ConnectionGraphicsObject.hpp"
+﻿#include "ConnectionGraphicsObject.hpp"
 
 #include <QtWidgets/QGraphicsSceneMouseEvent>
 #include <QtWidgets/QGraphicsDropShadowEffect>

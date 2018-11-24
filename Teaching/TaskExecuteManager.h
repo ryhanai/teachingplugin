@@ -41,7 +41,7 @@ public:
 
   void runSingleTask();
   bool runSingleCommand();
-  void runFlow(FlowParamPtr targetFlow);
+  bool runFlow(FlowParamPtr targetFlow);
   bool detachAllModelItem();
   void abortOperation();
 

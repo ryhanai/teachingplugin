@@ -23,6 +23,8 @@
 
 using namespace cnoid;
 
+#define EVENT_HANDLER( exp ) TeachingEventHandler::instance()->exp
+
 namespace teaching {
 
 class CNOID_EXPORT TeachingEventHandler {
@@ -53,12 +55,12 @@ public:
 	void flv_NewFlowClicked();
 	void flv_SearchClicked(bool canEdit);
 	void flv_SelectionChanged(TaskModelParamPtr target);
-	void flv_RegistFlowClicked(QString name, QString comment);
+	bool flv_RegistFlowClicked(QString name, QString comment);
 	void flv_DeleteTaskClicked();
 	void flv_FlowExportClicked(QString name, QString comment);
 	void flv_FlowImportClicked();
-	void flv_RunFlowClicked();
-	void flv_InitPosClicked();
+	bool flv_RunFlowClicked();
+	bool flv_InitPosClicked();
   void flv_EditClicked(ElementStmParamPtr target);
   void flv_ModelParamChanged(int flowModelId, ModelMasterParamPtr masterParam);
   bool flv_Connected(QtNodes::Connection& target);
@@ -152,6 +154,10 @@ public:
 
   void updateExecState(bool isActive);
 
+  //For Test
+  inline void setTest(bool value) { this->isTest = value; }
+  inline bool checkTest() const { return !this->isTest; }
+
 private:
 	TeachingEventHandler() 
 		: canEdit_(false), 
@@ -168,6 +174,7 @@ private:
 			prd_(0), prd_CurrentParam_(0),
 			agd_(0), agd_Current_Stm_(0), agd_Current_Arg_(0), agd_Current_Action_(0),
 		  executor_(0),
+      isTest(false),
       updateEditStateLater(bind(&TeachingEventHandler::updateEditState, this, true), IDLE_PRIORITY_LOW) {
     connectionToEditStateChanged = SceneView::instance()->sceneWidget()->sigStateChanged().connect(updateEditStateLater);
   };
@@ -227,6 +234,9 @@ private:
   cnoid::Connection connectionToEditStateChanged;
   cnoid::LazyCaller updateEditStateLater;
   void updateEditState(bool blockSignals);
+
+  //For Test
+  bool isTest;
 };
 
 }

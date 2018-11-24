@@ -244,12 +244,12 @@ void TeachingEventHandler::flv_FlowImportClicked() {
 	QMessageBox::information(flv_, _("Import Flow"), _(" FLOW imported"));
 }
 
-void TeachingEventHandler::flv_RegistFlowClicked(QString name, QString comment) {
-	if (checkPaused()) return;
+bool TeachingEventHandler::flv_RegistFlowClicked(QString name, QString comment) {
+	if (checkPaused()) return true;
 	DDEBUG("TeachingEventHandler::flv_RegistFlowClicked()");
 
 	stv_->setStepStatus(false);
-	if (!flv_CurrentFlow_) return;
+	if (!flv_CurrentFlow_) return false;
 
 	if (flv_CurrentFlow_->getName() != name) {
 		flv_CurrentFlow_->setName(name);
@@ -272,26 +272,38 @@ void TeachingEventHandler::flv_RegistFlowClicked(QString name, QString comment) 
 		}
 	}
 	if (isChanged) {
-		QMessageBox::StandardButton ret = QMessageBox::question(flv_, _("Confirm"),
-			_("Model Position was changed. Continue?"),
-			QMessageBox::Yes | QMessageBox::No);
-		if (ret == QMessageBox::No) return;
+    if (EVENT_HANDLER(checkTest())) {
+      QMessageBox::StandardButton ret = QMessageBox::question(flv_, _("Confirm"),
+        _("Model Position was changed. Continue?"),
+        QMessageBox::Yes | QMessageBox::No);
+      if (ret == QMessageBox::No) return true;
+    } else {
+      return false;
+    }
 	}
 
 	stv_->updateTargetParam();
   QString errMessage;
   if (flv_->updateTargetFlowParam(errMessage) == false) {
-    QMessageBox::warning(prd_, _("FlowView"), errMessage);
-    return;
+    if (EVENT_HANDLER(checkTest())) {
+      QMessageBox::warning(prd_, _("FlowView"), errMessage);
+    }
+    return false;
   }
 
 	if (TeachingDataHolder::instance()->saveFlowModel(flv_CurrentFlow_)) {
 		flv_CurrentFlow_ = TeachingDataHolder::instance()->reGetFlowById(flv_CurrentFlow_->getId());
-		QMessageBox::information(flv_, _("Save Flow"), _("Target flow saved"));
+    if (EVENT_HANDLER(checkTest())) {
+      QMessageBox::information(flv_, _("Save Flow"), _("Target flow saved"));
+    }
 		flv_->createStateMachine(flv_CurrentFlow_);
+    return true;
 
 	} else {
-		QMessageBox::warning(flv_, _("Save Flow"), TeachingDataHolder::instance()->getErrorStr());
+    if (EVENT_HANDLER(checkTest())) {
+      QMessageBox::warning(flv_, _("Save Flow"), TeachingDataHolder::instance()->getErrorStr());
+    }
+    return false;
 	}
 }
 
@@ -300,15 +312,17 @@ void TeachingEventHandler::flv_DeleteTaskClicked() {
 	flv_CurrentFlow_->setUpdate();
 }
 
-void TeachingEventHandler::flv_RunFlowClicked() {
+bool TeachingEventHandler::flv_RunFlowClicked() {
   DDEBUG("TeachingEventHandler::flv_RunFlowClicked()");
 
   stv_->updateTargetParam();
   QString errMessage;
   if (flv_->updateTargetFlowParam(errMessage) == false) {
     QMessageBox::warning(prd_, _("FlowView"), errMessage);
-    TeachingEventHandler::instance()->updateExecState(true);
-    return;
+    if (EVENT_HANDLER(checkTest())) {
+      TeachingEventHandler::instance()->updateExecState(true);
+    }
+    return false;
   }
   //コマンド,マスタチェック
   vector<CommandDefParam*>commandList = TaskExecutor::instance()->getCommandDefList();
@@ -372,22 +386,25 @@ void TeachingEventHandler::flv_RunFlowClicked() {
       errMsg.append(errorList.at(index));
     }
 
-    QMessageBox::warning(prd_, _("Flow"), errMsg);
+    if (EVENT_HANDLER(checkTest()) ) {
+      QMessageBox::warning(prd_, _("Flow"), errMsg);
+    }
     TeachingEventHandler::instance()->updateExecState(true);
-    return;
+    return false;
   }
   //
   executor_->setCurrentTask(com_CurrentTask_);
-	executor_->runFlow(flv_CurrentFlow_);
+	bool ret = executor_->runFlow(flv_CurrentFlow_);
 	com_CurrentTask_ = executor_->getCurrentTask();
   TeachingEventHandler::instance()->updateExecState(true);
+  return ret;
 }
 
-void TeachingEventHandler::flv_InitPosClicked() {
-	if (checkPaused()) return;
+bool TeachingEventHandler::flv_InitPosClicked() {
+	if (checkPaused()) return true;
 	DDEBUG("TeachingEventHandler::flv_InitPosClicked()");
 
-	if (!flv_CurrentFlow_) return;
+	if (!flv_CurrentFlow_) return false;
 	stv_->setStepStatus(false);
 
   for (FlowParameterParamPtr targetParam : flv_CurrentFlow_->getActiveFlowParamList()) {
@@ -402,6 +419,7 @@ void TeachingEventHandler::flv_InitPosClicked() {
 		}
 	}
 	executor_->detachAllModelItem();
+  return true;
 }
 
 void TeachingEventHandler::flv_EditClicked(ElementStmParamPtr target) {

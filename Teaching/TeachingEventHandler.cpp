@@ -165,7 +165,9 @@ bool TeachingEventHandler::tiv_TaskImportClicked() {
     vector<ModelMasterParamPtr> masterList;
     QString errMessage;
     if (TeachingUtil::importTask(strFName, taskInstList, masterList, errMessage) == false) {
-      QMessageBox::warning(tiv_, _("Task Load Error"), errMessage);
+      if (EVENT_HANDLER(checkTest())) {
+        QMessageBox::warning(tiv_, _("Task Load Error"), errMessage);
+      }
       return false;
     }
     //
@@ -201,14 +203,18 @@ bool TeachingEventHandler::tiv_TaskImportClicked() {
     }
     //タスクの保存
     if (TeachingDataHolder::instance()->saveImportedTaskModel(taskInstList, masterList) == false) {
-      QMessageBox::warning(tiv_, _("Task Import"), TeachingDataHolder::instance()->getErrorStr());
+      if (EVENT_HANDLER(checkTest())) {
+        QMessageBox::warning(tiv_, _("Task Import"), TeachingDataHolder::instance()->getErrorStr());
+      }
       return false;
     }
 
     vector<TaskModelParamPtr> taskList = TeachingDataHolder::instance()->getTaskList();
     tiv_->showGrid(taskList);
 
-    QMessageBox::information(tiv_, _("Task Import"), _("target TASK imported"));
+    if (EVENT_HANDLER(checkTest())) {
+      QMessageBox::information(tiv_, _("Task Import"), _("target TASK imported"));
+    }
 
 	return true;
   }

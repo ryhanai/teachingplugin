@@ -297,7 +297,6 @@ bool FlowEditor::createFlowNodeAux(QString modelName, QPoint pos) {
     return true;
 
   } else {
-    //if (TeachingEventHandler::instance()->canEdit() == false) return;
     QString strDispName = modelName;
     QString strName = "";
 

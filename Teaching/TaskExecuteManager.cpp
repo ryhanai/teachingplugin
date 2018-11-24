@@ -30,22 +30,26 @@ void TaskExecuteManager::abortOperation() {
   isAbort_ = true;
 }
 
-void TaskExecuteManager::runFlow(FlowParamPtr targetFlow) {
+bool TaskExecuteManager::runFlow(FlowParamPtr targetFlow) {
   if (!targetFlow) {
-    QMessageBox::warning(0, _("Run Flow"), _("Select Target Flow"));
-    return;
+    if (EVENT_HANDLER(checkTest())) {
+      QMessageBox::warning(0, _("Run Flow"), _("Select Target Flow"));
+    }
+    return false;
   }
   currentFlow_ = targetFlow;
   if (currentTask_) {
     ChoreonoidUtil::unLoadTaskModelItem(currentTask_);
   }
 
-	TeachingEventHandler::instance()->prv_SetInputValues();
+  TeachingEventHandler::instance()->prv_SetInputValues();
 
   DDEBUG("FlowParam checkAndOrderStateMachine");
   if (targetFlow->checkAndOrderStateMachine()) {
-    QMessageBox::warning(0, _("Run Flow"), targetFlow->getErrStr());
-    return;
+    if (EVENT_HANDLER(checkTest())) {
+      QMessageBox::warning(0, _("Run Flow"), targetFlow->getErrStr());
+    }
+    return false;
   }
   vector<ElementStmParamPtr> stateList = targetFlow->getActiveStateList();
   TaskModelParamPtr currentTask;
@@ -59,8 +63,10 @@ void TaskExecuteManager::runFlow(FlowParamPtr targetFlow) {
     TeachingUtil::loadTaskDetailData(currentTask);
     DDEBUG("TaskParam checkAndOrderStateMachine");
     if (currentTask->checkAndOrderStateMachine()) {
-      QMessageBox::warning(0, _("Flow"), currentTask->getErrStr() + " [" + currentTask->getName() + "]");
-      return;
+      if (EVENT_HANDLER(checkTest())) {
+        QMessageBox::warning(0, _("Flow"), currentTask->getErrStr() + " [" + currentTask->getName() + "]");
+      }
+      return false;
     }
 
     if (targetState->getNextElem()->getType() == ELEMENT_DECISION) {
@@ -85,13 +91,14 @@ void TaskExecuteManager::runFlow(FlowParamPtr targetFlow) {
   ExecResult ret = doFlowSingleOperation();
   if (ret == ExecResult::EXEC_BREAK) {
     statemachineView_->setStepStatus(true);
-    return;
+    return true;
   } else if (ret == ExecResult::EXEC_ERROR) {
     InfoBar::instance()->showMessage(_("Failed Flow :") + targetFlow->getName(), MESSAGE_PERIOD);
-    return;
+    return false;
   }
   InfoBar::instance()->showMessage(_("Finished Flow :") + targetFlow->getName(), MESSAGE_PERIOD);
 	DDEBUG("TaskExecuteManager::runFlow End");
+  return true;
 }
 
 TaskModelParamPtr TaskExecuteManager::getNextTask(ElementStmParamPtr target) {
