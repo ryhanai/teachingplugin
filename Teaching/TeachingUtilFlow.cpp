@@ -1,4 +1,4 @@
-﻿#include "TeachingUtil.h"
+#include "TeachingUtil.h"
 
 #include <cnoid/YAMLReader>
 #include <cnoid/YAMLWriter>

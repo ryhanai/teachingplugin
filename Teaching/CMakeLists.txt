@@ -69,6 +69,8 @@ set(sources
   NodeEditor/Properties.cpp
   NodeEditor/StateMachineEditor.cpp
   NodeEditor/StyleCollection.cpp
+
+  TeachingFlowEventHandlerForTest.cpp
 )
 
 set(headers

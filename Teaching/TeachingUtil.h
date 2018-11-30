@@ -1,4 +1,4 @@
-﻿#ifndef TEACHING_TEACHING_UTIL_H_INCLUDED
+#ifndef TEACHING_TEACHING_UTIL_H_INCLUDED
 #define TEACHING_TEACHING_UTIL_H_INCLUDED
 
 #include <vector>
@@ -75,6 +75,9 @@ public:
   inline void setLogDir(std::string value) { this->logDir_ = value; }
   inline std::string getController() const { return this->controller_; }
   inline void setController(std::string value) { this->controller_ = value; }
+
+  inline bool getIsReal() const { return this->isReal_; }
+  inline void setIsReal(bool value) { this->isReal_ = value; }
 
   void clearExtList();
   void setTargetApp(std::string strExt, std::string strApp);

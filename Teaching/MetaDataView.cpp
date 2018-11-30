@@ -1,4 +1,4 @@
-﻿#include "MetaDataView.h"
+#include "MetaDataView.h"
 #include <cnoid/UTF8>
 #include <cnoid/ViewManager>
 #include "TeachingUtil.h"

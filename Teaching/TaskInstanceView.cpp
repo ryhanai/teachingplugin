@@ -1,4 +1,4 @@
-﻿#include "TaskInstanceView.h"
+#include "TaskInstanceView.h"
 
 #include "ControllerManager.h"
 #include "ModelMasterDialog.h"

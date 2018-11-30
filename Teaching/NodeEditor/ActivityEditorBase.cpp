@@ -1,4 +1,4 @@
-﻿#include "ActivityEditorBase.hpp"
+#include "ActivityEditorBase.hpp"
 
 #include <memory>
 #include <QTouchEvent>

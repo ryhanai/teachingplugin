@@ -1,4 +1,4 @@
-﻿#include "NodePainter.hpp"
+#include "NodePainter.hpp"
 
 #include <cmath>
 

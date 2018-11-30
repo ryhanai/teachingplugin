@@ -1,4 +1,4 @@
-﻿#include "StateMachineEditor.hpp"
+#include "StateMachineEditor.hpp"
 
 #include "StyleCollection.hpp"
 //

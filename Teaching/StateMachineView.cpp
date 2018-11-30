@@ -1,4 +1,4 @@
-﻿#include <cnoid/InfoBar>
+#include <cnoid/InfoBar>
 
 #include "StateMachineView.h"
 #include "TeachingUtil.h"

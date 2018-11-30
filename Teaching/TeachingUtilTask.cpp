@@ -1,4 +1,4 @@
-﻿#include "TeachingUtil.h"
+#include "TeachingUtil.h"
 #include "ChoreonoidUtil.h"
 #include "DataBaseManager.h"
 #include <cnoid/YAMLReader>

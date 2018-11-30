@@ -1,4 +1,4 @@
-﻿#include "ParameterView.h"
+#include "ParameterView.h"
 #include <cnoid/BodyBar>
 #include <cnoid/EigenUtil>
 #include <boost/bind.hpp>

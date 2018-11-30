@@ -1,4 +1,4 @@
-﻿#include <QtWidgets/QGraphicsBlurEffect>
+#include <QtWidgets/QGraphicsBlurEffect>
 
 #include <QtWidgets/QGraphicsItem>
 

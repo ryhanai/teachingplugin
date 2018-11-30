@@ -1,4 +1,4 @@
-﻿#include "TeachingTypes.h"
+#include "TeachingTypes.h"
 #include "ChoreonoidUtil.h"
 #include "TeachingUtil.h"
 #include <boost/bind.hpp>

@@ -1,4 +1,4 @@
-﻿#include "TeachingEventHandler.h"
+#include "TeachingEventHandler.h"
 
 #include "TeachingUtil.h"
 #include "ChoreonoidUtil.h"

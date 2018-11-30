@@ -1,4 +1,4 @@
-﻿#include "FlowEditor.hpp"
+#include "FlowEditor.hpp"
 
 #include "StyleCollection.hpp"
 

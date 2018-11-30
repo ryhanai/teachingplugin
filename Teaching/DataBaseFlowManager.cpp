@@ -1,4 +1,4 @@
-﻿#include "DataBaseManager.h"
+#include "DataBaseManager.h"
 
 #include <qsqlerror.h>
 #include "TeachingUtil.h"

@@ -1,4 +1,4 @@
-﻿#include "ParameterDialog.h"
+#include "ParameterDialog.h"
 #include "TeachingUtil.h"
 
 #include "TeachingEventHandler.h"

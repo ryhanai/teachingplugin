@@ -1,4 +1,4 @@
-﻿#ifndef TEACHING_CALCULATOR_H_INCLUDED
+#ifndef TEACHING_CALCULATOR_H_INCLUDED
 #define TEACHING_CALCULATOR_H_INCLUDED
 
 #include <boost/config/warning_disable.hpp>

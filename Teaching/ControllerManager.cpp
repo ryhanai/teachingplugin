@@ -23,6 +23,7 @@ void ControllerManager::registController(string controllerName, ControllerBase* 
   controllerList_.push_back(param);
 
   if(SettingManager::getInstance().getController()==controllerName) {
+    controller->initialize(); // R.Hanai
     stateView_->createStateCommands();
     taskView_->loadTaskInfo();
   }

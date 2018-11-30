@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include "Export.hpp"
 #include "ActivityEditorBase.hpp"

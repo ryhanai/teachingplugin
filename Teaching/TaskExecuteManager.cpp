@@ -1,4 +1,4 @@
-ï»¿#include <cnoid/InfoBar>
+#include <cnoid/InfoBar>
 
 #include "TaskExecuteManager.h"
 #include "StateMachineView.h"
@@ -112,9 +112,9 @@ TaskModelParamPtr TaskExecuteManager::getNextTask(ElementStmParamPtr target) {
 bool TaskExecuteManager::runSingleCommand() {
 	DDEBUG("TaskExecuteManager::runSingleCommand");
 
-  //å¼•æ•°è¨ˆç®—ãƒ¢ã‚¸ãƒ¥ãƒ¼ãƒ«ã®åˆæœŸåŒ–
+  //ˆø”ŒvZƒ‚ƒWƒ…[ƒ‹‚Ì‰Šú‰»
   createArgEstimator(currentTask_);
-  //å¼•æ•°ã®çµ„ã¿ç«‹ã¦
+  //ˆø”‚Ì‘g‚İ—§‚Ä
   std::vector<CompositeParamType> parameterList;
   if (argHandler_->buildArguments(currentTask_, currParam_, parameterList) == false) {
     deleteArgEstimator();
@@ -124,7 +124,7 @@ bool TaskExecuteManager::runSingleCommand() {
   InfoBar::instance()->showMessage(_("Running Command :") + currParam_->getCmdName());
   TaskExecutor::instance()->setRootName(SettingManager::getInstance().getRobotModelName());
   bool cmdRet = TaskExecutor::instance()->executeCommand(currParam_->getCmdName().toStdString(), parameterList);
-  //outå¼•æ•°ã®è¨­å®š
+  //outˆø”‚Ìİ’è
   setOutArgument(parameterList);
 
   deleteArgEstimator();
@@ -261,13 +261,13 @@ ExecResult TaskExecuteManager::doFlowOperationCont() {
 ExecResult TaskExecuteManager::doTaskOperation(bool updateCurrentTask) {
 	DDEBUG("TaskExecuteManager::doTaskOperation");
 
-  //ãƒ¢ãƒ‡ãƒ«æƒ…å ±ã®è¨­å®š
+  //ƒ‚ƒfƒ‹î•ñ‚Ìİ’è
   parseModelInfo();
 
 	ElementStmParamPtr nextParam;
   lastResult_ = false;
 
-  //å¼•æ•°è¨ˆç®—ãƒ¢ã‚¸ãƒ¥ãƒ¼ãƒ«ã®åˆæœŸåŒ–
+  //ˆø”ŒvZƒ‚ƒWƒ…[ƒ‹‚Ì‰Šú‰»
   createArgEstimator(currentTask_);
 
 	DDEBUG("Start Execution");
@@ -281,26 +281,26 @@ ExecResult TaskExecuteManager::doTaskOperation(bool updateCurrentTask) {
 				DDEBUG("TaskExecuteManager::doTaskOperation EXEC_FINISHED(Abort)");
 				return ExecResult::EXEC_FINISHED;
       }
-      //å¼•æ•°ã®çµ„ã¿ç«‹ã¦
+      //ˆø”‚Ì‘g‚İ—§‚Ä
       if (argHandler_->buildArguments(currentTask_, currParam_, parameterList) == false) {
         detachAllModelItem();
         deleteArgEstimator();
 				DDEBUG("TaskExecuteManager::doTaskOperation EXEC_ERROR(Arg)");
 				return ExecResult::EXEC_ERROR;
       }
-      //ã‚³ãƒãƒ³ãƒ‰å®Ÿè¡Œ
+      //ƒRƒ}ƒ“ƒhÀs
       lastResult_ = TaskExecutor::instance()->executeCommand(currParam_->getCmdName().toStdString(), parameterList);
-      //outå¼•æ•°ã®è¨­å®š
+      //outˆø”‚Ìİ’è
       setOutArgument(parameterList);
 
-      //ãƒ¢ãƒ‡ãƒ«ã‚¢ã‚¯ã‚·ãƒ§ãƒ³å®Ÿè¡Œ
+      //ƒ‚ƒfƒ‹ƒAƒNƒVƒ‡ƒ“Às
       if (doModelAction() == false) {
         detachAllModelItem();
         deleteArgEstimator();
 				DDEBUG("TaskExecuteManager::doTaskOperation EXEC_ERROR(Model Action)");
 				return ExecResult::EXEC_ERROR;
       }
-      //ã‚³ãƒãƒ³ãƒ‰ã®å®Ÿè¡ŒçµæœãŒFalseã§æ¬¡ã®è¦ç´ ãŒãƒ‡ã‚·ã‚¸ãƒ§ãƒ³ã§ã¯ãªã„å ´åˆã¯çµ‚äº†
+      //ƒRƒ}ƒ“ƒh‚ÌÀsŒ‹‰Ê‚ªFalse‚ÅŸ‚Ì—v‘f‚ªƒfƒVƒWƒ‡ƒ“‚Å‚Í‚È‚¢ê‡‚ÍI—¹
       if (lastResult_ == false) {
 				ElementStmParamPtr checkNext = currParam_->getNextElem();
         if (checkNext == 0 || checkNext->getType() != ELEMENT_DECISION) {
@@ -396,27 +396,27 @@ ExecResult TaskExecuteManager::doTaskOperationStep() {
   }
 	TeachingEventHandler::instance()->prv_SetInputValues();
 
-  //ãƒ¢ãƒ‡ãƒ«æƒ…å ±ã®è¨­å®š
+  //ƒ‚ƒfƒ‹î•ñ‚Ìİ’è
   parseModelInfo();
 
   lastResult_ = false;
   std::vector<CompositeParamType> parameterList;
 
-  //å¼•æ•°ã®çµ„ã¿ç«‹ã¦
+  //ˆø”‚Ì‘g‚İ—§‚Ä
   if (argHandler_->buildArguments(currentTask_, currParam_, parameterList) == false) {
     detachAllModelItem();
     return ExecResult::EXEC_ERROR;
   }
-  //ã‚³ãƒãƒ³ãƒ‰å®Ÿè¡Œ
+  //ƒRƒ}ƒ“ƒhÀs
   lastResult_ = TaskExecutor::instance()->executeCommand(currParam_->getCmdName().toStdString(), parameterList);
-  //outå¼•æ•°ã®è¨­å®š
+  //outˆø”‚Ìİ’è
   setOutArgument(parameterList);
-  //ãƒ¢ãƒ‡ãƒ«ã‚¢ã‚¯ã‚·ãƒ§ãƒ³å®Ÿè¡Œ
+  //ƒ‚ƒfƒ‹ƒAƒNƒVƒ‡ƒ“Às
   if (doModelAction() == false) {
     detachAllModelItem();
     return ExecResult::EXEC_ERROR;
   }
-  //ã‚³ãƒãƒ³ãƒ‰ã®å®Ÿè¡ŒçµæœãŒFalseã§æ¬¡ã®è¦ç´ ãŒãƒ‡ã‚·ã‚¸ãƒ§ãƒ³ã§ã¯ãªã„å ´åˆã¯çµ‚äº†
+  //ƒRƒ}ƒ“ƒh‚ÌÀsŒ‹‰Ê‚ªFalse‚ÅŸ‚Ì—v‘f‚ªƒfƒVƒWƒ‡ƒ“‚Å‚Í‚È‚¢ê‡‚ÍI—¹
   if (lastResult_ == false) {
 		ElementStmParamPtr checkNext = currParam_->getNextElem();
     if (checkNext == 0 || checkNext->getType() != ELEMENT_DECISION) {

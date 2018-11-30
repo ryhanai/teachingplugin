@@ -1,4 +1,4 @@
-﻿#include "ChoreonoidUtil.h"
+#include "ChoreonoidUtil.h"
 #include <cnoid/RootItem>
 #include <cnoid/EigenUtil>
 #include <cnoid/InverseKinematics>

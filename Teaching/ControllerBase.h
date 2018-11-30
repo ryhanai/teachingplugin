@@ -1,4 +1,4 @@
-﻿#ifndef TEACHING_CONTROLLERBASE_H_INCLUDED
+#ifndef TEACHING_CONTROLLERBASE_H_INCLUDED
 #define TEACHING_CONTROLLERBASE_H_INCLUDED
 
 #include <cnoid/BodyItem>
@@ -30,9 +30,11 @@ public:
   virtual bool detachModelItem(cnoid::BodyItemPtr object, int target) = 0;
   virtual std::vector<CommandDefParam*> getCommandDefList() = 0;
 
-  virtual bool executeCommand(const std::string& commandName, std::vector<CompositeParamType>& params) = 0;
+  virtual bool executeCommand(const std::string& commandName, std::vector<CompositeParamType>& params, bool isReal=false) = 0;
 
   inline void setRootName(std::string value) { this->rootName = value; }
+
+  virtual void initialize() = 0; // R.Hanai
 
 protected:
   std::string rootName;

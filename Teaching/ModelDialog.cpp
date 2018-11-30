@@ -1,4 +1,4 @@
-﻿#include "ModelDialog.h"
+#include "ModelDialog.h"
 
 #include "TeachingEventHandler.h"
 #include "TeachingUtil.h"

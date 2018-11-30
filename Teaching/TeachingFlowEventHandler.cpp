@@ -1,4 +1,4 @@
-ï»¿#include "TeachingEventHandler.h"
+#include "TeachingEventHandler.h"
 
 #include "TeachingUtil.h"
 #include "ChoreonoidUtil.h"
@@ -172,7 +172,7 @@ void TeachingEventHandler::flv_FlowImportClicked() {
 		return;
 	}
 
-  //ãƒ¢ãƒ‡ãƒ«ãƒã‚¹ã‚¿ã®ãƒã‚§ãƒƒã‚¯
+  //ƒ‚ƒfƒ‹ƒ}ƒXƒ^‚Ìƒ`ƒFƒbƒN
   for (ModelMasterParamPtr master : masterList) {
     QString txtData = QString::fromUtf8(master->getData());
     QString strHash = TeachingUtil::getSha1Hash(txtData.toStdString().c_str(), txtData.toStdString().length());
@@ -324,7 +324,7 @@ bool TeachingEventHandler::flv_RunFlowClicked() {
     }
     return false;
   }
-  //ã‚³ãƒãƒ³ãƒ‰,ãƒã‚¹ã‚¿ãƒã‚§ãƒƒã‚¯
+  //ƒRƒ}ƒ“ƒh,ƒ}ƒXƒ^ƒ`ƒFƒbƒN
   vector<CommandDefParam*>commandList = TaskExecutor::instance()->getCommandDefList();
   vector<ModelMasterParamPtr> modelMasterList = TeachingDataHolder::instance()->getModelMasterList();
   QStringList errorList;
@@ -483,18 +483,18 @@ bool TeachingEventHandler::flv_Connected(QtNodes::Connection& target) {
   TaskModelParamPtr taskParam = (*targetElem)->getTaskParam();
   DDEBUG_V("Task Name : %s", taskParam->getName().toStdString().c_str());
 
-  //ãƒ¢ãƒ‡ãƒ«ãƒ‘ãƒ©ãƒ¡ãƒ¼ã‚¿ã®å ´åˆ
+  //ƒ‚ƒfƒ‹ƒpƒ‰ƒ[ƒ^‚Ìê‡
   if (sourceNode->nodeDataModel()->name() == "Model Param") {
     NodeDataType dataType = sourceNode->nodeDataModel()->dataType(PortType::Out, sourcePortIndex);
     DDEBUG_V("dataType : %s", dataType.id.toStdString().c_str());
-    //FlowModelParameterã®æ¤œç´¢
+    //FlowModelParameter‚ÌŒŸõ
     vector<FlowModelParamPtr> modelList = flv_CurrentFlow_->getActiveModelList();
     vector<FlowModelParamPtr>::iterator modelElem = find_if(modelList.begin(), modelList.end(), FlowModelParamComparator(sourceId));
     if (modelElem == modelList.end()) return false;
     DDEBUG_V("Master Id : %d", (*modelElem)->getMasterId());
 
     if (dataType.id == "modelshape") {
-      //ãƒ¢ãƒ‡ãƒ«ãƒãƒ¼ãƒˆã®å ´åˆ
+      //ƒ‚ƒfƒ‹ƒ|[ƒg‚Ìê‡
       int masterId = (*modelElem)->getMasterId();
 
       ModelParamPtr model = taskParam->getModelParamById(id);
@@ -516,7 +516,7 @@ bool TeachingEventHandler::flv_Connected(QtNodes::Connection& target) {
       ///////////////
 
     } else if (dataType.id == "modeldata") {
-      //ãƒ‡ãƒ¼ã‚¿ãƒãƒ¼ãƒˆã®å ´åˆ
+      //ƒf[ƒ^ƒ|[ƒg‚Ìê‡
       QString portName = sourceNode->nodeDataModel()->portNames[sourcePortIndex].name_;
       DDEBUG_V("portName : %s", portName.toStdString().c_str());
       if(portName=="origin") {
@@ -538,8 +538,8 @@ bool TeachingEventHandler::flv_Connected(QtNodes::Connection& target) {
     }
 
   } else if (sourceNode->nodeDataModel()->name().startsWith("Flow Param")) {
-    //ãƒ•ãƒ­ãƒ¼ãƒ‘ãƒ©ãƒ¡ãƒ¼ã‚¿ã®å ´åˆ
-    //FlowParameterã®æ¤œç´¢
+    //ƒtƒ[ƒpƒ‰ƒ[ƒ^‚Ìê‡
+    //FlowParameter‚ÌŒŸõ
     vector<FlowParameterParamPtr> paramList = flv_CurrentFlow_->getActiveFlowParamList();
     vector<FlowParameterParamPtr>::iterator paramElem = find_if(paramList.begin(), paramList.end(), FlowParameterParamComparator(sourceId));
     if (paramElem == paramList.end()) return false;
@@ -591,12 +591,12 @@ void TeachingEventHandler::flv_Disconnected(QtNodes::Connection& target) {
   if (!taskParam) return;
   DDEBUG_V("Task Name : %s", taskParam->getName().toStdString().c_str());
 
-  //ãƒ¢ãƒ‡ãƒ«ãƒ‘ãƒ©ãƒ¡ãƒ¼ã‚¿ã®å ´åˆ
+  //ƒ‚ƒfƒ‹ƒpƒ‰ƒ[ƒ^‚Ìê‡
   if (sourceNode->nodeDataModel()->name() == "Model Param") {
     NodeDataType dataType = sourceNode->nodeDataModel()->dataType(PortType::Out, sourcePortIndex);
     DDEBUG_V("dataType : %s", dataType.id.toStdString().c_str());
     if (dataType.id == "modelshape") {
-      //ãƒ¢ãƒ‡ãƒ«ãƒãƒ¼ãƒˆã®å ´åˆ
+      //ƒ‚ƒfƒ‹ƒ|[ƒg‚Ìê‡
       if (taskParam->IsKeepMaster() == false) {
         ModelParamPtr model = taskParam->getModelParamById(id);
         if (!model) return;
@@ -610,7 +610,7 @@ void TeachingEventHandler::flv_Disconnected(QtNodes::Connection& target) {
         }
       }
     } else if (dataType.id == "modeldata") {
-      //ãƒ‡ãƒ¼ã‚¿ãƒãƒ¼ãƒˆã®å ´åˆ
+      //ƒf[ƒ^ƒ|[ƒg‚Ìê‡
       QString portName = sourceNode->nodeDataModel()->portNames[sourcePortIndex].name_;
       DDEBUG_V("portName : %s", portName.toStdString().c_str());
       if(portName=="origin") {
@@ -620,7 +620,7 @@ void TeachingEventHandler::flv_Disconnected(QtNodes::Connection& target) {
         if (!model) return;
         model->clearPosture();
         //
-        //FlowParamå´ã®å‡¦ç†
+        //FlowParam‘¤‚Ìˆ—
         if( flv_->checkOutConnection(sourceId, sourcePortIndex)==false) {
           DDEBUG("Clear FlowParam");
           vector<FlowModelParamPtr> modelList = flv_CurrentFlow_->getActiveModelList();
@@ -632,7 +632,7 @@ void TeachingEventHandler::flv_Disconnected(QtNodes::Connection& target) {
     }
 
   } else if (sourceNode->nodeDataModel()->name().startsWith("Flow Param")) {
-    //ãƒ•ãƒ­ãƒ¼ãƒ‘ãƒ©ãƒ¡ãƒ¼ã‚¿ã®å ´åˆ
+    //ƒtƒ[ƒpƒ‰ƒ[ƒ^‚Ìê‡
     ParameterParamPtr param = taskParam->getParameterById(id);
     if (!param) return;
     DDEBUG_V("Task Param Type(id=%d):%d %s", id, param->getParamType(), param->getName().toStdString().c_str());
@@ -706,39 +706,7 @@ void TeachingEventHandler::flv_HideAllModels() {
     this->flv_->getNodeByName(name);
   }
 
-  bool TeachingEventHandler::flv_ConnectNodes(QString from, QString fromPort, QString to, QString toPort) {
-    return this->flv_->connectNodes(from, fromPort, to, toPort);
-  }
-
   bool TeachingEventHandler::flv_CreateNode(QString modelName, QPoint pos) {
     return this->flv_->createNode(modelName, pos);
   }
-
-  bool TeachingEventHandler::tst_DeleteAllFlows() {
-    vector<string> condList;
-    bool isOr = false;
-    condList.push_back("");
-    TeachingDataHolder::instance()->searchFlow(condList, isOr);
-    for (auto f : TeachingDataHolder::instance()->getFlowList()) {
-      if (!TeachingDataHolder::instance()->deleteFlow(f->getId())) {
-        return false;
-      }
-    }
-    return true;
-  }
-
-  bool TeachingEventHandler::tst_DeleteAllTasks() {
-    for (auto tmi : TeachingDataHolder::instance()->getTaskList()) {
-      if (!TeachingDataHolder::instance()->deleteTaskModel(tmi->getId())) {
-        return false;
-      }
-    }
-    return true;
-  }
-
-  void TeachingEventHandler::tst_ClearFlowScene() {
-    this->flv_->clearFlowScene();
-  }
-
-
 }

@@ -1,4 +1,4 @@
-﻿#include <cnoid/Plugin>
+#include <cnoid/Plugin>
 #include <cnoid/ViewManager>
 
 #include "TaskInstanceView.h"
