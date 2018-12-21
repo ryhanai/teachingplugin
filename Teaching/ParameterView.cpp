@@ -126,12 +126,17 @@ namespace teaching {
   for(ParameterParamPtr targetParam : param->getActiveParameterList()) {
     targetParam->setActive(false);
     if (targetParam->getType() == PARAM_KIND_MODEL) continue;
-    if (isFlowView && targetParam->getHide() == 0) continue;
+    //if (isFlowView && targetParam->getHide() == 0) continue;
 
     targetParam->setActive(true);
     targetParam->clearControlList();
     QFrame* eachFrame = new QFrame(this);
-    eachFrame->setEnabled(TeachingEventHandler::instance()->canEdit() && this->canEdit_);
+    eachFrame->setProperty("hide", targetParam->getHide());
+    if (isFlowView_  && targetParam->getHide() == 0) {
+      eachFrame->setEnabled(false);
+    } else {
+      eachFrame->setEnabled(TeachingEventHandler::instance()->canEdit() && this->canEdit_);
+    }
     frameList_.push_back(eachFrame);
     QHBoxLayout* eachLayout = new QHBoxLayout;
     eachLayout->setContentsMargins(0, 0, 0, 0);
@@ -235,7 +240,12 @@ void ParameterViewImpl::setEditMode(bool canEdit) {
   if (btnEdit) {
     btnEdit->setEnabled(canEdit && this->canEdit_ && !isFlowView_);
     for(QFrame* frame : frameList_) {
-      frame->setEnabled(canEdit && this->canEdit_);
+      int hide = frame->property("hide").toInt();
+      if (isFlowView_  && hide ==0 ) {
+        frame->setEnabled(false);
+      } else {
+        frame->setEnabled(canEdit && this->canEdit_);
+      }
     }
   }
 }

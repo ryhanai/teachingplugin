@@ -490,6 +490,18 @@ void FlowEditor::createStateMachine(FlowParamPtr target) {
       DDEBUG("Flow Param Found");
       sourceNode = (*sourceElem)->getRealElem();
 
+      TaskModelParamPtr taskParam = (*targetElem)->getTaskParam();
+      if (taskParam) {
+        int id = targetNode->nodeDataModel()->portNames[targetCon->getTargetIndex() - 1].id_;
+        ParameterParamPtr param = taskParam->getParameterById(id);
+        if (param) {
+          param->setFlowParam(*sourceElem);
+          if ((*sourceElem)->isFirst()) {
+            (*sourceElem)->setWidgetValue(param->getDBValues());
+          }
+        }
+      }
+
     } else {
       vector<ElementStmParamPtr>::iterator sourceElem = find_if(elemList.begin(), elemList.end(), ElementStmParamComparator(targetCon->getSourceId()));
       if (sourceElem == elemList.end()) continue;

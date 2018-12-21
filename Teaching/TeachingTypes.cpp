@@ -163,6 +163,8 @@ double ParameterValueParam::getNumValues(int index) {
 }
 
 void ParameterValueParam::setValue(int index, QString value) {
+  DDEBUG_V("ParameterParam::setValue %d,%s", index, value.toStdString().c_str());
+
   if (index < valueList_.size()) {
     QString source = valueList_[index];
     if (source != value) {
@@ -227,12 +229,19 @@ void ParameterParam::setFlowValues(QString source) {
 }
 
 void ParameterParam::setOutValues(int index, QString source) {
+  DDEBUG("ParameterParam::setOutValues");
   valueParam_->setValue(index, source);
-  controlList_[index]->setText(source);
+  if (index < controlList_.size()) {
+    controlList_[index]->setText(source);
+  }
+  updateOutValues();
+  DDEBUG("ParameterParam::setOutValues End");
 }
 
 void ParameterParam::updateOutValues() {
+  DDEBUG("ParameterParam::updateOutValues");
   if (flowParam_) {
+    DDEBUG("update flowParam_");
     QString strValues = getDBValues();
     flowParam_->setValue(strValues);
     flowParam_->setWidgetValue(strValues);

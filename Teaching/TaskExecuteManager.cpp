@@ -610,6 +610,7 @@ void TaskExecuteManager::setOutArgument(std::vector<CompositeParamType>& paramet
     }
     targetParam->updateOutValues();
   }
+  DDEBUG("TaskExecuteManager::setOutArgument End");
 }
 
 bool TaskExecuteManager::detachAllModelItem() {
