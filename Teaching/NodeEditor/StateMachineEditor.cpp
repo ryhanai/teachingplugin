@@ -221,10 +221,10 @@ void StateMachineEditor::dropEvent(QDropEvent* event) {
 	DDEBUG_V("strDispName:%s", strDispName.toStdString().c_str());
 	QString strName = "";
 	QVariant varData = event->mimeData()->property("CommandId");
-	int id = varData.toInt();
-	CommandDefParam* cmdParam = TaskExecutor::instance()->getCommandDef(id);
+	QString cmdName = varData.toString();
+	CommandDefParam* cmdParam = TaskExecutor::instance()->getCommandDef(cmdName.toStdString());
 	if (cmdParam) {
-		strName = cmdParam->getName();
+		strName = cmdParam->getCmdName();
 		DDEBUG("ActivityEditor::dropEvent cmdParam Exists");
 	} else {
 		DDEBUG("ActivityEditor::dropEvent cmdParam NOT Exists");

@@ -33,22 +33,7 @@ CommandDefParam* TaskExecutor::getCommandDef(const std::string& commandName) {
   std::vector<CommandDefParam*> cmdDefList = handler_->getCommandDefList();
   for (int index = 0; index < cmdDefList.size(); index++) {
     CommandDefParam* cmd = cmdDefList[index];
-    if (cmd->getName().toStdString() == commandName) {
-      result = cmd;
-      break;
-    }
-  }
-
-  return result;
-}
-
-CommandDefParam* TaskExecutor::getCommandDef(const int commandId) {
-  CommandDefParam* result = 0;
-
-  std::vector<CommandDefParam*> cmdDefList = handler_->getCommandDefList();
-  for (int index = 0; index < cmdDefList.size(); index++) {
-    CommandDefParam* cmd = cmdDefList[index];
-    if (cmd->getId() == commandId) {
+    if (cmd->getCmdName().toStdString() == commandName) {
       result = cmd;
       break;
     }

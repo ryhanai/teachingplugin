@@ -23,7 +23,6 @@ public:
 
   std::vector<CommandDefParam*> getCommandDefList();
   CommandDefParam* getCommandDef(const std::string& commandName);
-  CommandDefParam* getCommandDef(const int commandId);
 
   void setRootName(std::string value);
   bool executeCommand(const std::string& commandName, std::vector<CompositeParamType>& params);

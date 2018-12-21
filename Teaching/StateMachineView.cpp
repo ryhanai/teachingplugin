@@ -160,7 +160,8 @@ namespace teaching {
     commandList_ = TaskExecutor::instance()->getCommandDefList();
     vector<CommandDefParam*>::iterator itCmd = commandList_.begin();
     while (itCmd != commandList_.end()) {
-      createCommandNodeTarget((*itCmd)->getId(), (*itCmd)->getDispName());
+      DDEBUG_V("CmdName:%s, DispName:%s", (*itCmd)->getCmdName().toStdString().c_str(), (*itCmd)->getDispName().toStdString().c_str())
+      createCommandNodeTarget((*itCmd)->getCmdName(), (*itCmd)->getDispName());
       ++itCmd;
     }
   }
@@ -200,7 +201,7 @@ namespace teaching {
     btnRun->setEnabled(false);
   }
 
-  void StateMachineViewImpl::createCommandNodeTarget(int id, QString name) {
+  void StateMachineViewImpl::createCommandNodeTarget(QString cmdName, QString dispName) {
     QPixmap *pix = new QPixmap(30, 30);
     pix->fill(QColor(212, 206, 199));
     QPainter* painter = new QPainter(pix);
@@ -208,9 +209,9 @@ namespace teaching {
     painter->setPen(QPen(Qt::black, 3.0));
     painter->drawEllipse(5, 5, 20, 20);
     lstItem->setIconSize(QSize(30, 30));
-    QListWidgetItem* item = new QListWidgetItem(name, lstItem);
+    QListWidgetItem* item = new QListWidgetItem(dispName, lstItem);
     item->setIcon(QIcon(*pix));
-    item->setData(Qt::UserRole, id);
+    item->setData(Qt::UserRole, cmdName);
   }
 
   void StateMachineViewImpl::stepClicked() {

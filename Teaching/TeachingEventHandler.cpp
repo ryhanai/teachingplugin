@@ -470,7 +470,7 @@ void TeachingEventHandler::stv_EditClicked(ElementStmParamPtr target) {
 			QString strCmd = agd_Current_Stm_->getCmdName();
 			for (int index = 0; index < commandList.size(); index++) {
 				CommandDefParam* param = commandList[index];
-				if (param->getName() != strCmd) continue;
+				if (param->getCmdName() != strCmd) continue;
 				vector<ArgumentDefParam*> argList = param->getArgList();
 				for (int idxArg = 0; idxArg < argList.size(); idxArg++) {
 					ArgumentDefParam* arg = argList[idxArg];
@@ -529,8 +529,8 @@ void TeachingEventHandler::tev_stm_RunClicked(ElementStmParamPtr target) {
   vector<CommandDefParam*>commandList = TaskExecutor::instance()->getCommandDefList();
   bool isExist = false;
   for(CommandDefParam* command : commandList) {
-    DDEBUG_V("source:%s, target:%s", target->getCmdName().toStdString(), command->getName().toStdString().c_str());
-    if(command->getName()==target->getCmdName()) {
+    DDEBUG_V("source:%s, target:%s", target->getCmdName().toStdString(), command->getCmdName().toStdString().c_str());
+    if(command->getCmdName()==target->getCmdName()) {
       isExist = true;
       break;
     }
@@ -613,7 +613,7 @@ void TeachingEventHandler::tev_RunTaskClicked(int selectedId, bool isFlow) {
     if(state->getType() != ELEMENT_COMMAND) continue;
     bool isExist = false;
     for(CommandDefParam* command : commandList) {
-      if(command->getName()==state->getCmdName()) {
+      if(command->getCmdName()==state->getCmdName()) {
         isExist = true;
         break;
       }

@@ -28,8 +28,8 @@ private:
 
 class CommandDefParam {
 public:
-  CommandDefParam(int id, QString name, QString dispName, QString retType)
-    : id_(id), name_(name), dispName_(dispName), retType_(retType) {};
+  CommandDefParam(QString name, QString dispName, QString retType)
+    : cmdName_(name), dispName_(dispName), retType_(retType) {};
 
   virtual ~CommandDefParam() {
     std::vector<ArgumentDefParam*>::iterator itArg = argumentList_.begin();
@@ -40,8 +40,7 @@ public:
     argumentList_.clear();
   };
 
-  inline int getId() const { return this->id_; }
-  inline QString getName() const { return this->name_; }
+  inline QString getCmdName() const { return this->cmdName_; }
   inline QString getDispName() const { return this->dispName_; }
   inline QString getRetType() const { return this->retType_; }
   inline std::vector<ArgumentDefParam*> getArgList() const { return this->argumentList_; }
@@ -49,8 +48,7 @@ public:
   inline void addArgument(ArgumentDefParam* target){ this->argumentList_.push_back(target); }
 
 private:
-  int id_;
-  QString name_;
+  QString cmdName_;
   QString dispName_;
   QString retType_;
 
@@ -64,7 +62,7 @@ struct CommandDefParamComparator {
     name_ = value;
   }
   bool operator()(const CommandDefParam* elem) const {
-    return elem->getName() == name_;
+    return elem->getCmdName() == name_;
   }
 };
 

@@ -338,7 +338,7 @@ bool TeachingEventHandler::flv_RunFlowClicked() {
       if(state->getType() != ELEMENT_COMMAND) continue;
       bool isExist = false;
       for(CommandDefParam* command : commandList) {
-        if(command->getName()==state->getCmdName()) {
+        if(command->getCmdName()==state->getCmdName()) {
           isExist = true;
           break;
         }

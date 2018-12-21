@@ -106,7 +106,7 @@ private:
   vector<CommandDefParam*> commandList_;
 
   bool isExec_;
-  void createCommandNodeTarget(int id, QString name);
+  void createCommandNodeTarget(QString cmdName, QString dispName);
 
 	void setStyle();
 	std::shared_ptr<DataModelRegistry> registerDataModels();
