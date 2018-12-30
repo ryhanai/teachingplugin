@@ -78,7 +78,7 @@ private:
 class TaskInfoDialog : public QDialog {
   Q_OBJECT
 public:
-  TaskInfoDialog(ElementStmParamPtr param, QWidget* parent = 0);
+  TaskInfoDialog(ElementStmParamPtr param, FlowParamPtr flowParam, QWidget* parent = 0);
 
   private Q_SLOTS:
   void oKClicked();
@@ -88,6 +88,7 @@ private:
   QLineEdit * txtName;
 
   ElementStmParamPtr targetParam_;
+  FlowParamPtr flowParam_;
 };
 
 class FlowViewImpl : public QWidget {

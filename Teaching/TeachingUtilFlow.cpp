@@ -196,6 +196,7 @@ bool TeachingUtil::importFlow(QString& strFName, std::vector<FlowParamPtr>& flow
 
       Listing* stateList = flowMap->findListing("states");
       if (stateList) {
+        QStringList existName;
         for (int idxState = 0; idxState < stateList->size(); idxState++) {
           Mapping* stateMap = stateList->at(idxState)->toMapping();
           int id, type, task_id;
@@ -243,10 +244,18 @@ bool TeachingUtil::importFlow(QString& strFName, std::vector<FlowParamPtr>& flow
           QString targetIdStr = QString::number(task_id);
           QString targetFile = path + QString("/") + targetIdStr + QString("/") + targetIdStr + ".yaml";
           vector<TaskModelParamPtr> taskInstList;
-          QString errMessage;
           if (importTask(targetFile, taskInstList, modelMasterList, errMessage)) {
             if (0 < taskInstList.size()) {
               TaskModelParamPtr task = taskInstList[0];
+              QString eachName = task->getName();
+              if (0 < eachName.length()) {
+                if (existName.contains(eachName)) {
+                  errMessage = _("Duplicate task names.");
+                  DDEBUG(errMessage.toStdString().c_str());
+                  return false;
+                }
+                existName.append(eachName);
+              }
               task->setNew();
               stateParam->setTaskParam(task);
             }

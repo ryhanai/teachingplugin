@@ -691,6 +691,10 @@ msgid "Please input Task Instance Name."
 msgstr "タスク表示名を設定してください"
 
 #: FlowView.cpp:337
+msgid "Duplicate task display name."
+msgstr "タスク表示名が重複しています"
+
+#: FlowView.cpp:337
 msgid "Hide selected Node"
 msgstr "選択したノードを非表示"
 
@@ -945,6 +949,10 @@ msgstr "対象フローの名称(flowName)の読み込みに失敗しました"
 #: TeachingUtil.cpp:68
 msgid "FlowName is EMPTY."
 msgstr "対象フローの名称(flowName)が設定されていません"
+
+#: TeachingUtil.cpp:68
+msgid "Duplicate task names."
+msgstr "タスクノードの名称が重複しています"
 
 #: TeachingUtil.cpp:68
 msgid "Failed to read the type of the transition."

@@ -435,7 +435,7 @@ void TeachingEventHandler::flv_EditClicked(ElementStmParamPtr target) {
       FlowDesisionDialog dialog(flv_CurrentFlow_, target, flv_);
       dialog.exec();
     } else {
-      TaskInfoDialog dialog(target, flv_);
+      TaskInfoDialog dialog(target, flv_CurrentFlow_, flv_);
       dialog.exec();
     }
   }

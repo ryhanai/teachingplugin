@@ -538,9 +538,10 @@ void PortDispDialog::cancelClicked() {
   close();
 }
 //////////
-TaskInfoDialog::TaskInfoDialog(ElementStmParamPtr param, QWidget* parent)
+TaskInfoDialog::TaskInfoDialog(ElementStmParamPtr param, FlowParamPtr flowParam, QWidget* parent)
   : QDialog(parent, Qt::CustomizeWindowHint | Qt::WindowTitleHint) {
   this->targetParam_ = param;
+  this->flowParam_ = flowParam;
   //
   txtName = new QLineEdit;
 
@@ -559,6 +560,7 @@ TaskInfoDialog::TaskInfoDialog(ElementStmParamPtr param, QWidget* parent)
   setLayout(mainLayout);
   //
   connect(btnOK, SIGNAL(clicked()), this, SLOT(oKClicked()));
+  connect(txtName, SIGNAL(returnPressed()), this, SLOT(oKClicked()));
   connect(btnCancel, SIGNAL(clicked()), this, SLOT(cancelClicked()));
   connect(this, SIGNAL(rejected()), this, SLOT(cancelClicked()));
 
@@ -579,6 +581,16 @@ void TaskInfoDialog::oKClicked() {
     txtName->setSelection(0, strName.length());
     return;
   }
+  for (auto check : flowParam_->getActiveStateList()) {
+    if (targetParam_->getId() == check->getId()) continue;
+    if (strName == check->getCmdDspName()) {
+      QMessageBox::warning(this, _("TaskInstance"), _("Duplicate task display name."));
+      txtName->setFocus();
+      txtName->setSelection(0, strName.length());
+      return;
+    }
+  }
+
   targetParam_->getTaskParam()->setName(strName);
   targetParam_->getTaskParam()->setUpdate();
   targetParam_->getRealElem()->nodeDataModel()->setTaskName(strName);

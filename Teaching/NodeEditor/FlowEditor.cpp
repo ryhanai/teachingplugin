@@ -412,9 +412,13 @@ void FlowEditor::dropEvent(QDropEvent* event) {
     node.nodeGraphicsObject().setPos(posView);
     //
     int newId = targetParam_->getMaxStateId();
-    ElementStmParamPtr newParam = std::make_shared<ElementStmParam>(newId, ELEMENT_COMMAND, strName, strDispName, pos.x(), pos.y(), "");
+    QString taskDispName = strDispName + "_" + QString::number(newId);
+    node.nodeDataModel()->setTaskName(taskDispName);
+
+    ElementStmParamPtr newParam = std::make_shared<ElementStmParam>(newId, ELEMENT_COMMAND, strName, taskDispName, pos.x(), pos.y(), "");
     if (targetTask) {
       TaskModelParamPtr newTaskParam(new TaskModelParam(targetTask.get()));
+      newTaskParam->setName(taskDispName);
       newTaskParam->setNewForce();
       newParam->setTaskParam(newTaskParam);
       newTaskParam->setStateParam(newParam);
@@ -423,6 +427,7 @@ void FlowEditor::dropEvent(QDropEvent* event) {
     newParam->setNew();
     node.setParamId(newParam->getId());
     targetParam_->addStmElement(newParam);
+    //
 
   } else {
     qDebug() << "Model not found";
