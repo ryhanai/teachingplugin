@@ -43,8 +43,8 @@ public:
 	bool tiv_TaskImportClicked();
         bool tiv_TaskImport(QString strFName);
 	void tiv_SearchClicked(QString cond);
-	void tiv_RegistTaskClicked(int selectedId, QString strTask);
-	void tiv_RegistNewTaskClicked(int selectedId, QString strTask, QString strCond);
+	bool tiv_RegistTaskClicked(int selectedId, QString strTask);
+	bool tiv_RegistNewTaskClicked(int selectedId, QString strTask, QString strCond);
 
 	void tiv_InitPosClicked();
 

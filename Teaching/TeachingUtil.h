@@ -34,6 +34,8 @@ public:
   static QString getTypeName(const int type);
   static QString getTypeRName(const int type);
 
+  static bool checkNameStr(QString target);
+
 private:
   static int getModelType(QString& source);
   static bool importTaskModel(Mapping* taskMap, TaskModelParamPtr taskParam, QString taskNameErr, QString& errMessage);

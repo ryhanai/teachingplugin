@@ -202,13 +202,15 @@ void TaskInstanceViewImpl::loadTaskClicked() {
 }
 
 void TaskInstanceViewImpl::registNewTaskClicked() {
-  TeachingEventHandler::instance()->tiv_RegistNewTaskClicked(getSelectedId(), leTask->text(), leCond->text());
-	lstResult->setCurrentCell(currentTaskIndex_, 0);
+  if (TeachingEventHandler::instance()->tiv_RegistNewTaskClicked(getSelectedId(), leTask->text(), leCond->text())) {
+    lstResult->setCurrentCell(currentTaskIndex_, 0);
+  }
 }
 
 void TaskInstanceViewImpl::registTaskClicked() {
-  TeachingEventHandler::instance()->tiv_RegistTaskClicked(getSelectedId(), leTask->text());
-	currentTaskIndex_ = lstResult->currentRow();
+  if (TeachingEventHandler::instance()->tiv_RegistTaskClicked(getSelectedId(), leTask->text())) {
+    currentTaskIndex_ = lstResult->currentRow();
+  }
 }
 
 void TaskInstanceViewImpl::deleteTaskClicked() {

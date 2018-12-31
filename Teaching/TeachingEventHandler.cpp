@@ -260,13 +260,13 @@ void TeachingEventHandler::tiv_SearchTaskInstance(QString cond) {
 	tiv_->showGrid(taskList);
 }
 
-void TeachingEventHandler::tiv_RegistTaskClicked(int selectedId, QString strTask) {
-	if (checkPaused()) return;
+bool TeachingEventHandler::tiv_RegistTaskClicked(int selectedId, QString strTask) {
+	if (checkPaused()) return false;
 	DDEBUG("TeachingEventHandler::tiv_RegistTaskClicked()");
 
 	stv_->setStepStatus(false);
 
-  if (tiv_CurrentTask_ == 0) return;
+  if (tiv_CurrentTask_ == 0) return false;
 
 	for (ModelParamPtr model : tiv_CurrentTask_->getActiveModelList()) {
 		if (model->isChangedPosition() == false) continue;
@@ -274,9 +274,15 @@ void TeachingEventHandler::tiv_RegistTaskClicked(int selectedId, QString strTask
 		QMessageBox::StandardButton ret = QMessageBox::question(tiv_, _("Confirm"),
 			_("Model Position was changed. Continue?"),
 			QMessageBox::Yes | QMessageBox::No);
-		if (ret == QMessageBox::No) return;
+		if (ret == QMessageBox::No) return false;
 		break;
 	}
+  //
+  if(TeachingUtil::checkNameStr(strTask)==false) {
+		QMessageBox::information(tiv_, _("Save Task"),
+      _("Characters that can not be used in names are included."));
+    return false;
+  }
 	//
 	if (tiv_CurrentTask_->getName() != strTask) {
 		tiv_CurrentTask_->setName(strTask);
@@ -291,13 +297,15 @@ void TeachingEventHandler::tiv_RegistTaskClicked(int selectedId, QString strTask
 		tiv_->updateGrid(tiv_CurrentTask_);
 		updateComViews(tiv_CurrentTask_);
 		QMessageBox::information(tiv_, _("Save Task"), _("Target task saved."));
+    return true;
 	} else {
 		QMessageBox::warning(tiv_, _("Save Task"), TeachingDataHolder::instance()->getErrorStr());
+    return false;
 	}
 }
 
-void TeachingEventHandler::tiv_RegistNewTaskClicked(int selectedId, QString strTask, QString strCond) {
-	if (checkPaused()) return;
+bool TeachingEventHandler::tiv_RegistNewTaskClicked(int selectedId, QString strTask, QString strCond) {
+	if (checkPaused()) return false;
 	DDEBUG("TeachingEventHandler::tiv_RegistNewTaskClicked()");
 
 	stv_->setStepStatus(false);
@@ -307,8 +315,15 @@ void TeachingEventHandler::tiv_RegistNewTaskClicked(int selectedId, QString strT
     com_CurrentTask_ = tiv_CurrentTask_;
     updateComViews(tiv_CurrentTask_);
   }
-  if (tiv_CurrentTask_ == 0) return;
+  if (tiv_CurrentTask_ == 0) return false;
 
+  //
+  if(TeachingUtil::checkNameStr(strTask)==false) {
+		QMessageBox::information(tiv_, _("Save Task"),
+      _("Characters that can not be used in names are included."));
+    return false;
+  }
+	//
 	if (tiv_CurrentTask_->getName() != strTask) {
 		tiv_CurrentTask_->setName(strTask);
 	}
@@ -321,8 +336,10 @@ void TeachingEventHandler::tiv_RegistNewTaskClicked(int selectedId, QString strT
 	if (TeachingDataHolder::instance()->saveTaskModelasNew(tiv_CurrentTask_)) {
 		tiv_SearchClicked("");
 		QMessageBox::information(tiv_, _("Database"), _("Database updated"));
+    return true;
 	} else {
 		QMessageBox::warning(tiv_, _("Database Error"), TeachingDataHolder::instance()->getErrorStr());
+    return false;
 	}
 }
 //MetaDataView

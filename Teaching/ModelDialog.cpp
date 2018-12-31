@@ -285,6 +285,15 @@ void ModelDialog::okClicked() {
   if (0 < strModelRName.trimmed().length()) {
     if (TeachingEventHandler::instance()->mdd_CheckModel(strModelRName) == false) {
       QMessageBox::warning(this, _("Model"), _("Duplicate specified model ID."));
+      leModelRName->setFocus();
+      leModelRName->selectAll();
+      return;
+    }
+    if(TeachingUtil::checkNameStr(strModelRName)==false) {
+		  QMessageBox::information(this, _("Model"),
+        _("Characters that can not be used in names are included."));
+      leModelRName->setFocus();
+      leModelRName->selectAll();
       return;
     }
   }

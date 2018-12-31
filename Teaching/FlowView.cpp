@@ -568,7 +568,7 @@ TaskInfoDialog::TaskInfoDialog(ElementStmParamPtr param, FlowParamPtr flowParam,
   resize(400, 100);
   //
   txtName->setText(targetParam_->getTaskParam()->getName());
-  txtName->setSelection(0, targetParam_->getTaskParam()->getName().length());
+  txtName->selectAll();
 }
 
 void TaskInfoDialog::oKClicked() {
@@ -578,15 +578,23 @@ void TaskInfoDialog::oKClicked() {
   if (strName.trimmed().length() == 0) {
     QMessageBox::warning(this, _("TaskInstance"), _("Please input Task Instance Name."));
     txtName->setFocus();
-    txtName->setSelection(0, strName.length());
+    txtName->selectAll();
     return;
   }
+  if (TeachingUtil::checkNameStr(strName) == false) {
+		QMessageBox::information(this, _("TaskInstance"),
+      _("Characters that can not be used in names are included."));
+    txtName->setFocus();
+    txtName->selectAll();
+    return;
+  }
+
   for (auto check : flowParam_->getActiveStateList()) {
     if (targetParam_->getId() == check->getId()) continue;
     if (strName == check->getCmdDspName()) {
       QMessageBox::warning(this, _("TaskInstance"), _("Duplicate task display name."));
       txtName->setFocus();
-      txtName->setSelection(0, strName.length());
+      txtName->selectAll();
       return;
     }
   }

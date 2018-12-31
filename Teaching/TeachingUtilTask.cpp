@@ -43,6 +43,11 @@ bool TeachingUtil::importTask(QString& strFName, std::vector<TaskModelParamPtr>&
         DDEBUG(errMessage.toStdString().c_str());
         return false;
       }
+      if (TeachingUtil::checkNameStr(taskName) == false) {
+        errMessage = _("Characters that can not be used in names are included.");
+        DDEBUG(errMessage.toStdString().c_str());
+        return false;
+      }
 
       try { taskComment = QString::fromStdString(taskMap->get("comment").toString()).replace("|", "\n"); } catch (...) {}
       //try { taskComment = QString::fromStdString(taskMap->get("comment").toString()); } catch (...) {}
@@ -90,6 +95,11 @@ bool TeachingUtil::importTaskModel(Mapping* taskMap, TaskModelParamPtr taskParam
       }
       if (modelRName.isEmpty()) {
         errMessage = _("rname of the task model is EMPTY.") + taskNameErr;
+        DDEBUG(errMessage.toStdString().c_str());
+        return false;
+      }
+      if (TeachingUtil::checkNameStr(modelRName) == false) {
+        errMessage = _("Characters that can not be used in names are included.") + taskNameErr;
         DDEBUG(errMessage.toStdString().c_str());
         return false;
       }

@@ -355,4 +355,9 @@ bool TeachingUtil::importMasterModel(Mapping* targetMap, vector<ModelMasterParam
   }
   return true;
 }
+
+bool TeachingUtil::checkNameStr(QString target) {
+  if (target.contains("|")) return false;
+  return true;
+}
 }

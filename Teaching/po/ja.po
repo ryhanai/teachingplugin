@@ -1021,3 +1021,7 @@ msgstr "全表示"
 #: TeachingEventHandler.cpp:775
 msgid "Show all models used in flow."
 msgstr "フローで使用している全モデルを表示"
+
+#: TeachingEventHandler.cpp:775
+msgid "Characters that can not be used in names are included."
+msgstr "名称に使用できない文字が含まれています"
