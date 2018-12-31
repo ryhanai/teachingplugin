@@ -227,6 +227,25 @@ bool FlowEditor::connectModelToTask(Node* fromNode, QString fromPort, Node* toNo
   return true;
 }
 
+bool FlowEditor::deleteConnection(Node* toNode, QString toPort) {
+  DDEBUG("FlowEditor::deleteConnection");
+
+  PortIndex toIdx = 0;
+
+  auto portNames = toNode->nodeDataModel()->portNames;
+  auto result = std::find_if(portNames.begin(), portNames.end(), [&](PortInfo info) { return info.name_ == toPort; });
+  if (result != portNames.end()) {
+    toIdx = std::distance(portNames.begin(), result) + 1;
+  }
+  std::unordered_map<QUuid, QtNodes::Connection*> inMap = toNode->nodeState().connections(PortType::In, toIdx);
+  for (auto it = inMap.begin(); it != inMap.end(); ++it) {
+    QtNodes::Connection* target = it->second;
+    _scene->deleteConnection(*target);
+  }
+
+  return true;
+}
+
 bool FlowEditor::createFlowNodeAux(QString modelName, QPoint pos) {
   QPointF posView = this->mapToScene(pos);
 

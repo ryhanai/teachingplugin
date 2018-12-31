@@ -510,7 +510,9 @@ bool TeachingEventHandler::flv_Connected(QtNodes::Connection& target) {
 	    for (ParameterParamPtr targetParam : taskParam->getActiveParameterList()) {
 		    if (targetParam->getType() != PARAM_KIND_MODEL) continue;
         if (targetParam->getModelId() != model->getId()) continue;
+
         QString targetPort = targetParam->getName() + ":Mdl";
+        flv_->deleteConnection(taskNode, targetPort);
         flv_->connectModelToTask(sourceNode, sourcePort, taskNode, targetPort);
 	    }
       ///////////////

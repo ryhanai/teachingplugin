@@ -906,6 +906,10 @@ bool FlowViewImpl::connectModelToTask(Node* fromNode, QString fromPort, Node* to
   return grhStateMachine->connectModelToTask(fromNode, fromPort, toNode, toPort);
 }
 
+bool FlowViewImpl::deleteConnection(Node* toNode, QString toPort) {
+  return grhStateMachine->deleteConnection(toNode, toPort);
+}
+
 bool FlowViewImpl::createNode(QString modelName, QPoint pos) {
   return grhStateMachine->createFlowNodeAux(modelName, pos);
 }

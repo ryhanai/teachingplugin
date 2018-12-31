@@ -41,6 +41,7 @@ public:
   bool connectModelToTask(Node* fromNode, QString fromPort, Node* toNode, QString toPort);
   bool createFlowNodeAux(QString modelName, QPoint posView);
   void clearFlowScene();
+  bool deleteConnection(Node* toNode, QString toPort);
 
 public Q_SLOTS:
   void deleteSelectedNodes();
