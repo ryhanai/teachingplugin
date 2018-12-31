@@ -151,7 +151,7 @@ private:
   QPushButton* btnHide;
   QPushButton* btnDisp;
   QPushButton* btnParamDisp;
-  QPushButton* btnModelDisp;
+  QCheckBox* chkModelDisp;
 
   QPushButton* btnDeleteTask;
   QPushButton* btnRunFlow;

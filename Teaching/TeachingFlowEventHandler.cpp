@@ -99,9 +99,7 @@ void TeachingEventHandler::flv_SelectionChanged(TaskModelParamPtr target) {
 	stv_->setStepStatus(false);
 
 	stv_->updateTargetParam();
-  if(allModelDisp_) {
-    flv_HideAllModels();
-  } else {
+  if(allModelDisp_==false) {
     unloadTaskModelItems();
   }
 
@@ -691,6 +689,8 @@ void TeachingEventHandler::flv_AllModelDisp(bool checked) {
 
 void TeachingEventHandler::flv_HideAllModels() {
   DDEBUG("TeachingEventHandler::flv_HideAllModels");
+  if (!flv_CurrentFlow_) return;
+
   ChoreonoidUtil::deselectTreeItem();
   for(ElementStmParamPtr state : flv_CurrentFlow_->getActiveStateList()) {
     if(state->getType()!=ELEMENT_COMMAND) continue;

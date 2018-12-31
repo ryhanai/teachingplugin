@@ -312,6 +312,7 @@ ModelParam::ModelParam(int id, int master_id, int type, QString rname, double po
     : master_id_(master_id), type_(type), rname_(rname),
 	  	hide_(hide), master_(0), isLoaded_(false),
       master_id_org_(master_id), master_org_(0),
+      item_(0),
       updateKinematicStateLater(bind(&ModelParam::updateKinematicState, this, true), IDLE_PRIORITY_LOW),
       currentBodyItem_(0), DatabaseParam(id) {
     posture = std::make_shared<PostureParam>(posX, posY, posZ, rotRx, rotRy, rotRz);
@@ -323,6 +324,7 @@ ModelParam::ModelParam(const ModelParam* source)
     : master_id_(source->master_id_), type_(source->type_), rname_(source->rname_),
   		master_(source->master_), hide_(source->hide_), isLoaded_(false),
       master_id_org_(source->master_id_org_), master_org_(source->master_org_),
+      item_(source->item_), 
       updateKinematicStateLater(bind(&ModelParam::updateKinematicState, this, true), IDLE_PRIORITY_LOW),
       currentBodyItem_(source->currentBodyItem_),
       DatabaseParam(source)

@@ -15,7 +15,7 @@ public:
   static bool loadTaskModelItem(TaskModelParamPtr target);
   static bool unLoadTaskModelItem(TaskModelParamPtr target);
 
-  static bool loadModelItem(ModelParamPtr target);
+  static bool loadModelItem(ModelParamPtr target, QString dispName = "");
   static bool unLoadModelItem(ModelParamPtr target);
 
 	static bool loadModelMasterItem(ModelMasterParamPtr target);

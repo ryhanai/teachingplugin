@@ -1015,8 +1015,8 @@ msgid "Decision node condition is INVALID."
 msgstr "デシジョンノードに設定された条件が不正です"
 
 #: TeachingEventHandler.cpp:775
-msgid "Model Disp"
-msgstr "モデル表示"
+msgid "Show All"
+msgstr "全表示"
 
 #: TeachingEventHandler.cpp:775
 msgid "Show all models used in flow."

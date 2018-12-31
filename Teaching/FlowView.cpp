@@ -645,6 +645,9 @@ FlowViewImpl::FlowViewImpl(QWidget* parent) {
 
   //
   QFrame* frmTask = new QFrame;
+  chkModelDisp = new QCheckBox(_("Show All"));
+  chkModelDisp->setToolTip(_("Show all models used in flow."));
+
   btnHide = new QPushButton(_("Hide"));
   btnHide->setToolTip(_("Hide selected Node"));
 
@@ -653,10 +656,6 @@ FlowViewImpl::FlowViewImpl(QWidget* parent) {
 
   btnParamDisp = new QPushButton(_("Port Disp"));
   btnParamDisp->setToolTip(_("Set port visibility."));
-
-  btnModelDisp = new QPushButton(_("Model Disp"));
-  btnModelDisp->setCheckable(true);
-  btnModelDisp->setToolTip(_("Show all models used in flow."));
 
   btnDeleteTask = new QPushButton(_("Delete"));
   btnDeleteTask->setIcon(QIcon(":/Teaching/icons/Delete.png"));
@@ -693,10 +692,10 @@ FlowViewImpl::FlowViewImpl(QWidget* parent) {
 
   QHBoxLayout* taskLayout = new QHBoxLayout;
   frmTask->setLayout(taskLayout);
+  taskLayout->addWidget(chkModelDisp);
   taskLayout->addWidget(btnHide);
   taskLayout->addWidget(btnDisp);
   taskLayout->addWidget(btnParamDisp);
-  taskLayout->addWidget(btnModelDisp);
   taskLayout->addStretch();
   taskLayout->addWidget(btnDeleteTask);
   taskLayout->addStretch();
@@ -733,7 +732,7 @@ FlowViewImpl::FlowViewImpl(QWidget* parent) {
   connect(btnHide, SIGNAL(clicked()), this, SLOT(hideClicked()));
   connect(btnDisp, SIGNAL(clicked()), this, SLOT(dispClicked()));
   connect(btnParamDisp, SIGNAL(clicked()), this, SLOT(paramDispClicked()));
-  connect(btnModelDisp, SIGNAL(clicked()), this, SLOT(modelToggled()));
+  connect(chkModelDisp, SIGNAL(clicked()), this, SLOT(modelToggled()));
 
   TeachingEventHandler::instance()->flv_Loaded(this);
 }
@@ -820,7 +819,7 @@ void FlowViewImpl::paramDispClicked() {
 
 void FlowViewImpl::modelToggled() {
   DDEBUG("FlowViewImpl::modelToggled()");
-  TeachingEventHandler::instance()->flv_AllModelDisp(btnModelDisp->isChecked());
+  TeachingEventHandler::instance()->flv_AllModelDisp(chkModelDisp->isChecked());
 }
 
 void FlowViewImpl::editClicked() {
@@ -886,7 +885,7 @@ void FlowViewImpl::flowSelectionChanged(TaskModelParamPtr target) {
 }
 
 void FlowViewImpl::cancelAllModel() {
-  btnModelDisp->setChecked(false);
+  chkModelDisp->setChecked(false);
 }
 
 
@@ -1008,7 +1007,7 @@ void FlowViewImpl::setEditMode(bool canEdit) {
   btnHide->setEnabled(canEdit);
   btnDisp->setEnabled(canEdit);
   btnParamDisp->setEnabled(canEdit);
-  btnModelDisp->setEnabled(canEdit);
+  chkModelDisp->setEnabled(canEdit);
 
   grhStateMachine->setEditMode(canEdit);
 }

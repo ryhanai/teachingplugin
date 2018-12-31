@@ -74,7 +74,8 @@ bool ChoreonoidUtil::makeModelItem(ModelMasterParamPtr target) {
 
 bool ChoreonoidUtil::loadTaskModelItem(TaskModelParamPtr target) {
   for (ModelParamPtr model : target->getActiveModelList()) {
-    if (loadModelItem(model) == false) return false;
+    QString dispName = target->getName() + "|" + model->getRName();
+    if (loadModelItem(model, dispName) == false) return false;
   }
   ItemTreeView::mainInstance()->update();
   target->setModelLoaded(true);
@@ -102,7 +103,7 @@ cnoid::BodyItem* ChoreonoidUtil::searchParentModel(const std::string targetName)
   return NULL;
 }
 
-bool ChoreonoidUtil::loadModelItem(ModelParamPtr target) {
+bool ChoreonoidUtil::loadModelItem(ModelParamPtr target, QString dispName) {
 	DDEBUG("ChoreonoidUtil::loadModelItem");
 	if (target == NULL || target->getModelMaster() == NULL)  return false;
   if (target->isLoaded())  return true;
@@ -111,12 +112,15 @@ bool ChoreonoidUtil::loadModelItem(ModelParamPtr target) {
     ChoreonoidUtil::makeModelItem(target->getModelMaster());
   }
   DDEBUG("ChoreonoidUtil::loadModelItem Loading");
-  if(target->getModelMaster()->isItemLoaded()==false) {
+
+  if (target->isLoaded() == false) {
     BodyItemPtr item = target->getModelMaster()->getModelItem();
-    //TODO GA
-    //item->setName(target->getRName().toStdString());
-    //TODO GA
-    ChoreonoidUtil::updateModelItemPosition(item,
+    BodyItemPtr newItem = new BodyItem(*item);
+    target->setModelItem(newItem);
+    if (0 < dispName.length()) {
+      newItem->setName(dispName.toStdString());
+    }
+    ChoreonoidUtil::updateModelItemPosition(newItem,
       target->getPosX(), target->getPosY(), target->getPosZ(),
       target->getRotRx(), target->getRotRy(), target->getRotRz());
 
@@ -124,15 +128,37 @@ bool ChoreonoidUtil::loadModelItem(ModelParamPtr target) {
       string robotModel = SettingManager::getInstance().getRobotModelName();
       BodyItem* parentModel = searchParentModel(robotModel);
       if (parentModel) {
-        parentModel->addChildItem(item);
+        parentModel->addChildItem(newItem);
       }
     } else {
-      RootItem::mainInstance()->addChildItem(item);
+      RootItem::mainInstance()->addChildItem(newItem);
     }
     target->initializeItem();
     target->setLoaded(true);
-    target->getModelMaster()->setItemLoaded(true);
   }
+
+  //if(target->getModelMaster()->isItemLoaded()==false) {
+  //  BodyItemPtr item = target->getModelMaster()->getModelItem();
+  //  if (0 < dispName.length()) {
+  //    item->setName(dispName.toStdString());
+  //  }
+  //  ChoreonoidUtil::updateModelItemPosition(item,
+  //    target->getPosX(), target->getPosY(), target->getPosZ(),
+  //    target->getRotRx(), target->getRotRy(), target->getRotRz());
+
+  //  if (target->getType() == MODEL_EE) {
+  //    string robotModel = SettingManager::getInstance().getRobotModelName();
+  //    BodyItem* parentModel = searchParentModel(robotModel);
+  //    if (parentModel) {
+  //      parentModel->addChildItem(item);
+  //    }
+  //  } else {
+  //    RootItem::mainInstance()->addChildItem(item);
+  //  }
+  //  target->initializeItem();
+  //  target->setLoaded(true);
+  //  target->getModelMaster()->setItemLoaded(true);
+  //}
   return true;
 }
 
@@ -140,16 +166,24 @@ bool ChoreonoidUtil::unLoadModelItem(ModelParamPtr target) {
 	DDEBUG("ChoreonoidUtil::unLoadModelItem");
   if (target->isLoaded()==false)  return true;
 
-  if (target->getModelMaster()) {
-    if(target->getModelMaster()->isItemLoaded()) {
-      if (target->getModelMaster()->getModelItem()) {
-        target->getModelMaster()->getModelItem()->detachFromParentItem();
-      }
+  if(target->isLoaded()) {
+    if (target->getModelItem()) {
+      target->getModelItem()->detachFromParentItem();
     }
-    target->finalizeItem();
-    target->setLoaded(false);
-    target->getModelMaster()->setItemLoaded(false);
   }
+  target->finalizeItem();
+  target->setLoaded(false);
+
+  //if (target->getModelMaster()) {
+  //  if(target->getModelMaster()->isItemLoaded()) {
+  //    if (target->getModelMaster()->getModelItem()) {
+  //      target->getModelMaster()->getModelItem()->detachFromParentItem();
+  //    }
+  //  }
+  //  target->finalizeItem();
+  //  target->setLoaded(false);
+  //  target->getModelMaster()->setItemLoaded(false);
+  //}
   return true;
 }
 

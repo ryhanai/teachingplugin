@@ -40,9 +40,8 @@ void TeachingEventHandler::tiv_TaskSelectionChanged(int selectedId, QString strT
 
   if(allModelDisp_) {
     flv_HideAllModels();
-  } else {
-  	unloadTaskModelItems();
   }
+  unloadTaskModelItems();
 	if (tiv_CurrentTask_) {
 		if (tiv_CurrentTask_->getName() != strTask) {
 			tiv_CurrentTask_->setName(strTask);

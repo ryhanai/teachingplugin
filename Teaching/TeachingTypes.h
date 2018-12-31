@@ -414,6 +414,9 @@ public:
   void initializeItem();
   void finalizeItem();
 
+	inline void setModelItem(cnoid::BodyItemPtr value) { this->item_ = value; }
+	inline cnoid::BodyItemPtr getModelItem() const { return this->item_; }
+
 private:
 	int master_id_;
 	int type_;
@@ -423,6 +426,8 @@ private:
   int hide_;
   bool isLoaded_;
   ModelMasterParamPtr master_;
+
+	cnoid::BodyItemPtr item_;
 
   int master_id_org_;
   ModelMasterParamPtr master_org_;
