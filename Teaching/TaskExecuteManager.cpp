@@ -522,9 +522,14 @@ bool TaskExecuteManager::doModelAction() {
       //
       if (action->getAction() == "attach") {
         bool ret = false;
-        if(action->getModelParam()->getModelMaster()) {
-          ret = TaskExecutor::instance()->attachModelItem(action->getModelParam()->getModelMaster()->getModelItem(), intTarget);
+        if(action->getModelParam()) {
+          ret = TaskExecutor::instance()->attachModelItem(action->getModelParam()->getModelItem(), intTarget);
         }
+        //TODO GA
+        //if(action->getModelParam()->getModelMaster()) {
+        //  ret = TaskExecutor::instance()->attachModelItem(action->getModelParam()->getModelMaster()->getModelItem(), intTarget);
+        //}
+        //TODO GA
         if (ret == false) {
           QMessageBox::warning(0, _("Run Task"), _("Model Attach Failed."));
           return false;
@@ -532,9 +537,14 @@ bool TaskExecuteManager::doModelAction() {
 
       } else if (action->getAction() == "detach") {
         bool ret = false;
-        if(action->getModelParam()->getModelMaster()) {
-          ret = TaskExecutor::instance()->detachModelItem(action->getModelParam()->getModelMaster()->getModelItem(), intTarget);
+        if(action->getModelParam()) {
+          ret = TaskExecutor::instance()->detachModelItem(action->getModelParam()->getModelItem(), intTarget);
         }
+        //TODO GA
+        //if(action->getModelParam()->getModelMaster()) {
+        //  ret = TaskExecutor::instance()->detachModelItem(action->getModelParam()->getModelMaster()->getModelItem(), intTarget);
+        //}
+        //TODO GA
         if (ret == false) {
           QMessageBox::warning(0, _("Run Task"), _("Model Detach Failed."));
           return false;

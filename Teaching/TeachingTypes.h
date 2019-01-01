@@ -261,6 +261,7 @@ public:
   inline QByteArray getRawData() const { return this->rawData_; }
   void loadData();
   void deleteModelDetails();
+  ModelParameterParamPtr getModelParameterByName(QString target);
 
 private:
 	int orgId_;
@@ -723,8 +724,9 @@ class ParameterParam : public DatabaseParam {
 public:
   ParameterParam(int id, int type, int param_type, int task_inst_id, QString name, QString rname, QString unit, int model_id, int model_param_id, int hide)
     : type_(type), param_type_(param_type), parent_id_(task_inst_id), name_(name), rname_(rname),
-      unit_(unit), model_id_(model_id), model_param_id_(model_param_id), hide_(hide),
-      flowParam_(0), flowParamParam_(0),
+      unit_(unit), model_id_(model_id),
+      model_param_id_(model_param_id), model_param_id_org_(model_param_id),
+      hide_(hide), flowParam_(0), flowParamParam_(0),
       DatabaseParam(id) {
     valueParam_ = std::make_shared<ParameterValueParam>();
   };
@@ -791,8 +793,15 @@ public:
   inline void setModelParamId(int value) {
     if (this->model_param_id_ != value) {
       this->model_param_id_ = value;
+      this->model_param_id_org_ = value;
       setUpdate();
     }
+  }
+  inline void updatetModelParamId(int value) {
+    this->model_param_id_ = value;
+  }
+  inline void restoreModelParamId() {
+    this->model_param_id_ = this->model_param_id_org_;
   }
 
 	inline int isActive() const { return this->isActive_; }
@@ -834,6 +843,7 @@ private:
   int parent_id_;
   int model_id_;
   int model_param_id_;
+  int model_param_id_org_;
   QString name_;
   QString rname_;
   QString unit_;

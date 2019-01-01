@@ -251,7 +251,7 @@ void ParameterParam::updateOutValues() {
 ParameterParam::ParameterParam(ParameterParam* source)
   : type_(source->type_), param_type_(source->param_type_), parent_id_(source->parent_id_),
 		name_(source->name_),	rname_(source->rname_), unit_(source->unit_),
-    model_id_(source->model_id_), model_param_id_(source->model_param_id_),
+    model_id_(source->model_id_), model_param_id_(source->model_param_id_), model_param_id_org_(source->model_param_id_org_),
     hide_(source->hide_), valueParam_(source->valueParam_),
     flowParam_(source->flowParam_), flowParamParam_(source->flowParamParam_),
 	  DatabaseParam(source) {
@@ -306,6 +306,15 @@ QImage ModelMasterParam::db2Image(const QString& name, const QByteArray& source)
   QImage result = QImage::fromData(source, strType.c_str());
 
   return result;
+}
+
+ModelParameterParamPtr ModelMasterParam::getModelParameterByName(QString target) {
+  for(auto param : modelParameterList_) {
+    if(param->getName() == target) {
+      return param;
+    }
+  }
+  return 0;
 }
 /////
 ModelParam::ModelParam(int id, int master_id, int type, QString rname, double posX, double posY, double posZ, double rotRx, double rotRy, double rotRz, bool hide, bool isNew)
@@ -394,9 +403,15 @@ void ModelParam::restoreModelMaster() {
 
 void ModelParam::initializeItem() {
   DDEBUG("ModelParam::initializeItem");
-  if(this->master_ && this->master_->getModelItem()) {
-    currentBodyItem_ = this->master_->getModelItem().get();
-    connectionToKinematicStateChanged = this->master_->getModelItem().get()->sigKinematicStateChanged().connect(updateKinematicStateLater);
+  //TODO GA
+  //if(this->master_ && this->master_->getModelItem()) {
+  //  currentBodyItem_ = this->master_->getModelItem().get();
+  //  connectionToKinematicStateChanged = this->master_->getModelItem().get()->sigKinematicStateChanged().connect(updateKinematicStateLater);
+  //}
+  //TODO GA
+  if(item_) {
+    currentBodyItem_ = item_.get();
+    connectionToKinematicStateChanged = item_.get()->sigKinematicStateChanged().connect(updateKinematicStateLater);
   }
 }
 

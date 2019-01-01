@@ -98,7 +98,7 @@ private:
   VectorXd valueVector6d_;
   Matrix3d valueMatrix_;
 
-  TaskModelParamPtr targetModel_;
+  TaskModelParamPtr targetTask_;
   FlowParamPtr targetFlow_;
 
   CalcMode calcMode_;
@@ -120,6 +120,7 @@ private:
 class Calculator : public ArgumentEstimator {
 public:
   Calculator();
+  Calculator(TaskModelParamPtr targetModel);
   ~Calculator();
 
   void initialize(TaskModelParamPtr targetParam = NULL);
@@ -127,11 +128,11 @@ public:
 
   inline void setFlowParam(FlowParamPtr targetFlow) {
     this->targetFlow_ = targetFlow;
-    this->targetModel_ = 0;
+    this->targetTask_ = 0;
   }
   inline void setTaskModelParam(TaskModelParamPtr targetModel) {
     this->targetFlow_ = 0;
-    this->targetModel_ = targetModel;
+    this->targetTask_ = targetModel;
   }
 
   bool buildArguments(TaskModelParamPtr taskParam, ElementStmParamPtr targetParam, std::vector<CompositeParamType>& parameterList);
@@ -147,7 +148,7 @@ private:
 	Matrix3d resultMatrix_;
   bool lastRet_;
 
-	TaskModelParamPtr targetModel_;
+	TaskModelParamPtr targetTask_;
   FlowParamPtr targetFlow_;
   std::vector<MemberParam*> memberList_;
 

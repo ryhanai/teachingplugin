@@ -509,17 +509,25 @@ void FlowEditor::createStateMachine(FlowParamPtr target) {
       } else if (dataType.id == "modeldata") {
         QString portName = sourceNode->nodeDataModel()->portNames[targetCon->getSourceIndex()].name_;
         DDEBUG_V("portName : %s", portName.toStdString().c_str());
-        if (portName == "origin") {
-          TaskModelParamPtr taskParam = (*targetElem)->getTaskParam();
-          if (taskParam) {
-            int id = targetNode->nodeDataModel()->portNames[targetCon->getTargetIndex() - 1].id_;
-            ParameterParamPtr paramTask = taskParam->getParameterById(id);
-            if (paramTask) {
-              ModelParamPtr model = taskParam->getModelParamById(paramTask->getModelId());
+        TaskModelParamPtr taskParam = (*targetElem)->getTaskParam();
+        if (taskParam) {
+          int id = targetNode->nodeDataModel()->portNames[targetCon->getTargetIndex() - 1].id_;
+          ParameterParamPtr paramTask = taskParam->getParameterById(id);
+          if (paramTask) {
+            ModelParamPtr model = taskParam->getModelParamById(paramTask->getModelId());
+            if (portName == "origin") {
               if ((*sourceModelElem)->getPosture() == 0) {
                 (*sourceModelElem)->setPosture(model->getPosture());
               } else {
                 model->setPosture((*sourceModelElem)->getPosture());
+              }
+            } else {
+              int masterId = model->getMasterId();
+              ModelMasterParamPtr master = TeachingDataHolder::instance()->getModelMasterById(masterId);
+              ModelParameterParamPtr feature = master->getModelParameterByName(portName);
+              if (feature) {
+                DDEBUG_V("Feature: %s", feature->getValueDesc().toStdString().c_str());
+                paramTask->updatetModelParamId(feature->getId());
               }
             }
           }

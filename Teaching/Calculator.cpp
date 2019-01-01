@@ -52,7 +52,7 @@ std::string evaluator::operator()(FunCallNodeSp const& node) const {
 MemberParam::MemberParam(NodeType type, std::string source, TaskModelParamPtr targetModel, FlowParamPtr targetFlow)
   : nodeType_(type), source_(source), valueVector6d_(6) {
   targetFlow_ = targetFlow;
-  targetModel_ = targetModel;
+  targetTask_ = targetModel;
 }
 
 bool MemberParam::parseScalar() {
@@ -214,8 +214,8 @@ bool MemberParam::parseVector6d(MemberParam* elem01, MemberParam* elem02, Member
 bool MemberParam::parseVariable(bool isSub, bool lastRet) {
 	DDEBUG_V("MemberParam::parseVariable source:%s", source_.c_str());
 	QString paramName = QString::fromStdString(source_);
-  DDEBUG("MemberParam::parseVariable : Param");
   if (this->targetFlow_) {
+    DDEBUG("MemberParam::parseVariable : FlowParam");
     if(paramName == "_RESULT") {
       valueScalar_ = lastRet;
       valMode_ = VAL_SCALAR;
@@ -237,8 +237,9 @@ bool MemberParam::parseVariable(bool isSub, bool lastRet) {
     }
   }
   //モデルの検索
-  QString featureName;
-  vector<ModelParamPtr> modelList = targetModel_->getActiveModelList();
+  DDEBUG("MemberParam::parseVariable : Param");
+  vector<ModelParamPtr> modelList = targetTask_->getActiveModelList();
+  DDEBUG_V("ModelParamNum : %d", modelList.size());
   std::vector<ModelParamPtr>::iterator model = std::find_if(modelList.begin(), modelList.end(), ModelParamComparatorByRName(paramName));
   if (model != modelList.end()) {
     DDEBUG("MemberParam::parseVariable : ModelParam");
@@ -252,7 +253,7 @@ bool MemberParam::parseVariable(bool isSub, bool lastRet) {
     return true;
   }
   //パラメータの検索
-  vector<ParameterParamPtr> paramList = targetModel_->getActiveParameterList();
+  vector<ParameterParamPtr> paramList = targetTask_->getActiveParameterList();
   vector<ParameterParamPtr>::iterator targetParam = find_if(paramList.begin(), paramList.end(), ParameterParamComparatorByRName(paramName));
   if (targetParam == paramList.end()) return false;
   DDEBUG_V("type:%d, model_id:%d, model_param_id:%d", (*targetParam)->getType(), (*targetParam)->getModelId(), (*targetParam)->getModelParamId());
@@ -269,7 +270,7 @@ bool MemberParam::parseVariable(bool isSub, bool lastRet) {
       } else {
           if ((*targetParam)->getModelId() != NULL_ID && (*targetParam)->getModelParamId() == NULL_ID) {
               int model_id = (*targetParam)->getModelId();
-              vector<ModelParamPtr> modelList = targetModel_->getActiveModelList();
+              vector<ModelParamPtr> modelList = targetTask_->getActiveModelList();
               std::vector<ModelParamPtr>::iterator model = std::find_if(modelList.begin(), modelList.end(), ModelParamComparator(model_id));
               if (model == modelList.end()) return false;
 
@@ -282,7 +283,7 @@ bool MemberParam::parseVariable(bool isSub, bool lastRet) {
 
           } else {
               int model_id = (*targetParam)->getModelId();
-              vector<ModelParamPtr> modelList = targetModel_->getActiveModelList();
+              vector<ModelParamPtr> modelList = targetTask_->getActiveModelList();
               std::vector<ModelParamPtr>::iterator model = std::find_if(modelList.begin(), modelList.end(), ModelParamComparator(model_id));
               if (model == modelList.end()) return false;
 
@@ -297,9 +298,10 @@ bool MemberParam::parseVariable(bool isSub, bool lastRet) {
               DDEBUG_V("MemberParam::parseVariable : Model Param=%s", desc.toStdString().c_str());
               desc = desc.replace("origin", (*model)->getRName());
               DDEBUG_V("MemberParam::parseVariable : Model Param Rep=%s", desc.toStdString().c_str());
-              Calculator* calc = new Calculator();
+
+              Calculator* calc = new Calculator(targetTask_);
               //再計算しないようにisSubをTrueに設定
-              calc->setTaskModelParam(targetModel_);
+              //calc->setTaskModelParam(targetTask_);
               if (calc->calculate(desc, true) == false) {
                   DDEBUG("MemberParam::parseVariable : Calc Error");
                   return false;
@@ -444,7 +446,12 @@ bool MemberParam::calcMat2rpy(const Matrix3d& matrix) {
 /////
 Calculator::Calculator()
   : resultScalar_(0.0), resultVector3d_(Vector3d::Zero()), resultVector6d_(6),
-    valMode_(VAL_SCALAR), targetModel_(0), targetFlow_(0) {
+    valMode_(VAL_SCALAR), targetTask_(0), targetFlow_(0) {
+}
+
+Calculator::Calculator(TaskModelParamPtr targetModel) 
+  : resultScalar_(0.0), resultVector3d_(Vector3d::Zero()), resultVector6d_(6),
+    valMode_(VAL_SCALAR), targetTask_(targetModel), targetFlow_(0) {
 }
 
 Calculator::~Calculator() {
@@ -562,7 +569,7 @@ int Calculator::extractNodeInfo(const Node& source) {
     {
       ValueNodeSp val = boost::get<ValueNodeSp>(source);
       std::string strVal = boost::lexical_cast<std::string>(val->v_);
-      memberList_.push_back(new MemberParam(TYPE_VALUE, strVal, targetModel_, targetFlow_));
+      memberList_.push_back(new MemberParam(TYPE_VALUE, strVal, targetTask_, targetFlow_));
       ret = memberList_.size() - 1;
       break;
     }
@@ -576,7 +583,7 @@ int Calculator::extractNodeInfo(const Node& source) {
       std::string strY = boost::apply_visitor(evaluator(), nodeY);
       Node nodeZ = val->z_;
       std::string strZ = boost::apply_visitor(evaluator(), nodeZ);
-      MemberParam* member = new MemberParam(TYPE_VECTOR, "[" + strX + "," + strY + "," + strZ + "]", targetModel_, targetFlow_);
+      MemberParam* member = new MemberParam(TYPE_VECTOR, "[" + strX + "," + strY + "," + strZ + "]", targetTask_, targetFlow_);
       member->arg01_ = strX;
       member->arg02_ = strY;
       member->arg03_ = strZ;
@@ -611,7 +618,7 @@ int Calculator::extractNodeInfo(const Node& source) {
 			Node nodeRZ = val->Rz_;
 			std::string strRZ = boost::apply_visitor(evaluator(), nodeRZ);
 
-			MemberParam* member = new MemberParam(TYPE_VECTOR6, "[" + strX + "," + strY + "," + strZ + "," + strRX + "," + strRY + "," + strRZ + "]", targetModel_, targetFlow_);
+			MemberParam* member = new MemberParam(TYPE_VECTOR6, "[" + strX + "," + strY + "," + strZ + "," + strRX + "," + strRY + "," + strRZ + "]", targetTask_, targetFlow_);
 			member->arg01_ = strX;
 			member->arg02_ = strY;
 			member->arg03_ = strZ;
@@ -655,7 +662,7 @@ int Calculator::extractNodeInfo(const Node& source) {
       Node rhs = val->rhs_;
       std::string strRhs = boost::apply_visitor(evaluator(), rhs);
       std::string strOpe = val->op_;
-      MemberParam* member = new MemberParam(TYPE_BIN_OPE, strLhs + strOpe + strRhs, targetModel_, targetFlow_);
+      MemberParam* member = new MemberParam(TYPE_BIN_OPE, strLhs + strOpe + strRhs, targetTask_, targetFlow_);
       member->arg01_ = strLhs;
       member->arg02_ = strRhs;
       member->arg03_ = strOpe;
@@ -675,7 +682,7 @@ int Calculator::extractNodeInfo(const Node& source) {
     {
       VariableNodeSp val = boost::get<VariableNodeSp>(source);
       std::string strVal = boost::lexical_cast<std::string>(val->nm_);
-      memberList_.push_back(new MemberParam(TYPE_VARIABLE, strVal, targetModel_, targetFlow_));
+      memberList_.push_back(new MemberParam(TYPE_VARIABLE, strVal, targetTask_, targetFlow_));
       ret = memberList_.size() - 1;
       break;
     }
@@ -687,7 +694,7 @@ int Calculator::extractNodeInfo(const Node& source) {
       std::string strFunc = boost::apply_visitor(evaluator(), func);
       Node args = val->args_;
       std::string strArgs = boost::apply_visitor(evaluator(), args);
-      MemberParam* member = new MemberParam(TYPE_FUNC, strFunc + "(" + strArgs + ")", targetModel_, targetFlow_);
+      MemberParam* member = new MemberParam(TYPE_FUNC, strFunc + "(" + strArgs + ")", targetTask_, targetFlow_);
       member->arg01_ = strFunc;
       member->arg02_ = strArgs;
       memberList_.push_back(member);
@@ -725,6 +732,7 @@ bool Calculator::calculate(QString source, bool isSub) {
     return false;
   }
   DDEBUG("qi::phrase_parse OK");
+
   int ret = extractNodeInfo(result);
 	if (ret < 0) return false;
   if (memberList_.size() == 0) return false;

@@ -3,6 +3,9 @@
 #include "TeachingUtil.h"
 #include "ChoreonoidUtil.h"
 //
+#include <cnoid/BodyBar>
+#include <boost/bind.hpp>
+//
 #include "DecisionDialog.h"
 #include "TaskExecutor.h"
 #include "DataBaseManager.h"
@@ -112,6 +115,19 @@ void TeachingEventHandler::flv_SelectionChanged(TaskModelParamPtr target) {
 		mdv_->clearTaskParam();
 		stv_->clearTaskParam();
 		prv_->clearTaskParam();
+	}
+  //
+	if (mdd_) {
+		vector<ModelMasterParamPtr> modelMasterList = TeachingDataHolder::instance()->getModelMasterList();
+		vector<ModelParamPtr> modelList = com_CurrentTask_->getActiveModelList();
+		mdd_->showModelGrid(modelList);
+		mdd_->showModelMasterGrid(modelMasterList);
+
+		mdd_CurrentModel_ = 0;
+		mdd_selectedModel_ = 0;
+		mdd_BodyItem_ = 0;
+		mdd_currentBodyItemChangeConnection = BodyBar::instance()->sigCurrentBodyItemChanged().connect(
+			bind(&TeachingEventHandler::mdd_CurrentBodyItemChanged, this, _1));
 	}
   tiv_CurrentTask_ = 0;
 	DDEBUG("TeachingEventHandler::flv_SelectionChanged End");
@@ -519,20 +535,23 @@ bool TeachingEventHandler::flv_Connected(QtNodes::Connection& target) {
       //データポートの場合
       QString portName = sourceNode->nodeDataModel()->portNames[sourcePortIndex].name_;
       DDEBUG_V("portName : %s", portName.toStdString().c_str());
+      ParameterParamPtr paramTask = taskParam->getParameterById(id);
+      DDEBUG_V("Param Name : %s", paramTask->getName().toStdString().c_str());
+      ModelParamPtr model = taskParam->getModelParamById(paramTask->getModelId());
+      DDEBUG_V("Model Name : %s", model->getRName().toStdString().c_str());
+
       if(portName=="origin") {
-        ParameterParamPtr paramTask = taskParam->getParameterById(id);
-        if(paramTask->getType()==PARAM_KIND_NORMAL) {
-          QMessageBox::warning(flv_, _("Flow Parameter"), _("The type of the parameter of the connection destination does not match."));
-          isFlowSkip_ = true;
-          return false;
-        }
-        DDEBUG_V("Param Name : %s", paramTask->getName().toStdString().c_str());
-        ModelParamPtr model = taskParam->getModelParamById(paramTask->getModelId());
-        DDEBUG_V("Model Name : %s", model->getRName().toStdString().c_str());
         if( (*modelElem)->getPosture()==0) {
           (*modelElem)->setPosture(model->getPosture());
         } else {
           model->setPosture((*modelElem)->getPosture());
+        }
+      } else {
+        ModelMasterParamPtr master = model->getModelMaster();
+        ModelParameterParamPtr feature = master->getModelParameterByName(portName);
+        if(feature) {
+          DDEBUG_V("Feature: %s", feature->getValueDesc().toStdString().c_str());
+          paramTask->updatetModelParamId(feature->getId());
         }
       }
     }
@@ -613,9 +632,10 @@ void TeachingEventHandler::flv_Disconnected(QtNodes::Connection& target) {
       //データポートの場合
       QString portName = sourceNode->nodeDataModel()->portNames[sourcePortIndex].name_;
       DDEBUG_V("portName : %s", portName.toStdString().c_str());
+      ParameterParamPtr paramTask = taskParam->getParameterById(id);
+      if (!paramTask) return;
+
       if(portName=="origin") {
-        ParameterParamPtr paramTask = taskParam->getParameterById(id);
-        if (!paramTask) return;
         ModelParamPtr model = taskParam->getModelParamById(paramTask->getModelId());
         if (!model) return;
         model->clearPosture();
@@ -628,6 +648,9 @@ void TeachingEventHandler::flv_Disconnected(QtNodes::Connection& target) {
           if (modelElem == modelList.end()) return;
           (*modelElem)->setPosture(0);
         }
+
+      } else {
+        paramTask->restoreModelParamId();
       }
     }
 
