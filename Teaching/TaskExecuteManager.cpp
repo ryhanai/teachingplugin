@@ -522,10 +522,10 @@ bool TaskExecuteManager::doModelAction() {
       //
       if (action->getAction() == "attach") {
         bool ret = false;
+        //TODO GA
         if(action->getModelParam()) {
           ret = TaskExecutor::instance()->attachModelItem(action->getModelParam()->getModelItem(), intTarget);
         }
-        //TODO GA
         //if(action->getModelParam()->getModelMaster()) {
         //  ret = TaskExecutor::instance()->attachModelItem(action->getModelParam()->getModelMaster()->getModelItem(), intTarget);
         //}
@@ -537,10 +537,10 @@ bool TaskExecuteManager::doModelAction() {
 
       } else if (action->getAction() == "detach") {
         bool ret = false;
+        //TODO GA
         if(action->getModelParam()) {
           ret = TaskExecutor::instance()->detachModelItem(action->getModelParam()->getModelItem(), intTarget);
         }
-        //TODO GA
         //if(action->getModelParam()->getModelMaster()) {
         //  ret = TaskExecutor::instance()->detachModelItem(action->getModelParam()->getModelMaster()->getModelItem(), intTarget);
         //}

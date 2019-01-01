@@ -362,11 +362,18 @@ bool ModelParam::isChangedPosition() {
 
 void ModelParam::setInitialPos() {
   DDEBUG("ModelParam::setInitialPos");
-  if (master_ && master_->getModelItem()) {
-    ChoreonoidUtil::updateModelItemPosition(master_->getModelItem(),
+  //TODO GA
+  if (item_) {
+    ChoreonoidUtil::updateModelItemPosition(item_,
       postureOrg->getPosX(), postureOrg->getPosY(), postureOrg->getPosZ(),
       postureOrg->getRotRx(), postureOrg->getRotRy(), postureOrg->getRotRz());
   }
+  //if (master_ && master_->getModelItem()) {
+  //  ChoreonoidUtil::updateModelItemPosition(master_->getModelItem(),
+  //    postureOrg->getPosX(), postureOrg->getPosY(), postureOrg->getPosZ(),
+  //    postureOrg->getRotRx(), postureOrg->getRotRy(), postureOrg->getRotRz());
+  //}
+  //TODO GA
   posture->setPosX(postureOrg->getPosX());
   posture->setPosY(postureOrg->getPosY());
   posture->setPosZ(postureOrg->getPosZ());

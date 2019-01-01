@@ -34,5 +34,12 @@ namespace teaching {
     this->flv_->clearFlowScene();
   }
 
+  bool TeachingEventHandler::flv_RenameNode(QString currentName, QString newName) {
+    return this->flv_->renameNode(currentName, newName);
+  }
+
+  bool TeachingEventHandler::flv_CreateNode(QString modelName, QPoint pos) {
+    return this->flv_->createNode(modelName, pos);
+  }
 
 }

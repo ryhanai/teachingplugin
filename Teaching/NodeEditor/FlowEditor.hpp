@@ -39,7 +39,7 @@ public:
   Node* getNodeByName(QString name);
   bool connectNodes(QString from, QString fromPort, QString to, QString toPort);
   bool connectModelToTask(Node* fromNode, QString fromPort, Node* toNode, QString toPort);
-  bool createFlowNodeAux(QString modelName, QPoint posView);
+  bool createFlowNode(QString modelName, QPoint posView);
   void clearFlowScene();
   bool deleteConnection(Node* toNode, QString toPort);
 

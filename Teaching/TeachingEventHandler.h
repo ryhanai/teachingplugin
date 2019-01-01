@@ -68,14 +68,6 @@ public:
   void flv_PortDispSetting(bool isActive);
   void flv_AllModelDisp(bool checked);
   void flv_HideAllModels();
-
-  bool flv_RenameNode(QString currentName, QString newName);
-  void flv_GetNodeByName(QString name);
-  bool flv_ConnectNodes(QString from, QString fromPort, QString to, QString toPort);
-  bool flv_CreateNode(QString modelName, QPoint posView);
-  bool tst_DeleteAllFlows();
-  bool tst_DeleteAllTasks();
-  void tst_ClearFlowScene();
   
 	//MetaDataView
 	void mdv_Loaded(MetaDataViewImpl* view);
@@ -154,9 +146,16 @@ public:
 
   void updateExecState(bool isActive);
 
-  //For Test
+  ////For Test
   inline void setTest(bool value) { this->isTest = value; }
   inline bool checkTest() const { return !this->isTest; }
+	//FlowView
+  bool flv_ConnectNodes(QString from, QString fromPort, QString to, QString toPort);
+  bool tst_DeleteAllFlows();
+  bool tst_DeleteAllTasks();
+  void tst_ClearFlowScene();
+  bool flv_RenameNode(QString currentName, QString newName);
+  bool flv_CreateNode(QString modelName, QPoint posView);
 
 private:
 	TeachingEventHandler() 

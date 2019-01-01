@@ -723,15 +723,4 @@ void TeachingEventHandler::flv_HideAllModels() {
   flv_->cancelAllModel();
 }
 
-  bool TeachingEventHandler::flv_RenameNode(QString currentName, QString newName) {
-    return this->flv_->renameNode(currentName, newName);
-  }
-
-  void TeachingEventHandler::flv_GetNodeByName(QString name) {
-    this->flv_->getNodeByName(name);
-  }
-
-  bool TeachingEventHandler::flv_CreateNode(QString modelName, QPoint pos) {
-    return this->flv_->createNode(modelName, pos);
-  }
 }

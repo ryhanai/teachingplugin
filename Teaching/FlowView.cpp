@@ -918,7 +918,7 @@ bool FlowViewImpl::deleteConnection(Node* toNode, QString toPort) {
 }
 
 bool FlowViewImpl::createNode(QString modelName, QPoint pos) {
-  return grhStateMachine->createFlowNodeAux(modelName, pos);
+  return grhStateMachine->createFlowNode(modelName, pos);
 }
 
 void FlowViewImpl::clearFlowScene() {
