@@ -1011,7 +1011,6 @@ void FlowViewImpl::setEditMode(bool canEdit) {
   btnHide->setEnabled(canEdit);
   btnDisp->setEnabled(canEdit);
   btnParamDisp->setEnabled(canEdit);
-  chkModelDisp->setEnabled(canEdit);
 
   grhStateMachine->setEditMode(canEdit);
 }

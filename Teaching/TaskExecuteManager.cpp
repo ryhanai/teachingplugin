@@ -39,7 +39,9 @@ bool TaskExecuteManager::runFlow(FlowParamPtr targetFlow) {
   }
   currentFlow_ = targetFlow;
   if (currentTask_) {
-    ChoreonoidUtil::unLoadTaskModelItem(currentTask_);
+    if (TeachingEventHandler::instance()->isAllModelDisp() == false) {
+      ChoreonoidUtil::unLoadTaskModelItem(currentTask_);
+    }
   }
 
   TeachingEventHandler::instance()->prv_SetInputValues();
@@ -58,7 +60,9 @@ bool TaskExecuteManager::runFlow(FlowParamPtr targetFlow) {
     if (targetState->getType() != ELEMENT_COMMAND) continue;
     //
     currentTask = targetState->getTaskParam();
-    ChoreonoidUtil::unLoadTaskModelItem(currentTask);
+    if (TeachingEventHandler::instance()->isAllModelDisp() == false) {
+      ChoreonoidUtil::unLoadTaskModelItem(currentTask);
+    }
 
     TeachingUtil::loadTaskDetailData(currentTask);
     DDEBUG("TaskParam checkAndOrderStateMachine");
@@ -549,12 +553,17 @@ void TaskExecuteManager::prepareTask(bool isFlow) {
 	DDEBUG("TaskExecuteManager::prepareTask");
 
 	if (prevTask_) {
-    ChoreonoidUtil::unLoadTaskModelItem(prevTask_);
+    if (TeachingEventHandler::instance()->isAllModelDisp() == false) {
+      ChoreonoidUtil::unLoadTaskModelItem(prevTask_);
+    }
     if (prevTask_->getStateParam()) prevTask_->getStateParam()->updateActive(false);
     if (currentTask_ && currentTask_->getStateParam()) currentTask_->getStateParam()->updateActive(true);
     this->flowView_->repaint();
   }
-  bool isUpdateTree = ChoreonoidUtil::loadTaskModelItem(currentTask_);
+  bool isUpdateTree = false;
+  if (TeachingEventHandler::instance()->isAllModelDisp() == false) {
+    isUpdateTree = ChoreonoidUtil::loadTaskModelItem(currentTask_);
+  }
 
 	this->metadataView->setTaskParam(currentTask_);
 	this->statemachineView_->setTaskParam(currentTask_);

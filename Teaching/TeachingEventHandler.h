@@ -33,6 +33,7 @@ public:
 	~TeachingEventHandler();
 
   inline bool canEdit() const { return this->canEdit_; }
+  inline bool isAllModelDisp() const { return this->allModelDisp_; }
   inline void setComCurrentTask(TaskModelParamPtr param) { this->com_CurrentTask_ = param; }
 
 	//TaskInstanceView
