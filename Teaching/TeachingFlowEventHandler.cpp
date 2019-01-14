@@ -477,39 +477,37 @@ bool TeachingEventHandler::flv_Connected(QtNodes::Connection& target) {
   DDEBUG("TeachingEventHandler::flv_Connected()");
 
   Node* taskNode = target.getNode(PortType::In);
+  if (!taskNode->nodeDataModel()) return false;
+
   int portIndex = target.getPortIndex(PortType::In);
   if (portIndex <= 0) return true;
-
-  int targetId = taskNode->getParamId();
-  if (!taskNode->nodeDataModel()) return false;
   if (taskNode->nodeDataModel()->portNames.size() <= portIndex - 1) return true;
+
   int id = taskNode->nodeDataModel()->portNames[portIndex - 1].id_;
   DDEBUG_V("portIndex : %d, id : %d", portIndex, id);
 
   Node* sourceNode = target.getNode(PortType::Out);
   int sourceId = sourceNode->getParamId();
-  int sourcePortIndex = target.getPortIndex(PortType::Out);
-  DDEBUG_V("sourcePortIndex : %d", sourcePortIndex);
 
-  vector<ElementStmParamPtr> stateList = flv_CurrentFlow_->getActiveStateList();
-  vector<ElementStmParamPtr>::iterator targetElem = find_if(stateList.begin(), stateList.end(), ElementStmParamComparator(targetId));
-  if (targetElem == stateList.end()) return false;
-  TaskModelParamPtr taskParam = (*targetElem)->getTaskParam();
+  ElementStmParamPtr targetState = flv_CurrentFlow_->getTargetState(taskNode->getParamId());
+  if (!targetState) return false;
+  TaskModelParamPtr taskParam = targetState->getTaskParam();
   DDEBUG_V("Task Name : %s", taskParam->getName().toStdString().c_str());
 
   //モデルパラメータの場合
   if (sourceNode->nodeDataModel()->name() == "Model Param") {
+    int sourcePortIndex = target.getPortIndex(PortType::Out);
+    DDEBUG_V("sourcePortIndex : %d", sourcePortIndex);
     NodeDataType dataType = sourceNode->nodeDataModel()->dataType(PortType::Out, sourcePortIndex);
     DDEBUG_V("dataType : %s", dataType.id.toStdString().c_str());
     //FlowModelParameterの検索
-    vector<FlowModelParamPtr> modelList = flv_CurrentFlow_->getActiveModelList();
-    vector<FlowModelParamPtr>::iterator modelElem = find_if(modelList.begin(), modelList.end(), FlowModelParamComparator(sourceId));
-    if (modelElem == modelList.end()) return false;
-    DDEBUG_V("Master Id : %d", (*modelElem)->getMasterId());
+    FlowModelParamPtr targetModel = flv_CurrentFlow_->getTargetModelParam(sourceId);
+    if (!targetModel) return false;
+    DDEBUG_V("Master Id : %d", targetModel->getMasterId());
 
     if (dataType.id == "modelshape") {
       //モデルポートの場合
-      int masterId = (*modelElem)->getMasterId();
+      int masterId = targetModel->getMasterId();
 
       ModelParamPtr model = taskParam->getModelParamById(id);
       DDEBUG_V("Model Name : %s", model->getRName().toStdString().c_str());
@@ -535,16 +533,21 @@ bool TeachingEventHandler::flv_Connected(QtNodes::Connection& target) {
       //データポートの場合
       QString portName = sourceNode->nodeDataModel()->portNames[sourcePortIndex].name_;
       DDEBUG_V("portName : %s", portName.toStdString().c_str());
+
       ParameterParamPtr paramTask = taskParam->getParameterById(id);
       DDEBUG_V("Param Name : %s", paramTask->getName().toStdString().c_str());
       ModelParamPtr model = taskParam->getModelParamById(paramTask->getModelId());
+      if (!model) {
+        QMessageBox::warning(flv_, _("Flow Model Parameter"), _("Connected port is not a model type parameter."));
+        return false;
+      }
       DDEBUG_V("Model Name : %s", model->getRName().toStdString().c_str());
 
       if(portName=="origin") {
-        if( (*modelElem)->getPosture()==0) {
-          (*modelElem)->setPosture(model->getPosture());
+        if( targetModel->getPosture()==0) {
+          targetModel->setPosture(model->getPosture());
         } else {
-          model->setPosture((*modelElem)->getPosture());
+          model->setPosture(targetModel->getPosture());
         }
       } else {
         ModelMasterParamPtr master = model->getModelMaster();
@@ -559,20 +562,34 @@ bool TeachingEventHandler::flv_Connected(QtNodes::Connection& target) {
   } else if (sourceNode->nodeDataModel()->name().startsWith("Flow Param")) {
     //フローパラメータの場合
     //FlowParameterの検索
-    vector<FlowParameterParamPtr> paramList = flv_CurrentFlow_->getActiveFlowParamList();
-    vector<FlowParameterParamPtr>::iterator paramElem = find_if(paramList.begin(), paramList.end(), FlowParameterParamComparator(sourceId));
-    if (paramElem == paramList.end()) return false;
+    FlowParameterParamPtr targetFlowParam = flv_CurrentFlow_->getTargetFlowParam(sourceId);
+    if (!targetFlowParam) return false;
 
-    ParameterParamPtr param = taskParam->getParameterById(id);
-    DDEBUG_V("Flow Param Type:%d, Task Param Type(id=%d):%d %s", (*paramElem)->getType(), id, param->getParamType(), param->getName().toStdString().c_str());
-    if (param->getParamType() != (*paramElem)->getType()) {
-      QMessageBox::warning(flv_, _("Flow Parameter"), _("The type of the parameter of the connection destination does not match."));
-      return false;
-    }
-    //
-    param->setFlowParam(*paramElem);
-    if ((*paramElem)->isFirst()) {
-      (*paramElem)->setWidgetValue(param->getDBValues());
+    //接続先の確認
+    int targetPortIndex = target.getPortIndex(PortType::In);
+    DDEBUG_V("targetPortIndex : %d", targetPortIndex);
+    QString portName = taskNode->nodeDataModel()->portCaption(PortType::In, targetPortIndex);
+    DDEBUG_V("portName : %s", portName.toStdString().c_str());
+
+    ParameterParamPtr paramTask = taskParam->getParameterById(id);
+    DDEBUG_V("Flow Param Type:%d, Task Param Type(id=%d):%d %s", targetFlowParam->getType(), id, paramTask->getParamType(), paramTask->getName().toStdString().c_str());
+
+    if(portName.endsWith("Mdl")) {
+      //モデル型パラメータの場合
+      ModelParamPtr model = taskParam->getModelParamById(paramTask->getModelId());
+      model->setPosture(targetFlowParam->getPosture());
+
+    } else {
+      //通常のパラメータの場合
+      if (paramTask->getParamType() != targetFlowParam->getType()) {
+        QMessageBox::warning(flv_, _("Flow Parameter"), _("The type of the parameter of the connection destination does not match."));
+        return false;
+      }
+      //
+      paramTask->setFlowParam(targetFlowParam);
+      if (targetFlowParam->isFirst()) {
+        targetFlowParam->setWidgetValue(paramTask->getDBValues());
+      }
     }
   }
   return true;
@@ -603,10 +620,9 @@ void TeachingEventHandler::flv_Disconnected(QtNodes::Connection& target) {
   int sourceId = sourceNode->getParamId();
   int sourcePortIndex = target.getPortIndex(PortType::Out);
 
-  vector<ElementStmParamPtr> stateList = flv_CurrentFlow_->getActiveStateList();
-  vector<ElementStmParamPtr>::iterator targetElem = find_if(stateList.begin(), stateList.end(), ElementStmParamComparator(targetId));
-  if (targetElem == stateList.end()) return;
-  TaskModelParamPtr taskParam = (*targetElem)->getTaskParam();
+  ElementStmParamPtr targetState = flv_CurrentFlow_->getTargetState(targetId);
+  if (!targetState) return;
+  TaskModelParamPtr taskParam = targetState->getTaskParam();
   if (!taskParam) return;
   DDEBUG_V("Task Name : %s", taskParam->getName().toStdString().c_str());
 
@@ -643,10 +659,9 @@ void TeachingEventHandler::flv_Disconnected(QtNodes::Connection& target) {
         //FlowParam側の処理
         if( flv_->checkOutConnection(sourceId, sourcePortIndex)==false) {
           DDEBUG("Clear FlowParam");
-          vector<FlowModelParamPtr> modelList = flv_CurrentFlow_->getActiveModelList();
-          vector<FlowModelParamPtr>::iterator modelElem = find_if(modelList.begin(), modelList.end(), FlowModelParamComparator(sourceId));
-          if (modelElem == modelList.end()) return;
-          (*modelElem)->setPosture(0);
+          FlowModelParamPtr targetModel = flv_CurrentFlow_->getTargetModelParam(sourceId);
+          if (!targetModel) return;
+          targetModel->setPosture(0);
         }
 
       } else {

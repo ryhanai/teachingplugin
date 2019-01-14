@@ -362,18 +362,11 @@ bool ModelParam::isChangedPosition() {
 
 void ModelParam::setInitialPos() {
   DDEBUG("ModelParam::setInitialPos");
-  //TODO GA
   if (item_) {
     ChoreonoidUtil::updateModelItemPosition(item_,
       postureOrg->getPosX(), postureOrg->getPosY(), postureOrg->getPosZ(),
       postureOrg->getRotRx(), postureOrg->getRotRy(), postureOrg->getRotRz());
   }
-  //if (master_ && master_->getModelItem()) {
-  //  ChoreonoidUtil::updateModelItemPosition(master_->getModelItem(),
-  //    postureOrg->getPosX(), postureOrg->getPosY(), postureOrg->getPosZ(),
-  //    postureOrg->getRotRx(), postureOrg->getRotRy(), postureOrg->getRotRz());
-  //}
-  //TODO GA
   posture->setPosX(postureOrg->getPosX());
   posture->setPosY(postureOrg->getPosY());
   posture->setPosZ(postureOrg->getPosZ());
@@ -410,12 +403,6 @@ void ModelParam::restoreModelMaster() {
 
 void ModelParam::initializeItem() {
   DDEBUG("ModelParam::initializeItem");
-  //TODO GA
-  //if(this->master_ && this->master_->getModelItem()) {
-  //  currentBodyItem_ = this->master_->getModelItem().get();
-  //  connectionToKinematicStateChanged = this->master_->getModelItem().get()->sigKinematicStateChanged().connect(updateKinematicStateLater);
-  //}
-  //TODO GA
   if(item_) {
     currentBodyItem_ = item_.get();
     connectionToKinematicStateChanged = item_.get()->sigKinematicStateChanged().connect(updateKinematicStateLater);
@@ -670,6 +657,13 @@ std::vector<FlowModelParamPtr> FlowParam::getActiveModelList() {
 
 }
 
+FlowModelParamPtr FlowParam::getTargetModelParam(int target) {
+    vector<FlowModelParamPtr> modelList = getActiveModelList();
+    vector<FlowModelParamPtr>::iterator modelElem = find_if(modelList.begin(), modelList.end(), FlowModelParamComparator(target));
+    if (modelElem == modelList.end()) return 0;
+    return *modelElem;
+}
+
 std::vector<FlowParameterParamPtr> FlowParam::getActiveFlowParamList() {
   std::vector<FlowParameterParamPtr> result;
   for (FlowParameterParamPtr param : paramList_) {
@@ -678,6 +672,13 @@ std::vector<FlowParameterParamPtr> FlowParam::getActiveFlowParamList() {
   }
   return result;
 
+}
+
+FlowParameterParamPtr FlowParam::getTargetFlowParam(int target) {
+  vector<FlowParameterParamPtr> paramList = getActiveFlowParamList();
+  vector<FlowParameterParamPtr>::iterator paramElem = find_if(paramList.begin(), paramList.end(), FlowParameterParamComparator(target));
+  if (paramElem == paramList.end()) return 0;
+  return *paramElem;
 }
 
 void FlowModelParam::updatePos() {
@@ -714,6 +715,12 @@ bool FlowParameterParam::updateParamInfo() {
     }
 
     valueParam_->setValuesByString(targetVal);
+    posture->setPosX(valList.at(0).toDouble());
+    posture->setPosY(valList.at(1).toDouble());
+    posture->setPosZ(valList.at(2).toDouble());
+    posture->setRotRx(valList.at(3).toDouble());
+    posture->setRotRy(valList.at(4).toDouble());
+    posture->setRotRz(valList.at(5).toDouble());
 
   } else {
     DDEBUG("PARAM_TYPE_ETC");
@@ -902,12 +909,12 @@ bool ActivityParam::checkAndOrderStateMachine() {
       //DDEBUG_V("id:%d, source:%d, target:%d, type:%d",(*itConn)->getId(), (*itConn)->getSourceId(), (*itConn)->getTargetId(), (*itConn)->getType())
       if ((*itConn)->getSourceId() == sourceId) {
         int targetId = (*itConn)->getTargetId();
-        std::vector<ElementStmParamPtr>::iterator targetElem = std::find_if(stmElemList_.begin(), stmElemList_.end(), ElementStmParamComparator(targetId));
-        if (targetElem == stmElemList_.end()) {
+        ElementStmParamPtr targetState = getTargetState(targetId);
+        if(!targetState) {
           errContents_ = "target node NOT EXISTS.";
           return true;
         }
-        if ((*targetElem)->getMode() == DB_MODE_DELETE || (*targetElem)->getMode() == DB_MODE_IGNORE) {
+        if (targetState->getMode() == DB_MODE_DELETE || targetState->getMode() == DB_MODE_IGNORE) {
           errContents_ = "target node is DELETED.";
           return true;
         }
@@ -919,14 +926,14 @@ bool ActivityParam::checkAndOrderStateMachine() {
               errContents_ = "Several TRUE flows exist from Node.";
               return true;
             }
-            (*itElem)->setTrueElem(*targetElem);
+            (*itElem)->setTrueElem(targetState);
           } else {
             falseCnt++;
 						if (1 < falseCnt) {
 							errContents_ = "Several FALSE flows exist from Node.";
 							return true;
 						}
-						(*itElem)->setFalseElem(*targetElem);
+						(*itElem)->setFalseElem(targetState);
 					}
 
         } else {
@@ -935,7 +942,7 @@ bool ActivityParam::checkAndOrderStateMachine() {
             errContents_ = "Several flows exist from Node. " + (*itElem)->getCmdDspName();
             return true;
           }
-          (*itElem)->setNextElem(*targetElem);
+          (*itElem)->setNextElem(targetState);
         }
         isSet = true;
       }
@@ -999,6 +1006,14 @@ vector<ConnectionStmParamPtr> ActivityParam::getActiveTransitionList() {
 	}
 	return result;
 }
+
+ElementStmParamPtr ActivityParam::getTargetState(int target) {
+  vector<ElementStmParamPtr> stateList = getActiveStateList();
+  vector<ElementStmParamPtr>::iterator targetElem = find_if(stateList.begin(), stateList.end(), ElementStmParamComparator(target));
+  if (targetElem == stateList.end()) return 0;
+  return *targetElem;
+}
+
 
 int FlowParam::getMaxModelId() {
   int result = 0;

@@ -122,20 +122,12 @@ void TeachingEventHandler::mdd_CurrentBodyItemChanged(BodyItem* bodyItem) {
 		mdd_BodyItem_ = bodyItem;
 	  if (mdd_BodyItem_) {
 	    for (ModelParamPtr model : com_CurrentTask_->getModelList()) {
-        //TODO GA
         if(model->getModelItem()) {
 	        if (model->getModelItem().get() == mdd_BodyItem_) {
 					  mdd_selectedModel_ = model;
 	          break;
 	        }
         }
-       // if(model->getModelMaster()) {
-	      //  if (model->getModelMaster()->getModelItem().get() == mdd_BodyItem_) {
-					  //mdd_selectedModel_ = model;
-	      //    break;
-	      //  }
-       // }
-        //TODO GA
 	    }
 	  }
 	  if (!mdd_connectionToKinematicStateChanged.connected() && mdd_BodyItem_) {
@@ -170,34 +162,25 @@ void TeachingEventHandler::mdd_updateKinematicState(bool blockSignals) {
 }
 
 void TeachingEventHandler::mdd_ModelPositionChanged(double posX, double posY, double posZ, double rotX, double rotY, double rotZ) {
-	if (eventSkip_) return;
+  if (eventSkip_) return;
 
-	if (mdd_CurrentModel_) {
-    //TODO GA
-	  if (mdd_CurrentModel_->getModelItem()) {
-    //if(mdd_CurrentModel_->getModelMaster()) {
-	    //if (mdd_CurrentModel_->getModelMaster()->getModelItem()) {
-      //TODO GA
-	      if (dbl_eq(posX, mdd_CurrentModel_->getPosX()) == false
-	        || dbl_eq(posY, mdd_CurrentModel_->getPosY()) == false
-	        || dbl_eq(posZ, mdd_CurrentModel_->getPosZ()) == false
-	        || dbl_eq(rotX, mdd_CurrentModel_->getRotRx()) == false
-	        || dbl_eq(rotY, mdd_CurrentModel_->getRotRy()) == false
-	        || dbl_eq(rotZ, mdd_CurrentModel_->getRotRz()) == false) {
-          //TODO GA
-	        //ChoreonoidUtil::updateModelItemPosition(mdd_CurrentModel_->getModelMaster()->getModelItem(), posX, posY, posZ, rotX, rotY, rotZ);
-	        ChoreonoidUtil::updateModelItemPosition(mdd_CurrentModel_->getModelItem(), posX, posY, posZ, rotX, rotY, rotZ);
-          //TODO GA
-				  mdd_CurrentModel_->setPosX(posX);
-				  mdd_CurrentModel_->setPosY(posY);
-				  mdd_CurrentModel_->setPosZ(posZ);
-				  mdd_CurrentModel_->setRotRx(rotX);
-				  mdd_CurrentModel_->setRotRy(rotY);
-				  mdd_CurrentModel_->setRotRz(rotZ);
-	      }
-	    }
+  if (mdd_CurrentModel_) {
+    if (mdd_CurrentModel_->getModelItem()) {
+      if (dbl_eq(posX, mdd_CurrentModel_->getPosX()) == false
+        || dbl_eq(posY, mdd_CurrentModel_->getPosY()) == false
+        || dbl_eq(posZ, mdd_CurrentModel_->getPosZ()) == false
+        || dbl_eq(rotX, mdd_CurrentModel_->getRotRx()) == false
+        || dbl_eq(rotY, mdd_CurrentModel_->getRotRy()) == false
+        || dbl_eq(rotZ, mdd_CurrentModel_->getRotRz()) == false) {
+        mdd_CurrentModel_->setPosX(posX);
+        mdd_CurrentModel_->setPosY(posY);
+        mdd_CurrentModel_->setPosZ(posZ);
+        mdd_CurrentModel_->setRotRx(rotX);
+        mdd_CurrentModel_->setRotRy(rotY);
+        mdd_CurrentModel_->setRotRz(rotZ);
+      }
     }
-	//}
+  }
 }
 
 bool TeachingEventHandler::mdd_AddModelClicked() {

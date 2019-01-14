@@ -963,6 +963,14 @@ msgid "Flow Parameter"
 msgstr "フローパラメータ"
 
 #: TeachingUtil.cpp:68
+msgid "Flow ModelParameter"
+msgstr "フローモデルパラメータ"
+
+#: TeachingUtil.cpp:68
+msgid "Connected port is not a model type parameter."
+msgstr "接続された先がモデル型パラメータではありません"
+
+#: TeachingUtil.cpp:68
 msgid "The type of the parameter of the connection destination does not match."
 msgstr "接続先のパラメータの型が一致していません"
 

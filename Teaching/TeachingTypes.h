@@ -184,7 +184,8 @@ typedef std::shared_ptr<ModelParameterParam> ModelParameterParamPtr;
 class ModelMasterParam : public DatabaseParam {
 public:
 	ModelMasterParam(int id, QString name, QString fileName)
-		: name_(name), fileName_(fileName), item_(0), isLoaded_(false), isItemLoaded_(false), DatabaseParam(id) {};
+		: name_(name), fileName_(fileName), item_(0), isLoaded_(false),
+      DatabaseParam(id) {};
 	ModelMasterParam(const ModelMasterParam* source)
 		: name_(source->name_), fileName_(source->fileName_), data_(source->data_),
 		  item_(source->item_),
@@ -244,9 +245,6 @@ public:
 	inline void setModelItem(cnoid::BodyItemPtr value) { this->item_ = value; }
 	inline cnoid::BodyItemPtr getModelItem() const { return this->item_; }
 
-	inline void setItemLoaded(bool value) { this->isItemLoaded_ = value; }
-	inline bool isItemLoaded() const { return this->isItemLoaded_; }
-
   inline QString getImageFileName() const { return this->imageFileName_; }
   inline void setImageFileName(QString value) {
     if (this->imageFileName_ != value) {
@@ -278,7 +276,6 @@ private:
   QImage image_;
   QByteArray rawData_;
   bool isLoaded_;
-  bool isItemLoaded_;
 
   QImage db2Image(const QString& name, const QByteArray& source);
 };
@@ -981,10 +978,13 @@ public:
     valueParam_->setValuesByString(value);
     valueParam_org_ = std::make_shared<ParameterValueParam>();
     valueParam_org_->setValuesByString(value);
+    posture = std::make_shared<PostureParam>(0.0, 0.0, 0.0, 0.0, 0.0, 0.0);
   };
   FlowParameterParam(FlowParameterParam* source)
     : name_(source->name_), type_(source->type_), valueParam_(source->valueParam_), valueParam_org_(source->valueParam_org_),
-    posX_(source->posX_), posY_(source->posY_), realElem_(source->realElem_), DatabaseParam(source) {};
+    posX_(source->posX_), posY_(source->posY_), realElem_(source->realElem_), DatabaseParam(source) {
+    posture = std::make_shared<PostureParam>(source->posture.get());
+  };
   ~FlowParameterParam() {};
 
   inline QString getName() const { return this->name_; }
@@ -1024,6 +1024,7 @@ public:
   inline QtNodes::Node* getRealElem() const { return this->realElem_; }
 
   inline ParameterValueParamPtr getParameter() { return this->valueParam_; }
+  inline PostureParamPtr getPosture() const { return posture; }
 
   bool updateParamInfo();
   void setInitialValue();
@@ -1038,6 +1039,7 @@ private:
 
   ParameterValueParamPtr valueParam_;
   ParameterValueParamPtr valueParam_org_;
+  PostureParamPtr posture;
   QtNodes::Node* realElem_;
 };
 /////
@@ -1080,6 +1082,7 @@ public:
 	inline std::vector<ElementStmParamPtr> getStmElementList() const { return this->stmElemList_; }
   inline void addStmElement(ElementStmParamPtr target){ this->stmElemList_.push_back(target); }
 	std::vector<ElementStmParamPtr> getActiveStateList();
+  ElementStmParamPtr getTargetState(int target);
 
   inline std::vector<ConnectionStmParamPtr> getStmConnectionList() const { return this->stmConnectionList_; }
   inline void addStmConnection(ConnectionStmParamPtr target){ this->stmConnectionList_.push_back(target); }
@@ -1192,11 +1195,13 @@ public:
   inline std::vector<FlowModelParamPtr> getModelList() const { return this->modelList_; }
   inline void addModel(FlowModelParamPtr target) { this->modelList_.push_back(target); }
   std::vector<FlowModelParamPtr> getActiveModelList();
+  FlowModelParamPtr getTargetModelParam(int target);
 
 
   inline std::vector<FlowParameterParamPtr> getFlowParamList() const { return this->paramList_; }
   inline void addFlowParam(FlowParameterParamPtr target) { this->paramList_.push_back(target); }
   std::vector<FlowParameterParamPtr> getActiveFlowParamList();
+  FlowParameterParamPtr getTargetFlowParam(int target);
 
   int getMaxModelId();
   int getMaxParamId();

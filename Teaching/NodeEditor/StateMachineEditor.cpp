@@ -202,10 +202,7 @@ void StateMachineEditor::mouseDoubleClickEvent(QMouseEvent * event) {
 	if (item) {
 		if (auto n = qgraphicsitem_cast<NodeGraphicsObject*>(item)) {
 			//QGraphicsView::mouseReleaseEvent(event);
-			int targetId = n->node().getParamId();
-			std::vector<ElementStmParamPtr> stateList = targetParam_->getActiveStateList();
-			vector<ElementStmParamPtr>::iterator targetElem = find_if(stateList.begin(), stateList.end(), ElementStmParamComparator(targetId));
-			if (targetElem == stateList.end()) return;
+      if (!targetParam_->getTargetState(n->node().getParamId())) return;
 			stateView_->editClicked();
 		}
 	}
@@ -357,11 +354,9 @@ void StateMachineEditor::deleteSelectedNodes() {
   // delete the nodes, this will delete many of the connections
   for (QGraphicsItem * item : _scene->selectedItems()) {
     if (auto n = qgraphicsitem_cast<NodeGraphicsObject*>(item)) {
-      int targetId = n->node().getParamId();
-      std::vector<ElementStmParamPtr> stateList = targetParam_->getActiveStateList();
-      vector<ElementStmParamPtr>::iterator targetElem = find_if(stateList.begin(), stateList.end(), ElementStmParamComparator(targetId));
-      if (targetElem != stateList.end()) {
-        (*targetElem)->setDelete();
+      ElementStmParamPtr targetState = targetParam_->getTargetState(n->node().getParamId());
+      if(targetState) {
+        targetState->setDelete();
       }
       _scene->removeNode(n->node());
     }

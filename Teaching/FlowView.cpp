@@ -316,16 +316,15 @@ void NodeDispDialog::oKClicked() {
   DDEBUG("NodeDispDialog::oKClicked()");
 
   int nodeNum = lstNode_->rowCount();
-  vector<ElementStmParamPtr> nodeList = targetParam_->getActiveStateList();
 
   for (int index = 0; index < nodeNum; index++) {
     QTableWidgetItem* item = lstNode_->item(index, 0);
     if (item) {
       int targetId = item->data(Qt::UserRole).toInt();
-      vector<ElementStmParamPtr>::iterator targetElem = find_if(nodeList.begin(), nodeList.end(), ElementStmParamComparator(targetId));
-      if (targetElem == nodeList.end()) continue;
+      ElementStmParamPtr targetState = targetParam_->getTargetState(targetId);
+      if (!targetId) continue;
       //
-      QtNodes::Node* target = (*targetElem)->getRealElem();
+      QtNodes::Node* target = targetState->getRealElem();
       if (target) {
         Qt::CheckState state = item->checkState();
         if (state == Qt::Checked) {
@@ -338,16 +337,14 @@ void NodeDispDialog::oKClicked() {
   }
   //
   int modelNum = lstModel_->rowCount();
-  vector<FlowModelParamPtr> modelList = targetParam_->getActiveModelList();
-
   for (int index = 0; index < modelNum; index++) {
     QTableWidgetItem* item = lstModel_->item(index, 0);
     if (item) {
       int targetId = item->data(Qt::UserRole).toInt();
-      vector<FlowModelParamPtr>::iterator targetElem = find_if(modelList.begin(), modelList.end(), FlowModelParamComparator(targetId));
-      if (targetElem == modelList.end()) continue;
+      FlowModelParamPtr targetModel = targetParam_->getTargetModelParam(targetId);
+      if (!targetModel) continue;
       //
-      QtNodes::Node* target = (*targetElem)->getRealElem();
+      QtNodes::Node* target = targetModel->getRealElem();
       if (target) {
         Qt::CheckState state = item->checkState();
         if (state == Qt::Checked) {
@@ -360,16 +357,15 @@ void NodeDispDialog::oKClicked() {
   }
   //
   int paramNum = lstParam_->rowCount();
-  vector<FlowParameterParamPtr> paramList = targetParam_->getActiveFlowParamList();
 
   for (int index = 0; index < paramNum; index++) {
     QTableWidgetItem* item = lstParam_->item(index, 0);
     if (item) {
       int targetId = item->data(Qt::UserRole).toInt();
-      vector<FlowParameterParamPtr>::iterator targetElem = find_if(paramList.begin(), paramList.end(), FlowParameterParamComparator(targetId));
-      if (targetElem == paramList.end()) continue;
+      FlowParameterParamPtr targetElem = targetParam_->getTargetFlowParam(targetId);
+      if (!targetElem) continue;
       //
-      QtNodes::Node* target = (*targetElem)->getRealElem();
+      QtNodes::Node* target = targetElem->getRealElem();
       if (target) {
         Qt::CheckState state = item->checkState();
         if (state == Qt::Checked) {

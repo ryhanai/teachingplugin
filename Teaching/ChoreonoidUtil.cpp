@@ -136,31 +136,6 @@ bool ChoreonoidUtil::loadModelItem(ModelParamPtr target, QString dispName) {
     target->initializeItem();
     target->setLoaded(true);
   }
-
-  //TODO GA
-  //if(target->getModelMaster()->isItemLoaded()==false) {
-  //  BodyItemPtr item = target->getModelMaster()->getModelItem();
-  //  if (0 < dispName.length()) {
-  //    item->setName(dispName.toStdString());
-  //  }
-  //  ChoreonoidUtil::updateModelItemPosition(item,
-  //    target->getPosX(), target->getPosY(), target->getPosZ(),
-  //    target->getRotRx(), target->getRotRy(), target->getRotRz());
-
-  //  if (target->getType() == MODEL_EE) {
-  //    string robotModel = SettingManager::getInstance().getRobotModelName();
-  //    BodyItem* parentModel = searchParentModel(robotModel);
-  //    if (parentModel) {
-  //      parentModel->addChildItem(item);
-  //    }
-  //  } else {
-  //    RootItem::mainInstance()->addChildItem(item);
-  //  }
-  //  target->initializeItem();
-  //  target->setLoaded(true);
-  //  target->getModelMaster()->setItemLoaded(true);
-  //}
-  //TODO GA
   return true;
 }
 
@@ -176,18 +151,6 @@ bool ChoreonoidUtil::unLoadModelItem(ModelParamPtr target) {
   target->finalizeItem();
   target->setLoaded(false);
 
-  //TODO GA
-  //if (target->getModelMaster()) {
-  //  if(target->getModelMaster()->isItemLoaded()) {
-  //    if (target->getModelMaster()->getModelItem()) {
-  //      target->getModelMaster()->getModelItem()->detachFromParentItem();
-  //    }
-  //  }
-  //  target->finalizeItem();
-  //  target->setLoaded(false);
-  //  target->getModelMaster()->setItemLoaded(false);
-  //}
-  //TODO GA
   return true;
 }
 
@@ -280,16 +243,9 @@ void ChoreonoidUtil::showAllModelItem() {
 void ChoreonoidUtil::selectTreeItem(ModelParamPtr target) {
 	DDEBUG("ChoreonoidUtil::selectTreeItem");
 	ItemTreeView::mainInstance()->clearSelection();
-  //TODO GA
   if(target->getModelItem()) {
     ItemTreeView::mainInstance()->selectItem(target->getModelItem());
   }
-  //if(target->getModelMaster()) {
-  //  if (target->getModelMaster()->getModelItem()) {
-  //    ItemTreeView::mainInstance()->selectItem(target->getModelMaster()->getModelItem());
-  //  }
-  //}
-  //TODO GA
 }
 
 void ChoreonoidUtil::selectTreeItem(ModelMasterParamPtr target) {
