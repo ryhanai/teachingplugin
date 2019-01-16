@@ -898,13 +898,16 @@ void FlowEditor::modelParamUpdated(int flowModelId, ModelMasterParamPtr masterPa
   Node* targetNode = targetModel->getRealElem();
 
   std::vector<ConnectionInfo> connectionList;
-  std::unordered_map<QUuid, Connection*> outKeepMap = targetNode->nodeState().connections(PortType::Out, 0);
-  for (auto it = outKeepMap.begin(); it != outKeepMap.end(); ++it) {
-    Connection* target = it->second;
-    ConnectionInfo info;
-    info.node = target->getNode(PortType::In);
-    info.portindex = target->getPortIndex(PortType::In);
-    connectionList.push_back(info);
+  for (int index = 0; index < 2; index++) {
+    std::unordered_map<QUuid, Connection*> outKeepMap = targetNode->nodeState().connections(PortType::Out, index);
+    for (auto it = outKeepMap.begin(); it != outKeepMap.end(); ++it) {
+      Connection* target = it->second;
+      ConnectionInfo info;
+      info.sourcePortIndex = index;
+      info.targetNode = target->getNode(PortType::In);
+      info.targetPortIndex = target->getPortIndex(PortType::In);
+      connectionList.push_back(info);
+    }
   }
 
   int outNum = targetNode->nodeDataModel()->nPorts(PortType::Out);
@@ -923,15 +926,29 @@ void FlowEditor::modelParamUpdated(int flowModelId, ModelMasterParamPtr masterPa
   createFlowModelNode(targetModel);
 
   for (ConnectionInfo info : connectionList) {
-    _scene->createConnection(*info.node, info.portindex, *targetModel->getRealElem(), 0);
+    _scene->createConnection(*info.targetNode, info.targetPortIndex, *targetModel->getRealElem(), info.sourcePortIndex);
 
-    int targetId = info.node->getParamId();
-    int id = info.node->nodeDataModel()->portNames[info.portindex - 1].id_;
+    int targetId = info.targetNode->getParamId();
+    int id = info.targetNode->nodeDataModel()->portNames[info.targetPortIndex - 1].id_;
     ElementStmParamPtr targetState = flowParam->getTargetState(targetId);
     if (!targetState) return;
+
     TaskModelParamPtr taskParam = targetState->getTaskParam();
-    ModelParamPtr model = taskParam->getModelParamById(id);
-    ChoreonoidUtil::replaceMaster(model, masterParam);
+    if (info.sourcePortIndex == 1) {
+      //Origin Port
+      ParameterParamPtr paramTask = taskParam->getParameterById(id);
+      ModelParamPtr model = taskParam->getModelParamById(paramTask->getModelId());
+      if( targetModel->getPosture()==0) {
+        targetModel->setPosture(model->getPosture());
+      } else {
+        model->setPosture(targetModel->getPosture());
+      }
+    } else {
+      //Model Port
+      ModelParamPtr model = taskParam->getModelParamById(id);
+
+      ChoreonoidUtil::replaceMaster(model, masterParam);
+    }
   }
 
   removingNode_ = targetNode;

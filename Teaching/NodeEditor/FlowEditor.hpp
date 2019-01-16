@@ -15,8 +15,9 @@ class FlowScene;
 
 struct ConnectionInfo {
   //Node* sourceNode;
-  Node* node;
-  int portindex;
+  int sourcePortIndex;
+  Node* targetNode;
+  int targetPortIndex;
 };
 
 class NODE_EDITOR_PUBLIC FlowEditor : public ActivityEditorBase {
