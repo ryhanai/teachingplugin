@@ -159,22 +159,29 @@ void Node::setBreak(bool isBreak) {
 }
 
 void Node::updateDisp() {
+  if (!_nodeDataModel) return;
 	NodeStyle style = _nodeDataModel->nodeStyle();
 	if (isBreak_) {
 		if (isActive_) {
-			style.NormalBoundaryColor = Qt::magenta;
+			//style.NormalBoundaryColor = Qt::magenta;
+			style.NormalBoundaryColor = QColor(255, 0, 255);
 		} else {
-			style.NormalBoundaryColor = Qt::green;
+			//style.NormalBoundaryColor = Qt::green;
+			style.NormalBoundaryColor = QColor(0, 255, 0);
 		}
-		style.SelectedBoundaryColor = Qt::blue;
+		//style.SelectedBoundaryColor = Qt::blue;
+		style.SelectedBoundaryColor = QColor(0, 0, 255);
 
 	} else {
 		if (isActive_) {
-			style.NormalBoundaryColor = Qt::red;
+			//style.NormalBoundaryColor = Qt::red;
+  		style.NormalBoundaryColor = QColor(255, 0, 0);
 		} else {
-			style.NormalBoundaryColor = Qt::darkGray;
+			//style.NormalBoundaryColor = Qt::darkGray;
+  		style.NormalBoundaryColor = QColor(128, 128, 128);
 		}
-		style.SelectedBoundaryColor = Qt::cyan;
+		//style.SelectedBoundaryColor = Qt::cyan;
+		style.SelectedBoundaryColor = QColor(0, 255, 255);
 	}
 	_nodeDataModel->setNodeStyle(style);
 	_nodeGraphicsObject->update();
