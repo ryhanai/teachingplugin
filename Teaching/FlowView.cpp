@@ -27,7 +27,7 @@ FlowSearchDialog::FlowSearchDialog(bool canEdit, QWidget* parent)
   QLabel* lblCond = new QLabel(_("Condition:"));
   leCond = new QLineEdit;
   QPushButton* btnSearch = new QPushButton(_("Search"));
-  btnSearch->setIcon(QIcon(":/Teaching/icons/Search.png"));
+  btnSearch->setIcon(QIcon(":/Teaching/icons/search.png"));
   btnSearch->setToolTip(_("Search Flow"));
 
   QHBoxLayout* topLayout = new QHBoxLayout;
@@ -50,15 +50,15 @@ FlowSearchDialog::FlowSearchDialog(bool canEdit, QWidget* parent)
   //
   QFrame* frmButtons = new QFrame;
   QPushButton* btnSelect = new QPushButton(_("Open"));
-  btnSelect->setIcon(QApplication::style()->standardIcon(QStyle::SP_DialogOpenButton));
+  btnSelect->setIcon(QIcon(":/Teaching/icons/open.png"));
   btnSelect->setToolTip(_("Open selected Flow"));
 
   QPushButton* btnDelete = new QPushButton(_("Delete"));
-  btnDelete->setIcon(QIcon(":/Teaching/icons/Delete.png"));
+  btnDelete->setIcon(QIcon(":/Teaching/icons/delete.png"));
   btnDelete->setToolTip(_("Delete selected Flow"));
 
   QPushButton* btnCancel = new QPushButton(_("Cancel"));
-  btnCancel->setIcon(QIcon(":/Teaching/icons/Cancel.png"));
+  btnCancel->setIcon(QIcon(":/Teaching/icons/cancel.png"));
   btnCancel->setToolTip(_("Cancel Flow select"));
 
   QHBoxLayout* buttonLayout = new QHBoxLayout(frmButtons);
@@ -615,15 +615,15 @@ FlowViewImpl::FlowViewImpl(QWidget* parent) {
   leName = new QLineEdit;
   leName->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
   btnSearch = new QPushButton();
-  btnSearch->setIcon(QIcon(":/Teaching/icons/Search.png"));
+  btnSearch->setIcon(QIcon(":/Teaching/icons/open.png"));
   btnSearch->setToolTip(_("Search Flow"));
 
   btnNewFlow = new QPushButton();
-  btnNewFlow->setIcon(QIcon(":/Teaching/icons/Create.png"));
+  btnNewFlow->setIcon(QIcon(":/Teaching/icons/new.png"));
   btnNewFlow->setToolTip(_("Create New Flow"));
 
   btnRegistFlow = new QPushButton();
-  btnRegistFlow->setIcon(QIcon(":/Teaching/icons/Apply.png"));
+  btnRegistFlow->setIcon(QIcon(":/Teaching/icons/save.png"));
   btnRegistFlow->setToolTip(_("Regist Current Flow"));
 
   QLabel* lblComment = new QLabel(_("Comment:"));
@@ -653,45 +653,52 @@ FlowViewImpl::FlowViewImpl(QWidget* parent) {
   chkModelDisp->setToolTip(_("Show all models used in flow."));
 
   btnHide = new QPushButton(_("Hide"));
+  btnHide->setIcon(QIcon(":/Teaching/icons/hide.png"));
   btnHide->setToolTip(_("Hide selected Node"));
 
   btnDisp = new QPushButton(_("Disp"));
+  btnDisp->setIcon(QIcon(":/Teaching/icons/show.png"));
   btnDisp->setToolTip(_("Set display state of node."));
 
   btnParamDisp = new QPushButton(_("Port Disp"));
+  btnParamDisp->setIcon(QIcon(":/Teaching/icons/show_port.png"));
   btnParamDisp->setToolTip(_("Set port visibility."));
 
-  btnDeleteTask = new QPushButton(_("Delete"));
-  btnDeleteTask->setIcon(QIcon(":/Teaching/icons/Delete.png"));
+  //btnDeleteTask = new QPushButton(_("Delete"));
+  btnDeleteTask = new QPushButton();
+  btnDeleteTask->setIcon(QIcon(":/Teaching/icons/delete.png"));
   btnDeleteTask->setToolTip(_("Delete selected Task"));
 
-  btnEdit = new QPushButton(_("Edit"));
-  btnEdit->setIcon(QIcon(":/Teaching/icons/Settings.png"));
+  //btnEdit = new QPushButton(_("Edit"));
+  btnEdit = new QPushButton();
+  btnEdit->setIcon(QIcon(":/Teaching/icons/edit.png"));
   btnEdit->setToolTip(_("Edit target task"));
 
-  btnExport = new QPushButton(_("Export"));
-  btnExport->setIcon(QIcon(":/Teaching/icons/Save.png"));
+  //btnExport = new QPushButton(_("Export"));
+  btnExport = new QPushButton();
+  btnExport->setIcon(QIcon(":/Teaching/icons/export.png"));
   btnExport->setToolTip(_("Export Flow"));
 
-  btnImport = new QPushButton(_("Import"));
-  btnImport->setIcon(QApplication::style()->standardIcon(QStyle::SP_DialogOpenButton));
+  //btnImport = new QPushButton(_("Import"));
+  btnImport = new QPushButton();
+  btnImport->setIcon(QIcon(":/Teaching/icons/import.png"));
   btnImport->setToolTip(_("Import Flow"));
 
   btnRunFlow = new QPushButton(_("Flow"));
-  btnRunFlow->setIcon(QIcon(":/Base/icons/play.png"));
+  btnRunFlow->setIcon(QIcon(":/Teaching/icons/run_flow.png"));
   btnRunFlow->setToolTip(_("Run Flow"));
 
   btnRunTask = new QPushButton(_("Task"));
-  btnRunTask->setIcon(QIcon(":/Base/icons/play.png"));
+  btnRunTask->setIcon(QIcon(":/Teaching/icons/run_task.png"));
   btnRunTask->setToolTip(_("Run selected Task"));
 
   btnAbort = new QPushButton(_("Abort"));
-  //btnAbort->setIcon(QIcon(":/Teaching/icons/Apply.png"));
+  btnAbort->setIcon(QIcon(":/Teaching/icons/abort.png"));
   btnAbort->setToolTip(_("Abort Operation"));
   btnAbort->setEnabled(false);
 
   btnInitPos = new QPushButton();
-  btnInitPos->setIcon(QIcon(":/Teaching/icons/Refresh.png"));
+  btnInitPos->setIcon(QIcon(":/Teaching/icons/reset.png"));
   btnInitPos->setToolTip(_("Reset models position"));
 
   QHBoxLayout* taskLayout = new QHBoxLayout;

@@ -38,12 +38,12 @@ namespace teaching {
     lblTarget->setText("");
 
     btnDelete = new QPushButton(_("Delete"));
-    btnDelete->setIcon(QIcon(":/Teaching/icons/Delete.png"));
+    btnDelete->setIcon(QIcon(":/Teaching/icons/delete.png"));
     btnDelete->setToolTip(_("Delete selected element"));
     btnDelete->setEnabled(false);
 
     btnEdit = new QPushButton(_("Edit"));
-    btnEdit->setIcon(QIcon(":/Teaching/icons/Settings.png"));
+    btnEdit->setIcon(QIcon(":/Teaching/icons/edit.png"));
     btnEdit->setToolTip(_("Edit target state"));
     btnEdit->setEnabled(false);
 
@@ -56,20 +56,23 @@ namespace teaching {
 
 
     btnRun = new QPushButton(_("Command"));
-    btnRun->setIcon(QIcon(":/Base/icons/play.png"));
+    btnRun->setIcon(QIcon(":/Teaching/icons/run_command.png"));
     btnRun->setToolTip(_("Run selected Command"));
     btnRun->setEnabled(false);
 
     btnBP = new QPushButton(_("B.P."));
+    btnBP->setIcon(QIcon(":/Teaching/icons/set_breakpoint.png"));
     btnBP->setToolTip(_("Set/Unset BreakPoint"));
     btnBP->setCheckable(true);
     btnBP->setEnabled(false);
 
     btnStep = new QPushButton(_("Step"));
+    btnStep->setIcon(QIcon(":/Teaching/icons/step.png"));
     btnStep->setToolTip(_("Run by Step"));
     btnStep->setEnabled(false);
 
     btnCont = new QPushButton(_("Cont."));
+    btnCont->setIcon(QIcon(":/Teaching/icons/continue.png"));
     btnCont->setToolTip(_("continue processing"));
     btnCont->setEnabled(false);
 

@@ -32,13 +32,13 @@ ParameterDialog::ParameterDialog(QWidget* parent)
   lstParam->setHorizontalHeaderLabels(QStringList() << "" << "Name" << "Type" << "ParamType" << "Model" << "Model Param" << "Unit");
 
   QPushButton* btnAddParam = new QPushButton(_("Add"));
-  btnAddParam->setIcon(QIcon(":/Teaching/icons/Plus.png"));
+  btnAddParam->setIcon(QIcon(":/Teaching/icons/plus.png"));
   btnAddParam->setToolTip(_("Add New Parameter"));
   //QShortcut *keyAdd = new QShortcut(QKeySequence("+"), this);
   //connect(keyAdd, SIGNAL(activated()), this, SLOT(addParamClicked()));
 
   QPushButton* btnDeleteParam = new QPushButton(_("Delete"));
-  btnDeleteParam->setIcon(QIcon(":/Teaching/icons/Delete.png"));
+  btnDeleteParam->setIcon(QIcon(":/Teaching/icons/minus.png"));
   btnDeleteParam->setToolTip(_("Delete selected Parameter"));
 
   QFrame* frmParamButtons = new QFrame;

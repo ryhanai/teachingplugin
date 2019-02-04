@@ -113,7 +113,7 @@ namespace teaching {
   topLayout->addStretch();
 
   btnEdit = new QPushButton(_("Edit"));
-  btnEdit->setIcon(QIcon(":/Teaching/icons/Settings.png"));
+  btnEdit->setIcon(QIcon(":/Teaching/icons/edit.png"));
   btnEdit->setToolTip(_("Edit Parameters"));
   btnEdit->setEnabled(TeachingEventHandler::instance()->canEdit() && this->canEdit_ && !isFlowView);
 

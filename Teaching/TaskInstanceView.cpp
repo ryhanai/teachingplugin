@@ -21,15 +21,15 @@ TaskInstanceViewImpl::TaskInstanceViewImpl(QWidget* parent)
   QLabel* lblCond = new QLabel(_("Condition:"));
   leCond = new QLineEdit;
   QPushButton* btnSearch = new QPushButton();
-  btnSearch->setIcon(QIcon(":/Teaching/icons/Search.png"));
+  btnSearch->setIcon(QIcon(":/Teaching/icons/search.png"));
   btnSearch->setToolTip(_("Search Task"));
 
 	btnModelMaster = new QPushButton();
-	btnModelMaster->setIcon(QIcon(":/Teaching/icons/DB.png"));
+	btnModelMaster->setIcon(QIcon(":/Teaching/icons/model_master.png"));
 	btnModelMaster->setToolTip(_("Model Master"));
 
 	btnSetting = new QPushButton();
-  btnSetting->setIcon(QIcon(":/Teaching/icons/Settings.png"));
+  btnSetting->setIcon(QIcon(":/Teaching/icons/preference.png"));
   btnSetting->setToolTip(_("Setting"));
 
   QLabel* lblTaskName = new QLabel(_("Task Name:"));
@@ -61,36 +61,36 @@ TaskInstanceViewImpl::TaskInstanceViewImpl(QWidget* parent)
   //
   QFrame* frmButtons = new QFrame;
   btnRunTask = new QPushButton(_("Task"));
-  btnRunTask->setIcon(QIcon(":/Base/icons/play.png"));
+  btnRunTask->setIcon(QIcon(":/Teaching/icons/run_task.png"));
   btnRunTask->setToolTip(_("Run Task"));
 
   btnAbort = new QPushButton(_("Abort"));
-  //btnAbort->setIcon(QIcon(":/Teaching/icons/Apply.png"));
+  btnAbort->setIcon(QIcon(":/Teaching/icons/abort.png"));
   btnAbort->setToolTip(_("Abort Operation"));
   btnAbort->setEnabled(false);
 
   btnInitPos = new QPushButton();
-  btnInitPos->setIcon(QIcon(":/Teaching/icons/Refresh.png"));
+  btnInitPos->setIcon(QIcon(":/Teaching/icons/reset.png"));
   btnInitPos->setToolTip(_("Reset Models Position"));
 
   btnLoadTask = new QPushButton();
-  btnLoadTask->setIcon(QApplication::style()->standardIcon(QStyle::SP_DialogOpenButton));
+  btnLoadTask->setIcon(QIcon(":/Teaching/icons/import.png"));
   btnLoadTask->setToolTip(_("Load Task"));
 
   btnOutputTask = new QPushButton();
-  btnOutputTask->setIcon(QIcon(":/Teaching/icons/Save.png"));
+  btnOutputTask->setIcon(QIcon(":/Teaching/icons/export.png"));
   btnOutputTask->setToolTip(_("Output Task"));
 
   btnDeleteTask = new QPushButton();
-  btnDeleteTask->setIcon(QIcon(":/Teaching/icons/Delete.png"));
+  btnDeleteTask->setIcon(QIcon(":/Teaching/icons/delete.png"));
   btnDeleteTask->setToolTip(_("Delete Task"));
 
   btnRegistNewTask = new QPushButton();
-  btnRegistNewTask->setIcon(QIcon(":/Teaching/icons/Create.png"));
+  btnRegistNewTask->setIcon(QIcon(":/Teaching/icons/duplicate_task.png"));
   btnRegistNewTask->setToolTip(_("Regist as New Task"));
 
   btnRegistTask = new QPushButton();
-  btnRegistTask->setIcon(QIcon(":/Teaching/icons/Apply.png"));
+  btnRegistTask->setIcon(QIcon(":/Teaching/icons/save.png"));
   btnRegistTask->setToolTip(_("Update Current Task"));
   //
   QHBoxLayout* buttonLayout = new QHBoxLayout;

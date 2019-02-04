@@ -45,19 +45,19 @@ ArgumentDialog::ArgumentDialog(QWidget* parent)
   lstHandling->setHorizontalHeaderLabels(QStringList() << "Action" << "Model" << "Parameter");
 
   QPushButton* btnUp = new QPushButton(_("Up"));
-  btnUp->setIcon(QIcon(":/Teaching/icons/Up.png"));
+  btnUp->setIcon(QIcon(":/Teaching/icons/up.png"));
   btnUp->setToolTip(_("Action Up"));
 
   QPushButton* btnDown = new QPushButton(_("Down"));
-  btnDown->setIcon(QIcon(":/Teaching/icons/Down.png"));
+  btnDown->setIcon(QIcon(":/Teaching/icons/down.png"));
   btnDown->setToolTip(_("Action Down"));
 
   QPushButton* btnAdd = new QPushButton(_("Add"));
-  btnAdd->setIcon(QIcon(":/Teaching/icons/Plus.png"));
+  btnAdd->setIcon(QIcon(":/Teaching/icons/plus.png"));
   btnAdd->setToolTip(_("Add Action"));
 
   QPushButton* btnDelete = new QPushButton(_("Delete"));
-  btnDelete->setIcon(QIcon(":/Teaching/icons/Delete.png"));
+  btnDelete->setIcon(QIcon(":/Teaching/icons/minus.png"));
   btnDelete->setToolTip(_("Delete Action"));
 
   QFrame* frmParamButtons = new QFrame;

@@ -85,7 +85,7 @@ TextDialog::TextDialog(QString& source, QWidget* parent) : QDialog(parent) {
 MetaDataViewImpl::MetaDataViewImpl(QWidget* parent) : QWidget(parent) {
   //
   btnModel = new QPushButton(_("Model Inforamtion"));
-  btnModel->setIcon(QIcon(":/Teaching/icons/About.png"));
+  btnModel->setIcon(QIcon(":/Teaching/icons/model_info.png"));
   btnModel->setToolTip(_("Edit Model information"));
 
   textEdit = new QTextEdit;
@@ -97,15 +97,15 @@ MetaDataViewImpl::MetaDataViewImpl(QWidget* parent) : QWidget(parent) {
   lstFileName->setDragDropMode(QAbstractItemView::DragDropMode::InternalMove);
 
   btnFileOutput = new QPushButton(_("Output"));
-  btnFileOutput->setIcon(QIcon(":/Teaching/icons/Save.png"));
+  btnFileOutput->setIcon(QIcon(":/Teaching/icons/export.png"));
   btnFileOutput->setToolTip(_("Output selected File"));
 
   btnFileShow = new QPushButton(_("Show"));
-  btnFileShow->setIcon(QIcon(":/Teaching/icons/View.png"));
+  btnFileShow->setIcon(QIcon(":/Teaching/icons/magnify.png"));
   btnFileShow->setToolTip(_("Show selected File"));
 
   btnFileDelete = new QPushButton(_("Delete"));
-  btnFileDelete->setIcon(QIcon(":/Teaching/icons/Delete.png"));
+  btnFileDelete->setIcon(QIcon(":/Teaching/icons/delete.png"));
   btnFileDelete->setToolTip(_("Delete selected File"));
 
   lstImage = new QListWidget;
@@ -118,15 +118,15 @@ MetaDataViewImpl::MetaDataViewImpl(QWidget* parent) : QWidget(parent) {
   lstImage->setDragDropMode(QAbstractItemView::DragDropMode::InternalMove);
 
   btnImageOutput = new QPushButton(_("Output"));
-  btnImageOutput->setIcon(QIcon(":/Teaching/icons/Save.png"));
+  btnImageOutput->setIcon(QIcon(":/Teaching/icons/export.png"));
   btnImageOutput->setToolTip(_("Output selected Image"));
 
   btnImageShow = new QPushButton(_("Show"));
-  btnImageShow->setIcon(QIcon(":/Teaching/icons/View.png"));
+  btnImageShow->setIcon(QIcon(":/Teaching/icons/magnify.png"));
   btnImageShow->setToolTip(_("Show selected Image"));
 
   btnImageDelete = new QPushButton(_("Delete"));
-  btnImageDelete->setIcon(QIcon(":/Teaching/icons/Delete.png"));
+  btnImageDelete->setIcon(QIcon(":/Teaching/icons/delete.png"));
   btnImageDelete->setToolTip(_("Delete selected Image"));
   //
   QFrame* frmButtons = new QFrame;
