@@ -105,7 +105,7 @@ MetaDataViewImpl::MetaDataViewImpl(QWidget* parent) : QWidget(parent) {
   btnFileShow->setToolTip(_("Show selected File"));
 
   btnFileDelete = new QPushButton(_("Delete"));
-  btnFileDelete->setIcon(QIcon(":/Teaching/icons/delete.png"));
+  btnFileDelete->setIcon(QApplication::style()->standardIcon(QStyle::SP_TrashIcon));
   btnFileDelete->setToolTip(_("Delete selected File"));
 
   lstImage = new QListWidget;
@@ -126,7 +126,7 @@ MetaDataViewImpl::MetaDataViewImpl(QWidget* parent) : QWidget(parent) {
   btnImageShow->setToolTip(_("Show selected Image"));
 
   btnImageDelete = new QPushButton(_("Delete"));
-  btnImageDelete->setIcon(QIcon(":/Teaching/icons/delete.png"));
+  btnImageDelete->setIcon(QApplication::style()->standardIcon(QStyle::SP_TrashIcon));
   btnImageDelete->setToolTip(_("Delete selected Image"));
   //
   QFrame* frmButtons = new QFrame;

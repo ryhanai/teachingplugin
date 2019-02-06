@@ -38,7 +38,7 @@ namespace teaching {
     lblTarget->setText("");
 
     btnDelete = new QPushButton(_("Delete"));
-    btnDelete->setIcon(QIcon(":/Teaching/icons/delete.png"));
+    btnDelete->setIcon(QApplication::style()->standardIcon(QStyle::SP_TrashIcon));
     btnDelete->setToolTip(_("Delete selected element"));
     btnDelete->setEnabled(false);
 

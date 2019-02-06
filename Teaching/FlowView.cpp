@@ -50,15 +50,15 @@ FlowSearchDialog::FlowSearchDialog(bool canEdit, QWidget* parent)
   //
   QFrame* frmButtons = new QFrame;
   QPushButton* btnSelect = new QPushButton(_("Open"));
-  btnSelect->setIcon(QIcon(":/Teaching/icons/open.png"));
+  btnSelect->setIcon(QApplication::style()->standardIcon(QStyle::SP_DialogOpenButton));
   btnSelect->setToolTip(_("Open selected Flow"));
 
   QPushButton* btnDelete = new QPushButton(_("Delete"));
-  btnDelete->setIcon(QIcon(":/Teaching/icons/delete.png"));
+  btnDelete->setIcon(QApplication::style()->standardIcon(QStyle::SP_TrashIcon));
   btnDelete->setToolTip(_("Delete selected Flow"));
 
   QPushButton* btnCancel = new QPushButton(_("Cancel"));
-  btnCancel->setIcon(QIcon(":/Teaching/icons/cancel.png"));
+  btnCancel->setIcon(QApplication::style()->standardIcon(QStyle::SP_DialogCancelButton));
   btnCancel->setToolTip(_("Cancel Flow select"));
 
   QHBoxLayout* buttonLayout = new QHBoxLayout(frmButtons);
@@ -615,11 +615,11 @@ FlowViewImpl::FlowViewImpl(QWidget* parent) {
   leName = new QLineEdit;
   leName->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
   btnSearch = new QPushButton();
-  btnSearch->setIcon(QIcon(":/Teaching/icons/open.png"));
+  btnSearch->setIcon(QApplication::style()->standardIcon(QStyle::SP_DialogOpenButton));
   btnSearch->setToolTip(_("Search Flow"));
 
   btnNewFlow = new QPushButton();
-  btnNewFlow->setIcon(QIcon(":/Teaching/icons/new.png"));
+  btnNewFlow->setIcon(QApplication::style()->standardIcon(QStyle::SP_FileIcon));
   btnNewFlow->setToolTip(_("Create New Flow"));
 
   btnRegistFlow = new QPushButton();
@@ -666,7 +666,7 @@ FlowViewImpl::FlowViewImpl(QWidget* parent) {
 
   //btnDeleteTask = new QPushButton(_("Delete"));
   btnDeleteTask = new QPushButton();
-  btnDeleteTask->setIcon(QIcon(":/Teaching/icons/delete.png"));
+  btnDeleteTask->setIcon(QApplication::style()->standardIcon(QStyle::SP_TrashIcon));
   btnDeleteTask->setToolTip(_("Delete selected Task"));
 
   //btnEdit = new QPushButton(_("Edit"));

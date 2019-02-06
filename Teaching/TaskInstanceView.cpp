@@ -82,7 +82,7 @@ TaskInstanceViewImpl::TaskInstanceViewImpl(QWidget* parent)
   btnOutputTask->setToolTip(_("Output Task"));
 
   btnDeleteTask = new QPushButton();
-  btnDeleteTask->setIcon(QIcon(":/Teaching/icons/delete.png"));
+  btnDeleteTask->setIcon(QApplication::style()->standardIcon(QStyle::SP_TrashIcon));
   btnDeleteTask->setToolTip(_("Delete Task"));
 
   btnRegistNewTask = new QPushButton();
