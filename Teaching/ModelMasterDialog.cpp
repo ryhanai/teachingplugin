@@ -274,7 +274,9 @@ void ModelMasterDialog::addModel(int id, QString name) {
 
 void ModelMasterDialog::refClicked() {
 	DDEBUG("ModelMasterDialog::refClicked()");
-	TeachingMasterEventHandler::instance()->mmd_RefClicked();
+	if(TeachingMasterEventHandler::instance()->mmd_RefClicked()==false) {
+    QMessageBox::warning(this, _("Model Master"), _("Loading of model master failed."));
+  }
 }
 
 void ModelMasterDialog::refImageClicked() {
@@ -319,7 +321,7 @@ void ModelMasterDialog::deleteModelParamClicked() {
 }
 
 void ModelMasterDialog::okClicked() {
-  DDEBUG("ModelDialog::okClicked()");
+  DDEBUG("ModelMasterDialog::okClicked()");
 
 	if (currentParamIndex_ != NULL_ID) {
 		modelParamSelectionChanged();

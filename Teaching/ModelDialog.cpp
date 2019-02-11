@@ -160,6 +160,7 @@ void ModelDialog::showModelMasterGrid(const vector<ModelMasterParamPtr>& source)
 	lstModelMaster->setRowCount(0);
 
 	for (ModelMasterParamPtr param : source) {
+    if (param->getData().length() == 0) continue;
 		int row = lstModelMaster->rowCount();
 		lstModelMaster->insertRow(row);
     lstModelMaster->setRowHeight(row, 50);

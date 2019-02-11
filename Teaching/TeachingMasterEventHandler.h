@@ -18,7 +18,7 @@ public:
 	void mmd_Loaded(ModelMasterDialog* dialog);
 	void mmd_ModelSelectionChanged(int newId, QString name, QString fileName);
 	void mmd_ModelParameterSelectionChanged(int newId, QString name, QString desc);
-	void mmd_RefClicked();
+	bool mmd_RefClicked();
   void mmd_RefImageClicked();
   void mmd_DeleteImageClicked();
   void mmd_AddModelClicked();

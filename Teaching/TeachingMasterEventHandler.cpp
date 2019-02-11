@@ -69,21 +69,27 @@ void TeachingMasterEventHandler::mmd_ModelParameterSelectionChanged(int newId, Q
 	}
 }
 
-void TeachingMasterEventHandler::mmd_RefClicked() {
-	if (!mmd_CurrentModel_) return;
+bool TeachingMasterEventHandler::mmd_RefClicked() {
+	if (!mmd_CurrentModel_) return false;
 
 	QString strFName = QFileDialog::getOpenFileName(0, "VRML File", ".", "wrl(*.wrl);;all(*.*)");
-	if (strFName.isEmpty()) return;
+	if (strFName.isEmpty()) return false;
 
 	QString strName = QFileInfo(strFName).fileName();
 	QString strPath = QFileInfo(strFName).absolutePath();
 
-	if (strFName == mmd_CurrentModel_->getFileName()) return;
+	if (strFName == mmd_CurrentModel_->getFileName()) return true;
 	mmd_CurrentModel_->setFileName(strName);
 
-
+  QFile file(strFName);
+  if (file.open(QIODevice::ReadOnly) == false) return false;
+  mmd_CurrentModel_->setData(file.readAll());
+  //ŽQÆƒ‚ƒfƒ‹‚Ì“Ç‚Ýž‚Ý
+  if (TeachingUtil::loadModelDetail(strFName, mmd_CurrentModel_) == false) return false;
+  /////
   QImage targetImage = mmd_CurrentModel_->getImage();
 	this->mmd_->updateContents(mmd_CurrentModel_->getName(), mmd_CurrentModel_->getFileName(), mmd_CurrentModel_->getImageFileName(), &targetImage);
+  return true;
 }
 
 void TeachingMasterEventHandler::mmd_RefImageClicked() {
@@ -212,6 +218,7 @@ bool TeachingMasterEventHandler::mmd_DeleteModelParamClicked() {
 }
 
 bool TeachingMasterEventHandler::mmd_OkClicked(QString name, QString fileName, QString& errMessage) {
+  DDEBUG("TeachingMasterEventHandler::mmd_OkClicked");
 	if (mmd_CurrentId_ != NULL_ID) {
 		TeachingDataHolder::instance()->updateModelMaster(mmd_CurrentId_, name, fileName);
 	}

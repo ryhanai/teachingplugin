@@ -382,6 +382,10 @@ msgstr "モデルパラメータを追加する"
 msgid "Delete selected Model Parameter"
 msgstr "選択したモデルパラメータを削除する"
 
+#: ModelMasterDialog.cpp:95
+msgid "Loading of model master failed."
+msgstr "モデルマスタの読み込みに失敗しました"
+
 #: ParameterDialog.cpp:28
 msgid "Add New Parameter"
 msgstr "新規パラメータを追加する"
