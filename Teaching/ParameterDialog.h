@@ -49,6 +49,9 @@ private:
 	QComboBox* cmbHide;
 
   int currentRowIndex_;
+
+  int getParamTypeIndex(int type);
+  int getParamType(int index);
 };
 
 }

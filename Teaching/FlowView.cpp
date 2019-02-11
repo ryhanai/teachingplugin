@@ -991,7 +991,7 @@ std::shared_ptr<DataModelRegistry> FlowViewImpl::registerDataModels() {
   ret->registerModel<TransformDataModel>("3D Models");
   ret->registerModel<IntParamDataModel>("Variables");
   ret->registerModel<DoubleParamDataModel>("Variables");
-  ret->registerModel<StringParamDataModel>("Variables");
+  //ret->registerModel<StringParamDataModel>("Variables");
   ret->registerModel<FrameParamDataModel>("Variables");
   ret->registerModel<MergeDataModel>("Syntaxes");
   ret->registerModel<DecisionDataModel>("Syntaxes");
