@@ -33,7 +33,6 @@ private:
   QLineEdit* leExt;
   QLineEdit* leApp;
 
-  QCheckBox* chkReal;
   QComboBox* cmbController;
 
   QComboBox* cmbLogLevel;

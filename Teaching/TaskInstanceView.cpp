@@ -4,6 +4,7 @@
 #include "ModelMasterDialog.h"
 #include "DataBaseManager.h"
 #include "TeachingEventHandler.h"
+#include "TeachingUtil.h"
 
 #include "gettext.h"
 #include "LoggerUtil.h"
@@ -32,6 +33,9 @@ TaskInstanceViewImpl::TaskInstanceViewImpl(QWidget* parent)
   btnSetting->setIcon(QIcon(":/Teaching/icons/preference.png"));
   btnSetting->setToolTip(_("Setting"));
 
+  chkReal = new QCheckBox(_("Real"));
+  chkReal->setChecked(SettingManager::getInstance().getIsReal());
+
   QLabel* lblTaskName = new QLabel(_("Task Name:"));
   leTask = new QLineEdit;
   //
@@ -42,8 +46,9 @@ TaskInstanceViewImpl::TaskInstanceViewImpl(QWidget* parent)
   topLayout->addWidget(btnSearch, 0, 2, 1, 1);
   topLayout->addWidget(btnModelMaster, 0, 3, 1, 1);
 	topLayout->addWidget(btnSetting, 0, 4, 1, 1);
+	topLayout->addWidget(chkReal, 0, 5, 1, 1);
 	topLayout->addWidget(lblTaskName, 1, 0, 1, 1, Qt::AlignRight);
-  topLayout->addWidget(leTask, 1, 1, 1, 4);
+  topLayout->addWidget(leTask, 1, 1, 1, 5);
   //
   lstResult = new SearchList(0, 4);
   lstResult->setSelectionBehavior(QAbstractItemView::SelectRows);
@@ -121,6 +126,7 @@ TaskInstanceViewImpl::TaskInstanceViewImpl(QWidget* parent)
   connect(leCond, SIGNAL(editingFinished()), this, SLOT(searchClicked()));
 	connect(btnModelMaster, SIGNAL(clicked()), this, SLOT(modelMasterClicked()));
 	connect(btnSetting, SIGNAL(clicked()), this, SLOT(settingClicked()));
+	connect(chkReal, SIGNAL(clicked()), this, SLOT(realClicked()));
   //
   connect(btnRunTask, SIGNAL(clicked()), this, SLOT(runTaskClicked()));
   connect(btnAbort, SIGNAL(clicked()), this, SLOT(abortClicked()));
@@ -307,6 +313,10 @@ void TaskInstanceViewImpl::settingClicked() {
     DatabaseManager::getInstance().reConnectDB();
     searchClicked();
   }
+}
+
+void TaskInstanceViewImpl::realClicked() {
+  SettingManager::getInstance().setIsReal(chkReal->isChecked());
 }
 
 void TaskInstanceViewImpl::taskActivated() {

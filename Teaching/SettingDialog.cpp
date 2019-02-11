@@ -51,8 +51,6 @@ SettingDialog::SettingDialog(QWidget* parent)
   QPushButton* btnRef = new QPushButton();
   btnRef->setIcon(QApplication::style()->standardIcon(QStyle::SP_DialogOpenButton));
   btnRef->setToolTip(_("Ref..."));
-  chkReal = new QCheckBox(_("Real"));
-  chkReal->setChecked(SettingManager::getInstance().getIsReal());
 
   QLabel* lblController = new QLabel(_("Controller:"));
   cmbController = new QComboBox(this);
@@ -82,8 +80,7 @@ SettingDialog::SettingDialog(QWidget* parent)
   baseLayout->addWidget(btnRef, 5, 3, 1, 1);
 
   baseLayout->addWidget(lblController, 6, 0, 1, 1, Qt::AlignRight);
-  baseLayout->addWidget(cmbController, 6, 1, 1, 2);
-  baseLayout->addWidget(chkReal, 6, 3, 1, 1);
+  baseLayout->addWidget(cmbController, 6, 1, 1, 3);
   //
   QFrame* frmButtons = new QFrame;
 	QPushButton* btnOK = new QPushButton(_("OK"));
@@ -254,7 +251,6 @@ void SettingDialog::oKClicked() {
     needRestart = true;
   }
   SettingManager::getInstance().setController(cmbController->currentText().toStdString());
-  SettingManager::getInstance().setIsReal(chkReal->isChecked());
 
   SettingManager::getInstance().saveSetting();
   if (updatedLog) {

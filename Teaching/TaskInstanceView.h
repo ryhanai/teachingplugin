@@ -32,6 +32,7 @@ private Q_SLOTS:
   void searchClicked();
 	void modelMasterClicked();
 	void settingClicked();
+	void realClicked();
 
   void runTaskClicked();
   void loadTaskClicked();
@@ -47,6 +48,7 @@ private Q_SLOTS:
 private:
   QPushButton* btnModelMaster;
   QPushButton* btnSetting;
+  QCheckBox* chkReal;
 
   QLineEdit* leCond;
   QLineEdit* leTask;
