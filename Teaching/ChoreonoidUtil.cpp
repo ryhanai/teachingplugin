@@ -28,6 +28,7 @@ bool ChoreonoidUtil::readModelItem(ModelMasterParamPtr target, QString& fileName
 }
 
 bool ChoreonoidUtil::makeModelItem(ModelMasterParamPtr target) {
+	DDEBUG("ChoreonoidUtil::makeModelItem");
 	if (target->getModelItem() != 0) return true;
 	/////
   QString fileName = target->getFileName();

@@ -14,7 +14,7 @@ public:
   ParameterDialog(QWidget* parent = 0);
 
   void showModelInfo(const std::vector<ModelParamPtr>& modelList);
-  void showModelCombo(const std::vector<ModelParamPtr>& modelList);
+  void showModelCombo(const std::vector<ModelParamPtr>& modelList, int modelId);
   void showModelParamInfo(const std::vector<ModelParameterParamPtr>& paramList);
   void showParamInfo(const std::vector<ParameterParamPtr>& paramList);
 	void setTaskName(QString taskName);
@@ -29,6 +29,7 @@ private Q_SLOTS:
   void modelSelectionChanged(int index);
   void addParamClicked();
   void deleteParamClicked();
+  void addFPClicked();
   void oKClicked();
   void rejected();
 
@@ -43,6 +44,7 @@ private:
   QLineEdit* leId;
   QComboBox* cmbType;
   QComboBox* cmbModelName;
+  QPushButton* btnAddFP;
   QComboBox* cmbModelParamName;
   QComboBox* cmbParamType;
   QLineEdit* leUnit;

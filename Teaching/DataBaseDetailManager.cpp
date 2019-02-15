@@ -651,10 +651,15 @@ vector<ModelParamPtr> DatabaseManager::getModelParams(int id) {
     int hide = query.value(10).toInt();
     //
 		ModelParamPtr param = std::make_shared<ModelParam>(model_id, master_id, model_type, rname, posX, posY, posZ, rotX, rotY, rotZ, hide, false);
-		ModelMasterParamPtr master = TeachingDataHolder::instance()->getModelMasterById(master_id);
-		if (!master) {
-			DDEBUG_V("Master NOT Exists: %d", master_id);
-		}
+    ModelMasterParamPtr master = 0;
+    if(master_id<0) {
+      master = TeachingDataHolder::instance()->getFPMaster();
+    } else {
+      master = TeachingDataHolder::instance()->getModelMasterById(master_id);
+      if (!master) {
+        DDEBUG_V("Master NOT Exists: %d", master_id);
+      }
+    }
 		param->setModelMaster(master);
 
     result.push_back(param);

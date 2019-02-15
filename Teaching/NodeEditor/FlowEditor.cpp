@@ -566,13 +566,6 @@ void FlowEditor::createFlowParamNode(FlowParameterParamPtr target) {
   }
   auto type = _scene->registry().create(typeName);
   if (type) {
-    if (target->getType() == PARAM_TYPE_FRAME) {
-      vector<PortInfo> portList;
-      PortInfo info(0, "", 2);
-      portList.push_back(info);
-      type->portNames = portList;
-    }
-
     auto& node = _scene->createNode(std::move(type));
     node.nodeGraphicsObject().setPos(target->getPosX(), target->getPosY());
     if (target->getType() == PARAM_TYPE_FRAME) {
@@ -1006,9 +999,6 @@ void FlowEditor::createPortInfo(TaskModelParamPtr targetTask, vector<PortInfo>& 
       type = 2;
       typeName = ":Mdl";
     } else {
-      if(param->getParamType() == PARAM_TYPE_FRAME) {
-        type = 2;
-      }
       typeName = ":" + TeachingUtil::getTypeRName(param->getParamType());
     }
     PortInfo info(param->getId(), param->getName() + typeName, type);

@@ -53,6 +53,7 @@ public:
 
 	vector<ModelMasterParamPtr> getModelMasterList();
   ModelMasterParamPtr getModelMaster(int master_id);
+  ModelMasterParamPtr getFPModelMaster();
   int checkModelMaster(QString target);
 	bool saveModelMasterList(vector<ModelMasterParamPtr> target);
 

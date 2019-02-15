@@ -270,7 +270,9 @@ void TeachingEventHandler::prd_Loaded(ParameterDialog* dialog) {
 	this->prd_ = dialog;
 	vector<ModelParamPtr> modelList = com_CurrentTask_->getActiveModelList();
 	prd_->showModelInfo(modelList);
-	prd_->showModelCombo(modelList);
+  int modelId = 0;
+  if (prd_CurrentParam_) modelId = prd_CurrentParam_->getModelId();
+	prd_->showModelCombo(modelList, modelId);
 	vector<ParameterParamPtr> paramList = com_CurrentTask_->getActiveParameterList();
 	prd_->showParamInfo(paramList);
 	prd_->setTaskName(com_CurrentTask_->getName());
@@ -308,6 +310,25 @@ bool TeachingEventHandler::prd_DeleteParamClicked() {
 	if (prd_CurrentParam_ == 0) return false;
 	prd_CurrentParam_->setDelete();
 	return true;
+}
+
+void TeachingEventHandler::prd_AddFPClicked(QString name) {
+	DDEBUG_V("TeachingEventHandler::prd_AddFPClicked : %s", name.toStdString().c_str());
+  ModelMasterParamPtr master = TeachingDataHolder::instance()->getFPMaster();
+	ModelParamPtr model = TeachingDataHolder::instance()->addModel(com_CurrentTask_, master);
+  model->setRName(name + QString::fromStdString("FO"));
+  model->setType(MODEL_WORK);
+  prd_CurrentParam_->setModelId(model->getId());
+
+  QString dispName = com_CurrentTask_->getName() + "|" + model->getRName();
+	ChoreonoidUtil::loadModelItem(model, dispName);
+	ChoreonoidUtil::showAllModelItem();
+	vector<ModelParamPtr> modelList = com_CurrentTask_->getActiveModelList();
+	prd_->showModelInfo(modelList);
+  int modelId = 0;
+  if (prd_CurrentParam_) modelId = prd_CurrentParam_->getModelId();
+  prd_->showModelCombo(modelList, modelId);
+  prd_->updateContents(prd_CurrentParam_);
 }
 
 bool TeachingEventHandler::prd_OkClicked(QString name, QString id, int type, int paramType, QString unit, int model_id, int model_param_id, int hide) {
@@ -378,7 +399,7 @@ bool TeachingEventHandler::prd_OkClicked(QString name, QString id, int type, int
   for (int index = 0; index < newParamList.size(); index++) {
     com_CurrentTask_->addParameter(newParamList[index]);
   }
-  prv_->setTaskParam(com_CurrentTask_, true);
+  prv_->setTaskParam(com_CurrentTask_, false);
   DDEBUG("TeachingEventHandler::prd_OkClicked End");
 
   return true;

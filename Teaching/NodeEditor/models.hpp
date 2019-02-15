@@ -201,9 +201,6 @@ public:
   }
 
   NodeDataType dataType(PortType, PortIndex) const override {
-    if( 0<portNames.size() && portNames[0].type_ == 2) {
-        return ModelParamData().type();
-    }
     return ParamData().type();
   }
 

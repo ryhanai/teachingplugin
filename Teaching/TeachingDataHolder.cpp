@@ -1,6 +1,7 @@
 #include "TeachingDataHolder.h"
 #include "DataBaseManager.h"
 #include "TeachingUtil.h"
+#include "ChoreonoidUtil.h"
 
 #include "gettext.h"
 #include "LoggerUtil.h"
@@ -341,6 +342,13 @@ bool TeachingDataHolder::saveModelMaster(QString& errMessage) {
 
 bool TeachingDataHolder::saveModelMasterList(vector<ModelMasterParamPtr> masterList) {
 	return DatabaseManager::getInstance().saveModelMasterList(masterList);
+}
+
+ModelMasterParamPtr TeachingDataHolder::getFPMaster() {
+  if (fp_master_ == 0) {
+    fp_master_ = DatabaseManager::getInstance().getFPModelMaster();
+  }
+  return fp_master_;
 }
 
 }

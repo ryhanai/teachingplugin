@@ -115,6 +115,7 @@ public:
   bool prd_OkClicked(QString name, QString id, int type, int paramType, QString unit, int model_id, int model_param_id, int hide);
   void prd_ModelTableSelectionChanged(int selectedId);
   vector<ModelParameterParamPtr> prd_ModelSelectionChanged(int selectedId);
+	void prd_AddFPClicked(QString name);
 
 	//ModelDialog
 	bool mdd_Loaded(ModelDialog* dialog);

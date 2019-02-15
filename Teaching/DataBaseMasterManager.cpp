@@ -23,6 +23,7 @@ vector<ModelMasterParamPtr> DatabaseManager::getModelMasterList() {
   query.exec(strQuery.c_str());
   while (query.next()) {
     int model_id = query.value(0).toInt();
+    if (model_id < 0) continue;
     QString name = query.value(1).toString();
     QString fileName = query.value(2).toString();
 
@@ -117,6 +118,46 @@ ModelMasterParamPtr DatabaseManager::getModelMaster(int master_id) {
         QString parmDesc = subQuery.value(2).toString();
         ModelParameterParamPtr modelParam = std::make_shared<ModelParameterParam>(model_id, param_id, parmName, parmDesc);
         result->addModelParameter(modelParam);
+      }
+    }
+  }
+  return result;
+}
+
+ModelMasterParamPtr DatabaseManager::getFPModelMaster() {
+  ModelMasterParamPtr result;
+
+  string strQuery = "SELECT ";
+  strQuery += "model_id, name, file_name, model_data, hash, image_file_name, image_data ";
+  strQuery += "FROM M_MODEL ";
+  strQuery += "WHERE model_id = -1";
+  QSqlQuery query(db_);
+  query.exec(strQuery.c_str());
+  if (query.next()) {
+    int model_id = query.value(0).toInt();
+    QString name = query.value(1).toString();
+    QString fileName = query.value(2).toString();
+
+    result = std::make_shared<ModelMasterParam>(model_id, name, fileName);
+    result->setData(query.value(3).toByteArray());
+    result->setHash(query.value(4).toString());
+    result->setImageFileName(query.value(5).toByteArray());
+    result->setRawData(query.value(6).toByteArray());
+    result->loadData();
+    result->setNormal();
+    //
+    {
+      string strSubQuery = "SELECT ";
+      strSubQuery += "model_detail_id, file_name, model_data ";
+      strSubQuery += "FROM M_MODEL_DETAIL WHERE model_id = -1 ORDER BY model_detail_id";
+      QSqlQuery subQuery(db_);
+      subQuery.exec(strSubQuery.c_str());
+      while (subQuery.next()) {
+        int detail_id = subQuery.value(0).toInt();
+        QString detailName = subQuery.value(1).toString();
+        ModelDetailParamPtr detailParam = std::make_shared<ModelDetailParam>(detail_id, detailName);
+        detailParam->setData(subQuery.value(2).toByteArray());
+        result->addModelDetail(detailParam);
       }
     }
   }

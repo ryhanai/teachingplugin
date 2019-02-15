@@ -67,7 +67,9 @@ ParameterDialog::ParameterDialog(QWidget* parent)
 
   QLabel* lblModel = new QLabel(_("Model Name:"));
   cmbModelName = new QComboBox;
-  cmbModelName->addItem("", -1);
+  btnAddFP = new QPushButton(_("Add Frame Object"));
+  btnAddFP->setIcon(QIcon(":/Teaching/icons/plus.png"));
+  btnAddFP->setToolTip(_("Add New Frame Object"));
 
   QLabel* lblModelParam = new QLabel(_("Model Param Name:"));
   cmbModelParamName = new QComboBox;
@@ -84,24 +86,26 @@ ParameterDialog::ParameterDialog(QWidget* parent)
   QGridLayout* paramLayout = new QGridLayout;
   paramLayout->setContentsMargins(0, 0, 0, 0);
   frmParam->setLayout(paramLayout);
-  paramLayout->addWidget(lstParam, 0, 0, 1, 2);
-  paramLayout->addWidget(frmParamButtons, 1, 0, 1, 2);
+  paramLayout->addWidget(lstParam, 0, 0, 1, 3);
+  paramLayout->addWidget(frmParamButtons, 1, 0, 1, 3);
   paramLayout->addWidget(lblName, 2, 0, 1, 1, Qt::AlignRight);
-  paramLayout->addWidget(leName, 2, 1, 1, 1);
+  paramLayout->addWidget(leName, 2, 1, 1, 2);
   paramLayout->addWidget(lblId, 3, 0, 1, 1, Qt::AlignRight);
-  paramLayout->addWidget(leId, 3, 1, 1, 1);
+  paramLayout->addWidget(leId, 3, 1, 1, 2);
   paramLayout->addWidget(lblType, 4, 0, 1, 1, Qt::AlignRight);
-  paramLayout->addWidget(cmbType, 4, 1, 1, 1);
+  paramLayout->addWidget(cmbType, 4, 1, 1, 2);
   paramLayout->addWidget(lblParamType, 5, 0, 1, 1, Qt::AlignRight);
-  paramLayout->addWidget(cmbParamType, 5, 1, 1, 1);
+  paramLayout->addWidget(cmbParamType, 5, 1, 1, 2);
   paramLayout->addWidget(lblModel, 6, 0, 1, 1, Qt::AlignRight);
   paramLayout->addWidget(cmbModelName, 6, 1, 1, 1);
+  paramLayout->setColumnStretch(1, 1);
+  paramLayout->addWidget(btnAddFP, 6, 2, 1, 1, Qt::AlignCenter);
   paramLayout->addWidget(lblModelParam, 7, 0, 1, 1, Qt::AlignRight);
-  paramLayout->addWidget(cmbModelParamName, 7, 1, 1, 1);
+  paramLayout->addWidget(cmbModelParamName, 7, 1, 1, 2);
   paramLayout->addWidget(lblUnit, 8, 0, 1, 1, Qt::AlignRight);
-  paramLayout->addWidget(leUnit, 8, 1, 1, 1);
+  paramLayout->addWidget(leUnit, 8, 1, 1, 2);
   paramLayout->addWidget(lblVisibility, 9, 0, 1, 1, Qt::AlignRight);
-  paramLayout->addWidget(cmbHide, 9, 1, 1, 1);
+  paramLayout->addWidget(cmbHide, 9, 1, 1, 2);
   //
   QFrame* frmModel = new QFrame;
   QVBoxLayout* modelLayout = new QVBoxLayout;
@@ -140,6 +144,7 @@ ParameterDialog::ParameterDialog(QWidget* parent)
   connect(cmbModelName, SIGNAL(currentIndexChanged(int)), this, SLOT(modelSelectionChanged(int)));
   connect(btnAddParam, SIGNAL(clicked()), this, SLOT(addParamClicked()));
   connect(btnDeleteParam, SIGNAL(clicked()), this, SLOT(deleteParamClicked()));
+  connect(btnAddFP, SIGNAL(clicked()), this, SLOT(addFPClicked()));
   connect(btnOK, SIGNAL(clicked()), this, SLOT(oKClicked()));
 	connect(btnCancel, SIGNAL(clicked()), this, SLOT(rejected()));
 	connect(this, SIGNAL(rejected()), this, SLOT(rejected()));
@@ -163,13 +168,18 @@ void ParameterDialog::showModelInfo(const vector<ModelParamPtr>& modelList) {
 	}
 }
 
-void ParameterDialog::showModelCombo(const std::vector<ModelParamPtr>& modelList) {
+void ParameterDialog::showModelCombo(const std::vector<ModelParamPtr>& modelList, int modelId) {
   DDEBUG("ParameterDialog::showModelCombo");
   cmbModelName->clear();
 
+  int selected = 0;
 	for (ModelParamPtr param : modelList) {
     cmbModelName->addItem(param->getRName(), param->getId());
+    if(param->getId()==modelId) {
+      selected = cmbModelName->count() - 1;
+    }
 	}
+  cmbModelName->setCurrentIndex(selected);
 }
 
 void ParameterDialog::showModelParamInfo(const vector<ModelParameterParamPtr>& paramList) {
@@ -374,6 +384,12 @@ void ParameterDialog::deleteParamClicked() {
   lstParam->setFocus();
 }
 
+void ParameterDialog::addFPClicked() {
+  QString name = leName->text();
+  if (name.length() == 0) return;
+  TeachingEventHandler::instance()->prd_AddFPClicked(name);
+}
+
 void ParameterDialog::oKClicked() {
   DDEBUG("ParameterDialog::oKClicked()");
   int type = cmbType->currentIndex();
@@ -423,12 +439,14 @@ void ParameterDialog::typeSelectionChanged(int index) {
 
   if (index == 0) {
     cmbModelName->setEnabled(false);
+    btnAddFP->setEnabled(false);
     cmbModelParamName->setEnabled(false);
     leUnit->setEnabled(true);
     cmbParamType->setEnabled(true);
   } else {
     cmbModelName->setEnabled(true);
     cmbModelParamName->setEnabled(true);
+    btnAddFP->setEnabled(true);
     leUnit->setEnabled(false);
     cmbParamType->setEnabled(false);
   }

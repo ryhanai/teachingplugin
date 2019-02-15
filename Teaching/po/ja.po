@@ -290,6 +290,14 @@ msgstr "モデル名称:"
 msgid "Model Param Name:"
 msgstr "モデルパラメータ名:"
 
+#: ParameterDialog.cpp:52
+msgid "Add Frame Object"
+msgstr "Frame Object追加"
+
+#: ParameterDialog.cpp:52
+msgid "Add New Frame Object"
+msgstr "新規Frame Objectを追加する"
+
 #: ModelDialog.cpp:33
 msgid "Model ID:"
 msgstr "モデルID:"

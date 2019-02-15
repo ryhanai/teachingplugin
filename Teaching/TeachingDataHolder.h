@@ -55,14 +55,16 @@ public:
 	bool saveModelMaster(QString& errMessage);
 	bool saveModelMasterList(vector<ModelMasterParamPtr> masterList);
 
+  ModelMasterParamPtr getFPMaster();
 
 private:
-	TeachingDataHolder() {};
+	TeachingDataHolder() : fp_master_(0) {};
 
 	vector<FlowParamPtr> flowList_;
 	vector<TaskModelParamPtr> taskList_;
 	vector<ModelMasterParamPtr> modelMasterList_;
 
+  ModelMasterParamPtr fp_master_;
 
 };
 
