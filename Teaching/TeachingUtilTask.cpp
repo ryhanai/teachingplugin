@@ -87,14 +87,14 @@ bool TeachingUtil::importTaskModel(Mapping* taskMap, TaskModelParamPtr taskParam
       double rotX = 0.0; double rotY = 0.0; double rotZ = 0.0;
 
       try {
-        modelRName = QString::fromStdString(modelMap->get("rname").toString());
+        modelRName = QString::fromStdString(modelMap->get("name").toString());
       } catch (...) {
-        errMessage = _("Failed to read the rname of the task model.") + taskNameErr;
+        errMessage = _("Failed to read the name of the task model.") + taskNameErr;
         DDEBUG(errMessage.toStdString().c_str());
         return false;
       }
       if (modelRName.isEmpty()) {
-        errMessage = _("rname of the task model is EMPTY.") + taskNameErr;
+        errMessage = _("name of the task model is EMPTY.") + taskNameErr;
         DDEBUG(errMessage.toStdString().c_str());
         return false;
       }
@@ -127,48 +127,30 @@ bool TeachingUtil::importTaskModel(Mapping* taskMap, TaskModelParamPtr taskParam
         return false;
       }
       try {
-        posX = modelMap->get("pos_x").toDouble();
+        Listing* pos = modelMap->get("pos").toListing();
+        if(pos->size() !=6 ) {
+          errMessage = _("Position(pos) of task model is invalid.") + taskNameErr + modelNameErr;
+          DDEBUG(errMessage.toStdString().c_str());
+          return false;
+        }
+        posX = pos->at(0)->toDouble();
+        posY = pos->at(1)->toDouble();
+        posZ = pos->at(2)->toDouble();
+        rotX = pos->at(3)->toDouble();
+        rotY = pos->at(4)->toDouble();
+        rotZ = pos->at(5)->toDouble();
+        DDEBUG_V("pos: %d, %f, %f, %f, %f, %f, %f", pos->size(),
+          pos->at(0)->toDouble(), pos->at(1)->toDouble(), pos->at(2)->toDouble(), pos->at(3)->toDouble(), pos->at(4)->toDouble(), pos->at(5)->toDouble());
       } catch (...) {
-        errMessage = _("Failed to read the pos_x of the task model.") + taskNameErr + modelNameErr;
+        errMessage = _("Failed to read the position of the task model.") + taskNameErr + modelNameErr;
         DDEBUG(errMessage.toStdString().c_str());
         return false;
       }
+
       try {
-        posY = modelMap->get("pos_y").toDouble();
-      } catch (...) {
-        errMessage = _("Failed to read the pos_y of the task model.") + taskNameErr + modelNameErr;
-        DDEBUG(errMessage.toStdString().c_str());
-        return false;
-      }
-      try {
-        posZ = modelMap->get("pos_z").toDouble();
-      } catch (...) {
-        errMessage = _("Failed to read the pos_z of the task model.") + taskNameErr + modelNameErr;
-        DDEBUG(errMessage.toStdString().c_str());
-        return false;
-      }
-      try {
-        rotX = modelMap->get("rot_x").toDouble();
-      } catch (...) {
-        errMessage = _("Failed to read the rot_x of the task model.") + taskNameErr + modelNameErr;
-        DDEBUG(errMessage.toStdString().c_str());
-        return false;
-      }
-      try {
-        rotY = modelMap->get("rot_y").toDouble();
-      } catch (...) {
-        errMessage = _("Failed to read the rot_y of the task model.") + taskNameErr + modelNameErr;
-        DDEBUG(errMessage.toStdString().c_str());
-        return false;
-      }
-      try {
-        rotZ = modelMap->get("rot_z").toDouble();
-      } catch (...) {
-        errMessage = _("Failed to read the rot_z of the task model.") + taskNameErr + modelNameErr;
-        DDEBUG(errMessage.toStdString().c_str());
-        return false;
-      }
-      try { hide = modelMap->get("hide").toInt(); } catch (...) {}
+        bool isHide = modelMap->get("hide").toBool();
+        if (isHide) hide = 1;
+      } catch (...) {}
 
       if (modelType.length() == 0) modelType = "Env";
       ModelParamPtr modelParam = std::make_shared<ModelParam>(NULL_ID, master_id, getModelType(modelType), modelRName, posX, posY, posZ, rotX, rotY, rotZ, hide, true);
@@ -184,33 +166,33 @@ bool TeachingUtil::importTaskParameter(Mapping* taskMap, TaskModelParamPtr taskP
   if (paramList) {
     for (int idxParam = 0; idxParam < paramList->size(); idxParam++) {
       Mapping* paramMap = paramList->at(idxParam)->toMapping();
+      QString dispName = "";
       QString paramName = "";
-      QString paramRName = "";
       QString paramUnit = "";
       QString paramValue = "";
-      int type, paramType, hide;
+      int type = PARAM_KIND_NORMAL;
+      int paramType;
+      int hide = 0;
       int model_id = NULL_ID;
       int model_param_id = NULL_ID;
 
-      try { paramName = QString::fromStdString(paramMap->get("name").toString()); } catch (...) {}
-      QString paramNameErr = QString::fromStdString("\n ParameterName=[") + paramName + QString::fromStdString("]");
       try {
-        paramRName = QString::fromStdString(paramMap->get("rname").toString());
+        dispName = QString::fromStdString(paramMap->get("disp_name").toString());
       } catch (...) {
-        errMessage = _("Failed to read the rname of the task parameter.") + taskNameErr + paramNameErr;
+        errMessage = _("Failed to read the disp_name of the task parameter.") + taskNameErr;
         DDEBUG(errMessage.toStdString().c_str());
         return false;
       }
-      if (paramRName.isEmpty()) {
-        errMessage = _("Rname of the task parameter is EMPTY.") + taskNameErr + paramNameErr;
+      QString paramNameErr = QString::fromStdString("\n ParameterName=[") + dispName + QString::fromStdString("]");
+      try {
+        paramName = QString::fromStdString(paramMap->get("name").toString());
+      } catch (...) {
+        errMessage = _("Failed to read the name of the task parameter.") + taskNameErr + paramNameErr;
         DDEBUG(errMessage.toStdString().c_str());
         return false;
       }
-
-      try {
-        type = paramMap->get("type").toInt();
-      } catch (...) {
-        errMessage = _("Failed to read the type of the task parameter.") + taskNameErr + paramNameErr;
+      if (paramName.isEmpty()) {
+        errMessage = _("name of the task parameter is EMPTY.") + taskNameErr + paramNameErr;
         DDEBUG(errMessage.toStdString().c_str());
         return false;
       }
@@ -218,18 +200,29 @@ bool TeachingUtil::importTaskParameter(Mapping* taskMap, TaskModelParamPtr taskP
       try {
         paramType = paramMap->get("param_type").toInt();
       } catch (...) {
-        errMessage = _("Failed to read the elem_num of the task parameter.") + taskNameErr + paramNameErr;
+        errMessage = _("Failed to read the param_type of the task parameter.") + taskNameErr + paramNameErr;
+        DDEBUG(errMessage.toStdString().c_str());
+        return false;
+      }
+      try {
+        model_id = paramMap->get("model_id").toInt();
+        if (model_id != 0) type = PARAM_KIND_MODEL;
+      } catch (...) {
+        errMessage = _("Failed to read the model_id of the task parameter.") + taskNameErr + paramNameErr;
         DDEBUG(errMessage.toStdString().c_str());
         return false;
       }
 
       try { paramUnit = QString::fromStdString(paramMap->get("units").toString()); } catch (...) {}
       try { paramValue = QString::fromStdString(paramMap->get("values").toString()); } catch (...) {}
-      try { model_id = paramMap->get("model_id").toInt(); } catch (...) {}
       try { model_param_id = paramMap->get("model_param_id").toInt(); } catch (...) {}
-      try { hide = paramMap->get("hide").toInt(); } catch (...) {}
 
-      ParameterParamPtr param = std::make_shared<ParameterParam>(NULL_ID, type, paramType, NULL_ID, paramName, paramRName, paramUnit, model_id, model_param_id, hide);
+      try {
+        bool isHide = paramMap->get("hide").toBool();
+        if (isHide) hide = 1;
+      } catch (...) {}
+
+      ParameterParamPtr param = std::make_shared<ParameterParam>(NULL_ID, type, paramType, NULL_ID, dispName, paramName, paramUnit, model_id, model_param_id, hide);
       param->setDBValues(paramValue);
       param->setNewForce();
       taskParam->addParameter(param);
@@ -268,24 +261,60 @@ bool TeachingUtil::importTaskState(Mapping* taskMap, TaskModelParamPtr taskParam
       }
 
       try {
-        posX = stateMap->get("pos_x").toDouble();
+        Listing* pos = stateMap->get("pos").toListing();
+        if(pos->size() !=2 ) {
+          errMessage = _("Position(pos) of state is invalid.") + taskNameErr;
+          DDEBUG(errMessage.toStdString().c_str());
+          return false;
+        }
+        posX = pos->at(0)->toDouble();
+        posY = pos->at(1)->toDouble();
       } catch (...) {
-        errMessage = _("Failed to read the pos_x of the state.") + taskNameErr;
+        errMessage = _("Failed to read the pos of the state.") + taskNameErr;
         DDEBUG(errMessage.toStdString().c_str());
         return false;
       }
 
-      try {
-        posY = stateMap->get("pos_y").toDouble();
-      } catch (...) {
-        errMessage = _("Failed to read the pos_y of the state.") + taskNameErr;
-        DDEBUG(errMessage.toStdString().c_str());
-        return false;
-      }
+      if (type == ELEMENT_COMMAND) {
+        try {
+          cmdName = QString::fromStdString(stateMap->get("cmd_name").toString());
+        } catch (...) {
+          errMessage = _("Failed to read the cmd_name of the state.") + taskNameErr;
+          DDEBUG(errMessage.toStdString().c_str());
+          return false;
+        }
+        if (cmdName.isEmpty()) {
+          errMessage = _("cmd_name of the state is EMPTY.") + taskNameErr;
+          DDEBUG(errMessage.toStdString().c_str());
+          return false;
+        }
 
-      try { cmdName = QString::fromStdString(stateMap->get("cmd_name").toString()); } catch (...) {}
-      try { condition = QString::fromStdString(stateMap->get("condition").toString()).replace("|", "\n"); } catch (...) {}
-      try { dispName = QString::fromStdString(stateMap->get("disp_name").toString()); } catch (...) {}
+        try {
+          dispName = QString::fromStdString(stateMap->get("disp_name").toString());
+        } catch (...) {
+          errMessage = _("Failed to read the disp_name of the state.") + taskNameErr;
+          DDEBUG(errMessage.toStdString().c_str());
+          return false;
+        }
+        if (dispName.isEmpty()) {
+          errMessage = _("disp_name of the state is EMPTY.") + taskNameErr;
+          DDEBUG(errMessage.toStdString().c_str());
+          return false;
+        }
+      } else if (type == ELEMENT_COMMAND) {
+        try {
+          condition = QString::fromStdString(stateMap->get("condition").toString()).replace("|", "\n");
+        } catch (...) {
+          errMessage = _("Failed to read the condition of the state.") + taskNameErr;
+          DDEBUG(errMessage.toStdString().c_str());
+          return false;
+        }
+        if (condition.isEmpty()) {
+          errMessage = _("condition of the state is EMPTY.") + taskNameErr;
+          DDEBUG(errMessage.toStdString().c_str());
+          return false;
+        }
+      }
 
       int newId = taskParam->getMaxStateId();
       stateIdMap[id] = newId;
@@ -338,22 +367,36 @@ bool TeachingUtil::importTaskState(Mapping* taskMap, TaskModelParamPtr taskParam
       Listing* argList = stateMap->findListing("arguments");
       for (int idxArg = 0; idxArg < argList->size(); idxArg++) {
         Mapping* argMap = argList->at(idxArg)->toMapping();
-        int seq;
         QString name = "";
         QString valueDesc = "";
 
         try {
-          seq = argMap->get("seq").toInt();
+          name = QString::fromStdString(argMap->get("name").toString());
         } catch (...) {
-          errMessage = _("Failed to read the seq of the argument.") + taskNameErr;
+            errMessage = _("Failed to read the name of the argument.") + taskNameErr;
+            DDEBUG(errMessage.toStdString().c_str());
+            return false;
+        }
+        if (name.isEmpty()) {
+          errMessage = _("Name of the argument is EMPTY.") + taskNameErr;
           DDEBUG(errMessage.toStdString().c_str());
           return false;
         }
 
-        try { name = QString::fromStdString(argMap->get("name").toString()); } catch (...) {}
-        try { valueDesc = QString::fromStdString(argMap->get("value").toString()).replace("|", "\n"); } catch (...) {}
-        DDEBUG_V("seq : %d, name : %s, valueDesc : %s", seq, name.toStdString().c_str(), valueDesc.toStdString().c_str());
-        ArgumentParamPtr argParam = std::make_shared<ArgumentParam>(NULL_ID, seq, name, valueDesc);
+        try {
+          valueDesc = QString::fromStdString(argMap->get("value").toString()).replace("|", "\n");
+        } catch (...) {
+            errMessage = _("Failed to read the value of the argument.") + taskNameErr;
+            DDEBUG(errMessage.toStdString().c_str());
+            return false;
+        }
+        if (valueDesc.isEmpty()) {
+          errMessage = _("Value of the argument is EMPTY.") + taskNameErr;
+          DDEBUG(errMessage.toStdString().c_str());
+          return false;
+        }
+        DDEBUG_V("name : %s, valueDesc : %s", name.toStdString().c_str(), valueDesc.toStdString().c_str());
+        ArgumentParamPtr argParam = std::make_shared<ArgumentParam>(NULL_ID, idxArg+1, name, valueDesc);
         argParam->setNew();
         stateParam->addArgument(argParam);
       }
@@ -370,7 +413,9 @@ bool TeachingUtil::importTaskState(Mapping* taskMap, TaskModelParamPtr taskParam
   if (transList) {
     for (int idxTrans = 0; idxTrans < transList->size(); idxTrans++) {
       Mapping* transMap = transList->at(idxTrans)->toMapping();
-      int sourceId, targetId, sourceIndex, targetIndex;
+      int sourceId, targetId;
+      int sourceIndex = 0;
+      int targetIndex = 0;
 
       try {
         sourceId = transMap->get("source_id").toInt();
@@ -386,20 +431,9 @@ bool TeachingUtil::importTaskState(Mapping* taskMap, TaskModelParamPtr taskParam
         DDEBUG(errMessage.toStdString().c_str());
         return false;
       }
-      try {
-        sourceIndex = transMap->get("source_index").toInt();
-      } catch (...) {
-        errMessage = _("Failed to read the source_index of the transition.") + taskNameErr;
-        DDEBUG(errMessage.toStdString().c_str());
-        return false;
-      }
-      try {
-        targetIndex = transMap->get("target_index").toInt();
-      } catch (...) {
-        errMessage = _("Failed to read the target_index of the transition.") + taskNameErr;
-        DDEBUG(errMessage.toStdString().c_str());
-        return false;
-      }
+      try { sourceIndex = transMap->get("source_index").toInt(); } catch (...) {}
+      try { targetIndex = transMap->get("target_index").toInt(); } catch (...) {}
+
       int newSourceId = stateIdMap[sourceId];
       int newTargetId = stateIdMap[targetId];
       ConnectionStmParamPtr connParam = std::make_shared<ConnectionStmParam>(NULL_ID, 0, newSourceId, sourceIndex, newTargetId, targetIndex);
@@ -563,9 +597,13 @@ bool TeachingUtil::exportTask(QString& strFName, TaskModelParamPtr targetTask) {
   archive->setDoubleFormat("%.9g");
   MappingPtr taskNode = archive->newMapping();
   taskNode->write("taskName", targetTask->getName().toUtf8(), DOUBLE_QUOTED);
-  taskNode->write("comment", targetTask->getComment().replace("\n", "|").toUtf8(), DOUBLE_QUOTED);
-  //taskNode->write("comment", targetTask->getComment().toUtf8(), DOUBLE_QUOTED);
-  taskNode->write("initialize", targetTask->getExecEnv().replace("\n", "|").toUtf8(), DOUBLE_QUOTED);
+  if (0 < targetTask->getComment().length()) {
+    taskNode->write("comment", targetTask->getComment().replace("\n", "|").toUtf8(), DOUBLE_QUOTED);
+    //taskNode->write("comment", targetTask->getComment().toUtf8(), DOUBLE_QUOTED);
+  }
+  if (0 < targetTask->getExecEnv().length()) {
+    taskNode->write("initialize", targetTask->getExecEnv().replace("\n", "|").toUtf8(), DOUBLE_QUOTED);
+  }
   //
   vector<ModelParamPtr> modelList = targetTask->getActiveModelList();
   if (0 < modelList.size()) {
@@ -573,7 +611,7 @@ bool TeachingUtil::exportTask(QString& strFName, TaskModelParamPtr targetTask) {
     for (ModelParamPtr param : modelList) {
       MappingPtr modelNode = modelsNode->newMapping();
       modelNode->write("model_id", param->getId());
-      modelNode->write("rname", param->getRName().toUtf8(), DOUBLE_QUOTED);
+      modelNode->write("name", param->getRName().toUtf8(), DOUBLE_QUOTED);
 			modelNode->write("master_id", param->getMasterId());
 			string strType = "";
       int intType = param->getType();
@@ -585,13 +623,18 @@ bool TeachingUtil::exportTask(QString& strFName, TaskModelParamPtr targetTask) {
         strType = "Work";
       }
       modelNode->write("type", strType);
-      modelNode->write("pos_x", param->getPosX());
-      modelNode->write("pos_y", param->getPosY());
-      modelNode->write("pos_z", param->getPosZ());
-      modelNode->write("rot_x", param->getRotRx());
-      modelNode->write("rot_y", param->getRotRy());
-      modelNode->write("rot_z", param->getRotRz());
-      modelNode->write("hide", param->getHide());
+
+      Listing* posList = modelNode->createFlowStyleListing("pos");
+      posList->append(param->getPosX());
+      posList->append(param->getPosY());
+      posList->append(param->getPosZ());
+      posList->append(param->getRotRx());
+      posList->append(param->getRotRy());
+      posList->append(param->getRotRz());
+
+      if (param->getHide() == 1) {
+        modelNode->write("hide", true);
+      }
       //
 			bool isExist = false;
 			for(int idxMaster = 0; idxMaster < masterList.size(); idxMaster++) {
@@ -617,11 +660,14 @@ bool TeachingUtil::exportTask(QString& strFName, TaskModelParamPtr targetTask) {
       if (param->getType() == ELEMENT_COMMAND) {
         stateNode->write("cmd_name", param->getCmdName().toUtf8(), DOUBLE_QUOTED);
         stateNode->write("disp_name", param->getCmdDspName().toUtf8(), DOUBLE_QUOTED);
+      } else if (param->getType() == ELEMENT_DECISION) {
+        stateNode->write("condition", param->getCondition().replace("\n", "|").toUtf8(), DOUBLE_QUOTED);
       }
-      stateNode->write("condition", param->getCondition().replace("\n", "|").toUtf8(), DOUBLE_QUOTED);
-      stateNode->write("pos_x", param->getPosX());
-      stateNode->write("pos_y", param->getPosY());
-      //
+
+      Listing* posList = stateNode->createFlowStyleListing("pos");
+      posList->append(param->getPosX());
+      posList->append(param->getPosY());
+      ////////////
       vector<ElementStmActionParamPtr> actionList = param->getActiveStateActionList();
       if (0 <actionList.size()) {
         Listing* actionsNode = stateNode->createListing("model_actions");
@@ -642,7 +688,6 @@ bool TeachingUtil::exportTask(QString& strFName, TaskModelParamPtr targetTask) {
         for (int idxArg = 0; idxArg < argList.size(); idxArg++) {
 					ArgumentParamPtr argParam = argList[idxArg];
           MappingPtr argNode = argsNode->newMapping();
-          argNode->write("seq", argParam->getSeq());
           argNode->write("name", argParam->getName().toUtf8(), DOUBLE_QUOTED);
           argNode->write("value", argParam->getValueDesc().replace("\n", "|").toUtf8(), DOUBLE_QUOTED);
         }
@@ -658,8 +703,12 @@ bool TeachingUtil::exportTask(QString& strFName, TaskModelParamPtr targetTask) {
       MappingPtr connNode = connsNode->newMapping();
       connNode->write("source_id", param->getSourceId());
       connNode->write("target_id", param->getTargetId());
-      connNode->write("source_index", param->getSourceIndex());
-      connNode->write("target_index", param->getTargetIndex());
+      if (0 < param->getSourceIndex()) {
+        connNode->write("source_index", param->getSourceIndex());
+      }
+      if (0 < param->getTargetIndex()) {
+        connNode->write("target_index", param->getTargetIndex());
+      }
     }
   }
   //
@@ -668,15 +717,26 @@ bool TeachingUtil::exportTask(QString& strFName, TaskModelParamPtr targetTask) {
     Listing* paramsNode = taskNode->createListing("parameters");
     for (ParameterParamPtr param : paramList) {
       MappingPtr paramNode = paramsNode->newMapping();
-      paramNode->write("type", param->getType());
       paramNode->write("param_type", param->getParamType());
-      paramNode->write("name", param->getName().toUtf8(), DOUBLE_QUOTED);
-      paramNode->write("rname", param->getRName().toUtf8(), DOUBLE_QUOTED);
-      paramNode->write("units", param->getUnit().toUtf8(), DOUBLE_QUOTED);
+      paramNode->write("name", param->getRName().toUtf8(), DOUBLE_QUOTED);
+      paramNode->write("disp_name", param->getName().toUtf8(), DOUBLE_QUOTED);
+      if (0 < param->getUnit().length()) {
+        paramNode->write("units", param->getUnit().toUtf8(), DOUBLE_QUOTED);
+      }
       paramNode->write("values", param->getDBValues().toUtf8(), DOUBLE_QUOTED);
-			paramNode->write("model_id", param->getModelId());
-      paramNode->write("model_param_id", param->getModelParamId());
-      paramNode->write("hide", param->getHide());
+      int model_id = 0;
+      if(param->getType()==PARAM_KIND_MODEL) {
+        model_id = param->getModelId();
+      }
+			paramNode->write("model_id", model_id);
+      if(param->getType()==PARAM_KIND_MODEL) {
+        model_id = param->getModelId();
+        paramNode->write("model_param_id", param->getModelParamId());
+      }
+
+      if (param->getHide() == 1) {
+        paramNode->write("hide", true);
+      }
     }
   }
   //

@@ -22,7 +22,9 @@ bool TeachingUtil::exportFlow(QString& strFName, FlowParamPtr targetFlow) {
   archive->setDoubleFormat("%.9g");
   MappingPtr flowNode = archive->newMapping();
   flowNode->write("flowName", targetFlow->getName().toUtf8(), DOUBLE_QUOTED);
-  flowNode->write("comment", targetFlow->getComment().replace("\n", "|").toUtf8(), DOUBLE_QUOTED);
+  if (0 < targetFlow->getComment().length()) {
+    flowNode->write("comment", targetFlow->getComment().replace("\n", "|").toUtf8(), DOUBLE_QUOTED);
+  }
   //
   vector<ElementStmParamPtr> stateList = targetFlow->getActiveStateList();
   if (0 < stateList.size()) {
@@ -35,10 +37,12 @@ bool TeachingUtil::exportFlow(QString& strFName, FlowParamPtr targetFlow) {
         stateNode->write("task_id", param->getTaskParam()->getId());
         stateNode->write("task_name", param->getCmdDspName().toUtf8(), DOUBLE_QUOTED);
         taskList.push_back(param->getTaskParam());
+      } else if (param->getType() == ELEMENT_DECISION) {
+        stateNode->write("condition", param->getCondition().replace("\n", "|").toUtf8(), DOUBLE_QUOTED);
       }
-      stateNode->write("pos_x", param->getPosX());
-      stateNode->write("pos_y", param->getPosY());
-      stateNode->write("condition", param->getCondition().replace("\n", "|").toUtf8(), DOUBLE_QUOTED);
+      Listing* posList = stateNode->createFlowStyleListing("pos");
+      posList->append(param->getPosX());
+      posList->append(param->getPosY());
     }
   }
   //
@@ -51,8 +55,9 @@ bool TeachingUtil::exportFlow(QString& strFName, FlowParamPtr targetFlow) {
       modelNode->write("id", param->getId());
       modelNode->write("name", param->getName().toUtf8(), DOUBLE_QUOTED);
       modelNode->write("master_id", param->getMasterId());
-      modelNode->write("pos_x", param->getPosX());
-      modelNode->write("pos_y", param->getPosY());
+      Listing* posList = modelNode->createFlowStyleListing("pos");
+      posList->append(param->getPosX());
+      posList->append(param->getPosY());
       //
       int masterId = param->getMasterId();
       auto result = std::find(masterIdList.begin(), masterIdList.end(), masterId);
@@ -71,8 +76,9 @@ bool TeachingUtil::exportFlow(QString& strFName, FlowParamPtr targetFlow) {
       paramNode->write("type", param->getType());
       paramNode->write("name", param->getName().toUtf8(), DOUBLE_QUOTED);
       paramNode->write("value", param->getValue().toUtf8(), DOUBLE_QUOTED);
-      paramNode->write("pos_x", param->getPosX());
-      paramNode->write("pos_y", param->getPosY());
+      Listing* posList = paramNode->createFlowStyleListing("pos");
+      posList->append(param->getPosX());
+      posList->append(param->getPosY());
     }
   }
   //
@@ -85,8 +91,12 @@ bool TeachingUtil::exportFlow(QString& strFName, FlowParamPtr targetFlow) {
       connNode->write("type", param->getType());
       connNode->write("source_id", param->getSourceId());
       connNode->write("target_id", param->getTargetId());
-      connNode->write("source_index", param->getSourceIndex());
-      connNode->write("target_index", param->getTargetIndex());
+      if (0 < param->getSourceIndex()) {
+        connNode->write("source_index", param->getSourceIndex());
+      }
+      if (0 < param->getTargetIndex()) {
+        connNode->write("target_index", param->getTargetIndex());
+      }
     }
   }
   //
@@ -218,24 +228,51 @@ bool TeachingUtil::importFlow(QString& strFName, std::vector<FlowParamPtr>& flow
             DDEBUG(errMessage.toStdString().c_str());
             return false;
           }
-          try {
-            posX = stateMap->get("pos_x").toDouble();
-          } catch (...) {
-            errMessage = _("Failed to read the pos_x of the state.") + flowNameErr;
-            DDEBUG(errMessage.toStdString().c_str());
-            return false;
-          }
-          try {
-            posY = stateMap->get("pos_y").toDouble();
-          } catch (...) {
-            errMessage = _("Failed to read the pos_y of the state.") + flowNameErr;
-            DDEBUG(errMessage.toStdString().c_str());
-            return false;
-          }
-          try { condition = QString::fromStdString(stateMap->get("condition").toString()).replace("|", "\n"); } catch (...) {}
-          try { taskName = QString::fromStdString(stateMap->get("task_name").toString()); } catch (...) {}
-          try { task_id = stateMap->get("task_id").toInt(); } catch (...) {}
 
+          if (type == ELEMENT_COMMAND) {
+            try {
+              task_id = stateMap->get("task_id").toInt();
+            } catch (...) {
+              errMessage = _("Failed to read the task_id of the state.") + flowNameErr;
+              DDEBUG(errMessage.toStdString().c_str());
+              return false;
+            }
+            try {
+              taskName = QString::fromStdString(stateMap->get("task_name").toString());
+            } catch (...) {
+              errMessage = _("Failed to read the task_name of the state.") + flowNameErr;
+              DDEBUG(errMessage.toStdString().c_str());
+              return false;
+            }
+          } else if (type == ELEMENT_DECISION) {
+            try {
+              condition = QString::fromStdString(stateMap->get("condition").toString()).replace("|", "\n");
+            } catch (...) {
+              errMessage = _("Failed to read the condition of the state.") + flowNameErr;
+              DDEBUG(errMessage.toStdString().c_str());
+              return false;
+            }
+            if (condition.isEmpty()) {
+              errMessage = _("condition of the state is EMPTY.") + flowNameErr;
+              DDEBUG(errMessage.toStdString().c_str());
+              return false;
+            }
+          }
+
+          try {
+            Listing* pos = stateMap->get("pos").toListing();
+            if(pos->size() !=2 ) {
+              errMessage = _("Position(pos) of state is invalid.") + flowNameErr;
+              DDEBUG(errMessage.toStdString().c_str());
+              return false;
+            }
+            posX = pos->at(0)->toDouble();
+            posY = pos->at(1)->toDouble();
+          } catch (...) {
+            errMessage = _("Failed to read the pos of the state.") + flowNameErr;
+            DDEBUG(errMessage.toStdString().c_str());
+            return false;
+          }
           DDEBUG_V("task_name[%s]", taskName.toStdString().c_str());
           ElementStmParamPtr stateParam = std::make_shared<ElementStmParam>(id, type, taskName, taskName, posX, posY, condition);
           stateParam->setNew();
@@ -247,6 +284,7 @@ bool TeachingUtil::importFlow(QString& strFName, std::vector<FlowParamPtr>& flow
           if (importTask(targetFile, taskInstList, modelMasterList, errMessage)) {
             if (0 < taskInstList.size()) {
               TaskModelParamPtr task = taskInstList[0];
+              task->setName(taskName);
               QString eachName = task->getName();
               if (0 < eachName.length()) {
                 if (existName.contains(eachName)) {
@@ -272,11 +310,41 @@ bool TeachingUtil::importFlow(QString& strFName, std::vector<FlowParamPtr>& flow
           double posX, posY;
           QString name;
 
-          try { id = modelMap->get("id").toInt(); } catch (...) { continue; }
-          try { master_id = modelMap->get("master_id").toInt(); } catch (...) { continue; }
-          try { posX = modelMap->get("pos_x").toDouble(); } catch (...) { continue; }
-          try { posY = modelMap->get("pos_y").toDouble(); } catch (...) { continue; }
-          try { name = QString::fromStdString(modelMap->get("name").toString()); } catch (...) { continue; }
+          try {
+            id = modelMap->get("id").toInt();
+          } catch (...) {
+            errMessage = _("Failed to read the id of the FlowModelParameter.") + flowNameErr;
+            DDEBUG(errMessage.toStdString().c_str());
+            return false;
+          }
+          try {
+            master_id = modelMap->get("master_id").toInt();
+          } catch (...) {
+            errMessage = _("Failed to read the master_id of the FlowModelParameter.") + flowNameErr;
+            DDEBUG(errMessage.toStdString().c_str());
+            return false;
+          }
+          try {
+            name = QString::fromStdString(modelMap->get("name").toString());
+          } catch (...) {
+            errMessage = _("Failed to read the name of the FlowModelParameter.") + flowNameErr;
+            DDEBUG(errMessage.toStdString().c_str());
+            return false;
+          }
+          try {
+            Listing* pos = modelMap->get("pos").toListing();
+            if(pos->size() !=2 ) {
+              errMessage = _("Position(pos) of FlowModelParameter is invalid.") + flowNameErr;
+              DDEBUG(errMessage.toStdString().c_str());
+              return false;
+            }
+            posX = pos->at(0)->toDouble();
+            posY = pos->at(1)->toDouble();
+          } catch (...) {
+            errMessage = _("Failed to read the pos of the FlowModelParameter.") + flowNameErr;
+            DDEBUG(errMessage.toStdString().c_str());
+            return false;
+          }
 
           FlowModelParamPtr modelParam = std::make_shared<FlowModelParam>(id, master_id, name);
           modelParam->setPosX(posX);
@@ -295,12 +363,48 @@ bool TeachingUtil::importFlow(QString& strFName, std::vector<FlowParamPtr>& flow
           QString name, value;
           double posX, posY;
 
-          try { id = paramMap->get("id").toInt(); } catch (...) { continue; }
-          try { type = paramMap->get("type").toInt(); } catch (...) { continue; }
-          try { name = QString::fromStdString(paramMap->get("name").toString()); } catch (...) { continue; }
-          try { value = QString::fromStdString(paramMap->get("value").toString()); } catch (...) { continue; }
-          try { posX = paramMap->get("pos_x").toDouble(); } catch (...) { continue; }
-          try { posY = paramMap->get("pos_y").toDouble(); } catch (...) { continue; }
+          try {
+            id = paramMap->get("id").toInt();
+          } catch (...) {
+            errMessage = _("Failed to read the id of the FlowParameter.") + flowNameErr;
+            DDEBUG(errMessage.toStdString().c_str());
+            return false;
+          }
+          try {
+            type = paramMap->get("type").toInt();
+          } catch (...) {
+            errMessage = _("Failed to read the type of the FlowParameter.") + flowNameErr;
+            DDEBUG(errMessage.toStdString().c_str());
+            return false;
+          }
+          try {
+            name = QString::fromStdString(paramMap->get("name").toString());
+          } catch (...) {
+            errMessage = _("Failed to read the name of the FlowParameter.") + flowNameErr;
+            DDEBUG(errMessage.toStdString().c_str());
+            return false;
+          }
+          try {
+            value = QString::fromStdString(paramMap->get("value").toString());
+          } catch (...) {
+            errMessage = _("Failed to read the value of the FlowParameter.") + flowNameErr;
+            DDEBUG(errMessage.toStdString().c_str());
+            return false;
+          }
+          try {
+            Listing* pos = paramMap->get("pos").toListing();
+            if(pos->size() !=2 ) {
+              errMessage = _("Position(pos) of FlowParameter is invalid.") + flowNameErr;
+              DDEBUG(errMessage.toStdString().c_str());
+              return false;
+            }
+            posX = pos->at(0)->toDouble();
+            posY = pos->at(1)->toDouble();
+          } catch (...) {
+            errMessage = _("Failed to read the pos of the FlowParameter.") + flowNameErr;
+            DDEBUG(errMessage.toStdString().c_str());
+            return false;
+          }
 
           FlowParameterParamPtr paramParam = std::make_shared<FlowParameterParam>(id, type, name, value);
           paramParam->setPosX(posX);
@@ -319,7 +423,9 @@ bool TeachingUtil::importFlow(QString& strFName, std::vector<FlowParamPtr>& flow
       if (transList) {
         for (int idxTrans = 0; idxTrans < transList->size(); idxTrans++) {
           Mapping* transMap = transList->at(idxTrans)->toMapping();
-          int type, sourceId, targetId, sourceIndex, targetIndex;
+          int type, sourceId, targetId;
+          int sourceIndex = 0;
+          int targetIndex = 0;
 
           try {
             type = transMap->get("type").toInt();
@@ -342,20 +448,9 @@ bool TeachingUtil::importFlow(QString& strFName, std::vector<FlowParamPtr>& flow
             DDEBUG(errMessage.toStdString().c_str());
             return false;
           }
-          try {
-            sourceIndex = transMap->get("source_index").toInt();
-          } catch (...) {
-            errMessage = _("Failed to read the source_index of the transition.") + flowNameErr;
-            DDEBUG(errMessage.toStdString().c_str());
-            return false;
-          }
-          try {
-            targetIndex = transMap->get("target_index").toInt();
-          } catch (...) {
-            errMessage = _("Failed to read the target_index of the transition.") + flowNameErr;
-            DDEBUG(errMessage.toStdString().c_str());
-            return false;
-          }
+          try { sourceIndex = transMap->get("source_index").toInt(); } catch (...) {}
+          try { targetIndex = transMap->get("target_index").toInt(); } catch (...) {}
+
           ConnectionStmParamPtr connParam = std::make_shared<ConnectionStmParam>(NULL_ID, type, sourceId, sourceIndex, targetId, targetIndex);
           connParam->setNew();
           flowParam->addStmConnection(connParam);

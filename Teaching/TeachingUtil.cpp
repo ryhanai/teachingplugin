@@ -343,8 +343,31 @@ bool TeachingUtil::importMasterModel(Mapping* targetMap, vector<ModelMasterParam
 
           QString nameFet = "";
           QString valueFet = "";
-          try { nameFet = QString::fromStdString(featMap->get("name").toString()); } catch (...) {}
-          try { valueFet = QString::fromStdString(featMap->get("value").toString()); } catch (...) {}
+          try {
+            nameFet = QString::fromStdString(featMap->get("name").toString());
+          } catch (...) {
+            errMessage = _("Failed to read the name of the master feature. : ") + name;
+            DDEBUG(errMessage.toStdString().c_str());
+            return false;
+          }
+          if (nameFet.isEmpty()) {
+            errMessage = _("name of themaster feature is EMPTY. : ") + name;
+            DDEBUG(errMessage.toStdString().c_str());
+            return false;
+          }
+
+          try {
+            valueFet = QString::fromStdString(featMap->get("value").toString());
+          } catch (...) {
+            errMessage = _("Failed to read the value of the master feature. : ") + name;
+            DDEBUG(errMessage.toStdString().c_str());
+            return false;
+          }
+          if (valueFet.isEmpty()) {
+            errMessage = _("value of themaster feature is EMPTY. : ") + name;
+            DDEBUG(errMessage.toStdString().c_str());
+            return false;
+          }
 
           ModelParameterParamPtr featureParam = std::make_shared<ModelParameterParam>(NULL_ID, NULL_ID, nameFet, valueFet);
           featureParam->setNew();

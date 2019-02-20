@@ -142,6 +142,13 @@ void TeachingEventHandler::flv_FlowExportClicked(QString name, QString comment) 
 		QMessageBox::warning(flv_, _("Export Flow"), _("Please select target FLOW"));
 		return;
 	}
+  QString errMessage;
+  if (flv_->updateTargetFlowParam(errMessage) == false) {
+    if (EVENT_HANDLER(checkTest())) {
+      QMessageBox::warning(prd_, _("FlowView"), errMessage);
+    }
+    return;
+  }
 
 	QFileDialog::Options options;
 	QString strSelectedFilter;
@@ -155,6 +162,7 @@ void TeachingEventHandler::flv_FlowExportClicked(QString name, QString comment) 
 	if (flv_CurrentFlow_->getComment() != comment) {
 		flv_CurrentFlow_->setComment(comment);
 	}
+
 	bool ret = TeachingUtil::exportFlow(strFName, flv_CurrentFlow_);
 	if (ret == false) {
 		QMessageBox::warning(flv_, _("Export Flow"), _("target FLOW export FAILED"));
@@ -255,7 +263,7 @@ void TeachingEventHandler::flv_FlowImportClicked() {
 	flv_CurrentFlow_ = TeachingDataHolder::instance()->reGetFlowById(flv_CurrentFlow_->getId());
 	flv_->dispView(flv_CurrentFlow_);
 
-	QMessageBox::information(flv_, _("Import Flow"), _(" FLOW imported"));
+	QMessageBox::information(flv_, _("Import Flow"), _("FLOW imported"));
 }
 
 bool TeachingEventHandler::flv_RegistFlowClicked(QString name, QString comment) {

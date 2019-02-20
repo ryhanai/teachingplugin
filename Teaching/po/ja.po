@@ -811,12 +811,12 @@ msgid "Task Name is EMPTY."
 msgstr "対象タスクの名称(taskName)が設定されていません"
 
 #: TeachingUtil.cpp:68
-msgid "Failed to read the rname of the task model."
-msgstr "タスクモデルのId(rname)の読み込みに失敗しました"
+msgid "Failed to read the name of the task model."
+msgstr "タスクモデルの名称(name)の読み込みに失敗しました"
 
 #: TeachingUtil.cpp:80
-msgid "rname of the task model is EMPTY."
-msgstr "タスクモデルの名称(rname)が設定されていません"
+msgid "name of the task model is EMPTY."
+msgstr "タスクモデルの名称(name)が設定されていません"
 
 #: TeachingUtil.cpp:80
 msgid "Failed to read the model_id of the task model."
@@ -831,44 +831,32 @@ msgid "Failed to read the model_type of the task model."
 msgstr "タスクモデルのモデル型(model_type)の読み込みに失敗しました"
 
 #: TeachingUtil.cpp:68
-msgid "Failed to read the pos_x of the task model."
-msgstr "タスクモデルの位置・姿勢(pos_x)の読み込みに失敗しました"
+msgid "Failed to read the position of the task model."
+msgstr "タスクモデルの位置・姿勢(pos)の読み込みに失敗しました"
 
 #: TeachingUtil.cpp:68
-msgid "Failed to read the pos_y of the task model."
-msgstr "タスクモデルの位置・姿勢(pos_y)の読み込みに失敗しました"
+msgid "Position(pos) of task model is invalid."
+msgstr "タスクモデルの位置・姿勢(pos)が不正です"
 
 #: TeachingUtil.cpp:68
-msgid "Failed to read the pos_z of the task model."
-msgstr "タスクモデルの位置・姿勢(pos_z)の読み込みに失敗しました"
+msgid "Failed to read the disp_name of the task parameter."
+msgstr "タスクパラメータの表示名(disp_name)の読み込みに失敗しました"
 
 #: TeachingUtil.cpp:68
-msgid "Failed to read the rot_x of the task model."
-msgstr "タスクモデルの位置・姿勢(rot_x)の読み込みに失敗しました"
+msgid "Failed to read the name of the task parameter."
+msgstr "タスクパラメータの名称(name)の読み込みに失敗しました"
 
 #: TeachingUtil.cpp:68
-msgid "Failed to read the rot_y of the task model."
-msgstr "タスクモデルの位置・姿勢(rot_y)の読み込みに失敗しました"
+msgid "name of the task parameter is EMPTY."
+msgstr "タスクパラメータの名称(name)が設定されていません"
 
 #: TeachingUtil.cpp:68
-msgid "Failed to read the rot_z of the task model."
-msgstr "タスクモデルの位置・姿勢(rot_z)の読み込みに失敗しました"
+msgid "Failed to read the param_type of the task parameter."
+msgstr "タスクパラメータの型(param_type)の読み込みに失敗しました"
 
 #: TeachingUtil.cpp:68
-msgid "Failed to read the rname of the task parameter."
-msgstr "タスクパラメータのId(rname)の読み込みに失敗しました"
-
-#: TeachingUtil.cpp:68
-msgid "Rname of the task parameter is EMPTY."
-msgstr "タスクパラメータのId(rname)が設定されていません"
-
-#: TeachingUtil.cpp:68
-msgid "Failed to read the type of the task parameter."
-msgstr "タスクパラメータの型(type)の読み込みに失敗しました"
-
-#: TeachingUtil.cpp:68
-msgid "Failed to read the elem_num of the task parameter."
-msgstr "タスクパラメータの要素数(elem_num)の読み込みに失敗しました"
+msgid "Failed to read the model_id of the task parameter."
+msgstr "タスクパラメータのモデルId(model_id)の読み込みに失敗しました"
 
 #: TeachingUtil.cpp:68
 msgid "Failed to read the id of the state."
@@ -879,12 +867,36 @@ msgid "Failed to read the type of the state."
 msgstr "状態のタイプ(type)の読み込みに失敗しました"
 
 #: TeachingUtil.cpp:68
-msgid "Failed to read the pos_x of the state."
-msgstr "状態の位置情報(pos_x)の読み込みに失敗しました"
+msgid "Position(pos) of state is invalid."
+msgstr "状態の位置情報(pos)が不正です"
 
 #: TeachingUtil.cpp:68
-msgid "Failed to read the pos_y of the state."
-msgstr "状態の位置情報(pos_y)の読み込みに失敗しました"
+msgid "Failed to read the pos of the state."
+msgstr "状態の位置情報(pos)の読み込みに失敗しました"
+
+#: TeachingUtil.cpp:68
+msgid "Failed to read the cmd_name of the state."
+msgstr "状態のコマンド名(cmd_name)の読み込みに失敗しました"
+
+#: TeachingUtil.cpp:68
+msgid "cmd_name of the state is EMPTY."
+msgstr "状態のコマンド名(cmd_name)が設定されていません"
+
+#: TeachingUtil.cpp:68
+msgid "Failed to read the disp_name of the state."
+msgstr "状態のコマンド表示名(disp_name)の読み込みに失敗しました"
+
+#: TeachingUtil.cpp:68
+msgid "disp_name of the state is EMPTY."
+msgstr "状態のコマンド表示名(disp_name)が設定されていません"
+
+#: TeachingUtil.cpp:68
+msgid "Failed to read the condition of the state."
+msgstr "状態の条件(condition)の読み込みに失敗しました"
+
+#: TeachingUtil.cpp:68
+msgid "condition of the state is EMPTY."
+msgstr "状態のコマンド条件(condition)が設定されていません"
 
 #: TeachingUtil.cpp:68
 msgid "Failed to read the action of the state action."
@@ -903,8 +915,20 @@ msgid "Model of the state action is EMPTY."
 msgstr "状態アクションのモデル名(model)が設定されていません"
 
 #: TeachingUtil.cpp:68
-msgid "Failed to read the seq of the argument."
-msgstr "引数情報の順番(seq)の読み込みに失敗しました"
+msgid "Failed to read the name of the argument."
+msgstr "引数名(name)の読み込みに失敗しました"
+
+#: TeachingUtil.cpp:68
+msgid "Name of the argument is EMPTY."
+msgstr "引数名(name)が設定されていません"
+
+#: TeachingUtil.cpp:68
+msgid "Failed to read the value of the argument."
+msgstr "引数値(value)の読み込みに失敗しました"
+
+#: TeachingUtil.cpp:68
+msgid "Value of the argument is EMPTY."
+msgstr "引数値(value)が設定されていません"
 
 #: TeachingUtil.cpp:68
 msgid "Failed to read the source_id of the transition."
@@ -915,12 +939,76 @@ msgid "Failed to read the target_id of the transition."
 msgstr "遷移情報のtarget_idの読み込みに失敗しました"
 
 #: TeachingUtil.cpp:68
-msgid "Failed to read the source_index of the transition."
-msgstr "遷移情報のsource_indexの読み込みに失敗しました"
+msgid "Failed to read the task_id of the state."
+msgstr "タスクIDの読み込みに失敗しました"
 
 #: TeachingUtil.cpp:68
-msgid "Failed to read the target_index of the transition."
-msgstr "遷移情報のtarget_indexの読み込みに失敗しました"
+msgid "Failed to read the task_name of the state."
+msgstr "タスク表示名の読み込みに失敗しました"
+
+#: TeachingUtil.cpp:68
+msgid "Failed to read the id of the FlowModelParameter."
+msgstr "フローモデルパラメータのIdの読み込みに失敗しました"
+
+#: TeachingUtil.cpp:68
+msgid "Failed to read the name of the FlowModelParameter."
+msgstr "フローモデルパラメータの名称(name)の読み込みに失敗しました"
+
+#: TeachingUtil.cpp:68
+msgid "Failed to read the master_id of the FlowModelParameter."
+msgstr "フローモデルパラメータのマスタId(master_id)の読み込みに失敗しました"
+
+#: TeachingUtil.cpp:68
+msgid "Position(pos) of FlowModelParameter is invalid."
+msgstr "フローモデルパラメータの位置情報(pos)が不正です"
+
+#: TeachingUtil.cpp:68
+msgid "Failed to read the pos of the FlowModelParameter."
+msgstr "フローモデルパラメータの位置情報(pos)の読み込みに失敗しました"
+
+#: TeachingUtil.cpp:68
+msgid "Failed to read the id of the FlowParameter."
+msgstr "フローパラメータのIdの読み込みに失敗しました"
+
+#: TeachingUtil.cpp:68
+msgid "Failed to read the type of the FlowParameter."
+msgstr "フローパラメータの型情報(type)の読み込みに失敗しました"
+
+#: TeachingUtil.cpp:68
+msgid "Failed to read the name of the FlowParameter."
+msgstr "フローパラメータの名称(name)の読み込みに失敗しました"
+
+#: TeachingUtil.cpp:68
+msgid "Failed to read the value of the FlowParameter."
+msgstr "フローパラメータの値(value)の読み込みに失敗しました"
+
+#: TeachingUtil.cpp:68
+msgid "Position(pos) of FlowParameter is invalid."
+msgstr "フローパラメータの位置情報(pos)が不正です"
+
+#: TeachingUtil.cpp:68
+msgid "Failed to read the pos of the FlowParameter."
+msgstr "フローパラメータの位置情報(pos)の読み込みに失敗しました"
+
+#: TeachingUtil.cpp:68
+msgid "target FLOW export FAILED"
+msgstr "フローのエクスポートに失敗しました"
+
+#: TeachingUtil.cpp:68
+msgid "target FLOW exported"
+msgstr "対象フローをエクスポートしました"
+
+#: TeachingUtil.cpp:68
+msgid "FLOW import FAILED"
+msgstr "フローのインポートに失敗しました"
+
+#: TeachingUtil.cpp:68
+msgid "FLOW save FAILED"
+msgstr "フローの保存に失敗しました"
+
+#: TeachingUtil.cpp:68
+msgid "FLOW imported"
+msgstr "フロー情報をインポートしました"
 
 #: TeachingUtil.cpp:68
 msgid "Failed to read the name of the file."
@@ -953,6 +1041,22 @@ msgstr "モデルマスタの名称(name)の読み込みに失敗しました"
 #: TeachingUtil.cpp:68
 msgid "Failed to read the file_name of the modelMaster."
 msgstr "モデルマスタのファイル名(file_name)の読み込みに失敗しました"
+
+#: TeachingUtil.cpp:68
+msgid "Failed to read the name of the master feature."
+msgstr "モデルマスタのフィーチャー名(name)の読み込みに失敗しました"
+
+#: TeachingUtil.cpp:68
+msgid "name of themaster feature is EMPTY."
+msgstr "モデルマスタのフィーチャー名(name)が設定されていません"
+
+#: TeachingUtil.cpp:68
+msgid "Failed to read the value of the master feature."
+msgstr "モデルマスタのフィーチャー定義(value)の読み込みに失敗しました"
+
+#: TeachingUtil.cpp:68
+msgid "value of themaster feature is EMPTY."
+msgstr "モデルマスタのフィーチャー定義(value)が設定されていません"
 
 #: TeachingUtil.cpp:68
 msgid "Failed to read the flowName of the flow."
