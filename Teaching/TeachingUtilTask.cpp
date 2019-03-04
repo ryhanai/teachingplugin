@@ -214,7 +214,18 @@ bool TeachingUtil::importTaskParameter(Mapping* taskMap, TaskModelParamPtr taskP
       }
 
       try { paramUnit = QString::fromStdString(paramMap->get("units").toString()); } catch (...) {}
-      try { paramValue = QString::fromStdString(paramMap->get("values").toString()); } catch (...) {}
+      try {
+        Listing* values = paramMap->get("values").toListing();
+        for(int index=0; index<values->size(); index++) {
+          if (0 < index) paramValue.append(",");
+          if (paramType == PARAM_TYPE_INTEGER) {
+            paramValue.append(QString::number(values->at(index)->toInt()));
+          } else {
+            paramValue.append(QString::number(values->at(index)->toDouble(), 'f', 6));
+          }
+        }
+      } catch (...) {
+      }
       try { model_param_id = paramMap->get("model_param_id").toInt(); } catch (...) {}
 
       try {
@@ -723,7 +734,18 @@ bool TeachingUtil::exportTask(QString& strFName, TaskModelParamPtr targetTask) {
       if (0 < param->getUnit().length()) {
         paramNode->write("units", param->getUnit().toUtf8(), DOUBLE_QUOTED);
       }
-      paramNode->write("values", param->getDBValues().toUtf8(), DOUBLE_QUOTED);
+      //
+      Listing* valueList = paramNode->createFlowStyleListing("values");
+      QString strValues = param->getDBValues().toUtf8();
+      QStringList listValue = strValues.split(","); 
+      for (int index=0; index<listValue.count(); index++) {
+        if(param->getParamType()==PARAM_TYPE_INTEGER) {
+          valueList->append(listValue.at(index).toInt());
+        } else {
+          valueList->append(listValue.at(index).toDouble());
+        }
+      }
+      //
       int model_id = 0;
       if(param->getType()==PARAM_KIND_MODEL) {
         model_id = param->getModelId();

@@ -17,77 +17,6 @@ using namespace boost;
 
 namespace teaching {
 
-//ModelParameterGroup::ModelParameterGroup(ParameterParamPtr source, ModelParamPtr model, QHBoxLayout* layout, QWidget* parent)
-//  : targetParam_(source), targetModel_(model),
-//  currentBodyItem_(0),
-//  updateKinematicStateLater(bind(&ModelParameterGroup::updateKinematicState, this, true), IDLE_PRIORITY_LOW),
-//  QWidget(parent) {
-//  leX_ = new QLineEdit;
-//  leX_->setText(QString::number(model->getPosX(), 'f', 4));
-//  layout->addWidget(leX_);
-//  source->addControl(leX_);
-//  //
-//  leY_ = new QLineEdit;
-//  leY_->setText(QString::number(model->getPosY(), 'f', 4));
-//  layout->addWidget(leY_);
-//  source->addControl(leY_);
-//  //
-//  leZ_ = new QLineEdit;
-//  leZ_->setText(QString::number(model->getPosZ(), 'f', 4));
-//  layout->addWidget(leZ_);
-//  source->addControl(leZ_);
-//  //
-//  leRx_ = new QLineEdit;
-//  leRx_->setText(QString::number(model->getRotRx(), 'f', 4));
-//  layout->addWidget(leRx_);
-//  source->addControl(leRx_);
-//  //
-//  leRy_ = new QLineEdit;
-//  leRy_->setText(QString::number(model->getRotRy(), 'f', 4));
-//  layout->addWidget(leRy_);
-//  source->addControl(leRy_);
-//  //
-//  leRz_ = new QLineEdit;
-//  leRz_->setText(QString::number(model->getRotRz(), 'f', 4));
-//  layout->addWidget(leRz_);
-//  source->addControl(leRz_);
-//
-//  if (targetModel_->getModelMaster()==NULL || targetModel_->getModelMaster()->getModelItem() == NULL) {
-//    return;
-//  }
-//  currentBodyItem_ = targetModel_->getModelMaster()->getModelItem().get();
-//  connectionToKinematicStateChanged = targetModel_->getModelMaster()->getModelItem().get()->sigKinematicStateChanged().connect(updateKinematicStateLater);
-//}
-//
-//void ModelParameterGroup::updateKinematicState(bool blockSignals) {
-//  if (currentBodyItem_) {
-//    Link* currentLink = currentBodyItem_->body()->rootLink();
-//    targetModel_->setPosX(currentLink->p()[0]);
-//    targetModel_->setPosY(currentLink->p()[1]);
-//    targetModel_->setPosZ(currentLink->p()[2]);
-//
-//    const Matrix3 R = currentLink->attitude();
-//    const Vector3 rpy = rpyFromRot(R);
-//    targetModel_->setRotRx(degree(rpy[0]));
-//    targetModel_->setRotRy(degree(rpy[1]));
-//    targetModel_->setRotRz(degree(rpy[2]));
-//
-//    leX_->setText(QString::number(targetModel_->getPosX(), 'f', 4));
-//    leY_->setText(QString::number(targetModel_->getPosY(), 'f', 4));
-//    leZ_->setText(QString::number(targetModel_->getPosZ(), 'f', 4));
-//    leRx_->setText(QString::number(targetModel_->getRotRx(), 'f', 4));
-//    leRy_->setText(QString::number(targetModel_->getRotRy(), 'f', 4));
-//    leRz_->setText(QString::number(targetModel_->getRotRz(), 'f', 4));
-//  }
-//}
-//
-//void ModelParameterGroup::disconnectKinematics() {
-//  DDEBUG("ModelParameterGroup::disconnectKinematics");
-//  if (connectionToKinematicStateChanged.connected()) {
-//    connectionToKinematicStateChanged.disconnect();
-//  }
-//}
-/////
  ParameterViewImpl::ParameterViewImpl(QWidget* parent)
    : btnEdit(0), canEdit_(true), isFlowView_(false), QWidget(parent) {
 	TeachingEventHandler::instance()->prv_Loaded(this);
@@ -123,7 +52,7 @@ namespace teaching {
   QVBoxLayout* mainLayout = new QVBoxLayout;
   mainLayout->addWidget(topFrame);
 
-  for(ParameterParamPtr targetParam : param->getActiveParameterList()) {
+  for (ParameterParamPtr targetParam : param->getActiveParameterList()) {
     targetParam->setActive(false);
     if (targetParam->getType() == PARAM_KIND_MODEL) continue;
     //if (isFlowView && targetParam->getHide() == 0) continue;
@@ -144,40 +73,27 @@ namespace teaching {
 
     QLabel* lblName = new QLabel(targetParam->getName());
     eachLayout->addWidget(lblName);
-		if (targetParam->getHide() != 0) {
-			QPalette pal = lblName->palette();
-			pal.setColor(QPalette::WindowText, Qt::red);
-			lblName->setPalette(pal);
-		}
+    if (targetParam->getHide() != 0) {
+      QPalette pal = lblName->palette();
+      pal.setColor(QPalette::WindowText, Qt::red);
+      lblName->setPalette(pal);
+    }
 
-    //if (targetParam->getType() == PARAM_KIND_MODEL) {
-    //  vector<ModelParamPtr> modelList = param->getActiveModelList();
-    //  for (int index = 0; index < modelList.size(); index++) {
-    //    ModelParamPtr model = modelList[index];
-    //    if (model->getId() == targetParam->getModelId()) {
-    //      ModelParameterGroupPtr modelParam = std::make_shared<ModelParameterGroup>(targetParam, model, eachLayout);
-    //      modelList_.push_back(modelParam);
-    //      break;
-    //    }
-    //  }
-
-    //} else {
-      int elem_num = 1;
-      //DDEBUG_V("ParamType: %d", targetParam->getParamType());
-      if (targetParam->getParamType() == PARAM_TYPE_FRAME) elem_num = 6;
-      for (int index = 0; index < elem_num; index++) {
-        QLineEdit* txtEach;
-        if (index < targetParam->getControlNum()) {
-          txtEach = targetParam->getControl(index);
-        } else {
-          txtEach = new QLineEdit;
-          targetParam->addControl(txtEach);
-        }
-        txtEach->setText(QString::fromStdString(targetParam->getValues(index)).trimmed());
-        eachLayout->addWidget(txtEach);
-        textList_.push_back(txtEach);
+    int elem_num = 1;
+    //DDEBUG_V("ParamType: %d", targetParam->getParamType());
+    if (targetParam->getParamType() == PARAM_TYPE_FRAME) elem_num = 6;
+    for (int index = 0; index < elem_num; index++) {
+      QLineEdit* txtEach;
+      if (index < targetParam->getControlNum()) {
+        txtEach = targetParam->getControl(index);
+      } else {
+        txtEach = new QLineEdit;
+        targetParam->addControl(txtEach);
       }
-    //}
+      txtEach->setText(QString::fromStdString(targetParam->getValues(index)).trimmed());
+      eachLayout->addWidget(txtEach);
+      textList_.push_back(txtEach);
+    }
     QLabel* lblUnit = new QLabel(targetParam->getUnit());
     eachLayout->addWidget(lblUnit);
     eachLayout->addStretch();
@@ -204,13 +120,6 @@ void ParameterViewImpl::clearView() {
     }
 		textList_.clear();
 		//
-    //vector<ModelParameterGroupPtr>::iterator itModel = modelList_.begin();
-    //while (itModel != modelList_.end()) {
-    //  (*itModel)->disconnectKinematics();
-    //  ++itModel;
-    //}
-    //modelList_.clear();
-    //
     vector<QFrame*>::iterator itFrame = frameList_.begin();
 		while (itFrame != frameList_.end()) {
       layout()->removeWidget(*itFrame);

@@ -75,7 +75,18 @@ bool TeachingUtil::exportFlow(QString& strFName, FlowParamPtr targetFlow) {
       paramNode->write("id", param->getId());
       paramNode->write("type", param->getType());
       paramNode->write("name", param->getName().toUtf8(), DOUBLE_QUOTED);
-      paramNode->write("value", param->getValue().toUtf8(), DOUBLE_QUOTED);
+
+      Listing* valueList = paramNode->createFlowStyleListing("value");
+      QString strValues = param->getValue().toUtf8();
+      QStringList listValue = strValues.split(","); 
+      for (int index=0; index<listValue.count(); index++) {
+        if(param->getType()==PARAM_TYPE_INTEGER) {
+          valueList->append(listValue.at(index).toInt());
+        } else {
+          valueList->append(listValue.at(index).toDouble());
+        }
+      }
+
       Listing* posList = paramNode->createFlowStyleListing("pos");
       posList->append(param->getPosX());
       posList->append(param->getPosY());
@@ -385,7 +396,15 @@ bool TeachingUtil::importFlow(QString& strFName, std::vector<FlowParamPtr>& flow
             return false;
           }
           try {
-            value = QString::fromStdString(paramMap->get("value").toString());
+            Listing* values = paramMap->get("value").toListing();
+            for(int index=0; index<values->size(); index++) {
+              if (0 < index) value.append(",");
+              if (type == PARAM_TYPE_INTEGER) {
+                value.append(QString::number(values->at(index)->toInt()));
+              } else {
+                value.append(QString::number(values->at(index)->toDouble(), 'f', 6));
+              }
+            }
           } catch (...) {
             errMessage = _("Failed to read the value of the FlowParameter.") + flowNameErr;
             DDEBUG(errMessage.toStdString().c_str());
