@@ -4,6 +4,7 @@
 #include <cnoid/YAMLWriter>
 
 #include "DataBaseManager.h"
+#include "TeachingDataHolder.h"
 #include "LoggerUtil.h"
 #include "gettext.h"
 
@@ -47,6 +48,7 @@ bool TeachingUtil::exportFlow(QString& strFName, FlowParamPtr targetFlow) {
   }
   //
   vector<FlowModelParamPtr> modelList = targetFlow->getActiveModelList();
+	vector<ModelMasterParamPtr> modelMasterList = TeachingDataHolder::instance()->getModelMasterList();
 	vector<int> masterIdList;
   if (0 < modelList.size()) {
     Listing* modelsNode = flowNode->createListing("models");
@@ -54,7 +56,11 @@ bool TeachingUtil::exportFlow(QString& strFName, FlowParamPtr targetFlow) {
       MappingPtr modelNode = modelsNode->newMapping();
       modelNode->write("id", param->getId());
       modelNode->write("name", param->getName().toUtf8(), DOUBLE_QUOTED);
-      modelNode->write("master_id", param->getMasterId());
+
+      vector<ModelMasterParamPtr>::iterator masterParamItr = find_if(modelMasterList.begin(), modelMasterList.end(), ModelMasterComparator(param->getMasterId()));
+      if (masterParamItr == modelMasterList.end()) continue;
+      modelNode->write("master_name", (*masterParamItr)->getName().toUtf8(), DOUBLE_QUOTED);
+
       Listing* posList = modelNode->createFlowStyleListing("pos");
       posList->append(param->getPosX());
       posList->append(param->getPosY());
@@ -76,15 +82,17 @@ bool TeachingUtil::exportFlow(QString& strFName, FlowParamPtr targetFlow) {
       paramNode->write("type", param->getType());
       paramNode->write("name", param->getName().toUtf8(), DOUBLE_QUOTED);
 
-      Listing* valueList = paramNode->createFlowStyleListing("value");
-      QString strValues = param->getValue().toUtf8();
-      QStringList listValue = strValues.split(","); 
-      for (int index=0; index<listValue.count(); index++) {
-        if(param->getType()==PARAM_TYPE_INTEGER) {
-          valueList->append(listValue.at(index).toInt());
-        } else {
+      if (param->getType() == PARAM_TYPE_FRAME) {
+        Listing* valueList = paramNode->createFlowStyleListing("value");
+        QString strValues = param->getValue().toUtf8();
+        QStringList listValue = strValues.split(",");
+        for (int index = 0; index < listValue.count(); index++) {
           valueList->append(listValue.at(index).toDouble());
         }
+      } else if (param->getType() == PARAM_TYPE_INTEGER) {
+          paramNode->write("value", param->getValue().toUtf8().toInt());
+      } else {
+        paramNode->write("value", param->getValue().toUtf8().toDouble());
       }
 
       Listing* posList = paramNode->createFlowStyleListing("pos");
@@ -313,13 +321,14 @@ bool TeachingUtil::importFlow(QString& strFName, std::vector<FlowParamPtr>& flow
       }
       DDEBUG("Load States Finished");
       //
+    	vector<ModelMasterParamPtr> modelMasterList = TeachingDataHolder::instance()->getModelMasterList();
       Listing* modelList = flowMap->findListing("models");
       if (modelList) {
         for (int idxModel = 0; idxModel < modelList->size(); idxModel++) {
           Mapping* modelMap = modelList->at(idxModel)->toMapping();
-          int id, master_id;
+          int id;
           double posX, posY;
-          QString name;
+          QString name, master_name;
 
           try {
             id = modelMap->get("id").toInt();
@@ -329,9 +338,9 @@ bool TeachingUtil::importFlow(QString& strFName, std::vector<FlowParamPtr>& flow
             return false;
           }
           try {
-            master_id = modelMap->get("master_id").toInt();
+            master_name = QString::fromStdString(modelMap->get("master_name").toString());
           } catch (...) {
-            errMessage = _("Failed to read the master_id of the FlowModelParameter.") + flowNameErr;
+            errMessage = _("Failed to read the master_name of the FlowModelParameter.") + flowNameErr;
             DDEBUG(errMessage.toStdString().c_str());
             return false;
           }
@@ -357,7 +366,10 @@ bool TeachingUtil::importFlow(QString& strFName, std::vector<FlowParamPtr>& flow
             return false;
           }
 
-          FlowModelParamPtr modelParam = std::make_shared<FlowModelParam>(id, master_id, name);
+          vector<ModelMasterParamPtr>::iterator masterParamItr = find_if(modelMasterList.begin(), modelMasterList.end(), ModelMasterComparatorByName(master_name));
+          if (masterParamItr == modelMasterList.end()) continue;
+
+          FlowModelParamPtr modelParam = std::make_shared<FlowModelParam>(id, (*masterParamItr)->getId(), name);
           modelParam->setPosX(posX);
           modelParam->setPosY(posY);
           modelParam->setNew();
@@ -396,17 +408,25 @@ bool TeachingUtil::importFlow(QString& strFName, std::vector<FlowParamPtr>& flow
             return false;
           }
           try {
-            Listing* values = paramMap->get("value").toListing();
-            for(int index=0; index<values->size(); index++) {
-              if (0 < index) value.append(",");
-              if (type == PARAM_TYPE_INTEGER) {
-                value.append(QString::number(values->at(index)->toInt()));
-              } else {
-                value.append(QString::number(values->at(index)->toDouble(), 'f', 6));
+            if (type == PARAM_TYPE_FRAME) {
+              Listing* values = paramMap->get("value").toListing();
+              for (int index = 0; index < values->size(); index++) {
+                if (0 < index) value.append(",");
+                if (type == PARAM_TYPE_INTEGER) {
+                  value.append(QString::number(values->at(index)->toInt()));
+                } else {
+                  value.append(QString::number(values->at(index)->toDouble(), 'f', 6));
+                }
               }
+            } else if (type == PARAM_TYPE_INTEGER) {
+              int intValue = paramMap->get("value").toInt();
+              value = QString::number(intValue);
+            } else {
+              double dblValue = paramMap->get("value").toDouble();
+              value = QString::number(dblValue, 'f', 6);
             }
           } catch (...) {
-            errMessage = _("Failed to read the value of the FlowParameter.") + flowNameErr;
+            errMessage = _("Failed to read the value of the FlowParameter.") + flowNameErr + ":" + name;
             DDEBUG(errMessage.toStdString().c_str());
             return false;
           }

@@ -149,6 +149,16 @@ struct ModelMasterComparator {
   }
 };
 
+struct ModelMasterComparatorByName {
+  QString name_;
+  ModelMasterComparatorByName(QString value) {
+    name_ = value;
+  }
+  bool operator()(const ModelMasterParamPtr elem) const {
+    return elem->getName() == name_;
+  }
+};
+
 struct ModelMasterParamComparator {
 	int id_;
   ModelMasterParamComparator(int value) {

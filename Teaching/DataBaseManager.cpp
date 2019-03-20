@@ -400,6 +400,7 @@ bool DatabaseManager::saveTaskModel(TaskModelParamPtr source) {
 }
 /////
 bool DatabaseManager::saveDetailData(TaskModelParamPtr source) {
+  DDEBUG("DatabaseManager::saveDetailData");
   vector<ModelParamPtr> modelList = source->getModelList();
   vector<ModelParamPtr>::iterator itModel = modelList.begin();
   while (itModel != modelList.end()) {
@@ -409,6 +410,7 @@ bool DatabaseManager::saveDetailData(TaskModelParamPtr source) {
     }
     ++itModel;
   }
+  DDEBUG("DatabaseManager::saveDetailData ModelParam Saved");
   //
   vector<ImageDataParamPtr> imageList = source->getImageList();
   vector<ImageDataParamPtr>::iterator itImage = imageList.begin();
@@ -419,6 +421,7 @@ bool DatabaseManager::saveDetailData(TaskModelParamPtr source) {
     }
     ++itImage;
   }
+  DDEBUG("DatabaseManager::saveDetailData Image Saved");
   //
   vector<FileDataParamPtr> fileList = source->getFileList();
   vector<FileDataParamPtr>::iterator itFile = fileList.begin();
@@ -429,16 +432,22 @@ bool DatabaseManager::saveDetailData(TaskModelParamPtr source) {
     }
     ++itFile;
   }
+  DDEBUG("DatabaseManager::saveDetailData File Saved");
   //
   vector<ParameterParamPtr> paramList = source->getParameterList();
   vector<ParameterParamPtr>::iterator itParam = paramList.begin();
   while (itParam != paramList.end()) {
+    if (0 < (*itParam)->getModelName().length()) {
+      ModelParamPtr model = source->getModelParamByName((*itParam)->getModelName());
+      (*itParam)->setModelId(model->getId());
+    }
     if (saveTaskParameterData(source->getId(), *itParam) == false) {
       db_.rollback();
       return false;
     }
     ++itParam;
   }
+  DDEBUG("DatabaseManager::saveDetailData ParameterParam Saved");
   //
   vector<ElementStmParamPtr> stateList = source->getStmElementList();
   vector<ElementStmParamPtr>::iterator itState = stateList.begin();

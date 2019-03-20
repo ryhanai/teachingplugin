@@ -169,17 +169,6 @@ bool TeachingEventHandler::tiv_TaskImportClicked() {
       }
       return false;
     }
-    //
-    for (TaskModelParamPtr task : taskInstList) {
-      for (ModelParamPtr model : task->getModelList()) {
-        for (ModelMasterParamPtr master : masterList) {
-          if (model->getMasterId() == master->getId()) {
-            model->setModelMaster(master);
-            break;
-          }
-        }
-      }
-    }
     //モデルマスタのチェック
     for (ModelMasterParamPtr master : masterList) {
       QString txtData = QString::fromUtf8(master->getData());
@@ -198,6 +187,17 @@ bool TeachingEventHandler::tiv_TaskImportClicked() {
         }
       } else {
         master->setHash(strHash);
+      }
+    }
+    //
+    for (TaskModelParamPtr task : taskInstList) {
+      for (ModelParamPtr model : task->getModelList()) {
+        for (ModelMasterParamPtr master : masterList) {
+          if (model->getMasterName() == master->getName()) {
+            model->setModelMaster(master);
+            break;
+          }
+        }
       }
     }
     //タスクの保存

@@ -79,8 +79,7 @@ bool TeachingUtil::importTaskModel(Mapping* taskMap, TaskModelParamPtr taskParam
     for (int idxModel = 0; idxModel < modelList->size(); idxModel++) {
       Mapping* modelMap = modelList->at(idxModel)->toMapping();
       QString modelRName = "";
-      int model_id = -1;
-      int master_id = -1;
+      QString masterName = "";
       int hide = 0;
       QString modelType = "";
       double posX = 0.0; double posY = 0.0; double posZ = 0.0;
@@ -106,16 +105,9 @@ bool TeachingUtil::importTaskModel(Mapping* taskMap, TaskModelParamPtr taskParam
       //
       QString modelNameErr = QString::fromStdString("\n ModelName=[") + modelRName + QString::fromStdString("]");
       try {
-        model_id = modelMap->get("model_id").toInt();
+        masterName = QString::fromStdString(modelMap->get("master_name").toString());
       } catch (...) {
-        errMessage = _("Failed to read the model_id of the task model.") + taskNameErr + modelNameErr;
-        DDEBUG(errMessage.toStdString().c_str());
-        return false;
-      }
-      try {
-        master_id = modelMap->get("master_id").toInt();
-      } catch (...) {
-        errMessage = _("Failed to read the master_id of the task model.") + taskNameErr + modelNameErr;
+        errMessage = _("Failed to read the master_name of the task model.") + taskNameErr + modelNameErr;
         DDEBUG(errMessage.toStdString().c_str());
         return false;
       }
@@ -153,7 +145,8 @@ bool TeachingUtil::importTaskModel(Mapping* taskMap, TaskModelParamPtr taskParam
       } catch (...) {}
 
       if (modelType.length() == 0) modelType = "Env";
-      ModelParamPtr modelParam = std::make_shared<ModelParam>(NULL_ID, master_id, getModelType(modelType), modelRName, posX, posY, posZ, rotX, rotY, rotZ, hide, true);
+      ModelParamPtr modelParam = std::make_shared<ModelParam>(NULL_ID, NULL_ID, getModelType(modelType), modelRName, posX, posY, posZ, rotX, rotY, rotZ, hide, true);
+      modelParam->setMasterName(masterName);
       taskParam->addModel(modelParam);
     }
   }
@@ -173,7 +166,7 @@ bool TeachingUtil::importTaskParameter(Mapping* taskMap, TaskModelParamPtr taskP
       int type = PARAM_KIND_NORMAL;
       int paramType;
       int hide = 0;
-      int model_id = NULL_ID;
+      QString model_name = "";
       int model_param_id = NULL_ID;
 
       try {
@@ -205,24 +198,26 @@ bool TeachingUtil::importTaskParameter(Mapping* taskMap, TaskModelParamPtr taskP
         return false;
       }
       try {
-        model_id = paramMap->get("model_id").toInt();
-        if (model_id != 0) type = PARAM_KIND_MODEL;
+        model_name = QString::fromStdString(paramMap->get("model_name").toString());
+        type = PARAM_KIND_MODEL;
       } catch (...) {
-        errMessage = _("Failed to read the model_id of the task parameter.") + taskNameErr + paramNameErr;
-        DDEBUG(errMessage.toStdString().c_str());
-        return false;
+        type = PARAM_KIND_NORMAL;
       }
 
       try { paramUnit = QString::fromStdString(paramMap->get("units").toString()); } catch (...) {}
       try {
-        Listing* values = paramMap->get("values").toListing();
-        for(int index=0; index<values->size(); index++) {
-          if (0 < index) paramValue.append(",");
-          if (paramType == PARAM_TYPE_INTEGER) {
-            paramValue.append(QString::number(values->at(index)->toInt()));
-          } else {
-            paramValue.append(QString::number(values->at(index)->toDouble(), 'f', 6));
-          }
+        if (paramType == PARAM_TYPE_FRAME) {
+            Listing* values = paramMap->get("values").toListing();
+            for (int index = 0; index < values->size(); index++) {
+              if (0 < index) paramValue.append(",");
+              paramValue.append(QString::number(values->at(index)->toDouble(), 'f', 6));
+            }
+        } else if (paramType == PARAM_TYPE_INTEGER) {
+            int intValue = paramMap->get("values").toInt();
+            paramValue = QString::number(intValue);
+        } else {
+          double dblValue = paramMap->get("values").toDouble();
+          paramValue = QString::number(dblValue, 'f', 6);
         }
       } catch (...) {
       }
@@ -233,7 +228,8 @@ bool TeachingUtil::importTaskParameter(Mapping* taskMap, TaskModelParamPtr taskP
         if (isHide) hide = 1;
       } catch (...) {}
 
-      ParameterParamPtr param = std::make_shared<ParameterParam>(NULL_ID, type, paramType, NULL_ID, dispName, paramName, paramUnit, model_id, model_param_id, hide);
+      ParameterParamPtr param = std::make_shared<ParameterParam>(NULL_ID, type, paramType, NULL_ID, dispName, paramName, paramUnit, NULL_ID, model_param_id, hide);
+      param->setModelName(model_name);
       param->setDBValues(paramValue);
       param->setNewForce();
       taskParam->addParameter(param);
@@ -621,9 +617,8 @@ bool TeachingUtil::exportTask(QString& strFName, TaskModelParamPtr targetTask) {
     Listing* modelsNode = taskNode->createListing("models");
     for (ModelParamPtr param : modelList) {
       MappingPtr modelNode = modelsNode->newMapping();
-      modelNode->write("model_id", param->getId());
       modelNode->write("name", param->getRName().toUtf8(), DOUBLE_QUOTED);
-			modelNode->write("master_id", param->getMasterId());
+			modelNode->write("master_name", param->getModelMaster()->getName().toUtf8(), DOUBLE_QUOTED);
 			string strType = "";
       int intType = param->getType();
       if (intType == MODEL_ENV) {
@@ -735,24 +730,23 @@ bool TeachingUtil::exportTask(QString& strFName, TaskModelParamPtr targetTask) {
         paramNode->write("units", param->getUnit().toUtf8(), DOUBLE_QUOTED);
       }
       //
-      Listing* valueList = paramNode->createFlowStyleListing("values");
-      QString strValues = param->getDBValues().toUtf8();
-      QStringList listValue = strValues.split(","); 
-      for (int index=0; index<listValue.count(); index++) {
-        if(param->getParamType()==PARAM_TYPE_INTEGER) {
-          valueList->append(listValue.at(index).toInt());
-        } else {
+      if (param->getParamType() == PARAM_TYPE_FRAME) {
+        Listing* valueList = paramNode->createFlowStyleListing("values");
+        QString strValues = param->getDBValues().toUtf8();
+        QStringList listValue = strValues.split(",");
+        for (int index = 0; index < listValue.count(); index++) {
           valueList->append(listValue.at(index).toDouble());
         }
+      } else if (param->getParamType() == PARAM_TYPE_INTEGER) {
+          paramNode->write("values", param->getDBValues().toUtf8().toInt());
+      } else {
+        paramNode->write("values", param->getDBValues().toUtf8().toDouble());
       }
       //
-      int model_id = 0;
       if(param->getType()==PARAM_KIND_MODEL) {
-        model_id = param->getModelId();
-      }
-			paramNode->write("model_id", model_id);
-      if(param->getType()==PARAM_KIND_MODEL) {
-        model_id = param->getModelId();
+        int model_id = param->getModelId();
+        ModelParamPtr model = targetTask->getModelParamById(model_id);
+  			paramNode->write("model_name", model->getRName().toUtf8(), DOUBLE_QUOTED);
         paramNode->write("model_param_id", param->getModelParamId());
       }
 
@@ -796,7 +790,6 @@ bool TeachingUtil::exportTask(QString& strFName, TaskModelParamPtr targetTask) {
 		for (ModelMasterParamPtr master : masterList) {
       ModelMasterParamPtr targetMaster = DatabaseManager::getInstance().getModelMaster(master->getId());
 			MappingPtr masterNode = mastesrNode->newMapping();
-			masterNode->write("id", targetMaster->getId());
 			masterNode->write("name", targetMaster->getName().toUtf8(), DOUBLE_QUOTED);
 			masterNode->write("file_name", targetMaster->getFileName().toUtf8(), DOUBLE_QUOTED);
 			if (0 < targetMaster->getFileName().length()) {

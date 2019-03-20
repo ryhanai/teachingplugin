@@ -823,8 +823,8 @@ msgid "Failed to read the model_id of the task model."
 msgstr "タスクモデルのId(model_id)が設定されていません"
 
 #: TeachingUtil.cpp:68
-msgid "Failed to read the master_id of the task model."
-msgstr "タスクモデルのマスタId(master_id)の読み込みに失敗しました"
+msgid "Failed to read the master_name of the task model."
+msgstr "タスクモデルのマスタ名(master_name)の読み込みに失敗しました"
 
 #: TeachingUtil.cpp:68
 msgid "Failed to read the model_type of the task model."
@@ -853,10 +853,6 @@ msgstr "タスクパラメータの名称(name)が設定されていません"
 #: TeachingUtil.cpp:68
 msgid "Failed to read the param_type of the task parameter."
 msgstr "タスクパラメータの型(param_type)の読み込みに失敗しました"
-
-#: TeachingUtil.cpp:68
-msgid "Failed to read the model_id of the task parameter."
-msgstr "タスクパラメータのモデルId(model_id)の読み込みに失敗しました"
 
 #: TeachingUtil.cpp:68
 msgid "Failed to read the id of the state."
@@ -955,8 +951,8 @@ msgid "Failed to read the name of the FlowModelParameter."
 msgstr "フローモデルパラメータの名称(name)の読み込みに失敗しました"
 
 #: TeachingUtil.cpp:68
-msgid "Failed to read the master_id of the FlowModelParameter."
-msgstr "フローモデルパラメータのマスタId(master_id)の読み込みに失敗しました"
+msgid "Failed to read the master_name of the FlowModelParameter."
+msgstr "フローモデルパラメータのマスタ名(master_name)の読み込みに失敗しました"
 
 #: TeachingUtil.cpp:68
 msgid "Position(pos) of FlowModelParameter is invalid."
@@ -1029,10 +1025,6 @@ msgstr "画像情報のファイル名(name)の読み込みに失敗しました
 #: TeachingUtil.cpp:68
 msgid "IMAGE name is EMPTY."
 msgstr "画像情報のファイル名(name)が設定されていません"
-
-#: TeachingUtil.cpp:68
-msgid "Failed to read the id of the modelMaster."
-msgstr "モデルマスタのIdの読み込みに失敗しました"
 
 #: TeachingUtil.cpp:68
 msgid "Failed to read the name of the modelMaster."
@@ -1149,3 +1141,7 @@ msgstr "フローで使用している全モデルを表示"
 #: TeachingEventHandler.cpp:775
 msgid "Characters that can not be used in names are included."
 msgstr "名称に使用できない文字が含まれています"
+
+#: TeachingEventHandler.cpp:775
+msgid "A master with the same name exists."
+msgstr "同一名のマスタが既に登録されています"

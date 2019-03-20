@@ -264,20 +264,10 @@ bool TeachingUtil::importMasterModel(Mapping* targetMap, vector<ModelMasterParam
     for (int idxMaster = 0; idxMaster < masterList->size(); idxMaster++) {
       Mapping* masterMap = masterList->at(idxMaster)->toMapping();
 
-      int Id;
       QString name = "";
       QString fileName = "";
       QString imageFileName = "";
 
-      try {
-        Id = masterMap->get("id").toInt();
-      } catch (...) {
-        errMessage = _("Failed to read the id of the modelMaster.");
-        DDEBUG(errMessage.toStdString().c_str());
-        return false;
-      }
-      vector<ModelMasterParamPtr>::iterator modelElem = find_if(modelMasterList.begin(), modelMasterList.end(), ModelMasterComparator(Id));
-      if (modelElem != modelMasterList.end()) continue;
       try {
         name = QString::fromStdString(masterMap->get("name").toString());
       } catch (...) {
@@ -297,7 +287,7 @@ bool TeachingUtil::importMasterModel(Mapping* targetMap, vector<ModelMasterParam
       } catch (...) {
       }
 
-      ModelMasterParamPtr masterParam = std::make_shared<ModelMasterParam>(Id, name, fileName);
+      ModelMasterParamPtr masterParam = std::make_shared<ModelMasterParam>(NULL_ID, name, fileName);
       masterParam->setNew();
       if (0 < fileName.length()) {
         QString strFullModelFile = path + QString("/") + fileName;

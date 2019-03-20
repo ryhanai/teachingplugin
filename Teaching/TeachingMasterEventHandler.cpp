@@ -222,10 +222,23 @@ bool TeachingMasterEventHandler::mmd_OkClicked(QString name, QString fileName, Q
 	if (mmd_CurrentId_ != NULL_ID) {
 		TeachingDataHolder::instance()->updateModelMaster(mmd_CurrentId_, name, fileName);
 	}
+  //
+  QStringList existed;
+  vector<ModelMasterParamPtr> masterList = TeachingDataHolder::instance()->getModelMasterList();
+  for(ModelMasterParamPtr master : masterList) {
+    if(existed.contains(master->getName())) {
+      errMessage = _("A master with the same name exists.") + master->getName();
+      return false;
+    }
+    existed.append(master->getName());
+  }
+
 	return TeachingDataHolder::instance()->saveModelMaster(errMessage);
 }
 
 bool TeachingMasterEventHandler::mmd_Check() {
+  DDEBUG("TeachingMasterEventHandler::mmd_Check");
+  if (!mmd_CurrentModel_) return false;
   if (mmd_CurrentModel_->getMode() != DB_MODE_INSERT) return false;
   QString txtData = QString::fromUtf8(mmd_CurrentModel_->getData());
   QString strHash = TeachingUtil::getSha1Hash(txtData.toStdString().c_str(), txtData.toStdString().length());

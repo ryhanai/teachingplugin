@@ -573,6 +573,18 @@ ModelParamPtr TaskModelParam::getModelParamById(int id) {
   return 0;
 }
 
+ModelParamPtr TaskModelParam::getModelParamByName(QString name) {
+	DDEBUG_V("TaskModelParam::getModelParamByName : %s", name.toStdString().c_str());
+  for (ModelParamPtr param : modelList_) {
+    if (param->getRName() == name) {
+      DDEBUG("Model FOUND");
+      return param;
+    }
+  }
+  DDEBUG("Model NOT FOUND");
+  return 0;
+}
+
 vector<FileDataParamPtr> TaskModelParam::getActiveFileList() {
 	std::vector<FileDataParamPtr> result;
 	for (FileDataParamPtr param : fileList_) {

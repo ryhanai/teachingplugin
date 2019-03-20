@@ -327,6 +327,8 @@ public:
       setUpdate();
     }
   }
+	inline QString getMasterName() const { return this->master_name_; }
+  inline void setMasterName(QString name) { this->master_name_ = name; }
 
   inline QString getRName() const { return this->rname_; }
   inline void setRName(QString value) {
@@ -417,6 +419,7 @@ public:
 
 private:
 	int master_id_;
+  QString master_name_;
 	int type_;
   QString rname_;
   PostureParamPtr posture;
@@ -786,6 +789,8 @@ public:
       setUpdate();
     }
   }
+  inline QString getModelName() const { return this->model_name_; }
+  inline void setModelName(QString value) { this->model_name_ = value; }
   inline int getModelParamId() const { return this->model_param_id_; }
   inline void setModelParamId(int value) {
     if (this->model_param_id_ != value) {
@@ -844,6 +849,7 @@ private:
   QString name_;
   QString rname_;
   QString unit_;
+  QString model_name_;
 	int hide_;
 	bool isActive_;
 
@@ -1128,6 +1134,7 @@ public:
 	std::vector<ModelParamPtr> getActiveModelList();
   std::vector<ModelParamPtr> getVisibleModelList();
   ModelParamPtr getModelParamById(int id);
+  ModelParamPtr getModelParamByName(QString name);
 
   inline std::vector<FileDataParamPtr> getFileList() const { return this->fileList_; }
   inline void addFile(FileDataParamPtr target){ this->fileList_.push_back(target); }
