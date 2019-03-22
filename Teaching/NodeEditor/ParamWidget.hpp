@@ -37,6 +37,13 @@ public:
             + "," + rxEdit->text() + "," + ryEdit->text() + "," + rzEdit->text();
   }
   inline void setValue(QString value) {
+    xEdit->setText("0.000000");
+    yEdit->setText("0.000000");
+    zEdit->setText("0.000000");
+    rxEdit->setText("0.000000");
+    ryEdit->setText("0.000000");
+    rzEdit->setText("0.000000");
+
     QStringList valList = value.split(",");
     if (0 < valList.size()) xEdit->setText(QString::number(valList[0].toDouble(), 'f', 6));
     if (1 < valList.size()) yEdit->setText(QString::number(valList[1].toDouble(), 'f', 6));

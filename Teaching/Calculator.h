@@ -166,5 +166,15 @@ private:
 	friend class MemberParam;
 };
 
+struct FlowParameterParamByNameComparator {
+  QString name_;
+  FlowParameterParamByNameComparator(QString value) {
+    name_ = value;
+  }
+  bool operator()(const FlowParameterParamPtr elem) const {
+    return elem->getName() == name_;
+  }
+};
+
 }
 #endif

@@ -54,7 +54,6 @@ public:
   static QTableWidgetItem* makeTableItem(QTableWidget* table, int rowNo, int colNo, const QString& text);
   static QTableWidgetItem* makeTableItemWithData(QTableWidget* table, int rowNo, int colNo, const QString& text, int data);
   static QString getTypeName(int source);
-  static QString getParamTypeName(int source);
 };
 /////
 class SettingManager {
@@ -169,16 +168,6 @@ struct ModelMasterParamComparator {
 	}
 };
 
-struct ModelMasterParamComparatorByName {
-  QString name_;
-  ModelMasterParamComparatorByName(QString value) {
-    name_ = value;
-  }
-  bool operator()(const ModelParameterParamPtr elem) const {
-    return elem->getName() == name_;
-  }
-};
-
 struct ElementStmParamComparator {
   int id_;
   ElementStmParamComparator(int value) {
@@ -186,36 +175,6 @@ struct ElementStmParamComparator {
   }
   bool operator()(const ElementStmParamPtr elem) const {
     return elem->getId() == id_;
-  }
-};
-
-struct FlowModelParamComparator {
-  int id_;
-  FlowModelParamComparator(int value) {
-    id_ = value;
-  }
-  bool operator()(const FlowModelParamPtr elem) const {
-    return elem->getId() == id_;
-  }
-};
-
-struct FlowParameterParamComparator {
-  int id_;
-  FlowParameterParamComparator(int value) {
-    id_ = value;
-  }
-  bool operator()(const FlowParameterParamPtr elem) const {
-    return elem->getId() == id_;
-  }
-};
-
-struct FlowParameterParamByNameComparator {
-  QString name_;
-  FlowParameterParamByNameComparator(QString value) {
-    name_ = value;
-  }
-  bool operator()(const FlowParameterParamPtr elem) const {
-    return elem->getName() == name_;
   }
 };
 

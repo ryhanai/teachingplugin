@@ -37,8 +37,6 @@ QString TeachingUtil::getTypeName(const int type) {
       typeName = "Integer"; break;
     case PARAM_TYPE_DOUBLE:
       typeName = "Double"; break;
-    case PARAM_TYPE_STRING:
-      typeName = "String"; break;
     case PARAM_TYPE_FRAME:
       typeName = "Frame"; break;
   }
@@ -52,8 +50,6 @@ QString TeachingUtil::getTypeRName(const int type) {
       typeName = "Int"; break;
     case PARAM_TYPE_DOUBLE:
       typeName = "Dbl"; break;
-    case PARAM_TYPE_STRING:
-      typeName = "Str"; break;
     case PARAM_TYPE_FRAME:
       typeName = "Frm"; break;
   }
@@ -120,26 +116,6 @@ QString UIUtil::getTypeName(int source) {
       break;
     case PARAM_KIND_MODEL:
       result = "Model";
-      break;
-  }
-  return result;
-}
-
-QString UIUtil::getParamTypeName(int source) {
-  QString result = "";
-
-  switch (source) {
-    case PARAM_TYPE_INTEGER:
-      result = "Integer";
-      break;
-    case PARAM_TYPE_DOUBLE:
-      result = "Double";
-      break;
-    case PARAM_TYPE_STRING:
-      result = "String";
-      break;
-    case PARAM_TYPE_FRAME:
-      result = "Frame";
       break;
   }
   return result;

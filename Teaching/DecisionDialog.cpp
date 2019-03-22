@@ -81,7 +81,7 @@ void DesisionDialog::showParamInfo() {
     UIUtil::makeTableItem(lstParam, row, 0, param->getName());
     UIUtil::makeTableItem(lstParam, row, 1, param->getRName());
     UIUtil::makeTableItem(lstParam, row, 2, UIUtil::getTypeName(param->getType()));
-    UIUtil::makeTableItem(lstParam, row, 3, UIUtil::getParamTypeName(param->getParamType()));
+    UIUtil::makeTableItem(lstParam, row, 3, TeachingUtil::getTypeName(param->getParamType()));
 
     QString strModel = "";
     QString strModelParam = "";

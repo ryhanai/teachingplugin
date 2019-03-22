@@ -38,8 +38,7 @@ static const int MESSAGE_PERIOD = 3000;
 
 static const int PARAM_TYPE_INTEGER = 1;
 static const int PARAM_TYPE_DOUBLE = 2;
-static const int PARAM_TYPE_STRING = 3;
-static const int PARAM_TYPE_FRAME = 4;
+static const int PARAM_TYPE_FRAME = 3;
 
 typedef std::shared_ptr<ElementStmParam> ElementStmParamPtr;
 typedef std::shared_ptr<ConnectionStmParam> ConnectionStmParamPtr;
@@ -1219,6 +1218,26 @@ private:
 
 };
 typedef std::shared_ptr<FlowParam> FlowParamPtr;
+
+struct FlowModelParamComparator {
+  int id_;
+  FlowModelParamComparator(int value) {
+    id_ = value;
+  }
+  bool operator()(const FlowModelParamPtr elem) const {
+    return elem->getId() == id_;
+  }
+};
+
+struct FlowParameterParamComparator {
+  int id_;
+  FlowParameterParamComparator(int value) {
+    id_ = value;
+  }
+  bool operator()(const FlowParameterParamPtr elem) const {
+    return elem->getId() == id_;
+  }
+};
 
 }
 #endif

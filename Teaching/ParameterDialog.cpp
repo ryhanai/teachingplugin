@@ -207,7 +207,7 @@ void ParameterDialog::showParamInfo(const vector<ParameterParamPtr>& paramList) 
     UIUtil::makeTableItemWithData(lstParam, row, 0, visibility, param->getId());
     UIUtil::makeTableItemWithData(lstParam, row, 1, param->getName(), param->getId());
     UIUtil::makeTableItemWithData(lstParam, row, 2, UIUtil::getTypeName(param->getType()), param->getId());
-    UIUtil::makeTableItemWithData(lstParam, row, 3, UIUtil::getParamTypeName(param->getParamType()), param->getId());
+    UIUtil::makeTableItemWithData(lstParam, row, 3, TeachingUtil::getTypeName(param->getParamType()), param->getId());
     QString strModel = "";
     QString strModelParam = "";
     QString strUnit = "";
@@ -249,7 +249,7 @@ void ParameterDialog::updateContents(const ParameterParamPtr& param) {
   leId->setText(param->getRName());
   cmbHide->setCurrentIndex(param->getHide());
   cmbType->setCurrentIndex(param->getType());
-  cmbParamType->setCurrentIndex(getParamTypeIndex(param->getParamType()));
+  cmbParamType->setCurrentIndex(param->getParamType()-1);
   typeSelectionChanged(param->getType());
 
   if (param->getType() == PARAM_KIND_NORMAL) {
@@ -286,7 +286,7 @@ void ParameterDialog::paramSelectionChanged() {
   QString strId = leId->text();
   int type = cmbType->currentIndex();
   QString strUnit = leUnit->text();
-  int paramType = getParamType(cmbParamType->currentIndex());
+  int paramType = cmbParamType->currentIndex() + 1;
   if (type == PARAM_KIND_MODEL) {
     paramType = PARAM_TYPE_FRAME;
   }
@@ -310,7 +310,7 @@ void ParameterDialog::paramSelectionChanged() {
     lstParam->item(currentRowIndex_, 0)->setText(visibility);
     lstParam->item(currentRowIndex_, 1)->setText(strName);
     lstParam->item(currentRowIndex_, 2)->setText(UIUtil::getTypeName(type));
-    lstParam->item(currentRowIndex_, 3)->setText(UIUtil::getParamTypeName(paramType));
+    lstParam->item(currentRowIndex_, 3)->setText(TeachingUtil::getTypeName(paramType));
     if (type == 0) {
       lstParam->item(currentRowIndex_, 4)->setText("");
       lstParam->item(currentRowIndex_, 5)->setText("");
@@ -344,7 +344,7 @@ void ParameterDialog::insertParameter(const ParameterParamPtr& param) {
   UIUtil::makeTableItemWithData(lstParam, row, 0, visibility, param->getId());
   UIUtil::makeTableItemWithData(lstParam, row, 1, param->getName(), param->getId());
   UIUtil::makeTableItemWithData(lstParam, row, 2, UIUtil::getTypeName(param->getType()), param->getId());
-  UIUtil::makeTableItemWithData(lstParam, row, 3, UIUtil::getParamTypeName(param->getParamType()), param->getId());
+  UIUtil::makeTableItemWithData(lstParam, row, 3, TeachingUtil::getTypeName(param->getParamType()), param->getId());
   UIUtil::makeTableItemWithData(lstParam, row, 4, QString::fromLatin1(""), param->getId());
   UIUtil::makeTableItemWithData(lstParam, row, 5, QString::fromLatin1(""), param->getId());
   UIUtil::makeTableItemWithData(lstParam, row, 6, param->getUnit(), param->getId());
@@ -358,7 +358,7 @@ void ParameterDialog::addParamClicked() {
     leName->text(),
     leId->text(),
     cmbType->currentIndex(),
-    getParamType(cmbParamType->currentIndex()),
+    cmbParamType->currentIndex() + 1,
     leUnit->text(),
     cmbModelName->currentData().toInt(),
     cmbModelParamName->currentData().toInt(),
@@ -393,7 +393,7 @@ void ParameterDialog::addFPClicked() {
 void ParameterDialog::oKClicked() {
   DDEBUG("ParameterDialog::oKClicked()");
   int type = cmbType->currentIndex();
-  int paramType = getParamType(cmbParamType->currentIndex());
+  int paramType = cmbParamType->currentIndex() + 1;
   if (type == PARAM_KIND_MODEL) {
     paramType = PARAM_TYPE_FRAME;
   }
@@ -450,23 +450,5 @@ void ParameterDialog::typeSelectionChanged(int index) {
     leUnit->setEnabled(false);
     cmbParamType->setEnabled(false);
   }
-}
-
-int ParameterDialog::getParamTypeIndex(int type) {
-  switch(type) {
-    case PARAM_TYPE_INTEGER: return 0;
-    case PARAM_TYPE_DOUBLE: return 1;
-    case PARAM_TYPE_FRAME: return 2;
-  }
-  return 1;
-}
-
-int ParameterDialog::getParamType(int index) {
-  switch(index) {
-    case 0: return PARAM_TYPE_INTEGER;
-    case 1: return PARAM_TYPE_DOUBLE;
-    case 2: return PARAM_TYPE_FRAME;
-  }
-  return PARAM_TYPE_DOUBLE;
 }
 }

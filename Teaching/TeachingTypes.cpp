@@ -181,6 +181,7 @@ void ParameterValueParam::clear() {
 }
 
 void ParameterValueParam::setValuesByString(QString source) {
+  DDEBUG_V("ParameterValueParam::setValuesByString:%s", source.toStdString().c_str());
   if (source.size() == 0) return;
   valueList_.clear();
   QStringList valList = source.split(",");

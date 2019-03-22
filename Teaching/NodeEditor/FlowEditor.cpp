@@ -157,10 +157,6 @@ bool FlowEditor::createFlowNode(QString modelName, QPoint pos) {
       type = PARAM_TYPE_DOUBLE;
       fmParam = std::make_shared<FlowParameterParam>(newId, type, "ParamName", "0.0");
 
-    } else if (modelName == "Flow Param (String)") {
-      type = PARAM_TYPE_STRING;
-      fmParam = std::make_shared<FlowParameterParam>(newId, type, "ParamName", "");
-
     } else if (modelName == "Flow Param (Frame)") {
       type = PARAM_TYPE_FRAME;
       fmParam = std::make_shared<FlowParameterParam>(newId, type, "ParamName", "0.0");
@@ -555,12 +551,11 @@ void FlowEditor::createFlowExtNode(int typeId, ElementStmParamPtr target) {
 }
 
 void FlowEditor::createFlowParamNode(FlowParameterParamPtr target) {
-  DDEBUG("FlowEditor::createFlowParamNode");
+  DDEBUG_V("FlowEditor::createFlowParamNode:%d", target->getId());
   QString typeName = "";
   switch (target->getType()) {
     case PARAM_TYPE_INTEGER:  typeName = "Flow Param (Integer)"; break;
     case PARAM_TYPE_DOUBLE:   typeName = "Flow Param (Double)";  break;
-    case PARAM_TYPE_STRING:   typeName = "Flow Param (String)";  break;
     case PARAM_TYPE_FRAME:    typeName = "Flow Param (Frame)";  break;
     default: return;
   }
@@ -569,7 +564,7 @@ void FlowEditor::createFlowParamNode(FlowParameterParamPtr target) {
     auto& node = _scene->createNode(std::move(type));
     node.nodeGraphicsObject().setPos(target->getPosX(), target->getPosY());
     if (target->getType() == PARAM_TYPE_FRAME) {
-      ((FrameParamDataModel*)(node.nodeDataModel()))->setParamInfo(target->getName(), target->getValue());
+      ((FrameParamDataModel*)(node.nodeDataModel()))->setParamInfo(target->getName() + QString::number(target->getId()), target->getValue());
     } else {
       QString strValue;
       if (target->getType() == PARAM_TYPE_DOUBLE) {
@@ -577,7 +572,7 @@ void FlowEditor::createFlowParamNode(FlowParameterParamPtr target) {
       } else {
         strValue = target->getValue();
       }
-      ((ParamDataModel*)(node.nodeDataModel()))->setParamInfo(target->getName(), strValue);
+      ((ParamDataModel*)(node.nodeDataModel()))->setParamInfo(target->getName() + QString::number(target->getId()), strValue);
     }
     target->setRealElem(&node);
     node.setParamId(target->getId());
