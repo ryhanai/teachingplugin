@@ -92,7 +92,7 @@ FlowParamPtr DatabaseManager::getFlowParamById(const int id) {
   strQuery += "WHERE flow_id = " + toStr(id);
   QSqlQuery flowQuery(db_);
   flowQuery.exec(strQuery.c_str());
-  if (flowQuery.next() == false) return false;
+  if (flowQuery.next() == false) return NULL;
   //
   QString name = flowQuery.value(0).toString();
   QString comment = flowQuery.value(1).toString();

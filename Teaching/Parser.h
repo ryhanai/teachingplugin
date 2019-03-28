@@ -123,7 +123,7 @@ namespace teaching {
 
   makeTree() : makeTree::base_type(topexpr) {
       topexpr = expr > qi::eoi;
-#if _MSC_VER >= 1900
+
       const char* str_plus = "+";
       const char* str_minus = "-";
       const char* str_astarisc = "*";
@@ -164,35 +164,7 @@ namespace teaching {
         | variable[qi::_val = qi::_1];
       args = expr[qi::_val = qi::_1]
         > *(',' > expr[qi::_val = phx::bind(&BinOpNode::create, str_comma, qi::_val, qi::_1)]);
-#else
-      // <expr> corresponds to <logical-or-expr> in C
-      expr = logical_and_expr[qi::_val = qi::_1]
-        > *("||" > logical_and_expr[qi::_val = phx::bind(&BinOpNode::create, "||", qi::_val, qi::_1)]);
-      logical_and_expr = equality_expr[qi::_val = qi::_1]
-        > *("&&" > equality_expr[qi::_val = phx::bind(&BinOpNode::create, "&&", qi::_val, qi::_1)]);
-      equality_expr = relational_expr[qi::_val = qi::_1]
-        > *(("==" > relational_expr[qi::_val = phx::bind(&BinOpNode::create, "==", qi::_val, qi::_1)])
-            | ("!=" > relational_expr[qi::_val = phx::bind(&BinOpNode::create, "!=", qi::_val, qi::_1)]));
-      relational_expr = additive_expr[qi::_val = qi::_1]
-        > *(("<=" > additive_expr[qi::_val = phx::bind(&BinOpNode::create, "<=", qi::_val, qi::_1)])
-            | (">=" > additive_expr[qi::_val = phx::bind(&BinOpNode::create, ">=", qi::_val, qi::_1)])
-            | ('<' > additive_expr[qi::_val = phx::bind(&BinOpNode::create, "<", qi::_val, qi::_1)])
-            | ('>' > additive_expr[qi::_val = phx::bind(&BinOpNode::create, ">", qi::_val, qi::_1)]));
-      additive_expr = term[qi::_val = qi::_1]
-        > *(('+' > term[qi::_val = phx::bind(&BinOpNode::create, "+", qi::_val, qi::_1)])
-            | ('-' > term[qi::_val = phx::bind(&BinOpNode::create, "-", qi::_val, qi::_1)]));
-      term = factor[qi::_val = qi::_1]
-        > *(('*' > factor[qi::_val = phx::bind(&BinOpNode::create, "*", qi::_val, qi::_1)])
-            | ('/' > factor[qi::_val = phx::bind(&BinOpNode::create, "/", qi::_val, qi::_1)]));
-      factor = literal[qi::_val = qi::_1]
-        | vector3d_const[qi::_val = qi::_1]
-        | vector6d_const[qi::_val = qi::_1]
-        | ('(' > expr > ')')[qi::_val = qi::_1]
-        | (variable >> '(' > args > ')')[qi::_val = phx::bind(&FunCallNode::create, qi::_1, qi::_2)]
-        | variable[qi::_val = qi::_1];
-      args = expr[qi::_val = qi::_1]
-        > *(',' > expr[qi::_val = phx::bind(&BinOpNode::create, ",", qi::_val, qi::_1)]);
-#endif
+
       vector3d_const = ('[' > expr > ',' > expr > ',' > expr > ']')
         [qi::_val = phx::bind(&Vector3dConstNode::create, qi::_1, qi::_2, qi::_3)];
       vector6d_const = ('[' > expr > ',' > expr > ',' > expr > ',' > expr > ',' > expr > ',' > expr > ']')
