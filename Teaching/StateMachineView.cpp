@@ -97,7 +97,7 @@ namespace teaching {
     frmTop->setLayout(topLayout);
 
     lstItem = new ItemList(QString::fromStdString("application/StateMachineItem"));
-    lstItem->setStyleSheet("background-color: rgb( 212, 206, 199 )};");
+    //lstItem->setStyleSheet("background-color: rgb( 212, 206, 199 )};");
     lstItem->setEnabled(false);
     lstItem->createInitialNodeTarget();
     lstItem->createFinalNodeTarget();
