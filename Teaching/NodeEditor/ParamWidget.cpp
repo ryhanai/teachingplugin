@@ -1,6 +1,6 @@
 #include "ParamWidget.hpp"
-#include "TeachingEventHandler.h"
-#include "TeachingUtil.h"
+#include "../TeachingEventHandler.h"
+#include "../TeachingUtil.h"
 
 ParamWidget::ParamWidget(QWidget* parent) : QWidget(parent) {
   //setStyleSheet( "QWidget{ background-color : rgba( 160, 160, 160, 255); border-radius : 7px;  }" );

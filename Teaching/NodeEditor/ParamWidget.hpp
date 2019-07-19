@@ -1,6 +1,6 @@
 #pragma once
 
-#include "QtUtil.h"
+#include "../QtUtil.h"
 #include "../TeachingDataHolder.h"
 
 using namespace teaching;
