@@ -60,17 +60,16 @@ def comp(e):
 
 def comp_def(e, mm):
     if type(e) == Model:
-        return OrderedDict([('model_id', e.model_id),
-                            ('name', quoted(e.name)),
-                            ('master_id', mm.master_id(e.master_name)),
+        return OrderedDict([('name', quoted(e.name)),
+                            ('master_name', quoted(e.master_name)),
                             ('type', e.model_type),
                             ('pos', e.tf)])
     elif isinstance(e, ParamModel):
         code = OrderedDict([('param_type', e.param_type.comp()),
                             ('name', quoted(e.name)),
                             ('disp_name', quoted(e.disp_name)),
-                            ('values', e.init_value.tf.copy()), # このフィールドは移行後に不要になる（モデルが持っているので）
-                            ('model_id', e.init_value.model_id),
+                            ('values', e.value.tf.copy()), # このフィールドは移行後に不要になる（モデルが持っているので）
+                            ('model_name', e.value.name),
                             ('model_param_id', -1),
                             ('hide', e.hide)])
         return code
@@ -78,19 +77,18 @@ def comp_def(e, mm):
         code = OrderedDict([('param_type', e.param_type.comp()),
                             ('name', quoted(e.name)),
                             ('disp_name', quoted(e.disp_name)),
-                            ('values', e.init_value),
-                            ('model_id', 0),
+                            ('values', e.value),
                             ('hide', e.hide)])
         return code
     elif isinstance(e, Param):
         code = OrderedDict([('param_type', e.param_type.comp()),
                             ('name', quoted(e.name)),
                             ('disp_name', quoted(e.disp_name)),
-                            ('values', comp(e.init_value)),
+                            ('values', comp(e.value)),
                             ('hide', e.hide)])
         return code
 
-class Value:
+class Value(object):
     def __init__(self, value):
         self.value = value
 class Integer(Value):
@@ -106,24 +104,35 @@ class Frame(Value):
 
 class Model(Frame):
     """
-    modelのnameは重複がない内部名なので、model_idで整数値を振る必要がない（移行途中なのでmodel_idを残す）
     modelはdisp_nameを持たない。nameを表示にも使用している。
     model_masterのfeatures.valueのquotation（ここには”式”を書けるため文字列。yamlで確実に文字列と解釈するためquotationをつけている）
     task parameterがmodelにbindされている場合、frame値が重複して保持されている（これも移行途中のため残す）
 
     現在の仕様ではModelはparentを持てない（self.parentは常にNone。modelはすべてのparentがworldの扱い）
 
-    Arguments:
-    model_id: 移行途中なのでmodel_idを残している。model_masterもnameが一意性を保証しているので別途idとして整数を振る必要がない。
-
     """
-    def __init__(self, tf, name, model_id, master_name, model_type='Work'):
-        super().__init__(tf)
+    def __init__(self, tf, name, master_name, model_type='Work'):
+        super(Model, self).__init__(tf)
         self.name = name
-        self.model_id = model_id
         self.master_name = master_name
         self.model_type = model_type
+        self.body_item = None
 
+    def updateFrame(self):
+        self.tf = self.body_item.body.getRootLink().position
+
+    def getBodyItem(self):
+        return self.body_item
+
+    def setBodyItem(self, body_item):
+        """
+        task中のmodel位置がbody_itemの位置に更新される（body_itemがあるときはframeを共有したほうが良さそう
+        """
+        self.body_item = body_item
+        self.updateFrame()
+
+    def setMaster(self, master_name):
+        self.master_name = master_name
 
 class EPlus:
     """ """
@@ -139,10 +148,10 @@ class ParamType(Enum):
     FRM=4
 
     def comp(param_type):
-        output = {ParamType.FRM:4, ParamType.TF:4, ParamType.DBL:2, ParamType.INT:1}
+        output = {ParamType.FRM:3, ParamType.TF:3, ParamType.DBL:2, ParamType.INT:1}
         return output[param_type]
 
-class Param:
+class Param(object):
     """ """
     last_number = 0
 
@@ -151,14 +160,14 @@ class Param:
         Param.last_number += 1
         return n
 
-    def __init__(self, name, init_value, disp_name, type_prefix, hide=False):
+    def __init__(self, name, value, disp_name, type_prefix, hide=False):
         # self.name = '%c%02d' % (type_prefix, self.get_number())
         self.name = name
         if disp_name:
             self.disp_name = disp_name
         else:
             self.disp_name = name
-        self.init_value = init_value
+        self.value = value
         self.param_type = ParamType.UNDEF
         #self.unit = ''
         self.hide = hide
@@ -167,32 +176,32 @@ class Param:
 class ParamModel(Param):
     """
     This parameter is bound to some 3D model
-    init_value: name of model
+    value: name of model
     """
-    def __init__(self, name, init_value, disp_name=None, hide=False):
-        super().__init__(name, init_value, disp_name, type_prefix = 'F', hide=hide)
+    def __init__(self, name, value, disp_name=None, hide=False):
+        super(ParamModel, self).__init__(name, value, disp_name, type_prefix = 'F', hide=hide)
         self.param_type = ParamType.FRM
 
 
 class ParamTF(Param):
     """ """
-    def __init__(self, name, init_value, disp_name=None, hide=False):
-        super().__init__(name, init_value, disp_name, type_prefix = 'T', hide=hide)
+    def __init__(self, name, value, disp_name=None, hide=False):
+        super(ParamTF, self).__init__(name, value, disp_name, type_prefix = 'T', hide=hide)
         self.param_type = ParamType.TF
 
 class ParamDouble(Param):
     """ """
-    def __init__(self, name, init_value, disp_name=None, hide=False):
-        super().__init__(name, Double(init_value), disp_name, type_prefix = 'D', hide=hide)
+    def __init__(self, name, value, disp_name=None, hide=False):
+        super(ParamDouble, self).__init__(name, Double(value), disp_name, type_prefix = 'D', hide=hide)
         self.param_type = ParamType.DBL
 
 class ParamInt(Param):
     """ """
-    def __init__(self, name, init_value, disp_name=None, hide=False):
-        super().__init__(name, Integer(init_value), disp_name, type_prefix = 'I', hide=hide)
+    def __init__(self, name, value, disp_name=None, hide=False):
+        super(ParamInt, self).__init__(name, Integer(value), disp_name, type_prefix = 'I', hide=hide)
         self.param_type = ParamType.INT
 
-class State:
+class State(object):
     """
     - state id is automatically numbered
     - positions of each state will be automatically computed in the future
@@ -213,31 +222,31 @@ class State:
 
 class InitialState(State):
     def __init__(self, pos=[0,0]):
-        super().__init__(pos)
+        super(InitialState, self).__init__(pos)
         self.type = 1
 
     def compile(self):
-        code = super().compile()
+        code = super(InitialState, self).compile()
         return code
 
 class FinalState(State):
     def __init__(self, pos=[0,0]):
-        super().__init__(pos)
+        super(FinalState, self).__init__(pos)
         self.type = 2
 
     def compile(self):
-        code = super().compile()
+        code = super(FinalState, self).compile()
         return code
 
 class Cmd(State):
     def __init__(self, cmd_name, disp_name, pos=[0,0]):
-        super().__init__(pos)
+        super(Cmd, self).__init__(pos)
         self.type = 5
         self.cmd_name = cmd_name
         self.disp_name = disp_name
 
     def compile(self):
-        data = super().compile()
+        data = super(Cmd, self).compile()
         data['cmd_name'] = quoted(self.cmd_name)
         data['disp_name'] = quoted(self.disp_name)
         return data
@@ -266,16 +275,14 @@ class Transition:
                             ])
 
 class ModelMaster:
-    def __init__(self, master_id, name, file_name, image_file_name=None, features=[]):
+    def __init__(self, name, file_name, image_file_name=None, features=[]):
         self.name = name
-        self.master_id = master_id
         self.file_name = file_name
         self.image_file_name = image_file_name
         self.features = features
 
     def compile(self):
-        code = OrderedDict([('id', self.master_id),
-                            ('name', quoted(self.name)),
+        code = OrderedDict([('name', quoted(self.name)),
                             ('file_name', quoted(self.file_name))])
         # optional fields
         if self.image_file_name:
@@ -308,7 +315,7 @@ class MetaDataFile:
     def compile(self):
         return OrderedDict([('name', quoted(self.file_name))])
 
-class Task:
+class Task(object):
     """ """
     def __init__(self, name, comment, master_manager):
         self.name = name
@@ -317,7 +324,6 @@ class Task:
 
         self.max_id = 1
         self.initialize = ''
-        self.models = []
         self.env = OrderedDict([])
         self.menv = OrderedDict([])
         self.transitions = []
@@ -327,14 +333,27 @@ class Task:
         self.define_task_model()
 
     def define_task_model(self):
-        pass
+        self.define_model()
+        self.define_params()
+        self.define_motion()
 
     def add_model(self, name, master_name, tf):
-        n_models = len(self.menv.items())
-        self.menv[name] = Model(tf, name, n_models+1, master_name)
+        self.menv[name] = Model(tf, name, master_name)
+
+    def models(self):
+        return self.menv
+
+    def model(self, name):
+        return self.menv[name]
+
+    def replace_master(self, name, master_name):
+        self.menv[name].setMaster(master_name)
 
     def add_param(self, param):
         self.env[param.name] = param
+
+    def del_param(self, name):
+        del self.env[name]
 
     def add_params(self, params):
         for param in params:
@@ -346,13 +365,19 @@ class Task:
     def add_commands(self, commands):
         self.states.extend(commands)
 
+    def reset_commands(self):
+        self.states = []
+
     def add_metadata_file(self, file_name):
         self.metadata_files.append(MetaDataFile(file_name))
 
     def add_metadata_image(self, image_file_name):
         self.metadata_images.append(MetaDataImage(image_file_name))
 
-    def getp(self, name):
+    def params(self):
+        return self.env
+
+    def param(self, name):
         """
         display_nameは重複があるのでcodingでは使用不可
         やはりnameをユーザ指定にし、display_name省略時にはdisplay_name <- nameとする
@@ -394,3 +419,21 @@ class Task:
                             ('files', [x.compile() for x in self.metadata_files]),
                             ('images', [x.compile() for x in self.metadata_images]),
                             ('model_master', [x.compile() for x in referenced_masters.values()])])
+
+
+class MasterManager:
+    """ """
+    def __init__(self):
+        self.masters = {}
+
+    def add(self, name, file_name, image_file_name=None, features=[]):
+        self.masters[name] = ModelMaster(name,
+                                             file_name,
+                                             image_file_name=image_file_name,
+                                             features=features)
+
+    def get(self, name):
+        return self.masters[name]
+
+    def get_master(self, master_name):
+        return self.get(master_name)
