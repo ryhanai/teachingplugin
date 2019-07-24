@@ -27,18 +27,19 @@ void TeachingEventHandler::flv_NewFlowClicked() {
 	DDEBUG("TeachingEventHandler::flv_NewFlowClicked()");
 
 	stv_->setStepStatus(false);
-  if(allModelDisp_) flv_HideAllModels();
+  flv_HideAllModels();
+  unloadTaskModelItems();
 
 	flv_CurrentFlow_.reset(new FlowParam(NULL_ID, "", "", "", ""));
 	flv_CurrentFlow_->setNew();
 
   ElementStmParamPtr newInitParam =
-    std::make_shared<ElementStmParam>(flv_CurrentFlow_->getMaxStateId(), ELEMENT_START, "Initial", "Initial", 0, 0, "");
+    std::make_shared<ElementStmParam>(flv_CurrentFlow_->getMaxStateId(), ELEMENT_START, "Initial", "Initial", 0, 100, "");
   newInitParam->setNew();
   flv_CurrentFlow_->addStmElement(newInitParam);
 
   ElementStmParamPtr newFinalParam =
-    std::make_shared<ElementStmParam>(flv_CurrentFlow_->getMaxStateId(), ELEMENT_FINAL, "Final", "Final", 300, 0, "");
+    std::make_shared<ElementStmParam>(flv_CurrentFlow_->getMaxStateId(), ELEMENT_FINAL, "Final", "Final", 500, 100, "");
   newFinalParam->setNew();
   flv_CurrentFlow_->addStmElement(newFinalParam);
 
