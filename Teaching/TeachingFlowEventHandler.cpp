@@ -274,6 +274,11 @@ bool TeachingEventHandler::flv_RegistFlowClicked(QString name, QString comment) 
 	stv_->setStepStatus(false);
 	if (!flv_CurrentFlow_) return false;
 
+  if (name.length() == 0) {
+      QMessageBox::warning(prd_, _("FlowView"),  _("FlowName is EMPTY."));
+      return false;
+  }
+
 	if (flv_CurrentFlow_->getName() != name) {
 		flv_CurrentFlow_->setName(name);
 	}
