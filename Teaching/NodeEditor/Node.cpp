@@ -149,6 +149,7 @@ void Node::onDataUpdated(PortIndex index) {
 }
 
 void Node::updateActive(bool isActive) {
+	DDEBUG("Node::updateActive");
 	this->isActive_ = isActive;
 	updateDisp();
 }
@@ -159,30 +160,55 @@ void Node::setBreak(bool isBreak) {
 }
 
 void Node::updateDisp() {
+	DDEBUG("Node::updateDisp");
   if (!_nodeDataModel) return;
 	NodeStyle style = _nodeDataModel->nodeStyle();
+  bool isUpdate = false;
 	if (isBreak_) {
 		if (isActive_) {
 			//style.NormalBoundaryColor = Qt::magenta;
-			style.NormalBoundaryColor = QColor(255, 0, 255);
+      if (style.NormalBoundaryColor != QColor(255, 0, 255)) {
+        style.NormalBoundaryColor = QColor(255, 0, 255);
+        isUpdate = true;
+      }
+
 		} else {
 			//style.NormalBoundaryColor = Qt::green;
-			style.NormalBoundaryColor = QColor(0, 255, 0);
+      if (style.NormalBoundaryColor != QColor(0, 255, 0)) {
+        style.NormalBoundaryColor = QColor(0, 255, 0);
+        isUpdate = true;
+      }
 		}
 		//style.SelectedBoundaryColor = Qt::blue;
-		style.SelectedBoundaryColor = QColor(0, 0, 255);
+    if (style.SelectedBoundaryColor != QColor(0, 0, 255)) {
+      style.SelectedBoundaryColor = QColor(0, 0, 255);
+        isUpdate = true;
+    }
 
 	} else {
 		if (isActive_) {
 			//style.NormalBoundaryColor = Qt::red;
-  		style.NormalBoundaryColor = QColor(255, 0, 0);
+      if (style.NormalBoundaryColor != QColor(255, 0, 0)) {
+        style.NormalBoundaryColor = QColor(255, 0, 0);
+        isUpdate = true;
+      }
 		} else {
 			//style.NormalBoundaryColor = Qt::darkGray;
-  		style.NormalBoundaryColor = QColor(128, 128, 128);
+      if (style.NormalBoundaryColor != QColor(128, 128, 128)) {
+        style.NormalBoundaryColor = QColor(128, 128, 128);
+        isUpdate = true;
+      }
 		}
 		//style.SelectedBoundaryColor = Qt::cyan;
-		style.SelectedBoundaryColor = QColor(0, 255, 255);
+    if (style.SelectedBoundaryColor != QColor(0, 255, 255)) {
+      style.SelectedBoundaryColor = QColor(0, 255, 255);
+        isUpdate = true;
+    }
 	}
-	_nodeDataModel->setNodeStyle(style);
-	_nodeGraphicsObject->update();
+
+  if (isUpdate) {
+    _nodeDataModel->setNodeStyle(style);
+    DDEBUG("Node::updateDisp update");
+    _nodeGraphicsObject->update();
+  }
 }

@@ -44,6 +44,7 @@ void DatabaseParam::setNormal() {
 }
 /////
 void ElementStmParam::updateActive(bool isActive) {
+	DDEBUG("ElementStmParam::updateActive");
   if (this->realElem_) {
     this->realElem_->updateActive(isActive);
   }
