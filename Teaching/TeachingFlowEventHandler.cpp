@@ -100,6 +100,8 @@ void TeachingEventHandler::flv_SearchClicked(bool canEdit) {
 void TeachingEventHandler::flv_SelectionChanged(TaskModelParamPtr target) {
 	if (checkPaused()) return;
 	DDEBUG("TeachingEventHandler::flv_SelectionChanged");
+  tiv_->clearSelection();
+
 	stv_->setStepStatus(false);
 
 	stv_->updateTargetParam();

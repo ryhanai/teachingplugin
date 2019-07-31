@@ -24,11 +24,11 @@ public:
 	void updateGrid(TaskModelParamPtr& target);
   void setEditMode(bool canEdit);
   void setExecState(bool isActive);
+  void clearSelection();
 
 
 private Q_SLOTS:
   void taskSelectionChanged();
-  void taskActivated();
   void searchClicked();
 	void modelMasterClicked();
 	void settingClicked();

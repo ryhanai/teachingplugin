@@ -120,7 +120,6 @@ TaskInstanceViewImpl::TaskInstanceViewImpl(QWidget* parent)
   setLayout(mainLayout);
   //
   connect(lstResult, SIGNAL(itemSelectionChanged()), this, SLOT(taskSelectionChanged()));
-  connect(lstResult, SIGNAL(itemClicked(QTableWidgetItem *)), this, SLOT(taskActivated()));
 
   connect(btnSearch, SIGNAL(clicked()), this, SLOT(searchClicked()));
   connect(leCond, SIGNAL(editingFinished()), this, SLOT(searchClicked()));
@@ -292,6 +291,12 @@ void TaskInstanceViewImpl::setExecState(bool isActive) {
   btnRunTask->setEnabled(isActive);
 }
 
+void TaskInstanceViewImpl::clearSelection() {
+  isSkip_ = true;
+  lstResult->clearSelection();
+  isSkip_ = false;
+}
+
 int TaskInstanceViewImpl::getSelectedId() {
   int result = NULL_ID;
   QTableWidgetItem* item = lstResult->currentItem();
@@ -317,11 +322,6 @@ void TaskInstanceViewImpl::settingClicked() {
 
 void TaskInstanceViewImpl::realClicked() {
   SettingManager::getInstance().setIsReal(chkReal->isChecked());
-}
-
-void TaskInstanceViewImpl::taskActivated() {
-  DDEBUG("TaskInstanceViewImpl::taskActivated()");
-  //TeachingEventHandler::instance()->tiv_TaskSelectionChanged(getSelectedId(), leTask->text());
 }
 
 void TaskInstanceViewImpl::runTaskClicked() {
