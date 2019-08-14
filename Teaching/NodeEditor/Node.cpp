@@ -211,4 +211,5 @@ void Node::updateDisp() {
     DDEBUG("Node::updateDisp update");
     _nodeGraphicsObject->update();
   }
+	DDEBUG("Node::updateDisp End");
 }

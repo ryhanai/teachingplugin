@@ -556,7 +556,9 @@ void TaskExecuteManager::prepareTask(bool isFlow) {
     if (TeachingEventHandler::instance()->isAllModelDisp() == false) {
       ChoreonoidUtil::unLoadTaskModelItem(prevTask_);
     }
+    DDEBUG("prevTask State Deactive")
     if (prevTask_->getStateParam()) prevTask_->getStateParam()->updateActive(false);
+    DDEBUG("currentTask State Aactive")
     if (currentTask_ && currentTask_->getStateParam()) currentTask_->getStateParam()->updateActive(true);
     this->flowView_->repaint();
   }
@@ -576,6 +578,7 @@ void TaskExecuteManager::prepareTask(bool isFlow) {
   currParam_->updateActive(true);
   statemachineView_->repaint();
   ChoreonoidUtil::updateScene();
+	DDEBUG("TaskExecuteManager::prepareTask End");
 }
 
 void TaskExecuteManager::setOutArgument(std::vector<CompositeParamType>& parameterList) {

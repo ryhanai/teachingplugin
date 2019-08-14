@@ -564,7 +564,11 @@ void FlowEditor::createFlowParamNode(FlowParameterParamPtr target) {
     auto& node = _scene->createNode(std::move(type));
     node.nodeGraphicsObject().setPos(target->getPosX(), target->getPosY());
     if (target->getType() == PARAM_TYPE_FRAME) {
-      ((FrameParamDataModel*)(node.nodeDataModel()))->setParamInfo(target->getName() + QString::number(target->getId()), target->getValue());
+      QString nodeName = target->getName();
+      if(nodeName=="ParamName") {
+        nodeName = target->getName() + QString::number(target->getId());
+      }
+      ((FrameParamDataModel*)(node.nodeDataModel()))->setParamInfo(nodeName, target->getValue());
     } else {
       QString strValue;
       if (target->getType() == PARAM_TYPE_DOUBLE) {
@@ -572,7 +576,11 @@ void FlowEditor::createFlowParamNode(FlowParameterParamPtr target) {
       } else {
         strValue = target->getValue();
       }
-      ((ParamDataModel*)(node.nodeDataModel()))->setParamInfo(target->getName() + QString::number(target->getId()), strValue);
+      QString nodeName = target->getName();
+      if(nodeName=="ParamName") {
+        nodeName = target->getName() + QString::number(target->getId());
+      }
+      ((ParamDataModel*)(node.nodeDataModel()))->setParamInfo(nodeName, strValue);
     }
     target->setRealElem(&node);
     node.setParamId(target->getId());
