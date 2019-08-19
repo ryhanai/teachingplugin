@@ -1,9 +1,0 @@
-README
-
-1. データベースの初期化
-$ ./setup.sh
-  データベースファイルが既に存在していれば削除し、SQLiteのテーブルを作成する。
-
-2. Choreonoidの起動
-$ choreonoid teaching_plugin.cnoid
-
