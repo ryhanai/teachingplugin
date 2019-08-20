@@ -2,7 +2,7 @@
 
 **teachingPlugin**
 
-[Document](https://ryhanai.github.io/teachingplugin_doc)
+[Document (in Japanese)](https://ryhanai.github.io/teachingplugin_doc)
 
 ### Platforms ###
 * Ubuntu Linux 18.04 LTS
