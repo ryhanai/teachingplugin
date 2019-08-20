@@ -1,6 +1,6 @@
 # encoding: utf-8
 
-from task_model.task_design import *
+from task_tool.task_design import *
 
 db = MasterManager()
 db.add('green_tea_bottle_with_cap', 'greentea350hrp.wrl', 'greentea350.jpg',

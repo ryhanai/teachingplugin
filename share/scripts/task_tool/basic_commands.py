@@ -1,6 +1,6 @@
 # encoding: utf-8
 
-from task_model.task_design import *
+from task_tool.task_design import *
 
 ## definition of task specific commands
 

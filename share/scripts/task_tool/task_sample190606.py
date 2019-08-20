@@ -2,9 +2,9 @@
 # encoding: utf-8
 
 import numpy as np
-from task_model.task_design import *
-from task_model.basic_commands import *
-from task_model.sample_master_data import *
+from task_tool.task_design import *
+from task_tool.basic_commands import *
+from task_tool.sample_master_data import *
 
 # We do not know what kind of motion patterns are needed for general assembly tasks,
 # how to organize the motion patterns, how to parameterize the motions patterns.

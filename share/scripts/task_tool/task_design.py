@@ -7,6 +7,7 @@ import yaml
 from collections import OrderedDict
 import functools
 import operator
+import copy
 from enum import Enum
 
 
@@ -65,10 +66,12 @@ def comp_def(e, mm):
                             ('type', e.model_type),
                             ('pos', e.tf)])
     elif isinstance(e, ParamModel):
+        print(e.value.tf)
         code = OrderedDict([('param_type', e.param_type.comp()),
                             ('name', quoted(e.name)),
                             ('disp_name', quoted(e.disp_name)),
-                            ('values', e.value.tf.copy()), # このフィールドは移行後に不要になる（モデルが持っているので）
+                            #('values', e.value.tf.copy()), # このフィールドは移行後に不要になる（モデルが持っているので）
+                            ('values', copy.copy(e.value.tf)),
                             ('model_name', e.value.name),
                             ('model_param_id', -1),
                             ('hide', e.hide)])
