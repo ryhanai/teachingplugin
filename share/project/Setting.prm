@@ -2,7 +2,7 @@ database : ./teachingDB.sqlite3
 robotModelName : main_withHands
 logLevel : 2
 logDir : Log
-controller : SampleHiroController
+controller : HiroNXController
 application : MP4|/usr/bin/totem
 application : PDF|/usr/bin/evince
 application : STL|/usr/bin/meshlab
