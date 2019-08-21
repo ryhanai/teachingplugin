@@ -45,7 +45,7 @@ CREATE TABLE T_FLOW_PARAMETER (
 	value			text	 not null,
 	pos_x			real	 not null,
 	pos_y			real	 not null,
-	param_type		integer not null,	/* 1:int, 2:double, 3:string, 4:frame */
+	param_type		integer not null,	/* 1:int, 2:double, 3:frame */
 	primary key(flow_id, param_id)
 );
 
@@ -88,7 +88,7 @@ CREATE TABLE T_TASK_INST_PARAMETER (
 	type			integer not null,	/* 0:Normal, 1:Model */
 	model_id		integer,
 	model_param_id	integer,
-	param_type		integer not null,	/* 1:int, 2:double, 3:string, 4:frame */
+	param_type		integer not null,	/* 1:int, 2:double, 3:frame */
 	primary key(task_inst_id, task_param_id)
 );
 
