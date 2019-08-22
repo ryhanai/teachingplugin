@@ -1145,3 +1145,11 @@ msgstr "名称に使用できない文字が含まれています"
 #: TeachingEventHandler.cpp:775
 msgid "A master with the same name exists."
 msgstr "同一名のマスタが既に登録されています"
+
+#: TaskInstanceViewImpl.cpp:291
+msgid "Initialization"
+msgstr "初期化処理"
+
+#: TaskInstanceViewImpl.cpp:292
+msgid "Since the controller specified in Setting.prm is not found, it is running in an inexecutable state.Check the controller settings."
+msgstr "Setting.prmで指定されたコントローラが見つからないため,実行できない状態で起動しています.コントローラの設定を確認してください."

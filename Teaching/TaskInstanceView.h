@@ -66,6 +66,7 @@ private:
   int currentTaskIndex_;
 
   bool isSkip_;
+  bool isRegistered_;
 
   int getSelectedId();
 };

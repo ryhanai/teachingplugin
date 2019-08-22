@@ -16,7 +16,7 @@ using namespace cnoid;
 namespace teaching {
 
 TaskInstanceViewImpl::TaskInstanceViewImpl(QWidget* parent)
-  : currentTaskIndex_(-1), isSkip_(false) {
+  : currentTaskIndex_(-1), isSkip_(false), isRegistered_(false) {
 
   QFrame* condFrame = new QFrame;
   QLabel* lblCond = new QLabel(_("Condition:"));
@@ -147,6 +147,7 @@ TaskInstanceViewImpl::~TaskInstanceViewImpl() {
 }
 
 void TaskInstanceViewImpl::loadTaskInfo() {
+  isRegistered_ = true;
 	DDEBUG("TaskInstanceViewImpl::loadTaskInfo");
 	if (DatabaseManager::getInstance().connectDB()) {
 		TeachingDataHolder::instance()->loadData();
@@ -285,6 +286,12 @@ void TaskInstanceViewImpl::setEditMode(bool canEdit) {
   btnDeleteTask->setEnabled(canEdit);
   btnRegistNewTask->setEnabled(canEdit);
   btnRegistTask->setEnabled(canEdit);
+
+  if(isRegistered_==false) {
+		QMessageBox::warning(this, _("Initialization"),
+      _("Since the controller specified in Setting.prm is not found, it is running in an inexecutable state.Check the controller settings."));
+    isRegistered_ = true;
+  }
 }
 
 void TaskInstanceViewImpl::setExecState(bool isActive) {
