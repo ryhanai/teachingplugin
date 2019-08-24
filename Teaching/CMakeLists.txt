@@ -203,3 +203,7 @@ endif(UNIX)
 target_compile_definitions(${libname} PUBLIC "-DNODE_EDITOR_STATIC")
 
 apply_common_setting_for_plugin(${libname}  "${headers}")
+
+if(ENABLE_PYTHON)
+  add_subdirectory(pybind11)
+endif()
