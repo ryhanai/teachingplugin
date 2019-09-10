@@ -7,7 +7,9 @@
 
 #include "ControllerManager.h"
 #include "TaskExecutor.h"
+
 #include "TeachingUtil.h"
+#include "ChoreonoidUtil.h"
 #include "LoggerUtil.h"
 
 using namespace std;
@@ -61,24 +63,50 @@ bool TaskExecutor::executeCommand(const std::string& commandName, std::vector<Co
 }
 
 bool TaskExecutor::attachModelItem(cnoid::BodyItemPtr object, int target) {
+  //AttachedModel* model = new AttachedModel();
+  //model->object = object;
+  //model->target = target;
+  //modelList.push_back(model);
+
+  //return handler_->attachModelItem(object, target);
+
+  string strRobotName = SettingManager::getInstance().getRobotModelName();
+  BodyItem* parentItem = ChoreonoidUtil::searchParentModel(strRobotName);
+  Link* parentLink = handler_->getToolLink(target);
+
+  AttachedItemsPtr attached_item = std::make_shared<AttachedItems>(parentItem, parentLink, object);
+  attached_item->attachItems();
+
   AttachedModel* model = new AttachedModel();
   model->object = object;
   model->target = target;
+  model->item = attached_item;
   modelList.push_back(model);
 
-  return handler_->attachModelItem(object, target);
+  return true;
 }
 
 bool TaskExecutor::detachModelItem(cnoid::BodyItemPtr object, int target) {
+  //for (unsigned int index = 0; index < modelList.size(); index++) {
+  //  AttachedModel* model = modelList[index];
+  //  if (model->object == object && model->target == target) {
+  //    this->modelList.erase(std::remove(this->modelList.begin(), this->modelList.end(), model), this->modelList.end());
+  //    delete model;
+  //    break;
+  //  }
+  //}
+  //return handler_->detachModelItem(object, target);
+
   for (unsigned int index = 0; index < modelList.size(); index++) {
     AttachedModel* model = modelList[index];
     if (model->object == object && model->target == target) {
+      model->item->detachItems();
       this->modelList.erase(std::remove(this->modelList.begin(), this->modelList.end(), model), this->modelList.end());
       delete model;
       break;
     }
   }
-  return handler_->detachModelItem(object, target);
+  return true;
 }
 
 bool TaskExecutor::detachAllModelItem() {
@@ -89,4 +117,17 @@ bool TaskExecutor::detachAllModelItem() {
   return true;
 }
 
+bool TaskExecutor::attachModelItems(cnoid::BodyItemPtr parent, cnoid::BodyItemPtr child) {
+  //AttachedItemsPtr attached_item = std::make_shared<AttachedItems>(parent, child);
+  //attached_item->attachItems();
+  //itemList_.push_back(attached_item);
+
+  return true;
+}
+
+void TaskExecutor::detachModelItems() {
+  //for (AttachedItemsPtr item : itemList_) {
+  //  item->detachItems();
+  //}
+}
 }

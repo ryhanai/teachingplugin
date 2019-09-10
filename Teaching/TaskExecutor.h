@@ -14,6 +14,7 @@ public:
   };
   cnoid::BodyItemPtr object;
   int target;
+  AttachedItemsPtr item;
 };
 
 class TaskExecutor {
@@ -30,11 +31,15 @@ public:
   bool detachModelItem(cnoid::BodyItemPtr object, int target);
   bool detachAllModelItem();
 
+  bool attachModelItems(cnoid::BodyItemPtr parent, cnoid::BodyItemPtr child);
+  void detachModelItems();
+
 private:
   TaskExecutor();
   std::vector<AttachedModel*> modelList;
   ControllerBase* handler_;
 
+  //std::vector<AttachedItemsPtr> itemList_;
 };
 
 struct ParameterParamComparatorByRName {

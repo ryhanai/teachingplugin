@@ -135,7 +135,40 @@ ElementStmParam::~ElementStmParam() {
   actionList_.clear();
   argList_.clear();
 }
+//
+void AttachedItems::attachItems() {
+  Position relTrans = parentLink_->position().inverse()*childLink_->position();
 
+  posVal_.clear();
+  for (int index = 0; index < 12; index++) {
+    posVal_.push_back(relTrans.data()[index]);
+  }
+
+  updateKinematicStateLater.setFunction(bind(&AttachedItems::updateKinematicState, this, true));
+  updateKinematicStateLater.setPriority(IDLE_PRIORITY_LOW);
+
+	connectionToKinematicStateChanged.disconnect();
+	if (!connectionToKinematicStateChanged.connected() && parentItem_) {
+		connectionToKinematicStateChanged = parentItem_->sigKinematicStateChanged().connect(
+			updateKinematicStateLater);
+	}
+}
+
+void AttachedItems::updateKinematicState(bool blockSignals) {
+  Position objTrans;
+  for (int index = 0; index < 12; index++) {
+    objTrans.data()[index] = posVal_[index];
+  }
+
+  childLink_->R() = parentLink_->R() * objTrans.linear();
+  childLink_->p() = parentLink_->p() + parentLink_->R() * objTrans.translation();
+  childItem_->notifyKinematicStateChange(true);
+}
+
+void AttachedItems::detachItems() {
+	connectionToKinematicStateChanged.disconnect();
+}
+//
 ConnectionStmParam::ConnectionStmParam(const ConnectionStmParamPtr source)
   : type_(source->type_),
     sourceId_(source->sourceId_), sourceIndex_(source->sourceIndex_),

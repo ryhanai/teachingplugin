@@ -535,6 +535,35 @@ private:
 };
 typedef std::shared_ptr<ElementStmActionParam> ElementStmActionParamPtr;
 
+class AttachedItems {
+public:
+  AttachedItems() {};
+  AttachedItems(cnoid::BodyItemPtr parent, cnoid::BodyItemPtr child)
+    : parentItem_(parent), childItem_(child) {
+    parentLink_ = parentItem_->body()->link(0);
+    childLink_ = childItem_->body()->link(0);
+  };
+  AttachedItems(cnoid::BodyItemPtr parent, cnoid::Link* parentLink, cnoid::BodyItemPtr child)
+    : parentItem_(parent), parentLink_(parentLink), childItem_(child) {
+    childLink_ = childItem_->body()->link(0);
+  };
+
+  void attachItems();
+  void updateKinematicState(bool blockSignals);
+  void detachItems();
+
+private:
+  cnoid::BodyItemPtr parentItem_;
+  cnoid::BodyItemPtr childItem_;
+  cnoid::Link* parentLink_;
+  cnoid::Link* childLink_;
+  std::vector<double> posVal_;
+
+  cnoid::Connection connectionToKinematicStateChanged;
+	cnoid::LazyCaller updateKinematicStateLater;
+};
+typedef std::shared_ptr<AttachedItems> AttachedItemsPtr;
+
 class ElementStmParam : public DatabaseParam {
 public:
   ElementStmParam(int id, int type, QString cmdName, QString cmdDspName, double posX, double posY, QString condition);

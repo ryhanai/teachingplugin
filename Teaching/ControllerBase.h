@@ -2,6 +2,7 @@
 #define TEACHING_CONTROLLERBASE_H_INCLUDED
 
 #include <cnoid/BodyItem>
+#include <cnoid/Link>
 #include <cnoid/EigenUtil>
 #include <boost/variant.hpp>
 
@@ -35,6 +36,7 @@ public:
   inline void setRootName(std::string value) { this->rootName = value; }
 
   virtual void initialize() = 0; // R.Hanai
+  virtual cnoid::Link* getToolLink(int toolNumber) = 0;
 
 protected:
   std::string rootName;
