@@ -31,7 +31,6 @@ public:
 	static void deselectTreeItem();
   static void updateScene();
 
-private:
   static cnoid::BodyItem* searchParentModel(const std::string targetName);
 
 };
