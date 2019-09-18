@@ -39,11 +39,6 @@ TaskInstanceViewImpl::TaskInstanceViewImpl(QWidget* parent)
   chkReal = new QCheckBox(_("Real"));
   chkReal->setChecked(SettingManager::getInstance().getIsReal());
 
-  //QPushButton* btnAttach = new QPushButton("Attach");
-  //QPushButton* btnDetach = new QPushButton("Detach");
-
-
-
   QLabel* lblTaskName = new QLabel(_("Task Name:"));
   leTask = new QLineEdit;
   //
@@ -55,9 +50,6 @@ TaskInstanceViewImpl::TaskInstanceViewImpl(QWidget* parent)
   topLayout->addWidget(btnModelMaster, 0, 3, 1, 1);
 	topLayout->addWidget(btnSetting, 0, 4, 1, 1);
 	topLayout->addWidget(chkReal, 0, 5, 1, 1);
-
-	//topLayout->addWidget(btnAttach, 0, 6, 1, 1);
-	//topLayout->addWidget(btnDetach, 0, 7, 1, 1);
 
 	topLayout->addWidget(lblTaskName, 1, 0, 1, 1, Qt::AlignRight);
   topLayout->addWidget(leTask, 1, 1, 1, 7);
@@ -147,9 +139,6 @@ TaskInstanceViewImpl::TaskInstanceViewImpl(QWidget* parent)
   connect(btnDeleteTask, SIGNAL(clicked()), this, SLOT(deleteTaskClicked()));
   connect(btnRegistNewTask, SIGNAL(clicked()), this, SLOT(registNewTaskClicked()));
   connect(btnRegistTask, SIGNAL(clicked()), this, SLOT(registTaskClicked()));
-
-  //connect(btnAttach, SIGNAL(clicked()), this, SLOT(attachClicked()));
-  //connect(btnDetach, SIGNAL(clicked()), this, SLOT(detachClicked()));
   //
   ControllerManager::instance()->setTaskInstanceView(this);
 
@@ -344,16 +333,6 @@ void TaskInstanceViewImpl::settingClicked() {
 
 void TaskInstanceViewImpl::realClicked() {
   SettingManager::getInstance().setIsReal(chkReal->isChecked());
-}
-
-void TaskInstanceViewImpl::attachClicked() {
-  BodyItem* parent = ChoreonoidUtil::searchParentModel("pick and place|picked_obj");
-  BodyItem* child = ChoreonoidUtil::searchParentModel("pick and place|target_obj");
-  TaskExecutor::instance()->attachModelItems(parent, child);
-}
-
-void TaskInstanceViewImpl::detachClicked() {
-  TaskExecutor::instance()->detachModelItems();
 }
 
 void TaskInstanceViewImpl::runTaskClicked() {

@@ -16,6 +16,7 @@ public:
   int target;
   AttachedItemsPtr item;
 };
+typedef std::shared_ptr<AttachedModel> AttachedModelPtr;
 
 class TaskExecutor {
 public:
@@ -31,15 +32,10 @@ public:
   bool detachModelItem(cnoid::BodyItemPtr object, int target);
   bool detachAllModelItem();
 
-  bool attachModelItems(cnoid::BodyItemPtr parent, cnoid::BodyItemPtr child);
-  void detachModelItems();
-
 private:
   TaskExecutor();
-  std::vector<AttachedModel*> modelList;
+  std::vector<AttachedModelPtr> modelList;
   ControllerBase* handler_;
-
-  //std::vector<AttachedItemsPtr> itemList_;
 };
 
 struct ParameterParamComparatorByRName {

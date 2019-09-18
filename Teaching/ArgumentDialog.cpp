@@ -71,9 +71,8 @@ ArgumentDialog::ArgumentDialog(QWidget* parent)
   buttonParamLayout->addWidget(btnDelete);
 
   QLabel* lblAction = new QLabel(_("Action:"));
-  cmbAction = new QComboBox(this);
-  cmbAction->addItem("Attach");
-  cmbAction->addItem("Detach");
+  radAttach = new QRadioButton("Attach");
+  radDetach = new QRadioButton("Detach");
   QLabel* lblModel = new QLabel(_("Model:"));
   cmbModel = new QComboBox(this);
 
@@ -89,18 +88,31 @@ ArgumentDialog::ArgumentDialog(QWidget* parent)
   txtArgDef = new QTextEdit;
   txtArgDef->setMaximumHeight(80);
   //
+  QGroupBox* grpAction = new QGroupBox();
+  QGridLayout* actionLayout = new QGridLayout;
+  actionLayout->setContentsMargins(3, 3, 3, 3);
+  grpAction->setLayout(actionLayout);
+  actionLayout->addWidget(lstHandling, 0, 0, 1, 3);
+  actionLayout->addWidget(frmParamButtons, 1, 0, 1, 3);
+  actionLayout->addWidget(lblAction, 2, 0, 1, 1, Qt::AlignRight);
+  actionLayout->addWidget(radAttach, 2, 1, 1, 1);
+  actionLayout->addWidget(radDetach, 2, 2, 1, 1);
+  actionLayout->addWidget(lblModel, 3, 0, 1, 1, Qt::AlignRight);
+  actionLayout->addWidget(cmbModel, 3, 1, 1, 2);
+  actionLayout->addWidget(lblTarget, 4, 0, 1, 1, Qt::AlignRight);
+  actionLayout->addWidget(cmbTarget, 4, 1, 1, 2);
+
+  actionLayout->setColumnStretch(0, 5);
+  actionLayout->setColumnStretch(1, 1);
+  actionLayout->setColumnStretch(2, 1);
+  //
   QFrame* frmParam = new QFrame;
   QGridLayout* paramLayout = new QGridLayout;
   paramLayout->setContentsMargins(0, 0, 0, 0);
   frmParam->setLayout(paramLayout);
-  paramLayout->addWidget(lstHandling, 0, 0, 1, 2);
-  paramLayout->addWidget(frmParamButtons, 1, 0, 1, 2);
-  paramLayout->addWidget(lblAction, 2, 0, 1, 1, Qt::AlignRight);
-  paramLayout->addWidget(cmbAction, 2, 1, 1, 1);
-  paramLayout->addWidget(lblModel, 3, 0, 1, 1, Qt::AlignRight);
-  paramLayout->addWidget(cmbModel, 3, 1, 1, 1);
-  paramLayout->addWidget(lblTarget, 4, 0, 1, 1, Qt::AlignRight);
-  paramLayout->addWidget(cmbTarget, 4, 1, 1, 1);
+
+  paramLayout->addWidget(grpAction, 0, 0, 5, 2);
+
   paramLayout->addWidget(lstArg, 5, 0, 1, 2);
   paramLayout->addWidget(txtArgDef, 6, 0, 1, 2);
   //
@@ -272,7 +284,7 @@ void ArgumentDialog::updateArgument(QString currText) {
 void ArgumentDialog::actionSelectionChanged() {
 	DDEBUG("ArgumentDialog::actionSelectionChanged");
 
-	QString strAct = cmbAction->currentIndex()== ACTION_ATTACH ? "attach": "detach";
+  QString strAct = getActionStr();
 	QString strModel = cmbModel->itemText(cmbModel->currentIndex());
 	QString strTarget = cmbTarget->itemText(cmbTarget->currentIndex());
 
@@ -294,9 +306,11 @@ void ArgumentDialog::actionSelectionChanged() {
 
 void ArgumentDialog::updateAction(ElementStmActionParamPtr& target) {
 		if (target->getAction() == "attach") {
-			cmbAction->setCurrentIndex(0);
+      radAttach->setChecked(true);
+      radDetach->setChecked(false);
 		} else if (target->getAction() == "detach") {
-			cmbAction->setCurrentIndex(1);
+      radAttach->setChecked(false);
+      radDetach->setChecked(true);
 		}
 		cmbModel->setCurrentIndex(cmbModel->findText(target->getModel()));
 		cmbTarget->setCurrentIndex(cmbTarget->findText(target->getTarget()));
@@ -314,7 +328,7 @@ void ArgumentDialog::modelSelectionChanged() {
 void ArgumentDialog::addClicked() {
   DDEBUG("ArgumentDialog::addClicked");
 
-	QString strAct = cmbAction->currentIndex() == ACTION_ATTACH ? "attach" : "detach";
+  QString strAct = getActionStr();
 	QString strModel = cmbModel->itemText(cmbModel->currentIndex());
 	QString strTarget = cmbTarget->itemText(cmbTarget->currentIndex());
 
@@ -339,7 +353,8 @@ void ArgumentDialog::deleteClicked() {
 	TeachingEventHandler::instance()->agd_DeleteClicked();
 
 	if(curActionIdx_ != NULL_ID) {
-    cmbAction->setCurrentIndex(0);
+    radAttach->setChecked(false);
+    radDetach->setChecked(false);
     cmbModel->setCurrentIndex(0);
     cmbTarget->setCurrentIndex(0);
 
@@ -354,7 +369,7 @@ void ArgumentDialog::deleteClicked() {
 void ArgumentDialog::upClicked() {
   DDEBUG("ArgumentDialog::upClicked");
 
-	QString strAct = cmbAction->currentIndex() == ACTION_ATTACH ? "attach" : "detach";
+  QString strAct = getActionStr();
 	QString strModel = cmbModel->itemText(cmbModel->currentIndex());
 	QString strTarget = cmbTarget->itemText(cmbTarget->currentIndex());
 
@@ -374,7 +389,7 @@ void ArgumentDialog::upClicked() {
 void ArgumentDialog::downClicked() {
   DDEBUG("ArgumentDialog::downClicked");
 
-	QString strAct = cmbAction->currentIndex() == ACTION_ATTACH ? "attach" : "detach";
+  QString strAct = getActionStr();
 	QString strModel = cmbModel->itemText(cmbModel->currentIndex());
 	QString strTarget = cmbTarget->itemText(cmbTarget->currentIndex());
 
@@ -402,7 +417,7 @@ void ArgumentDialog::oKClicked() {
     return;
   }
 
-	QString strAct = cmbAction->currentIndex() == ACTION_ATTACH ? "attach" : "detach";
+  QString strAct = getActionStr();
 	QString strModel = cmbModel->itemText(cmbModel->currentIndex());
 	QString strTarget = cmbTarget->itemText(cmbTarget->currentIndex());
 	QString strArgDef = txtArgDef->toPlainText();
@@ -431,6 +446,16 @@ void ArgumentDialog::cancelClicked() {
 void ArgumentDialog::rejected() {
   DDEBUG("ArgumentDialog::rejected");
   close();
+}
+
+QString ArgumentDialog::getActionStr() {
+  QString result = "";
+  if(radAttach->isChecked()) {
+    result = "attach";
+  } else if(radDetach->isChecked()) {
+    result = "detach";
+  }
+  return result;
 }
 
 }

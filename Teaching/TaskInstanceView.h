@@ -45,9 +45,6 @@ private Q_SLOTS:
 
   void widgetClose();
 
-  void attachClicked();
-  void detachClicked();
-
 private:
   QPushButton* btnModelMaster;
   QPushButton* btnSetting;

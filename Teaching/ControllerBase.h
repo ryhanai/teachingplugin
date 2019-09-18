@@ -27,13 +27,10 @@ private:
 
 class ControllerBase {
 public:
-  virtual bool attachModelItem(cnoid::BodyItemPtr object, int target) = 0;
-  virtual bool detachModelItem(cnoid::BodyItemPtr object, int target) = 0;
   virtual std::vector<CommandDefParam*> getCommandDefList() = 0;
+  inline void setRootName(std::string value) { this->rootName = value; }
 
   virtual bool executeCommand(const std::string& commandName, std::vector<CompositeParamType>& params, bool isReal=false) = 0;
-
-  inline void setRootName(std::string value) { this->rootName = value; }
 
   virtual void initialize() = 0; // R.Hanai
   virtual cnoid::Link* getToolLink(int toolNumber) = 0;

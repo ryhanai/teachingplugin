@@ -46,7 +46,8 @@ private:
   //
   QLineEdit* txtStateName;
 	QLineEdit* txtCmdName;
-  QComboBox* cmbAction;
+  QRadioButton* radAttach;
+  QRadioButton* radDetach;
   QComboBox* cmbModel;
   QComboBox* cmbTarget;
   QTextEdit* txtArgDef;
@@ -54,6 +55,8 @@ private:
   bool isOK_;
   int curArgIdx_;
   int curActionIdx_;
+
+  QString getActionStr();
 };
 
 }
