@@ -106,12 +106,13 @@ CREATE TABLE T_STATE (
 
 CREATE TABLE T_STATE_ACTION (
 	task_inst_id		integer not null,
-	state_id			integer not null,
+	state_id		integer not null,
 	state_action_id		integer not null,
-	seq					integer not null,
-	action				text not null,
-	model				text not null,
-	target				text,
+	seq			integer not null,
+	action			text not null,
+	parent			text,
+	model			text not null,
+	target			text,
 	primary key(task_inst_id, state_id, state_action_id)
 );
 

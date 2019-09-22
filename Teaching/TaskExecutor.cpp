@@ -62,16 +62,25 @@ bool TaskExecutor::executeCommand(const std::string& commandName, std::vector<Co
   }
 }
 
-bool TaskExecutor::attachModelItem(cnoid::BodyItemPtr object, int target) {
-  string strRobotName = SettingManager::getInstance().getRobotModelName();
-  BodyItem* parentItem = ChoreonoidUtil::searchParentModel(strRobotName);
-  Link* parentLink = handler_->getToolLink(target);
+bool TaskExecutor::attachModelItem(cnoid::BodyItemPtr parent, cnoid::BodyItemPtr child, int target) {
+  DDEBUG("TaskExecutor::attachModelItem");
+  BodyItem* parentItem;
+  Link* parentLink;
+  if (!parent) {
+    string strRobotName = SettingManager::getInstance().getRobotModelName();
+    parentItem = ChoreonoidUtil::searchParentModel(strRobotName);
+    parentLink = handler_->getToolLink(target);
+  } else {
+    parentItem = parent;
+    parentLink = parent->body()->link(0);
+  }
 
-  AttachedItemsPtr attached_item = std::make_shared<AttachedItems>(parentItem, parentLink, object);
+  AttachedItemsPtr attached_item = std::make_shared<AttachedItems>(parentItem, parentLink, child);
   attached_item->attachItems();
 
   AttachedModelPtr model = std::make_shared<AttachedModel>();
-  model->object = object;
+  model->parent = parent;
+  model->child = child;
   model->target = target;
   model->item = attached_item;
   modelList.push_back(model);
@@ -79,9 +88,9 @@ bool TaskExecutor::attachModelItem(cnoid::BodyItemPtr object, int target) {
   return true;
 }
 
-bool TaskExecutor::detachModelItem(cnoid::BodyItemPtr object, int target) {
+bool TaskExecutor::detachModelItem(cnoid::BodyItemPtr parent, cnoid::BodyItemPtr child, int target) {
   for (AttachedModelPtr model : modelList) {
-    if (model->object == object && model->target == target) {
+    if (model->parent == parent && model->child == child && model->target == target) {
       model->item->detachItems();
       this->modelList.erase(std::remove(this->modelList.begin(), this->modelList.end(), model), this->modelList.end());
       break;

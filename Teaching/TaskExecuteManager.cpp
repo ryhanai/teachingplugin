@@ -502,9 +502,16 @@ void TaskExecuteManager::parseModelInfo() {
   vector<ElementStmParamPtr> stateList = currentTask_->getActiveStateList();
   for (ElementStmParamPtr state : currentTask_->getActiveStateList()) {
     for (ElementStmActionParamPtr action : state->getActiveStateActionList()) {
+      if(0<action->getParent().size()) {
+      std::vector<ModelParamPtr>::iterator parentModel = std::find_if(modelList.begin(), modelList.end(), ModelParamComparatorByRName(action->getParent()));
+        if (parentModel != modelList.end()) {
+          action->setParentModelParam(*parentModel);
+        }
+      }
       std::vector<ModelParamPtr>::iterator model = std::find_if(modelList.begin(), modelList.end(), ModelParamComparatorByRName(action->getModel()));
-      if (model == modelList.end()) continue;
-      action->setModelParam(*model);
+      if (model != modelList.end()) {
+        action->setModelParam(*model);
+      }
     }
   }
   DDEBUG("TaskExecuteManager::parseModelInfo End");
@@ -512,22 +519,30 @@ void TaskExecuteManager::parseModelInfo() {
 
 bool TaskExecuteManager::doModelAction() {
   for (ElementStmActionParamPtr action : currParam_->getActiveStateActionList()) {
-    DDEBUG_V("Action : %s = %s, %s, %s", currParam_->getCmdName().toStdString().c_str(), action->getAction().toStdString().c_str(), action->getModel().toStdString().c_str(), action->getTarget().toStdString().c_str());
+    DDEBUG_V("Action : %s = %s, %s, %s, %s", currParam_->getCmdName().toStdString().c_str(), action->getAction().toStdString().c_str(), action->getParent().toStdString().c_str(), action->getModel().toStdString().c_str(), action->getTarget().toStdString().c_str());
     //
     if (action->getAction() == "attach" || action->getAction() == "detach") {
-      vector<ParameterParamPtr> paramList = currentTask_->getActiveParameterList();
-      vector<ParameterParamPtr>::iterator targetParam = find_if(paramList.begin(), paramList.end(), ParameterParamComparatorByRName(action->getTarget()));
-      QString strVal;
+      cnoid::BodyItemPtr parentItem = NULL;
       int intTarget = -1;
-      if (targetParam != paramList.end()) {
-        strVal = QString::fromStdString((*targetParam)->getValues(0));
-        intTarget = strVal.toInt();
+      if (action->getParent().size() == 0) {
+        vector<ParameterParamPtr> paramList = currentTask_->getActiveParameterList();
+        QString strVal;
+        vector<ParameterParamPtr>::iterator targetParam = find_if(paramList.begin(), paramList.end(), ParameterParamComparatorByRName(action->getTarget()));
+        if (targetParam != paramList.end()) {
+          strVal = QString::fromStdString((*targetParam)->getValues(0));
+          intTarget = strVal.toInt();
+        }
+      } else {
+        parentItem = action->getParentModelParam()->getModelItem();
       }
       //
       if (action->getAction() == "attach") {
         bool ret = false;
         if(action->getModelParam()) {
-          ret = TaskExecutor::instance()->attachModelItem(action->getModelParam()->getModelItem(), intTarget);
+          ret = TaskExecutor::instance()->attachModelItem(
+                        parentItem,
+                        action->getModelParam()->getModelItem(),
+                        intTarget);
         }
         if (ret == false) {
           QMessageBox::warning(0, _("Run Task"), _("Model Attach Failed."));
@@ -537,7 +552,10 @@ bool TaskExecuteManager::doModelAction() {
       } else if (action->getAction() == "detach") {
         bool ret = false;
         if(action->getModelParam()) {
-          ret = TaskExecutor::instance()->detachModelItem(action->getModelParam()->getModelItem(), intTarget);
+          ret = TaskExecutor::instance()->detachModelItem(
+                        parentItem,
+                        action->getModelParam()->getModelItem(),
+                        intTarget);
         }
         if (ret == false) {
           QMessageBox::warning(0, _("Run Task"), _("Model Detach Failed."));

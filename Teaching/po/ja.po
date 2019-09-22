@@ -77,7 +77,7 @@ msgid "Argument"
 msgstr "コマンド引数"
 
 #: ArgumentDialog.cpp:328
-msgid "Error : Model Definition."
+msgid "Error : Target model is not set."
 msgstr "エラー : 対象モデルが設定されていません"
 
 #: ArgumentDialog.cpp:332
@@ -1153,3 +1153,7 @@ msgstr "初期化処理"
 #: TaskInstanceViewImpl.cpp:292
 msgid "Since the controller specified in Setting.prm is not found, it is running in an inexecutable state.Check the controller settings."
 msgstr "Setting.prmで指定されたコントローラが見つからないため,実行できない状態で起動しています.コントローラの設定を確認してください."
+
+#: TeachingEventHandler.cpp:579
+msgid "Error : The same model cannot be specified for parent and child models."
+msgstr "エラー : 親モデルと子モデルに同じモデルは指定できません."

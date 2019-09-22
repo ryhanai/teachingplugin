@@ -134,12 +134,12 @@ public:
 	void agd_ModelSelectionChanged(int selectedId);
 	void agd_Loaded(ArgumentDialog* dialog);
 	void agd_ArgSelectionChanged(int selectedId, QString strDef);
-	void agd_ActionSelectionChanged(int selectedId, QString strAct, QString strModel, QString strTarget);
-	void agd_AddClicked(QString strAct, QString strModel, QString strTarget);
+	void agd_ActionSelectionChanged(int selectedId, QString strAct, QString strParent, QString strModel, QString strTarget);
+	void agd_AddClicked(QString strAct, QString strParent, QString strModel, QString strTarget);
 	void agd_DeleteClicked();
-	bool agd_OKClicked(QString strName, QString strAct, QString strModel, QString strTarget, QString strArgDef);
+	bool agd_OKClicked(QString strName, QString strAct, QString strParent, QString strModel, QString strTarget, QString strArgDef);
 	void agd_CancelClicked();
-	void agd_Update(QString strAct, QString strModel, QString strTarget);
+	void agd_Update(QString strAct, QString strParent, QString strModel, QString strTarget);
 	void agd_SetSeq(int selected, int seq);
 
 	//TaskExecuteManager

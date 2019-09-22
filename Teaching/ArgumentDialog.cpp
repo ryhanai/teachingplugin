@@ -9,7 +9,7 @@ namespace teaching {
 
 ArgumentDialog::ArgumentDialog(QWidget* parent)
   : QDialog(parent, Qt::CustomizeWindowHint | Qt::WindowTitleHint),
-  curArgIdx_(NULL_ID), curActionIdx_(NULL_ID) {
+  curArgIdx_(NULL_ID), curActionIdx_(NULL_ID), parentRobot_("<Robot>") {
   //
   lstModel = UIUtil::makeTableWidget(1, true);
   lstModel->setColumnWidth(0, 200);
@@ -38,11 +38,12 @@ ArgumentDialog::ArgumentDialog(QWidget* parent)
 	refLayout->addWidget(lstModelParam, 0, 1, 1, 1);
 	refLayout->addWidget(lstParam, 1, 0, 1, 2);
   /////
-  lstHandling = UIUtil::makeTableWidget(3, false);
-  lstHandling->setColumnWidth(0, 200);
-  lstHandling->setColumnWidth(1, 200);
-  lstHandling->setColumnWidth(2, 200);
-  lstHandling->setHorizontalHeaderLabels(QStringList() << "Action" << "Model" << "Parameter");
+  lstHandling = UIUtil::makeTableWidget(4, false);
+  lstHandling->setColumnWidth(0, 150);
+  lstHandling->setColumnWidth(1, 150);
+  lstHandling->setColumnWidth(2, 150);
+  lstHandling->setColumnWidth(3, 150);
+  lstHandling->setHorizontalHeaderLabels(QStringList() << "Action" << "Parent" << "Parameter" << "Model");
 
   QPushButton* btnUp = new QPushButton(_("Up"));
   btnUp->setIcon(QIcon(":/Teaching/icons/up.png"));
@@ -73,11 +74,15 @@ ArgumentDialog::ArgumentDialog(QWidget* parent)
   QLabel* lblAction = new QLabel(_("Action:"));
   radAttach = new QRadioButton("Attach");
   radDetach = new QRadioButton("Detach");
+
+  QLabel* lblParent = new QLabel(_("Parent:"));
+  cmbParent = new QComboBox(this);
+  QLabel* lblTarget = new QLabel(_("Parameter:"));
+  cmbTarget = new QComboBox(this);
+
   QLabel* lblModel = new QLabel(_("Model:"));
   cmbModel = new QComboBox(this);
 
-  QLabel* lblTarget = new QLabel(_("Parameter:"));
-  cmbTarget = new QComboBox(this);
   //
   lstArg = UIUtil::makeTableWidget(3, false);
   lstArg->setColumnWidth(0, 100);
@@ -97,10 +102,12 @@ ArgumentDialog::ArgumentDialog(QWidget* parent)
   actionLayout->addWidget(lblAction, 2, 0, 1, 1, Qt::AlignRight);
   actionLayout->addWidget(radAttach, 2, 1, 1, 1);
   actionLayout->addWidget(radDetach, 2, 2, 1, 1);
-  actionLayout->addWidget(lblModel, 3, 0, 1, 1, Qt::AlignRight);
-  actionLayout->addWidget(cmbModel, 3, 1, 1, 2);
+  actionLayout->addWidget(lblParent, 3, 0, 1, 1, Qt::AlignRight);
+  actionLayout->addWidget(cmbParent, 3, 1, 1, 2);
   actionLayout->addWidget(lblTarget, 4, 0, 1, 1, Qt::AlignRight);
   actionLayout->addWidget(cmbTarget, 4, 1, 1, 2);
+  actionLayout->addWidget(lblModel, 5, 0, 1, 1, Qt::AlignRight);
+  actionLayout->addWidget(cmbModel, 5, 1, 1, 2);
 
   actionLayout->setColumnStretch(0, 5);
   actionLayout->setColumnStretch(1, 1);
@@ -170,6 +177,7 @@ ArgumentDialog::ArgumentDialog(QWidget* parent)
   connect(btnOK, SIGNAL(clicked()), this, SLOT(oKClicked()));
   connect(btnCancel, SIGNAL(clicked()), this, SLOT(cancelClicked()));
   connect(this, SIGNAL(rejected()), this, SLOT(rejected()));
+  connect(cmbParent, SIGNAL(currentIndexChanged(int)), this, SLOT(parentSelectionChanged(int)));
 
   setWindowTitle(_("Command"));
   resize(1250, 700);
@@ -178,10 +186,12 @@ ArgumentDialog::ArgumentDialog(QWidget* parent)
 }
 
 void ArgumentDialog::showModelInfo(const vector<ModelParamPtr>& modelList) {
+  cmbParent->addItem(parentRobot_);
 	for (const auto& param : modelList) {
 		int row = lstModel->rowCount();
 		lstModel->insertRow(row);
     UIUtil::makeTableItemWithData(lstModel, row, 0, param->getRName(), param->getMasterId());
+		cmbParent->addItem(param->getRName());
 		cmbModel->addItem(param->getRName());
 	}
 }
@@ -255,8 +265,11 @@ void ArgumentDialog::showActionInfo(const vector<ElementStmActionParamPtr>& acti
 		int row = lstHandling->rowCount();
 		lstHandling->insertRow(row);
 		UIUtil::makeTableItemWithData(lstHandling, row, 0, param->getAction(), param->getId());
-		UIUtil::makeTableItemWithData(lstHandling, row, 1, param->getModel(), param->getId());
+    QString strParent = param->getParent();
+    if (strParent.size() == 0) strParent = parentRobot_;
+		UIUtil::makeTableItemWithData(lstHandling, row, 1, strParent, param->getId());
 		UIUtil::makeTableItemWithData(lstHandling, row, 2, param->getTarget(), param->getId());
+		UIUtil::makeTableItemWithData(lstHandling, row, 3, param->getModel(), param->getId());
 	}
 }
 
@@ -285,13 +298,15 @@ void ArgumentDialog::actionSelectionChanged() {
 	DDEBUG("ArgumentDialog::actionSelectionChanged");
 
   QString strAct = getActionStr();
+	QString strParent = cmbParent->itemText(cmbParent->currentIndex());
 	QString strModel = cmbModel->itemText(cmbModel->currentIndex());
 	QString strTarget = cmbTarget->itemText(cmbTarget->currentIndex());
 
 	if (curActionIdx_ != NULL_ID) {
 		lstHandling->item(curActionIdx_, 0)->setText(strAct);
-		lstHandling->item(curActionIdx_, 1)->setText(strModel);
+		lstHandling->item(curActionIdx_, 1)->setText(strParent);
 		lstHandling->item(curActionIdx_, 2)->setText(strTarget);
+		lstHandling->item(curActionIdx_, 3)->setText(strModel);
 	}
 	//
 	QTableWidgetItem* item = lstHandling->currentItem();
@@ -301,7 +316,7 @@ void ArgumentDialog::actionSelectionChanged() {
 		curActionIdx_ = lstHandling->currentRow();
 		selected = item->data(Qt::UserRole).toInt();
 	}
-	TeachingEventHandler::instance()->agd_ActionSelectionChanged(selected, strAct, strModel, strTarget);
+	TeachingEventHandler::instance()->agd_ActionSelectionChanged(selected, strAct, strParent, strModel, strTarget);
 }
 
 void ArgumentDialog::updateAction(ElementStmActionParamPtr& target) {
@@ -312,8 +327,19 @@ void ArgumentDialog::updateAction(ElementStmActionParamPtr& target) {
       radAttach->setChecked(false);
       radDetach->setChecked(true);
 		}
+    QString strParent = target->getParent();
+    if (strParent.size() == 0) strParent = parentRobot_;
+		cmbParent->setCurrentIndex(cmbParent->findText(strParent));
 		cmbModel->setCurrentIndex(cmbModel->findText(target->getModel()));
 		cmbTarget->setCurrentIndex(cmbTarget->findText(target->getTarget()));
+}
+
+void ArgumentDialog::parentSelectionChanged(int index) {
+  if (index == 0) {
+    cmbTarget->setEnabled(true);
+  } else {
+    cmbTarget->setEnabled(false);
+  }
 }
 
 void ArgumentDialog::modelSelectionChanged() {
@@ -329,24 +355,30 @@ void ArgumentDialog::addClicked() {
   DDEBUG("ArgumentDialog::addClicked");
 
   QString strAct = getActionStr();
+	QString strParent = cmbParent->itemText(cmbParent->currentIndex());
 	QString strModel = cmbModel->itemText(cmbModel->currentIndex());
 	QString strTarget = cmbTarget->itemText(cmbTarget->currentIndex());
 
 	if (curActionIdx_ != NULL_ID) {
 		lstHandling->item(curActionIdx_, 0)->setText(strAct);
-		lstHandling->item(curActionIdx_, 1)->setText(strModel);
+		lstHandling->item(curActionIdx_, 1)->setText(strParent);
 		lstHandling->item(curActionIdx_, 2)->setText(strTarget);
+		lstHandling->item(curActionIdx_, 3)->setText(strModel);
 	}
 	//
-	TeachingEventHandler::instance()->agd_AddClicked(strAct, strModel, strTarget);
+  if (strParent == parentRobot_) strParent = "";
+	TeachingEventHandler::instance()->agd_AddClicked(strAct, strParent, strModel, strTarget);
 }
 
 void ArgumentDialog::updateAddAction(ElementStmActionParamPtr& target) {
 	int row = lstHandling->rowCount();
 	lstHandling->insertRow(row);
 	UIUtil::makeTableItemWithData(lstHandling, row, 0, target->getAction(), target->getId());
-	UIUtil::makeTableItemWithData(lstHandling, row, 1, target->getModel(), target->getId());
+    QString strParent = target->getParent();
+    if (strParent.size() == 0) strParent = parentRobot_;
+	UIUtil::makeTableItemWithData(lstHandling, row, 1, strParent, target->getId());
 	UIUtil::makeTableItemWithData(lstHandling, row, 2, target->getTarget(), target->getId());
+	UIUtil::makeTableItemWithData(lstHandling, row, 3, target->getModel(), target->getId());
 }
 
 void ArgumentDialog::deleteClicked() {
@@ -370,15 +402,17 @@ void ArgumentDialog::upClicked() {
   DDEBUG("ArgumentDialog::upClicked");
 
   QString strAct = getActionStr();
+	QString strParent = cmbParent->itemText(cmbParent->currentIndex());
 	QString strModel = cmbModel->itemText(cmbModel->currentIndex());
 	QString strTarget = cmbTarget->itemText(cmbTarget->currentIndex());
 
 	if (curActionIdx_ != NULL_ID) {
 		lstHandling->item(curActionIdx_, 0)->setText(strAct);
-		lstHandling->item(curActionIdx_, 1)->setText(strModel);
+		lstHandling->item(curActionIdx_, 1)->setText(strParent);
 		lstHandling->item(curActionIdx_, 2)->setText(strTarget);
+		lstHandling->item(curActionIdx_, 3)->setText(strModel);
 	}
-	TeachingEventHandler::instance()->agd_Update(strAct, strModel, strTarget);
+	TeachingEventHandler::instance()->agd_Update(strAct, strParent, strModel, strTarget);
   //
   int sourceIdx = lstHandling->verticalHeader()->visualIndex(lstHandling->currentRow());
   if (sourceIdx == 0) return;
@@ -390,15 +424,17 @@ void ArgumentDialog::downClicked() {
   DDEBUG("ArgumentDialog::downClicked");
 
   QString strAct = getActionStr();
+	QString strParent = cmbParent->itemText(cmbParent->currentIndex());
 	QString strModel = cmbModel->itemText(cmbModel->currentIndex());
 	QString strTarget = cmbTarget->itemText(cmbTarget->currentIndex());
 
 	if (curActionIdx_ != NULL_ID) {
 		lstHandling->item(curActionIdx_, 0)->setText(strAct);
-		lstHandling->item(curActionIdx_, 1)->setText(strModel);
+		lstHandling->item(curActionIdx_, 1)->setText(strParent);
 		lstHandling->item(curActionIdx_, 2)->setText(strTarget);
+		lstHandling->item(curActionIdx_, 3)->setText(strModel);
 	}
-	TeachingEventHandler::instance()->agd_Update(strAct, strModel, strTarget);
+	TeachingEventHandler::instance()->agd_Update(strAct, strParent, strModel, strTarget);
 	//
   int sourceIdx = lstHandling->verticalHeader()->visualIndex(lstHandling->currentRow());
   if (lstHandling->rowCount() <= sourceIdx) return;
@@ -418,6 +454,7 @@ void ArgumentDialog::oKClicked() {
   }
 
   QString strAct = getActionStr();
+	QString strParent = cmbParent->itemText(cmbParent->currentIndex());
 	QString strModel = cmbModel->itemText(cmbModel->currentIndex());
 	QString strTarget = cmbTarget->itemText(cmbTarget->currentIndex());
 	QString strArgDef = txtArgDef->toPlainText();
@@ -431,7 +468,8 @@ void ArgumentDialog::oKClicked() {
 		seq++;
 	}
 
-	if(TeachingEventHandler::instance()->agd_OKClicked(strName, strAct, strModel, strTarget, strArgDef)==false) return;
+  if (strParent == parentRobot_) strParent = "";
+	if(TeachingEventHandler::instance()->agd_OKClicked(strName, strAct, strParent, strModel, strTarget, strArgDef)==false) return;
   //
   isOK_ = true;
   close();

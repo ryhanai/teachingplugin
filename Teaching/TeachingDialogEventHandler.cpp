@@ -525,16 +525,16 @@ void TeachingEventHandler::agd_ArgSelectionChanged(int selectedId, QString strDe
 	agd_->updateArgument(agd_Current_Arg_->getValueDesc());
 }
 
-void TeachingEventHandler::agd_ActionSelectionChanged(int selectedId, QString strAct, QString strModel, QString strTarget) {
+void TeachingEventHandler::agd_ActionSelectionChanged(int selectedId, QString strAct, QString strParent, QString strModel, QString strTarget) {
 	if (selectedId == NULL_ID) return;
-	agd_Update(strAct, strModel, strTarget);
+	agd_Update(strAct, strParent, strModel, strTarget);
 	agd_Current_Action_ = agd_Current_Stm_->getStateActionById(selectedId);
 	agd_->updateAction(agd_Current_Action_);
 }
 
-void TeachingEventHandler::agd_AddClicked(QString strAct, QString strModel, QString strTarget) {
+void TeachingEventHandler::agd_AddClicked(QString strAct, QString strParent, QString strModel, QString strTarget) {
 	DDEBUG("TeachingEventHandler::agd_AddClicked");
-	agd_Update(strAct, strModel, strTarget);
+	agd_Update(strAct, strParent, strModel, strTarget);
 	//
 	int maxId = 0;
 	for (unsigned int index = 0; index < agd_Current_Stm_->getActionList().size(); index++) {
@@ -546,7 +546,7 @@ void TeachingEventHandler::agd_AddClicked(QString strAct, QString strModel, QStr
 	maxId++;
 	DDEBUG_V("id=%d", maxId);
 
-	ElementStmActionParamPtr newAction = std::make_shared<ElementStmActionParam>(maxId, agd_Current_Stm_->getActionList().size(), "attach", "", "", true);
+	ElementStmActionParamPtr newAction = std::make_shared<ElementStmActionParam>(maxId, agd_Current_Stm_->getActionList().size(), "attach", "", "", "", true);
 	agd_Current_Stm_->addModelAction(newAction);
 
 	agd_->updateAddAction(newAction);
@@ -560,9 +560,9 @@ void TeachingEventHandler::agd_DeleteClicked() {
 	agd_Current_Action_ = 0;
 }
 
-bool TeachingEventHandler::agd_OKClicked(QString strName, QString strAct, QString strModel, QString strTarget, QString strArgDef) {
+bool TeachingEventHandler::agd_OKClicked(QString strName, QString strAct, QString strParent, QString strModel, QString strTarget, QString strArgDef) {
 	agd_Current_Stm_->setCmdDspName(strName);
-	agd_Update(strAct, strModel, strTarget);
+	agd_Update(strAct, strParent, strModel, strTarget);
 	if (agd_Current_Arg_) {
 		if (agd_Current_Arg_->getValueDesc() != strArgDef) {
 			agd_Current_Arg_->setValueDesc(strArgDef);
@@ -572,9 +572,13 @@ bool TeachingEventHandler::agd_OKClicked(QString strName, QString strAct, QStrin
 	for (unsigned int index = 0; index < agd_Current_Stm_->getActionList().size(); index++) {
 		ElementStmActionParamPtr param = agd_Current_Stm_->getActionList()[index];
 		if (param->getModel().length() == 0) {
-		  QMessageBox::warning(agd_, _("Argument"), _("Error : Model Definition."));
+		  QMessageBox::warning(agd_, _("Argument"), _("Error : Target model is not set."));
 		  return false;
 		}
+    if(param->getParent() == param->getModel()) {
+		  QMessageBox::warning(agd_, _("Argument"), _("Error : The same model cannot be specified for parent and child models."));
+		  return false;
+    }
 	}
 	//
 	ArgumentEstimator* handler = EstimatorFactory::getInstance().createArgEstimator(com_CurrentTask_);
@@ -626,10 +630,13 @@ void TeachingEventHandler::agd_CancelClicked() {
 	}
 }
 
-void TeachingEventHandler::agd_Update(QString strAct, QString strModel, QString strTarget) {
+void TeachingEventHandler::agd_Update(QString strAct, QString strParent, QString strModel, QString strTarget) {
 	if (agd_Current_Action_) {
 		if (agd_Current_Action_->getAction() != strAct) {
 			agd_Current_Action_->setAction(strAct);
+		}
+		if (agd_Current_Action_->getParent() != strParent) {
+			agd_Current_Action_->setParent(strParent);
 		}
 		if (agd_Current_Action_->getModel() != strModel) {
 			agd_Current_Action_->setModel(strModel);

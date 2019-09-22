@@ -265,7 +265,7 @@ vector<ElementStmActionParamPtr> DatabaseManager::getStmActionList(int taskId, i
 	string strTaskId = toStr(taskId);
 
   string strStmQuery = "SELECT ";
-  strStmQuery += "state_action_id, seq, action, model, target ";
+  strStmQuery += "state_action_id, seq, action, parent, model, target ";
   strStmQuery += "FROM T_STATE_ACTION ";
   strStmQuery += "WHERE task_inst_id = " + strTaskId + " AND state_id = " + strStmId + " ORDER BY seq";
   QSqlQuery stmQuery(db_);
@@ -274,10 +274,11 @@ vector<ElementStmActionParamPtr> DatabaseManager::getStmActionList(int taskId, i
     int id = stmQuery.value(0).toInt();
     int seq = stmQuery.value(1).toInt();
     QString action = stmQuery.value(2).toString();
-    QString model = stmQuery.value(3).toString();
-    QString target = stmQuery.value(4).toString();
+    QString parent = stmQuery.value(3).toString();
+    QString model = stmQuery.value(4).toString();
+    QString target = stmQuery.value(5).toString();
     //
-		ElementStmActionParamPtr param = std::make_shared<ElementStmActionParam>(id, seq, action, model, target, false);
+		ElementStmActionParamPtr param = std::make_shared<ElementStmActionParam>(id, seq, action, parent, model, target, false);
     result.push_back(param);
   }
   return result;
@@ -297,8 +298,8 @@ bool DatabaseManager::saveElementStmActionData(int taskId, int stateId, ElementS
     source->setId(maxId);
     //
     string strQuery = "INSERT INTO T_STATE_ACTION ";
-    strQuery += "(task_inst_id, state_id, state_action_id, seq, action, model, target) ";
-    strQuery += "VALUES ( ?, ?, ?, ?, ?, ?, ? )";
+    strQuery += "(task_inst_id, state_id, state_action_id, seq, action, parent, model, target) ";
+    strQuery += "VALUES ( ?, ?, ?, ?, ?, ?, ?, ? )";
 
     QSqlQuery query(QString::fromStdString(strQuery));
 		query.addBindValue(taskId);
@@ -306,6 +307,7 @@ bool DatabaseManager::saveElementStmActionData(int taskId, int stateId, ElementS
 		query.addBindValue(source->getId());
     query.addBindValue(source->getSeq());
     query.addBindValue(source->getAction());
+    query.addBindValue(source->getParent());
     query.addBindValue(source->getModel());
     query.addBindValue(source->getTarget());
     if (!query.exec()) {
@@ -316,12 +318,13 @@ bool DatabaseManager::saveElementStmActionData(int taskId, int stateId, ElementS
 
   } else if (source->getMode() == DB_MODE_UPDATE) {
     string strQuery = "UPDATE T_STATE_ACTION ";
-    strQuery += "SET seq = ?, action = ?, model = ?, target = ? ";
+    strQuery += "SET seq = ?, action = ?, parent = ?, model = ?, target = ? ";
     strQuery += "WHERE task_inst_id = ? AND state_id = ? AND state_action_id = ? ";
 
     QSqlQuery query(QString::fromStdString(strQuery));
     query.addBindValue(source->getSeq());
     query.addBindValue(source->getAction());
+    query.addBindValue(source->getParent());
     query.addBindValue(source->getModel());
     query.addBindValue(source->getTarget());
     query.addBindValue(taskId);

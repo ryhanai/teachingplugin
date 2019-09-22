@@ -484,12 +484,12 @@ typedef std::shared_ptr<ArgumentParam> ArgumentParamPtr;
 
 class ElementStmActionParam : public DatabaseParam {
 public:
-  ElementStmActionParam(int id, int seq, QString action, QString model, QString target, bool isNew)
-    : seq_(seq), action_(action), model_(model), target_(target), DatabaseParam(id) {
+  ElementStmActionParam(int id, int seq, QString action, QString parent, QString model, QString target, bool isNew)
+    : seq_(seq), action_(action), parent_(parent), model_(model), target_(target), DatabaseParam(id) {
     if (isNew) setNew();
   };
   ElementStmActionParam(const ElementStmActionParam* source)
-    : seq_(source->seq_), action_(source->action_), model_(source->model_), target_(source->target_),
+    : seq_(source->seq_), action_(source->action_), parent_(source->parent_), model_(source->model_), target_(source->target_),
     DatabaseParam(source) {};
 
   inline int getSeq() const { return this->seq_; }
@@ -504,6 +504,13 @@ public:
   inline void setAction(QString value) {
     if (this->action_ != value) {
       this->action_ = value;
+      setUpdate();
+    }
+  }
+  inline QString getParent() const { return this->parent_; }
+  inline void setParent(QString value) {
+    if (this->parent_ != value) {
+      this->parent_ = value;
       setUpdate();
     }
   }
@@ -522,16 +529,20 @@ public:
     }
   }
 
+  inline ModelParamPtr getParentModelParam() const { return this->parentModel_; }
+  inline void setParentModelParam(ModelParamPtr value) { this->parentModel_ = value; }
   inline ModelParamPtr getModelParam() const { return this->targetModel_; }
   inline void setModelParam(ModelParamPtr value) { this->targetModel_ = value; }
 
 private:
   int seq_;
   QString action_;
+  QString parent_;
   QString model_;
   QString target_;
 
 	ModelParamPtr targetModel_;
+	ModelParamPtr parentModel_;
 };
 typedef std::shared_ptr<ElementStmActionParam> ElementStmActionParamPtr;
 

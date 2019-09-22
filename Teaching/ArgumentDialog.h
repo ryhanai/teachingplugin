@@ -26,6 +26,7 @@ public:
 	void updateAddAction(ElementStmActionParamPtr& target);
 
 private Q_SLOTS:
+  void parentSelectionChanged(int index);
   void modelSelectionChanged();
   void addClicked();
   void deleteClicked();
@@ -48,6 +49,7 @@ private:
 	QLineEdit* txtCmdName;
   QRadioButton* radAttach;
   QRadioButton* radDetach;
+  QComboBox* cmbParent;
   QComboBox* cmbModel;
   QComboBox* cmbTarget;
   QTextEdit* txtArgDef;
@@ -57,6 +59,7 @@ private:
   int curActionIdx_;
 
   QString getActionStr();
+  const QString parentRobot_;
 };
 
 }

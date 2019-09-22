@@ -334,6 +334,7 @@ bool TeachingUtil::importTaskState(Mapping* taskMap, TaskModelParamPtr taskParam
         for (int idxAction = 0; idxAction < stateActionList->size(); idxAction++) {
           Mapping* actionMap = stateActionList->at(idxAction)->toMapping();
           QString action = "";
+          QString parent = "";
           QString model = "";
           QString target = "";
 
@@ -365,7 +366,7 @@ bool TeachingUtil::importTaskState(Mapping* taskMap, TaskModelParamPtr taskParam
 
           try { target = QString::fromStdString(actionMap->get("target").toString()); } catch (...) {}
           DDEBUG_V("action : %s, model : %s, target : %s", action.toStdString().c_str(), model.toStdString().c_str(), target.toStdString().c_str());
-          ElementStmActionParamPtr actionParam = std::make_shared<ElementStmActionParam>(NULL_ID, idxAction, action, model, target, true);
+          ElementStmActionParamPtr actionParam = std::make_shared<ElementStmActionParam>(NULL_ID, idxAction, action, parent, model, target, true);
           stateParam->addModelAction(actionParam);
         }
       }

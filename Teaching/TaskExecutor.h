@@ -10,9 +10,10 @@ class AttachedModel {
 public:
   AttachedModel() {};
   AttachedModel(AttachedModel& source)
-    : object(source.object), target(source.target) {
+    : parent(source.parent), child(source.child), target(source.target) {
   };
-  cnoid::BodyItemPtr object;
+  cnoid::BodyItemPtr parent;
+  cnoid::BodyItemPtr child;
   int target;
   AttachedItemsPtr item;
 };
@@ -28,8 +29,8 @@ public:
 
   void setRootName(std::string value);
   bool executeCommand(const std::string& commandName, std::vector<CompositeParamType>& params);
-  bool attachModelItem(cnoid::BodyItemPtr object, int target);
-  bool detachModelItem(cnoid::BodyItemPtr object, int target);
+  bool attachModelItem(cnoid::BodyItemPtr parent, cnoid::BodyItemPtr child, int target);
+  bool detachModelItem(cnoid::BodyItemPtr parent, cnoid::BodyItemPtr child, int target);
   bool detachAllModelItem();
 
 private:
