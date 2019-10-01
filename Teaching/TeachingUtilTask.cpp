@@ -351,6 +351,8 @@ bool TeachingUtil::importTaskState(Mapping* taskMap, TaskModelParamPtr taskParam
             return false;
           }
 
+          try { parent = QString::fromStdString(actionMap->get("parent").toString()); } catch (...) {}
+
           try {
             model = QString::fromStdString(actionMap->get("model").toString());
           } catch (...) {
@@ -682,6 +684,9 @@ bool TeachingUtil::exportTask(QString& strFName, TaskModelParamPtr targetTask) {
 					ElementStmActionParamPtr actParam = actionList[idxAction];
           MappingPtr actionNode = actionsNode->newMapping();
           actionNode->write("action", actParam->getAction().toUtf8(), DOUBLE_QUOTED);
+          if (0 < actParam->getParent().length()) {
+            actionNode->write("parent", actParam->getParent().toUtf8(), DOUBLE_QUOTED);
+          }
           actionNode->write("model", actParam->getModel().toUtf8(), DOUBLE_QUOTED);
           if (0 < actParam->getTarget().length()) {
             actionNode->write("target", actParam->getTarget().toUtf8(), DOUBLE_QUOTED);
