@@ -103,6 +103,7 @@ namespace teaching {
     lstItem->createFinalNodeTarget();
     lstItem->createDecisionNodeTarget();
     lstItem->createMergeNodeTarget();
+    lstItem->createMoveCNodeTarget();
 
 		setStyle();
 		FlowScene* scene = new FlowScene(registerDataModels());
@@ -209,7 +210,7 @@ namespace teaching {
     pix->fill(QColor(212, 206, 199));
     QPainter* painter = new QPainter(pix);
     painter->setRenderHint(QPainter::Antialiasing, true);
-    painter->setPen(QPen(Qt::black, 3.0));
+    painter->setPen(QPen(Qt::black, 2.0));
     painter->drawEllipse(5, 5, 20, 20);
     lstItem->setIconSize(QSize(30, 30));
     QListWidgetItem* item = new QListWidgetItem(dispName, lstItem);
@@ -582,7 +583,7 @@ void ItemList::createFinalNodeTarget() {
 	QPainter* painter = new QPainter(pix);
 	painter->setRenderHint(QPainter::Antialiasing, true);
 	painter->setBrush(QBrush(Qt::white, Qt::SolidPattern));
-	painter->setPen(QPen(Qt::black));
+  painter->setPen(QPen(Qt::black, 2.0));
 	painter->drawEllipse(5, 5, 20, 20);
 	painter->setBrush(QBrush(Qt::black, Qt::SolidPattern));
 	painter->drawEllipse(10, 10, 10, 10);
@@ -620,6 +621,24 @@ void ItemList::createMergeNodeTarget() {
   this->setIconSize(QSize(30, 30));
   QListWidgetItem* item = new QListWidgetItem("Merge", this);
   item->setIcon(QIcon(*pix));
+}
+
+void ItemList::createMoveCNodeTarget() {
+	QPixmap *pix = new QPixmap(30, 30);
+	pix->fill(QColor(212, 206, 199));
+	QPainter* painter = new QPainter(pix);
+	painter->setRenderHint(QPainter::Antialiasing, true);
+  painter->setPen(QPen(Qt::black, 2.0));
+	painter->drawEllipse(5, 5, 20, 20);
+
+  QPolygon polygon;
+  polygon << QPoint(10.0, 8.0) << QPoint(23.0, 15.0)
+    << QPoint(10.0, 22.0) << QPoint(10.0, 8.0);
+  painter->drawPolygon(polygon);
+
+	this->setIconSize(QSize(30, 30));
+	QListWidgetItem* item = new QListWidgetItem("MoveC", this);
+	item->setIcon(QIcon(*pix));
 }
 //////////
 ExecEnvDialog::ExecEnvDialog(TaskModelParamPtr param, QWidget* parent)
