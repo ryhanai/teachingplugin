@@ -29,6 +29,13 @@ TaskExecutor::TaskExecutor() {
 TaskExecutor::~TaskExecutor() {
 }
 
+void TaskExecutor::updateController() {
+  DDEBUG_V("TaskExecutor::updateController %s", SettingManager::getInstance().getController().c_str());
+
+  handler_ = ControllerManager::instance()->getController(SettingManager::getInstance().getController());
+  handler_->initialize();
+}
+
 CommandDefParam* TaskExecutor::getCommandDef(const std::string& commandName) {
   CommandDefParam* result = 0;
 

@@ -16,6 +16,7 @@ public:
   SettingDialog(QWidget* parent = 0);
 
   inline bool IsDBUpdated() const { return this->isDBUpdated_; }
+  inline bool IsCtrlUpdated() const { return this->isCtrlUpdated_; }
 
   private Q_SLOTS:
   void refDBClicked();
@@ -39,6 +40,7 @@ private:
   QLineEdit* leLogDir;
 
   bool isDBUpdated_;
+  bool isCtrlUpdated_;
   int currentRowIndex_;
   std::vector<AppExtParam> appList_;
 

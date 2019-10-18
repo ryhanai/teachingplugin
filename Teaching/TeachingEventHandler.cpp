@@ -342,6 +342,18 @@ bool TeachingEventHandler::tiv_RegistNewTaskClicked(int selectedId, QString strT
     return false;
 	}
 }
+
+void TeachingEventHandler::tiv_CtrlUpdated() {
+	DDEBUG("TeachingEventHandler::tiv_CtrlUpdated()");
+  TaskExecutor::instance()->updateController();
+  tiv_->clearSelection();
+  if(allModelDisp_==false) {
+    unloadTaskModelItems();
+  }
+
+  stv_->updateCommandList();
+}
+
 //MetaDataView
 void TeachingEventHandler::mdv_Loaded(MetaDataViewImpl* view) {
 	this->mdv_ = view;
@@ -524,6 +536,11 @@ void TeachingEventHandler::prv_SetInputValues() {
 		}
 	}
   DDEBUG("TeachingEventHandler::prv_SetInputValues End");
+}
+
+//TrajectoryView
+void TeachingEventHandler::trv_Loaded(TrajectoryViewImpl* view) {
+	this->trv_ = view;
 }
 
 //TaskExecutionView
@@ -730,6 +747,7 @@ void TeachingEventHandler::updateEditState(bool blockSignals) {
   prv_->setEditMode(canEdit_);
   mdv_->setEditMode(canEdit_);
   flv_->setEditMode(canEdit_);
+  trv_->setEditMode(canEdit_);
 }
 
 void TeachingEventHandler::updateExecState(bool isActive) {

@@ -329,6 +329,9 @@ void TaskInstanceViewImpl::settingClicked() {
     DatabaseManager::getInstance().reConnectDB();
     searchClicked();
   }
+  if (dialog.IsCtrlUpdated()) {
+    TeachingEventHandler::instance()->tiv_CtrlUpdated();
+  }
 }
 
 void TaskInstanceViewImpl::realClicked() {

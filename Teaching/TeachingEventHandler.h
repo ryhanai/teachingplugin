@@ -13,6 +13,7 @@
 #include "MetaDataView.h"
 #include "StateMachineView.h"
 #include "ParameterView.h"
+#include "TrajectoryView.h"
 
 #include "ModelDialog.h"
 #include "ParameterDialog.h"
@@ -48,8 +49,8 @@ public:
 	bool tiv_RegistNewTaskClicked(int selectedId, QString strTask, QString strCond);
 
 	void tiv_InitPosClicked();
-
 	void tiv_SearchTaskInstance(QString cond);
+	void tiv_CtrlUpdated();
 
 	//FlowView
 	void flv_Loaded(FlowViewImpl* view);
@@ -92,6 +93,9 @@ public:
 	//ParameterView
 	void prv_Loaded(ParameterViewImpl* view);
 	void prv_SetInputValues();
+
+	//TrajectoryView
+	void trv_Loaded(TrajectoryViewImpl* view);
 
 	//TaskExecutionView
 	void tev_setBreak(bool value) { executor_->setBreak(value); }
@@ -168,6 +172,7 @@ private:
 			mdv_(0), m_FigDialog_(0),
 			stv_(0),
 			prv_(0),
+      trv_(0),
 			fsd_(0),
 			mdd_(0), mdd_CurrentId_(NULL_ID), mdd_CurrentModel_(0),
 			mdd_CurrentMasterId_(NULL_ID), mdd_CurrentModelMaster_(0),
@@ -201,6 +206,8 @@ private:
 	StateMachineViewImpl* stv_;
 
 	ParameterViewImpl* prv_;
+
+	TrajectoryViewImpl* trv_;
 
 	FlowSearchDialog* fsd_;
 

@@ -161,6 +161,7 @@ namespace teaching {
   }
 
   void StateMachineViewImpl::createStateCommands() {
+  	DDEBUG("StateMachineViewImpl::createStateCommands");
     commandList_ = TaskExecutor::instance()->getCommandDefList();
     vector<CommandDefParam*>::iterator itCmd = commandList_.begin();
     while (itCmd != commandList_.end()) {
@@ -510,6 +511,19 @@ void StateMachineViewImpl::setEditMode(bool canEdit) {
 
 void StateMachineViewImpl::setExecState(bool isActive) {
   btnRun->setEnabled(isActive);
+}
+
+void StateMachineViewImpl::updateCommandList() {
+	DDEBUG("StateMachineViewImpl::updateCommandList");
+  lstItem->clear();
+  clearTaskParam();
+
+  lstItem->createInitialNodeTarget();
+  lstItem->createFinalNodeTarget();
+  lstItem->createDecisionNodeTarget();
+  lstItem->createMergeNodeTarget();
+  lstItem->createMoveCNodeTarget();
+  createStateCommands();
 }
 
 /////

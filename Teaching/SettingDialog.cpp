@@ -12,7 +12,8 @@ using namespace cnoid;
 namespace teaching {
 
 SettingDialog::SettingDialog(QWidget* parent)
-  : QDialog(parent, Qt::CustomizeWindowHint | Qt::WindowTitleHint), isDBUpdated_(false), currentRowIndex_(-1) {
+  : QDialog(parent, Qt::CustomizeWindowHint | Qt::WindowTitleHint),
+    isDBUpdated_(false), isCtrlUpdated_(false), currentRowIndex_(-1) {
 
   QFrame* frmBase = new QFrame;
   QGridLayout* baseLayout = new QGridLayout();
@@ -220,6 +221,13 @@ void SettingDialog::oKClicked() {
       return;
     }
   }
+  if(SettingManager::getInstance().getController() != cmbController->currentText().toStdString()) {
+      QMessageBox::StandardButton ret = QMessageBox::question(this, _("Setting"),
+        _("The state machine will be cleared because the controller has been changed. Are you sure?"),
+        QMessageBox::Yes | QMessageBox::No);
+      if (ret == QMessageBox::No) return;
+    isCtrlUpdated_ = true;
+  }
   //
   bool updatedLog = false;
   int orgLogLevel = SettingManager::getInstance().getLogLevel();
@@ -246,19 +254,11 @@ void SettingDialog::oKClicked() {
   for (AppExtParam param : appList_) {
     SettingManager::getInstance().setTargetApp(param.ext_.toStdString(), param.appPath_.toStdString());
   }
-  bool needRestart = false;
-  if(SettingManager::getInstance().getController() != cmbController->currentText().toStdString()) {
-    needRestart = true;
-  }
   SettingManager::getInstance().setController(cmbController->currentText().toStdString());
 
   SettingManager::getInstance().saveSetting();
   if (updatedLog) {
     LoggerUtil::startLog((LogLevel)SettingManager::getInstance().getLogLevel(), SettingManager::getInstance().getLogDir());
-  }
-
-  if(needRestart) {
-    QMessageBox::information(this, _("Setting"), _("Rebooting is necessary to reflect the information of the specified controller."));
   }
 
   close();

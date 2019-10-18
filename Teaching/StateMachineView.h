@@ -39,6 +39,7 @@ public:
 	void createFinalNodeTarget();
 	void createDecisionNodeTarget();
   void createMergeNodeTarget();
+  void createMoveCNodeTarget();
 
 protected:
 	void mousePressEvent(QMouseEvent* event);
@@ -58,6 +59,7 @@ public:
   void setTaskParam(TaskModelParamPtr param);
   void clearTaskParam();
   void createStateCommands();
+  void updateCommandList();
 
   void setBPStatus(bool isActive, bool isSet);
   void setStepStatus(bool isActive);
@@ -119,6 +121,7 @@ public:
 
   void setTaskParam(TaskModelParamPtr param) { this->viewImpl->setTaskParam(param); }
   void setStepStatus(bool isActive) { this->viewImpl->setStepStatus(isActive); }
+  void updateCommandList() { this->viewImpl->updateCommandList(); }
 
 private:
   StateMachineViewImpl* viewImpl;
