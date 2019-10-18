@@ -2,6 +2,10 @@ option(BUILD_TEACHING_PLUGIN "Building Teaching plugin" ON)
 
 if(NOT BUILD_TEACHING_PLUGIN)
   return()
+else()
+  if(NOT BUILD_PYTHON_PLUGIN)
+    message(FATAL_ERROR "The Teaching plugin requires the Python plugin")
+  endif()
 endif()
 
 set(libname CnoidTeachingPlugin)
@@ -27,6 +31,7 @@ set(sources
   ModelMasterDialog.cpp
   ParameterDialog.cpp
   ParameterView.cpp
+  PythonControllerWrapper.cpp
   PythonWrapper.cpp
   SettingDialog.cpp
   StateMachineView.cpp
@@ -43,6 +48,7 @@ set(sources
   TeachingUtil.cpp
   TeachingUtilFlow.cpp
   TeachingUtilTask.cpp
+  TrajectoryView.cpp
 
   NodeEditor/ActivityEditorBase.cpp
   NodeEditor/Connection.cpp
@@ -90,6 +96,7 @@ set(headers
   ModelMasterDialog.h
   ParameterDialog.h
   ParameterView.h
+  PythonControllerWrapper.h
   PythonWrapper.h
   SettingDialog.h
   StateMachineView.h
@@ -101,6 +108,7 @@ set(headers
   TeachingMasterEventHandler.h
   TeachingTypes.h
   TeachingUtil.h
+  TrajectoryView.h
   QtUtil.h
 
   NodeEditor/ActivityEditorBase.hpp
@@ -153,6 +161,7 @@ set(qtheaders
   SettingDialog.h
   StateMachineView.h
   TaskInstanceView.h
+  TrajectoryView.h
 
   NodeEditor/ActivityEditorBase.hpp
   NodeEditor/Node.hpp
@@ -188,7 +197,7 @@ endif()
 
 include_directories(${CONTROLLER_DIRS} ${PYTHON_INCLUDE_DIRS})
 
-target_link_libraries(${libname} CnoidBodyPlugin ${PYTHON_LIBRARIES})
+target_link_libraries(${libname} CnoidBodyPlugin CnoidPythonPlugin CnoidPyUtil ${PYTHON_LIBRARIES})
 #target_link_libraries(${libname} CnoidBodyPlugin ${PYTHON_LIBRARIES} TaskParamAdjust)
 
 if(UNIX)

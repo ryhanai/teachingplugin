@@ -6,9 +6,12 @@
 #include "FlowView.h"
 #include "ParameterView.h"
 #include "StateMachineView.h"
+#include "TrajectoryView.h"
 #include "TaskExecuteManager.h"
 
 #include "TeachingEventHandler.h"
+#include "PythonControllerWrapper.h"
+#include "ControllerManager.h"
 
 #include <cnoid/MessageView>
 
@@ -28,12 +31,14 @@ public:
 		viewManager().registerClass<FlowView>("FlowView", "FlowModel", ViewManager::SINGLE_DEFAULT);
     viewManager().registerClass<TaskInstanceView>("TaskInstanceView", "TaskInstance", ViewManager::SINGLE_DEFAULT);
     viewManager().registerClass<StateMachineView>("StateMachineView", "StateMachine", ViewManager::SINGLE_DEFAULT);
+    viewManager().registerClass<TrajectoryView>("TrajectoryView", "Trajectory", ViewManager::SINGLE_DEFAULT);
 
     MetaDataView* metadataView = viewManager().findView<MetaDataView>("MetaData");
     ParameterView* parameterView = viewManager().findView<ParameterView>("Parameter");
     FlowView* flowView = viewManager().findView<FlowView>("FlowModel");
 		TaskInstanceView* taskView = viewManager().findView<TaskInstanceView>("TaskInstance");
     StateMachineView* statemachineView = viewManager().findView<StateMachineView>("StateMachine");
+    TrajectoryView* trajectoryView = viewManager().findView<TrajectoryView>("Trajectory");
     //
     TaskExecuteManager* executor = new TaskExecuteManager();
     executor->setTaskInstanceView(taskView);
@@ -43,6 +48,7 @@ public:
     executor->setMetadataView(metadataView);
 
 		TeachingEventHandler::instance()->setTaskExecutor(executor);
+    ControllerManager::instance()->registController("PythonController", PythonControllerWrapper::instance());
 
     metadataView->bringToFront();
 

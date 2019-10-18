@@ -1157,3 +1157,15 @@ msgstr "Setting.prmで指定されたコントローラが見つからないた�
 #: TeachingEventHandler.cpp:579
 msgid "Error : The same model cannot be specified for parent and child models."
 msgstr "エラー : 親モデルと子モデルに同じモデルは指定できません."
+
+#: TrajectoryView.cpp:23
+msgid "Trajectory"
+msgstr "軌道"
+
+#: TrajectoryView.cpp:57
+msgid "Upd"
+msgstr "更新"
+
+#: TrajectoryView.cpp:58
+msgid "Del"
+msgstr "削除"
