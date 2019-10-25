@@ -498,8 +498,8 @@ void TeachingEventHandler::stv_EditClicked(ElementStmParamPtr target) {
       agd_Current_Stm_->setCommadDefParam(def);
     } else {
     	DDEBUG("CommandDef NOT Exist");
-		QMessageBox::warning(stv_, _("Command"), _("The selected command does not exist in the current controller."));
-		return;
+		  QMessageBox::warning(stv_, _("Command"), _("The selected command does not exist in the current controller."));
+		  return;
     }
 
 		vector<CommandDefParam*> commandList = TaskExecutor::instance()->getCommandDefList();
