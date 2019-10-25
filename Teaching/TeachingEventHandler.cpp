@@ -492,6 +492,16 @@ void TeachingEventHandler::stv_EditClicked(ElementStmParamPtr target) {
 	}
 	//
 	if (agd_Current_Stm_->getType() == ELEMENT_COMMAND) {
+    //コントローラが変更されている場合があるため，再設定
+    CommandDefParam* def = TaskExecutor::instance()->getCommandDef(agd_Current_Stm_->getCmdName().toStdString());
+    if (def) {
+      agd_Current_Stm_->setCommadDefParam(def);
+    } else {
+    	DDEBUG("CommandDef NOT Exist");
+		QMessageBox::warning(stv_, _("Command"), _("The selected command does not exist in the current controller."));
+		return;
+    }
+
 		vector<CommandDefParam*> commandList = TaskExecutor::instance()->getCommandDefList();
 
 		if (agd_Current_Stm_->getArgList().size() == 0) {

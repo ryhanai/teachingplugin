@@ -186,6 +186,7 @@ ArgumentDialog::ArgumentDialog(QWidget* parent)
 }
 
 void ArgumentDialog::showModelInfo(const vector<ModelParamPtr>& modelList) {
+	DDEBUG("ArgumentDialog::showModelInfo");
   cmbParent->addItem(parentRobot_);
 	for (const auto& param : modelList) {
 		int row = lstModel->rowCount();
@@ -208,6 +209,7 @@ void ArgumentDialog::showModelParamInfo(const vector<ModelParameterParamPtr>& pa
 }
 
 void ArgumentDialog::showParamInfo(const vector<ParameterParamPtr>& paramList, const vector<ModelParamPtr>& modelList) {
+	DDEBUG("ArgumentDialog::showParamInfo");
 	cmbTarget->addItem("");
 
 	for (const auto& param : paramList) {
@@ -241,6 +243,7 @@ void ArgumentDialog::showParamInfo(const vector<ParameterParamPtr>& paramList, c
 }
 
 void ArgumentDialog::showArgInfo(const ElementStmParamPtr target, const vector<ArgumentParamPtr>& argList) {
+	DDEBUG_V("ArgumentDialog::showArgInfo %d", argList.size());
 	txtStateName->setText(target->getCmdDspName());
 	txtCmdName->setText(target->getCmdName());
 
@@ -261,6 +264,7 @@ void ArgumentDialog::showArgInfo(const ElementStmParamPtr target, const vector<A
 }
 
 void ArgumentDialog::showActionInfo(const vector<ElementStmActionParamPtr>& actionList) {
+	DDEBUG("ArgumentDialog::showActionInfo");
 	for (ElementStmActionParamPtr param : actionList) {
 		int row = lstHandling->rowCount();
 		lstHandling->insertRow(row);

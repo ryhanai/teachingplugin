@@ -19,11 +19,16 @@ std::vector<CommandDefParam*> PythonControllerWrapper::getCommandDefList() {
   PythonExecutor executor;
   bool ret = executor.execCode("test()");
   if(ret) {
-    python::object result = executor.resultObject();
-    int value = python::cast<int>(result);
-    DDEBUG_V("result %d", value);
+    DDEBUG("OK");
+    //python::object result = executor.resultObject();
+    std::string result = executor.resultString();
+    DDEBUG("1");
+    //int value = result.cast<int>();
+    //char* value = python::cast<char*>(result);
+    DDEBUG_V("result %s", result.c_str());
   }
 
+  DDEBUG("End");
   return result;
 }
 
