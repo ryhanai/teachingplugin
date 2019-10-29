@@ -263,6 +263,7 @@ ExecResult TaskExecuteManager::doFlowOperationCont() {
 }
 
 ExecResult TaskExecuteManager::doTaskOperation(bool updateCurrentTask) {
+	DDEBUG("");
 	DDEBUG("TaskExecuteManager::doTaskOperation");
 
   //モデル情報の設定
@@ -285,6 +286,14 @@ ExecResult TaskExecuteManager::doTaskOperation(bool updateCurrentTask) {
 				DDEBUG("TaskExecuteManager::doTaskOperation EXEC_FINISHED(Abort)");
 				return ExecResult::EXEC_FINISHED;
       }
+      //コントローラが変更されている場合があるため，再設定
+      CommandDefParam* def = TaskExecutor::instance()->getCommandDef(currParam_->getCmdName().toStdString());
+      if (def) {
+        currParam_->setCommadDefParam(def);
+      } else {
+    	  DDEBUG("TaskExecuteManager::doTaskOperation CommandDef NOT Exist");
+				return ExecResult::EXEC_ERROR;
+      }
       //引数の組み立て
       if (argHandler_->buildArguments(currentTask_, currParam_, parameterList) == false) {
         detachAllModelItem();
@@ -304,6 +313,7 @@ ExecResult TaskExecuteManager::doTaskOperation(bool updateCurrentTask) {
 				DDEBUG("TaskExecuteManager::doTaskOperation EXEC_ERROR(Model Action)");
 				return ExecResult::EXEC_ERROR;
       }
+      DDEBUG("Check Decision");
       //コマンドの実行結果がFalseで次の要素がデシジョンではない場合は終了
       if (lastResult_ == false) {
 				ElementStmParamPtr checkNext = currParam_->getNextElem();

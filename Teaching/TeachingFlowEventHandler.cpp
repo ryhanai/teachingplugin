@@ -616,13 +616,13 @@ void TeachingEventHandler::flv_Disconnected(QtNodes::Connection& target) {
     isFlowSkip_ = false;
     return;
   }
-  DDEBUG("TeachingEventHandler::flv_Disconnected()");
+  //DDEBUG("TeachingEventHandler::flv_Disconnected()");
 
   Node* taskNode = target.getNode(PortType::In);
   if (!taskNode) return;
   int portIndex = target.getPortIndex(PortType::In);
   if (portIndex <= 0) {
-    DDEBUG("TeachingEventHandler::flv_Disconnected() End");
+    //DDEBUG("TeachingEventHandler::flv_Disconnected() End");
     return;
   }
   int targetId = taskNode->getParamId();
@@ -692,7 +692,7 @@ void TeachingEventHandler::flv_Disconnected(QtNodes::Connection& target) {
     DDEBUG_V("Task Param Type(id=%d):%d %s", id, param->getParamType(), param->getName().toStdString().c_str());
     param->restoreParameter();
   }
-  DDEBUG("TeachingEventHandler::flv_Disconnected() End");
+  //DDEBUG("TeachingEventHandler::flv_Disconnected() End");
 }
 
 void TeachingEventHandler::flv_PortDispSetting(bool isActive) {

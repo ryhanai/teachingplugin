@@ -197,7 +197,7 @@ double ParameterValueParam::getNumValues(int index) {
 }
 
 void ParameterValueParam::setValue(int index, QString value) {
-  DDEBUG_V("ParameterParam::setValue %d,%s", index, value.toStdString().c_str());
+  //DDEBUG_V("ParameterParam::setValue %d,%s", index, value.toStdString().c_str());
 
   if (index < valueList_.size()) {
     QString source = valueList_[index];
@@ -240,7 +240,7 @@ QString ParameterValueParam::getValuesString() {
 /////
 void ParameterParam::saveValues() {
   if (isActive_ == false) return;
-	DDEBUG_V("ParameterParam::saveValues %d",controlList_.size());
+	//DDEBUG_V("ParameterParam::saveValues %d",controlList_.size());
   for (int index = 0; index < controlList_.size(); index++) {
     QLineEdit* target = controlList_[index];
     valueParam_->setValue(index, target->text());

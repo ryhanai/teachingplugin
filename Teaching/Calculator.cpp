@@ -471,16 +471,23 @@ void Calculator::finalize() {
 }
 
 bool Calculator::buildArguments(TaskModelParamPtr taskParam, ElementStmParamPtr targetParam, std::vector<CompositeParamType>& parameterList) {
-  DDEBUG(" Calculator::buildArguments");
+  DDEBUG("Calculator::buildArguments");
   parameterList.clear();
 
   //引数の組み立て
   for (int idxArg = 0; idxArg < targetParam->getArgList().size(); idxArg++) {
 		ArgumentParamPtr arg = targetParam->getArgList()[idxArg];
     QString valueDesc = arg->getValueDesc();
-    DDEBUG_V("index:%d, desc:%s", idxArg, valueDesc.toStdString().c_str());
+    DDEBUG_V("index:%d, desc:%s %d", idxArg, valueDesc.toStdString().c_str(), targetParam->getCommadDefParam()->getArgList().size());
     //
-    if (targetParam->getCommadDefParam() == 0) return false;
+    if (targetParam->getCommadDefParam() == 0) {
+      DDEBUG("Calculator::buildArguments CommandDef NOT Exist.");
+      return false;
+    }
+    if (targetParam->getCommadDefParam()->getArgList().size() <= idxArg) {
+      DDEBUG("Calculator::buildArguments Argument index INVALID.");
+      return false;
+    }
 
     ArgumentDefParam* argDef = targetParam->getCommadDefParam()->getArgList()[idxArg];
     DDEBUG_V("type:%s", argDef->getType().c_str());

@@ -82,6 +82,11 @@ bool TaskExecutor::attachModelItem(cnoid::BodyItemPtr parent, cnoid::BodyItemPtr
     parentLink = parent->body()->link(0);
   }
 
+  if(!parentItem || !parentLink) {
+    DDEBUG("TaskExecutor::attachModelItem Error");
+    return false;
+  }
+
   AttachedItemsPtr attached_item = std::make_shared<AttachedItems>(parentItem, parentLink, child);
   attached_item->attachItems();
 
