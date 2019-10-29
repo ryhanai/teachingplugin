@@ -118,6 +118,14 @@ bool TaskExecuteManager::runSingleCommand() {
 
   //引数計算モジュールの初期化
   createArgEstimator(currentTask_);
+  //コントローラが変更されている場合があるため，再設定
+  CommandDefParam* def = TaskExecutor::instance()->getCommandDef(currParam_->getCmdName().toStdString());
+  if (def) {
+    currParam_->setCommadDefParam(def);
+  } else {
+    DDEBUG("TaskExecuteManager::doTaskOperation CommandDef NOT Exist");
+		return ExecResult::EXEC_ERROR;
+  }
   //引数の組み立て
   std::vector<CompositeParamType> parameterList;
   if (argHandler_->buildArguments(currentTask_, currParam_, parameterList) == false) {
@@ -416,6 +424,14 @@ ExecResult TaskExecuteManager::doTaskOperationStep() {
   lastResult_ = false;
   std::vector<CompositeParamType> parameterList;
 
+  //コントローラが変更されている場合があるため，再設定
+  CommandDefParam* def = TaskExecutor::instance()->getCommandDef(currParam_->getCmdName().toStdString());
+  if (def) {
+    currParam_->setCommadDefParam(def);
+  } else {
+    DDEBUG("TaskExecuteManager::doTaskOperation CommandDef NOT Exist");
+		return ExecResult::EXEC_ERROR;
+  }
   //引数の組み立て
   if (argHandler_->buildArguments(currentTask_, currParam_, parameterList) == false) {
     detachAllModelItem();
