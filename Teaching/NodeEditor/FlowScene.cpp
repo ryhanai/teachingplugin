@@ -130,14 +130,14 @@ void
 FlowScene::
 deleteConnection(QtNodes::Connection& connection)
 {
-  DDEBUG_V("FlowScene::deleteConnection : %d", _connections.size());
+  //DDEBUG_V("FlowScene::deleteConnection : %d", _connections.size());
   TeachingEventHandler::instance()->flv_Disconnected(connection);
 
   connectionDeleted(connection);
   connection.removeFromNodes();
   _connections.erase(connection.id());
 
-  DDEBUG_V("FlowScene::deleteConnection End : %d", _connections.size());
+  //DDEBUG_V("FlowScene::deleteConnection End : %d", _connections.size());
 }
 
 

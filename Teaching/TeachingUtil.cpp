@@ -80,11 +80,13 @@ QString TeachingUtil::getSha1Hash(const void *data, const std::size_t byte_count
   return result;
 }
 /////
-QTableWidget* UIUtil::makeTableWidget(int colNo, bool isExpanding) {
+QTableWidget* UIUtil::makeTableWidget(int colNo, bool isExpanding, bool isEditable) {
   QTableWidget* target = new QTableWidget(0, colNo);
   target->setSelectionBehavior(QAbstractItemView::SelectRows);
   target->setSelectionMode(QAbstractItemView::SingleSelection);
-  target->setEditTriggers(QAbstractItemView::NoEditTriggers);
+  if (isEditable == false) {
+    target->setEditTriggers(QAbstractItemView::NoEditTriggers);
+  }
   target->verticalHeader()->setVisible(false);
   target->setRowCount(0);
   if (isExpanding) {

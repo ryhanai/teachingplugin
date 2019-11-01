@@ -50,7 +50,7 @@ private:
 /////
 class UIUtil {
 public:
-  static QTableWidget* makeTableWidget(int colNo, bool isExpanding);
+  static QTableWidget* makeTableWidget(int colNo, bool isExpanding, bool isEditable=false);
   static QTableWidgetItem* makeTableItem(QTableWidget* table, int rowNo, int colNo, const QString& text);
   static QTableWidgetItem* makeTableItemWithData(QTableWidget* table, int rowNo, int colNo, const QString& text, int data);
   static QString getTypeName(int source);

@@ -21,7 +21,7 @@ TrajectoryViewImpl::TrajectoryViewImpl(QWidget* parent)
     isSkip_(false), QWidget(parent) {
   QFrame* settingFrame = new QFrame;
 
-  btnSubObj = new QPushButton(_("Sub Obj."));
+  btnSubObj = new QPushButton("Base Obj.");
   //btnSubObj->setIcon(QApplication::style()->standardIcon(QStyle::SP_TrashIcon));
   //btnSubObj->setToolTip(_("Delete selected element"));
   btnSubObj->setEnabled(false);
@@ -30,7 +30,7 @@ TrajectoryViewImpl::TrajectoryViewImpl(QWidget* parent)
   leSubObj->setReadOnly(true);
   leSubObj->setEnabled(false);
 
-  btnMainObj = new QPushButton(_("Main Obj."));
+  btnMainObj = new QPushButton("Target Obj.");
   //btnMainObj->setIcon(QApplication::style()->standardIcon(QStyle::SP_TrashIcon));
   //btnMainObj->setToolTip(_("Delete selected element"));
   btnMainObj->setEnabled(false);
@@ -39,7 +39,7 @@ TrajectoryViewImpl::TrajectoryViewImpl(QWidget* parent)
   leMainObj->setReadOnly(true);
   leMainObj->setEnabled(false);
   /////
-  btnSubLink = new QPushButton(_("Sub Link"));
+  btnSubLink = new QPushButton("Basse Link");
   //btnSubLink->setIcon(QApplication::style()->standardIcon(QStyle::SP_TrashIcon));
   //btnSubLink->setToolTip(_("Delete selected element"));
   btnSubLink->setEnabled(false);
@@ -48,7 +48,7 @@ TrajectoryViewImpl::TrajectoryViewImpl(QWidget* parent)
   leSubLink->setReadOnly(true);
   leSubLink->setEnabled(false);
 
-  btnMainLink = new QPushButton(_("Main Link"));
+  btnMainLink = new QPushButton("Target Link");
   //btnMainLink->setIcon(QApplication::style()->standardIcon(QStyle::SP_TrashIcon));
   //btnMainLink->setToolTip(_("Delete selected element"));
   btnMainLink->setEnabled(false);
