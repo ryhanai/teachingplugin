@@ -35,6 +35,7 @@ private:
   QLineEdit* leApp;
 
   QComboBox* cmbController;
+  QCheckBox* chkReload;
 
   QComboBox* cmbLogLevel;
   QLineEdit* leLogDir;

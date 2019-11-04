@@ -59,6 +59,9 @@ SettingDialog::SettingDialog(QWidget* parent)
   for(string ctrl : ctrlList) {
     cmbController->addItem(QString::fromStdString(ctrl));
   }
+  chkReload = new QCheckBox(this);
+  chkReload->setText("ReLoad");
+
   baseLayout->addWidget(lblDatabase, 0, 0, 1, 1, Qt::AlignRight);
   baseLayout->addWidget(leDatabase, 0, 1, 1, 2);
   baseLayout->addWidget(btnDatabase, 0, 3, 1, 1);
@@ -81,7 +84,8 @@ SettingDialog::SettingDialog(QWidget* parent)
   baseLayout->addWidget(btnRef, 5, 3, 1, 1);
 
   baseLayout->addWidget(lblController, 6, 0, 1, 1, Qt::AlignRight);
-  baseLayout->addWidget(cmbController, 6, 1, 1, 3);
+  baseLayout->addWidget(cmbController, 6, 1, 1, 2);
+  baseLayout->addWidget(chkReload, 6, 3, 1, 1);
   //
   QFrame* frmButtons = new QFrame;
 	QPushButton* btnOK = new QPushButton(_("OK"));
@@ -221,7 +225,8 @@ void SettingDialog::oKClicked() {
       return;
     }
   }
-  if(SettingManager::getInstance().getController() != cmbController->currentText().toStdString()) {
+  if(SettingManager::getInstance().getController() != cmbController->currentText().toStdString()
+      || chkReload->checkState() == Qt::Checked) {
       QMessageBox::StandardButton ret = QMessageBox::question(this, _("Setting"),
         _("The state machine will be cleared because the controller has been changed. Are you sure?"),
         QMessageBox::Yes | QMessageBox::No);
