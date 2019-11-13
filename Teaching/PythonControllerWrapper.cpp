@@ -5,7 +5,11 @@
 #include <cnoid/YAMLReader>
 #include <cnoid/YAMLWriter>
 
+#include "TeachingUtil.h"
+#include "ChoreonoidUtil.h"
 #include "LoggerUtil.h"
+
+using namespace cnoid;
 
 namespace teaching {
 
@@ -140,7 +144,7 @@ bool PythonControllerWrapper::executeCommand(const std::string& commandName, std
 
       MappingPtr valListlNode = paramNode->newMapping();
       Listing* valNode = valListlNode->createListing("VectorXd");
-      for (int index = 0; index < val.count(); index++) {
+      for (int index = 0; index < val.size(); index++) {
         valNode->append(val[index]);
       }
 
@@ -154,7 +158,6 @@ bool PythonControllerWrapper::executeCommand(const std::string& commandName, std
           valNode->append(val(idxCol,idxRow));
         }
       }
-
     }
   }
   DDEBUG("Build Yaml");
@@ -165,14 +168,11 @@ bool PythonControllerWrapper::executeCommand(const std::string& commandName, std
   writer.putNode(archive);
   DDEBUG_V("Convert Yaml %s", ss.str().c_str());
 
-  if (executor.eval("executeCommand=\"\"\"" + ss.str() + "\"\"\")")) {
-    DDEBUG("OK Test");
+  if (executor.eval("executeCommand=\"\"\"" + ss.str() + "\"\"\")") == false) {
+    DDEBUG("PythonControllerWrapper::executeCommand Error");
+    return false;
   }
-
   DDEBUG("PythonControllerWrapper::executeCommand End");
-
-
-
 
   return true;
 }
@@ -181,7 +181,14 @@ void PythonControllerWrapper::initialize() {
 }
 
 cnoid::Link* PythonControllerWrapper::getToolLink(int toolNumber) {
-  return 0;
+  string linkName = "RARM_JOINT5";
+  //TODO Python‘¤‚©‚çŽæ“¾
+
+  string robotName = SettingManager::getInstance().getRobotModelName();
+  BodyItem* robotModel = ChoreonoidUtil::searchParentModel(robotName);
+  if (!robotModel) return 0;
+  Link* targetLink = robotModel->body()->link(linkName);
+  return targetLink;
 }
 
 }
