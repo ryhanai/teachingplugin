@@ -353,34 +353,6 @@ DEF main_withHands Humanoid {
                                       ]
                                     }
 
-                                    DEF rarm_ftsensor_link Joint {
-                                      jointType "fixed"
-                                      translation 0.0 0.03 0.0
-                                      rotation 0 1 0 0
-                                      children [
-                                        DEF rarm_ftsensor_link Segment {
-                                          children [
-                                            Transform {
-                                              scale 1.0 1.0 1.0
-                                              translation 0.0 0.065 0.0
-                                              rotation 0 1 0 0
-                                              children [
-					        Shape {
-						  geometry Cylinder {
-						    radius 0.03
-						    height 0.03
-						  }
-						  appearance Appearance {
-						    material Material {
-						      diffuseColor 0 0 0
-						    }
-						  }
-						}
-                                              ]
-                                            }
-                                          ]
-                                        }
-
                                     DEF rgripper_root_link Joint {
                                       jointType "fixed"
                                       translation 0.0 0.03 0.0
@@ -625,8 +597,6 @@ DEF main_withHands Humanoid {
             }
           ]
         }
-	]
-	}
                                 
         DEF larm_base_link-base_fixed_joint Joint {
           jointType "fixed"
@@ -824,35 +794,6 @@ DEF main_withHands Humanoid {
                                         }
                                       ]
                                     }
-
-                                    DEF larm_ftsensor_link Joint {
-                                      jointType "fixed"
-                                      translation 0.0 0.03 0.0
-                                      rotation 0 1 0 0
-                                      children [
-                                        DEF larm_ftsensor_link Segment {
-                                          children [
-                                            Transform {
-                                              scale 1.0 1.0 1.0
-                                              translation 0.0 0.065 0.0
-                                              rotation 0 1 0 0
-                                              children [
-					        Shape {
-						  geometry Cylinder {
-						    radius 0.03
-						    height 0.03
-						  }
-						  appearance Appearance {
-						    material Material {
-						      diffuseColor 0 0 0
-						    }
-						  }
-						}
-                                              ]
-                                            }
-                                          ]
-                                        }
-
 
                                     DEF lgripper_root_link Joint {
                                       jointType "fixed"
@@ -1102,10 +1043,6 @@ DEF main_withHands Humanoid {
       ]
     }
   ]
-
-  }
-  ]
-  
   joints [
     USE rarm_wrist_3_joint,
     USE rarm_wrist_2_joint,
