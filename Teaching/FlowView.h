@@ -100,8 +100,8 @@ public:
   void flowSelectionChanged(TaskModelParamPtr target);
   void setButtonEnableMode(bool isEnable);
   void clearView();
-  void dispView(FlowParamPtr& target);
-  void createStateMachine(FlowParamPtr& target);
+  void dispView(FlowParamPtr& target, bool paramFixed = false);
+  void createStateMachine(FlowParamPtr& target, bool paramFixed);
 
   inline bool updateTargetFlowParam(QString& errMessage) { return grhStateMachine->updateTargetFlowParam(errMessage); };
   inline void paramInfoUpdated(ElementStmParamPtr targetState) { grhStateMachine->paramInfoUpdated(targetState); };

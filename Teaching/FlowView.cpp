@@ -772,17 +772,17 @@ void FlowViewImpl::setButtonEnableMode(bool isEnable) {
   setEditMode(TeachingEventHandler::instance()->canEdit());
 }
 
-void FlowViewImpl::dispView(FlowParamPtr& target) {
+void FlowViewImpl::dispView(FlowParamPtr& target, bool paramFixed) {
   changeEnables(true);
   setEditMode(TeachingEventHandler::instance()->canEdit());
   leName->setText(target->getName());
   leComment->setText(target->getComment());
-  createStateMachine(target);
+  createStateMachine(target, paramFixed);
 }
 
-void FlowViewImpl::createStateMachine(FlowParamPtr& target) {
+void FlowViewImpl::createStateMachine(FlowParamPtr& target, bool paramFixed) {
   grhStateMachine->setTargetParam(target);
-  grhStateMachine->createStateMachine(target);
+  grhStateMachine->createStateMachine(target, paramFixed);
 }
 
 void FlowViewImpl::clearView() {

@@ -385,7 +385,7 @@ void FlowEditor::dropEvent(QDropEvent* event) {
   targetParam_->addStmElement(newParam);
 }
 
-void FlowEditor::createStateMachine(FlowParamPtr target) {
+void FlowEditor::createStateMachine(FlowParamPtr target, bool paramFixed) {
   DDEBUG("FlowEditor::createStateMachine");
   removeAll();
   //
@@ -486,7 +486,7 @@ void FlowEditor::createStateMachine(FlowParamPtr target) {
             model->setPosture(sourceParamElem->getPosture());
           } else {
             param->setFlowParam(sourceParamElem);
-            if (sourceParamElem->isFirst()) {
+            if (sourceParamElem->isFirst() && paramFixed==false) {
               sourceParamElem->setWidgetValue(param->getDBValues());
             }
           }

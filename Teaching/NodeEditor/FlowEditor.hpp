@@ -27,7 +27,7 @@ public:
 	FlowEditor(const FlowEditor&) = delete;
 	FlowEditor operator=(const FlowEditor&) = delete;
 
-  void createStateMachine(FlowParamPtr target);
+  void createStateMachine(FlowParamPtr target, bool paramFixed = false);
 	bool updateTargetFlowParam(QString& errMessage);
 	void paramInfoUpdated(ElementStmParamPtr targetState);
   void modelParamUpdated(int flowModelId, ModelMasterParamPtr masterParam);

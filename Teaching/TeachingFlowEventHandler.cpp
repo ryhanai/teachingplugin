@@ -88,7 +88,7 @@ void TeachingEventHandler::flv_SearchClicked(bool canEdit) {
 		QMessageBox::warning(flv_, _("Flow"), _("FAILED to Open Flow."));
 		return;
 	}
-	flv_->dispView(flv_CurrentFlow_);
+	flv_->dispView(flv_CurrentFlow_, true);
 	mdv_->clearTaskParam();
 	stv_->clearTaskParam();
 	prv_->clearTaskParam();
@@ -322,11 +322,23 @@ bool TeachingEventHandler::flv_RegistFlowClicked(QString name, QString comment) 
   }
 
 	if (TeachingDataHolder::instance()->saveFlowModel(flv_CurrentFlow_)) {
-		flv_CurrentFlow_ = TeachingDataHolder::instance()->reGetFlowById(flv_CurrentFlow_->getId());
-    if (EVENT_HANDLER(checkTest())) {
-      QMessageBox::information(flv_, _("Save Flow"), _("Target flow saved"));
-    }
-		flv_->createStateMachine(flv_CurrentFlow_);
+	  unloadTaskModelItems();
+	  if (flv_CurrentFlow_) {
+		  com_CurrentTask_ = 0;
+	  }
+    flv_CurrentId_ = flv_CurrentFlow_->getId();
+  	flv_CurrentFlow_ = TeachingDataHolder::instance()->reGetFlowById(flv_CurrentId_);
+
+	  flv_->dispView(flv_CurrentFlow_, true);
+	  mdv_->clearTaskParam();
+	  stv_->clearTaskParam();
+	  prv_->clearTaskParam();
+	  //
+	  com_CurrentTask_ = 0;
+	  com_CurrParam_ = 0;
+
+    QMessageBox::information(flv_, _("Save Flow"), _("Target flow saved"));
+
     return true;
 
 	} else {

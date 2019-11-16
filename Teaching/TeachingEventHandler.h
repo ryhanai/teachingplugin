@@ -166,7 +166,8 @@ public:
 private:
 	TeachingEventHandler() 
 		: canEdit_(false), 
-      flv_(0), flv_CurrentId_(NULL_ID), flv_CurrentFlow_(0), isFlowDeleted_(false), isFlowSkip_(false), allModelDisp_(false),
+      flv_(0), flv_CurrentId_(NULL_ID), flv_CurrentFlow_(0),
+      isFlowDeleted_(false), isFlowSkip_(false), allModelDisp_(false),
 			tiv_(0), tiv_CurrentTask_(0),
 			com_CurrentTask_(0), com_CurrParam_(0),
 			mdv_(0), m_FigDialog_(0),
