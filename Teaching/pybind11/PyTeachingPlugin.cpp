@@ -32,6 +32,8 @@ PYBIND11_MODULE(TeachingPlugin, m)
     // .def("interpolate", (bool(TPInterface::*)(std::vector<std::string>& jointNames, const VectorXd& qGoal, double duration, JointTrajectory& traj))&TPInterface::interpolate)
     // .def("interpolate", (bool (TPInterface::*)(JointPathPtr jointPath, const VectorXd& qGoal, double duration, JointTrajectory& traj))&TPInterface::interpolate)
     .def("interpolate", (JointTrajectory(TPInterface::*)(JointPathPtr jointPath, const Vector3& xyz, const Vector3& rpy, double duration))&TPInterface::interpolate)
+    .def("followTrajectory", (bool(TPInterface::*)(const JointTrajectory& traj))&TPInterface::followTrajectory)
     ;
+  
 }
 

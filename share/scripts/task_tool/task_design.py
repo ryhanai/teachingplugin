@@ -66,7 +66,6 @@ def comp_def(e, mm):
                             ('type', e.model_type),
                             ('pos', e.tf)])
     elif isinstance(e, ParamModel):
-        print(e.value.tf)
         code = OrderedDict([('param_type', e.param_type.comp()),
                             ('name', quoted(e.name)),
                             ('disp_name', quoted(e.disp_name)),

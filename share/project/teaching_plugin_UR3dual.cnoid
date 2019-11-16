@@ -45,7 +45,7 @@ items:
           data: 
             modelFile: "${PROJECT_DIR}/../model/robot/UR3/UR3.yaml"
             currentBaseLink: "world_joint"
-            rootPosition: [ 0, 0, 0 ]
+            rootPosition: [ -0.45, 0, 0 ]
             rootAttitude: [ 
               1, 0, 0, 
               0, 1, 0, 
@@ -54,7 +54,7 @@ items:
               -2.356200, -2.356200, -1.570800, -1.570800, -1.047200,  0.000000,  2.356200, -0.785400,  1.570800, -1.570800, 
                1.047200,  0.000000,  0.000000,  0.000000,  0.000000,  0.000000,  0.000000,  0.000000,  0.000000,  0.000000, 
                0.000000,  0.000000,  0.000000,  0.000000 ]
-            initialRootPosition: [ 0, 0, 0 ]
+            initialRootPosition: [ -0.45, 0, 0 ]
             initialRootAttitude: [ 
               1, 0, 0, 
               0, 1, 0, 
@@ -75,13 +75,13 @@ items:
           data: 
             modelFile: "${PROJECT_DIR}/../model/object/UR5_tableHrp.wrl"
             currentBaseLink: "WAIST"
-            rootPosition: [ 0.5, 0, 0 ]
+            rootPosition: [ 0.2, 0, 0 ]
             rootAttitude: [ 
               1, 0, 0, 
               0, 1, 0, 
               0, 0, 1 ]
             jointPositions: [  ]
-            initialRootPosition: [ 0, 0, 0 ]
+            initialRootPosition: [ 0.2, 0, 0 ]
             initialRootAttitude: [ 
               1, 0, 0, 
               0, 1, 0, 
