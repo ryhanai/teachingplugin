@@ -39,7 +39,7 @@ TrajectoryViewImpl::TrajectoryViewImpl(QWidget* parent)
   leMainObj->setReadOnly(true);
   leMainObj->setEnabled(false);
   /////
-  btnSubLink = new QPushButton("Basse Link");
+  btnSubLink = new QPushButton("Base Link");
   //btnSubLink->setIcon(QApplication::style()->standardIcon(QStyle::SP_TrashIcon));
   //btnSubLink->setToolTip(_("Delete selected element"));
   btnSubLink->setEnabled(false);
