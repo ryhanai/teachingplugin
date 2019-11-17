@@ -68,8 +68,8 @@ bool TeachingEventHandler::mdd_Loaded(ModelDialog* dialog) {
 	mdd_->showModelGrid(modelList);
 	mdd_->showModelMasterGrid(modelMasterList);
 
-	mdd_CurrentId_ = NULL_ID; mdd_CurrentModel_ = 0;
-	mdd_CurrentMasterId_ = NULL_ID; mdd_CurrentModelMaster_ = 0;
+  mdd_CurrentModel_ = 0;
+  mdd_CurrentModelMaster_ = 0;
 	mdd_selectedModel_ = 0;
 	mdd_BodyItem_ = 0;
 	mdd_currentBodyItemChangeConnection = BodyBar::instance()->sigCurrentBodyItemChanged().connect(
@@ -79,7 +79,7 @@ bool TeachingEventHandler::mdd_Loaded(ModelDialog* dialog) {
 }
 
 void TeachingEventHandler::mdd_ModelSelectionChanged(int newId, QString rname, int type, double posX, double posY, double posZ, double rotX, double rotY, double rotZ, int hide) {
-	DDEBUG_V("TeachingEventHandler::mdd_ModelSelectionChanged: %d, %d, %d", newId, mdd_CurrentId_, com_CurrentTask_->getId());
+	DDEBUG_V("TeachingEventHandler::mdd_ModelSelectionChanged: %d, %d", newId, com_CurrentTask_->getId());
 	if (mdd_CurrentModel_) {
 		mdd_CurrentModel_->setRName(rname);
 		mdd_CurrentModel_->setType(type);
@@ -103,14 +103,11 @@ void TeachingEventHandler::mdd_ModelSelectionChanged(int newId, QString rname, i
 		ChoreonoidUtil::selectTreeItem(mdd_CurrentModel_);
 	}
 
-	mdd_CurrentId_ = newId;
 	mdd_->updateContents(mdd_CurrentModel_);
 }
 
 void TeachingEventHandler::mdd_ModelMasterSelectionChanged(int newId) {
 	DDEBUG_V("TeachingEventHandler::mdd_ModelMasterSelectionChanged: %d", newId);
-
-	mdd_CurrentMasterId_ = newId;
 	mdd_CurrentModelMaster_ = TeachingDataHolder::instance()->getModelMasterById(newId);
 }
 
@@ -162,6 +159,7 @@ void TeachingEventHandler::mdd_updateKinematicState(bool blockSignals) {
 }
 
 void TeachingEventHandler::mdd_ModelPositionChanged(double posX, double posY, double posZ, double rotX, double rotY, double rotZ) {
+	DDEBUG("TeachingEventHandler::mdd_ModelPositionChanged");
   if (eventSkip_) return;
 
   if (mdd_CurrentModel_) {
@@ -172,6 +170,7 @@ void TeachingEventHandler::mdd_ModelPositionChanged(double posX, double posY, do
         || dbl_eq(rotX, mdd_CurrentModel_->getRotRx()) == false
         || dbl_eq(rotY, mdd_CurrentModel_->getRotRy()) == false
         || dbl_eq(rotZ, mdd_CurrentModel_->getRotRz()) == false) {
+        ChoreonoidUtil::updateModelItemPosition(mdd_BodyItem_, posX, posY, posZ, rotX, rotY, rotZ);
         mdd_CurrentModel_->setPosX(posX);
         mdd_CurrentModel_->setPosY(posY);
         mdd_CurrentModel_->setPosZ(posZ);

@@ -624,10 +624,6 @@ bool TeachingEventHandler::flv_Connected(QtNodes::Connection& target) {
 }
 
 void TeachingEventHandler::flv_Disconnected(QtNodes::Connection& target) {
-  if(isFlowSkip_) {
-    isFlowSkip_ = false;
-    return;
-  }
   //DDEBUG("TeachingEventHandler::flv_Disconnected()");
 
   Node* taskNode = target.getNode(PortType::In);

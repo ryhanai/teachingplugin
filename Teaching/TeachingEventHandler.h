@@ -43,7 +43,7 @@ public:
 	bool tiv_DeleteTaskClicked(int selectedId);
 	void tiv_TaskExportClicked(int selectedId, QString strTask);
 	bool tiv_TaskImportClicked();
-        bool tiv_TaskImport(QString strFName);
+  bool tiv_TaskImport(QString strFName);
 	void tiv_SearchClicked(QString cond);
 	bool tiv_RegistTaskClicked(int selectedId, QString strTask);
 	bool tiv_RegistNewTaskClicked(int selectedId, QString strTask, QString strCond);
@@ -166,8 +166,7 @@ public:
 private:
 	TeachingEventHandler() 
 		: canEdit_(false), 
-      flv_(0), flv_CurrentId_(NULL_ID), flv_CurrentFlow_(0),
-      isFlowDeleted_(false), isFlowSkip_(false), allModelDisp_(false),
+      flv_(0), flv_CurrentId_(NULL_ID), flv_CurrentFlow_(0), isFlowDeleted_(false), allModelDisp_(false),
 			tiv_(0), tiv_CurrentTask_(0),
 			com_CurrentTask_(0), com_CurrParam_(0),
 			mdv_(0), m_FigDialog_(0),
@@ -175,8 +174,7 @@ private:
 			prv_(0),
       trv_(0),
 			fsd_(0),
-			mdd_(0), mdd_CurrentId_(NULL_ID), mdd_CurrentModel_(0),
-			mdd_CurrentMasterId_(NULL_ID), mdd_CurrentModelMaster_(0),
+			mdd_(0), mdd_CurrentModel_(0), mdd_CurrentModelMaster_(0),
 			mdd_updateKinematicStateLater(bind(&TeachingEventHandler::mdd_updateKinematicState, this, true), IDLE_PRIORITY_LOW),
 			prd_(0), prd_CurrentParam_(0),
 			agd_(0), agd_Current_Stm_(0), agd_Current_Arg_(0), agd_Current_Action_(0),
@@ -195,7 +193,6 @@ private:
 	int flv_CurrentId_;
 	FlowParamPtr flv_CurrentFlow_;
 	bool isFlowDeleted_;
-  bool isFlowSkip_;
   bool allModelDisp_;
 
 	TaskModelParamPtr com_CurrentTask_;
@@ -213,9 +210,7 @@ private:
 	FlowSearchDialog* fsd_;
 
 	ModelDialog* mdd_;
-	int mdd_CurrentId_;
 	ModelParamPtr mdd_CurrentModel_;
-	int mdd_CurrentMasterId_;
 	ModelMasterParamPtr mdd_CurrentModelMaster_;
 	ModelParamPtr mdd_selectedModel_;
 	BodyItemPtr mdd_BodyItem_;
