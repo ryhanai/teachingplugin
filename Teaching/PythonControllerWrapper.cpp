@@ -24,15 +24,14 @@ std::vector<CommandDefParam*> PythonControllerWrapper::getCommandDefList() {
 
   PythonExecutor executor;
   if(executor.eval("getCommandDefList()")) {
-    DDEBUG("OK");
     std::string returnValue = executor.returnValue().cast<std::string>();
-    DDEBUG_V("result %s", returnValue.c_str());
 
     YAMLReader pyaml;
     if(pyaml.parse(returnValue)==false) {
       DDEBUG("Parse Error");
       return result;
     }
+
     Listing* cmdList = pyaml.document()->toListing();
     for (int index = 0; index < cmdList->size(); index++) {
       cnoid::ValueNode* eachCmd = cmdList->at(index);
@@ -88,6 +87,7 @@ std::vector<CommandDefParam*> PythonControllerWrapper::getCommandDefList() {
             QString argLength = QString::fromStdString(argMap->get("length").toString());
             aLength = argLength.toInt();
           } catch (...) {
+            continue;
           }
           ArgumentDefParam* arg = new ArgumentDefParam(argName.toStdString(), argType.toStdString(), aLength);
           cmdDef->addArgument(arg);
@@ -96,7 +96,7 @@ std::vector<CommandDefParam*> PythonControllerWrapper::getCommandDefList() {
     }
   }
 
-  DDEBUG("End");
+  DDEBUG("PythonControllerWrapper::getCommandDefList End");
   return result;
 }
 
