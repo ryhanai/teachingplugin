@@ -87,7 +87,6 @@ std::vector<CommandDefParam*> PythonControllerWrapper::getCommandDefList() {
             QString argLength = QString::fromStdString(argMap->get("length").toString());
             aLength = argLength.toInt();
           } catch (...) {
-            continue;
           }
           ArgumentDefParam* arg = new ArgumentDefParam(argName.toStdString(), argType.toStdString(), aLength);
           cmdDef->addArgument(arg);
@@ -168,7 +167,7 @@ bool PythonControllerWrapper::executeCommand(const std::string& commandName, std
   writer.putNode(archive);
   DDEBUG_V("Convert Yaml %s", ss.str().c_str());
 
-  if (executor.eval("executeCommand=\"\"\"" + ss.str() + "\"\"\")") == false) {
+  if (executor.eval("executeCommand \"\"\"" + ss.str() + "\"\"\")") == false) {
     DDEBUG("PythonControllerWrapper::executeCommand Error");
     return false;
   }
