@@ -136,7 +136,7 @@ class Model(Frame):
     def setMaster(self, master_name):
         self.master_name = master_name
 
-class EPlus:
+class EPlus(object):
     """ """
     def __init__(self, le, re):
         self.le = le
@@ -147,7 +147,9 @@ class ParamType(Enum):
     INT=1,
     DBL=2,
     TF=3,
-    FRM=4
+    FRM=4,
+    VECTOR3=11,
+    BOOL=21
 
     def comp(param_type):
         output = {ParamType.FRM:3, ParamType.TF:3, ParamType.DBL:2, ParamType.INT:1}
@@ -184,7 +186,6 @@ class ParamModel(Param):
         super(ParamModel, self).__init__(name, value, disp_name, type_prefix = 'F', hide=hide)
         self.param_type = ParamType.FRM
 
-
 class ParamTF(Param):
     """ """
     def __init__(self, name, value, disp_name=None, hide=False):
@@ -208,50 +209,114 @@ class State(object):
     - state id is automatically numbered
     - positions of each state will be automatically computed in the future
     """
+
+    _type = 0
+
     def __init__(self, pos=[0,0]):
         self.id = 0
-        self.type = 0
         self.condition = ''
         self.pos = pos
 
     def set_id(self, state_id):
         self.id = state_id
 
+    @classmethod
+    def node_type(cls):
+        return cls._type
+
     def compile(self):
         return OrderedDict([('id', self.id),
-                            ('type', self.type),
+                            ('type', self.__class__.node_type()),
                             ('pos', self.pos)])
 
 class InitialState(State):
+    """ """
+    _type = 1
+
     def __init__(self, pos=[0,0]):
         super(InitialState, self).__init__(pos)
-        self.type = 1
 
     def compile(self):
         code = super(InitialState, self).compile()
         return code
 
 class FinalState(State):
+    """ """
+    _type = 2
+
     def __init__(self, pos=[0,0]):
         super(FinalState, self).__init__(pos)
-        self.type = 2
 
     def compile(self):
         code = super(FinalState, self).compile()
         return code
 
 class Cmd(State):
-    def __init__(self, cmd_name, disp_name, pos=[0,0]):
+    """ """
+    _cmd_name = 'command'
+    _disp_name = 'Command'
+    _type = 5
+    _signature = [('xyz', ParamType.VECTOR3),
+                      ('rpy', ParamType.VECTOR3),
+                      ('tm', ParamType.DBL),
+                      ('armID', ParamType.INT)]
+
+    def __init__(self, pos=[0,0]):
         super(Cmd, self).__init__(pos)
-        self.type = 5
-        self.cmd_name = cmd_name
-        self.disp_name = disp_name
+
+    def model_actions(self):
+        return []
+
+    @classmethod
+    def signature(cls):
+        return cls._signature
+
+    @classmethod
+    def params(cls):
+        return list(zip(*cls._signature))[0]
+
+    @classmethod
+    def compile_signature(cls):
+        code = OrderedDict([('name', quoted(cls._cmd_name)),
+                            ('dispName', quoted(cls._disp_name)),
+                            ('retType', quoted(Cmd.compile_type(ParamType.BOOL)))])
+        args = []
+        for v,t in cls.signature():
+            t2 = Cmd.compile_type(t)
+            if type(t2) == tuple:
+                t3,l = t2
+                args.append(OrderedDict([('name', quoted(v)),
+                                             ('type', quoted(t3)),
+                                             ('length', l)]))
+            else:
+                args.append(OrderedDict([('name', quoted(v)),
+                                             ('type', quoted(t2))]))
+        code['args'] = args
+        return code
+
+    @staticmethod
+    def compile_type(t):
+        output = {ParamType.VECTOR3: ('double',3),
+                      ParamType.DBL: 'double',
+                      ParamType.INT: 'int',
+                      ParamType.BOOL: 'boolean',
+                      }
+        return output[t]
 
     def compile(self):
-        data = super(Cmd, self).compile()
-        data['cmd_name'] = quoted(self.cmd_name)
-        data['disp_name'] = quoted(self.disp_name)
-        return data
+        code = super(Cmd, self).compile()
+        code['cmd_name'] = quoted(self._cmd_name)
+        code['disp_name'] = quoted(self._disp_name)
+        args = []
+        for var,exp in zip(self.params(), self.arguments()):
+            args.append(OrderedDict([('name',quoted(var)), ('value',quoted(exp))]))
+        code['arguments'] = args
+        actions = []
+        for model_action in self.model_actions():
+            actions.append(model_action.compile())
+        if actions != []:
+            code['model_actions'] = actions
+        return code
 
 class ModelAction:
     def __init__(self, action, model, target):
@@ -439,3 +504,5 @@ class MasterManager:
 
     def get_master(self, master_name):
         return self.get(master_name)
+
+

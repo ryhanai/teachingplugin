@@ -68,24 +68,6 @@ class Robot(object):
         u_world = np.dot(Tworld_base[:3,:3], u)
         print('U_WORLD: ', u_world)
 
-    # def movel_rel(self, target_frame, base_frame=([0,0,0],[0,0,0,1]), wait=True):
-    #     Tbase_tcp = self.getl(base_frame)
-    #     Ttcp_target = pose2mat(target_frame)
-    #     Tbase_target = np.dot(Tbase_tcp, Ttcp_target)
-    #     q2 = t.quaternion_from_matrix(Tbase_target)
-    #     p = t.translation_from_matrix(Tbase_tcp)
-    #     p2 = p + target_frame[0]
-    #     self.movel((p2,q2), base_frame, wait=wait)
-
-    # def movel_rel(self, xyzRPY = [0, 0, 0.02, 0, 0, 0]):
-    #     p = self._arm.current_pose
-    #     p.position.x += xyzRPY[0]
-    #     p.position.y += xyzRPY[1]
-    #     p.position.z += xyzRPY[2]
-    #     self._arm.set_pose_target(p)
-    #     self._arm.go()
-        #rospy.sleep(1)
-
     def go_home():
         warn('go_home is not yet implemented')
 

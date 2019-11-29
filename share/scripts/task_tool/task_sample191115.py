@@ -77,7 +77,6 @@ def pick_place():
     t.add_commands(place_motion)
     return t
 
-import sys
 #import optparse
 
 if __name__ == '__main__':
