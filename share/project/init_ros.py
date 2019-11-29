@@ -6,7 +6,7 @@ sys.path.append('../../share/scripts')
 from ur3dual_controller import *
 from task_tool.task_sample191115 import *
 
-controller = UR3dualController(use_ros=False)
+controller = UR3dualController(use_ros=True)
 
 #
 # teachingPluginからcontroller.executeCommand(...)
