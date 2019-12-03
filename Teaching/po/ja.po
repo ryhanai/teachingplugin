@@ -1173,3 +1173,11 @@ msgstr "削除"
 #: TeachingEventHandler.cpp:501
 msgid "The selected command does not exist in the current controller."
 msgstr "現在のコントローラには，選択されたコマンドが存在しません."
+
+#: PythonControllerWrapper.cpp:187
+msgid "Python command (getToolLinkName) execution failed."
+msgstr "Pythonコマンド(getToolLinkName)の実行に失敗しました."
+
+#: PythonControllerWrapper.cpp:197
+msgid "Failed to get link information."
+msgstr "リンク情報の取得に失敗しました."

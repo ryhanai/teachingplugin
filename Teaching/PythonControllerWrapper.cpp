@@ -8,6 +8,7 @@
 #include "TeachingUtil.h"
 #include "ChoreonoidUtil.h"
 #include "LoggerUtil.h"
+#include "gettext.h"
 
 using namespace cnoid;
 
@@ -180,13 +181,20 @@ void PythonControllerWrapper::initialize() {
 }
 
 cnoid::Link* PythonControllerWrapper::getToolLink(int toolNumber) {
-  string linkName = "RARM_JOINT5";
-  //TODO Python‘¤‚©‚çŽæ“¾
-
+  PythonExecutor executor;
+  if (executor.eval("getToolLinkName " + QString::number(toolNumber).toStdString()) == false) {
+    QMessageBox::warning(0, "PythonController", _("Python command (getToolLinkName) execution failed."));
+    return 0;
+  }
+  std::string linkName = executor.returnValue().cast<std::string>();
   string robotName = SettingManager::getInstance().getRobotModelName();
   BodyItem* robotModel = ChoreonoidUtil::searchParentModel(robotName);
   if (!robotModel) return 0;
   Link* targetLink = robotModel->body()->link(linkName);
+  if (!targetLink) {
+    QMessageBox::warning(0, "PythonController", _("Failed to get link information."));
+    return 0;
+  }
   return targetLink;
 }
 
