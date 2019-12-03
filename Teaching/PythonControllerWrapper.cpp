@@ -7,6 +7,7 @@
 
 #include "TeachingUtil.h"
 #include "ChoreonoidUtil.h"
+#include "TaskExecutor.h"
 #include "LoggerUtil.h"
 #include "gettext.h"
 
@@ -112,29 +113,35 @@ bool PythonControllerWrapper::executeCommand(const std::string& commandName, std
   argsNode->write("isReal", isReal);
   Listing* paramNode = argsNode->createListing("args");
 
-  for(CompositeParamType param : params) {
+  CommandDefParam* def = TaskExecutor::instance()->getCommandDef(commandName);
+  if (def->getArgList().size() != params.size()) return false;
+  std::vector<ArgumentDefParam*> argList = def->getArgList();
+
+  //for(CompositeParamType param : params) {
+  for (int index = 0; index < params.size(); index++) {
+    CompositeParamType param = params[index];
+    MappingPtr eachNode = paramNode->newMapping();
+    eachNode->write("name", argList[index]->getName(), DOUBLE_QUOTED);
+
     if(param.type() == typeid(double)) {
-      paramNode->append(boost::get<double>(param));
+      eachNode->write("value", boost::get<double>(param));
 
     } else if (param.type() == typeid(int)) {
-      paramNode->append(boost::get<int>(param));
+      eachNode->write("value", boost::get<int>(param));
 
     } else if (param.type() == typeid(std::string)) {
-      paramNode->append(boost::get<std::string>(param), DOUBLE_QUOTED);
+      eachNode->write("value", boost::get<string>(param), DOUBLE_QUOTED);
 
     } else if (param.type() == typeid(cnoid::Vector2)) {
       cnoid::Vector2 val = boost::get<cnoid::Vector2>(param);
-
-      MappingPtr valListlNode = paramNode->newMapping();
-      Listing* valNode = valListlNode->createListing("Vector2");
+      Listing* valNode = eachNode->createListing("value");
       valNode->append(val[0]);
       valNode->append(val[1]);
 
     } else if (param.type() == typeid(cnoid::Vector3)) {
       cnoid::Vector3 val = boost::get<cnoid::Vector3>(param);
 
-      MappingPtr valListlNode = paramNode->newMapping();
-      Listing* valNode = valListlNode->createListing("Vector3");
+      Listing* valNode = eachNode->createListing("value");
       valNode->append(val[0]);
       valNode->append(val[1]);
       valNode->append(val[2]);
@@ -142,8 +149,7 @@ bool PythonControllerWrapper::executeCommand(const std::string& commandName, std
     } else if (param.type() == typeid(cnoid::VectorXd)) {
       cnoid::VectorXd val = boost::get<cnoid::VectorXd>(param);
 
-      MappingPtr valListlNode = paramNode->newMapping();
-      Listing* valNode = valListlNode->createListing("VectorXd");
+      Listing* valNode = eachNode->createListing("value");
       for (int index = 0; index < val.size(); index++) {
         valNode->append(val[index]);
       }
@@ -151,8 +157,7 @@ bool PythonControllerWrapper::executeCommand(const std::string& commandName, std
     } else if (param.type() == typeid(cnoid::Matrix3)) {
       cnoid::Matrix3 val = boost::get<cnoid::Matrix3>(param);
 
-      MappingPtr valListlNode = paramNode->newMapping();
-      Listing* valNode = valListlNode->createListing("Matrix3");
+      Listing* valNode = eachNode->createListing("value");
       for (int idxRow = 0; idxRow < 3; idxRow++) {
         for (int idxCol = 0; idxCol < 3; idxCol++) {
           valNode->append(val(idxCol,idxRow));
@@ -160,7 +165,6 @@ bool PythonControllerWrapper::executeCommand(const std::string& commandName, std
       }
     }
   }
-  DDEBUG("Build Yaml");
 
   std::stringstream ss;
   YAMLWriter writer(ss);
