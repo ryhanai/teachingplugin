@@ -25,76 +25,105 @@ std::vector<CommandDefParam*> PythonControllerWrapper::getCommandDefList() {
   std::vector<CommandDefParam*> result;
 
   PythonExecutor executor;
-  if(executor.eval("getCommandDefList()")) {
-    std::string returnValue = executor.returnValue().cast<std::string>();
+  if (executor.eval("getCommandDefList()") == false) return result;
 
-    YAMLReader pyaml;
-    if(pyaml.parse(returnValue)==false) {
-      DDEBUG("Parse Error");
-      return result;
+  std::string returnValue = executor.returnValue().cast<std::string>();
+
+  YAMLReader pyaml;
+  if(pyaml.parse(returnValue)==false) {
+    QString errMsg =  QString::fromStdString(_("Command information is invalid.")).append("\n").append(QString::fromStdString(pyaml.errorMessage()));
+    QMessageBox::warning(0, "PythonController", errMsg);
+    return result;
+  }
+
+  Listing* cmdList = pyaml.document()->toListing();
+  QString errMessage = "";
+  for (int index = 0; index < cmdList->size(); index++) {
+    cnoid::ValueNode* eachCmd = cmdList->at(index);
+    Mapping* cmdMap = eachCmd->toMapping();
+
+    QString cmdName = "";
+    try {
+      cmdName = QString::fromStdString(cmdMap->get("name").toString());
+    } catch (...) {
+      errMessage.append(_("Failed to read the 'name' of the command. index=") + QString::number(index)).append("\n");
+      continue;
+    }
+    //
+    bool existInvalidKey = false;
+    for(auto it = cmdMap->begin(); it != cmdMap->end(); ++it){
+        string key = it->first;
+        if (key == "name" || key == "dispName" || key == "retType" || key == "args") continue;
+        errMessage.append(_("YAML key is invalid. key=") + QString::fromStdString(key)).append(" (").append(cmdName).append(")").append("\n");
+        existInvalidKey = true;
+    }
+    if (existInvalidKey) continue;
+
+    QString cmdDispName = "";
+    try {
+      cmdDispName = QString::fromStdString(cmdMap->get("dispName").toString());
+    } catch (...) {
+      errMessage.append(_("Failed to read the 'dispName' of the command. (")).append(cmdName).append(")").append("\n");
+      continue;
     }
 
-    Listing* cmdList = pyaml.document()->toListing();
-    for (int index = 0; index < cmdList->size(); index++) {
-      cnoid::ValueNode* eachCmd = cmdList->at(index);
-      Mapping* cmdMap = eachCmd->toMapping();
+    QString retType = "";
+    try {
+      retType = QString::fromStdString(cmdMap->get("retType").toString());
+    } catch (...) {
+      errMessage.append(("Failed to read the 'retType' of the command. (")).append(cmdName).append(")").append("\n");
+      continue;
+    }
 
-      QString cmdName = "";
-      QString cmdDispName = "";
-      QString retType = "";
+    CommandDefParam* cmdDef = new CommandDefParam(cmdName, cmdDispName, retType);
+    result.push_back(cmdDef);
 
-      try {
-        cmdName = QString::fromStdString(cmdMap->get("name").toString());
-      } catch (...) {
-        QString errMessage = "Failed to read the name of the command.";
-        DDEBUG(errMessage.toStdString().c_str());
-        continue;
-      }
-      try {
-        cmdDispName = QString::fromStdString(cmdMap->get("dispName").toString());
-      } catch (...) {
-        QString errMessage = "Failed to read the dispName of the command.";
-        DDEBUG(errMessage.toStdString().c_str());
-        continue;
-      }
-      try {
-        retType = QString::fromStdString(cmdMap->get("retType").toString());
-      } catch (...) {
-        QString errMessage = "Failed to read the retType of the command.";
-        DDEBUG(errMessage.toStdString().c_str());
-        continue;
-      }
+    Listing* argsList = cmdMap->findListing("args");
+    if (argsList) {
+      for (int idxArg = 0; idxArg < argsList->size(); idxArg++) {
+        Mapping* argMap = argsList->at(idxArg)->toMapping();
 
-      CommandDefParam* cmdDef = new CommandDefParam(cmdName, cmdDispName, retType);
-      result.push_back(cmdDef);
-
-      Listing* argsList = cmdMap->findListing("args");
-      if (argsList) {
-        for (int idxArg = 0; idxArg < argsList->size(); idxArg++) {
-          Mapping* argMap = argsList->at(idxArg)->toMapping();
-          QString argName = "";
-          QString argType = "";
-          int aLength = 0;
-          try {
-            argName = QString::fromStdString(argMap->get("name").toString());
-          } catch (...) {
-            continue;
-          }
-          try {
-            argType = QString::fromStdString(argMap->get("type").toString());
-          } catch (...) {
-            continue;
-          }
-          try {
-            QString argLength = QString::fromStdString(argMap->get("length").toString());
-            aLength = argLength.toInt();
-          } catch (...) {
-          }
-          ArgumentDefParam* arg = new ArgumentDefParam(argName.toStdString(), argType.toStdString(), aLength);
-          cmdDef->addArgument(arg);
+        QString argName = "";
+        try {
+          argName = QString::fromStdString(argMap->get("name").toString());
+        } catch (...) {
+          errMessage.append(_("Failed to read the 'name' of the argument. (")).append(cmdName).append(")").append("\n");
+          break;
         }
+
+        bool existInvalidKeyArg = false;
+        for(auto it = argMap->begin(); it != argMap->end(); ++it){
+            string key = it->first;
+            if (key == "name" || key == "type" || key == "length") continue;
+            errMessage.append(_("The YAML key in the argument definition is invalid. key=") + QString::fromStdString(key)).append(" (").append(cmdName).append("-").append(argName).append(")").append("\n");
+            existInvalidKeyArg = true;
+        }
+        if (existInvalidKeyArg) break;
+
+        QString argType = "";
+        try {
+          argType = QString::fromStdString(argMap->get("type").toString());
+        } catch (...) {
+          errMessage.append(_("Failed to read the 'type' of the argument. (")).append(cmdName).append("-").append(argName).append(")").append("\n");
+          continue;
+        }
+
+        int aLength = 0;
+        try {
+          QString argLength = QString::fromStdString(argMap->get("length").toString());
+          aLength = argLength.toInt();
+        } catch (...) {
+        }
+        ArgumentDefParam* arg = new ArgumentDefParam(argName.toStdString(), argType.toStdString(), aLength);
+        cmdDef->addArgument(arg);
       }
     }
+  }
+
+  if(0<errMessage.length()) {
+    result.clear();
+    QMessageBox::warning(0, "PythonController", errMessage);
+    return result;
   }
 
   DDEBUG("PythonControllerWrapper::getCommandDefList End");
@@ -117,7 +146,6 @@ bool PythonControllerWrapper::executeCommand(const std::string& commandName, std
   if (def->getArgList().size() != params.size()) return false;
   std::vector<ArgumentDefParam*> argList = def->getArgList();
 
-  //for(CompositeParamType param : params) {
   for (int index = 0; index < params.size(); index++) {
     CompositeParamType param = params[index];
     MappingPtr eachNode = paramNode->newMapping();

@@ -1181,3 +1181,35 @@ msgstr "Pythonコマンド(getToolLinkName)の実行に失敗しました."
 #: PythonControllerWrapper.cpp:197
 msgid "Failed to get link information."
 msgstr "リンク情報の取得に失敗しました."
+
+#: PythonControllerWrapper.cpp:34
+msgid "Command information is invalid."
+msgstr "コマンド情報が不正です."
+
+#: PythonControllerWrapper.cpp:49
+msgid "Failed to read the 'name' of the command. index="
+msgstr "コマンド定義の｢name｣の読み込みに失敗しました.index="
+
+#: PythonControllerWrapper.cpp:57
+msgid "YAML key is invalid. key="
+msgstr "コマンド定義のYAML文字列のキーが不正です.key="
+
+#: PythonControllerWrapper.cpp:66
+msgid "Failed to read the 'dispName' of the command. ("
+msgstr "コマンド定義の｢dispName｣の読み込みに失敗しました.("
+
+#: PythonControllerWrapper.cpp:74
+msgid "Failed to read the 'retType' of the command. ("
+msgstr "コマンド定義の｢retType｣の読み込みに失敗しました.("
+
+#: PythonControllerWrapper.cpp:90
+msgid "Failed to read the 'name' of the argument. ("
+msgstr "引数定義の｢name｣の読み込みに失敗しました.("
+
+#: PythonControllerWrapper.cpp:98
+msgid "The YAML key in the argument definition is invalid. key="
+msgstr "引数定義のYAML文字列のキーが不正です.key="
+
+#: PythonControllerWrapper.cpp:107
+msgid "Failed to read the 'type' of the argument. ("
+msgstr "引数定義の｢type｣の読み込みに失敗しました.("
