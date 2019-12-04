@@ -25,7 +25,7 @@ class ControllerBase(object):
     def toolLinkMap(self):
         return self.__toolLinkMap
 
-    def toolLink(self, key):
+    def getToolLinkName(self, key):
         return self.__toolLinkMap[key]
 
     def getCommandDefList(self):
@@ -44,8 +44,10 @@ class ControllerBase(object):
             print('Exception: ', e)
             return False
 
-    def doExecuteCommand(self, commandName, params, isReal):
+    def doExecuteCommand(self, commandName, args, isReal):
         print('commandName = ', commandName)
-        print('params = ', params)
+        print('args = ', args)
         print('isReal = ', isReal)
-        return getattr(self, commandName)(*params+[isReal])
+
+        values = [arg['value'] for arg in args]
+        return getattr(self, commandName)(*values+[isReal])

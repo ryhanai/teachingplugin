@@ -16,12 +16,10 @@ class BasicCommandController(ControllerBase):
         self.tp.setRobotName(self.robotItemName())
 
     def moveArm(self, xyz, rpy, tm, grasp_xyz, grasp_rpy, armID, isReal):
-        xyz = xyz['VectorXd']
-        rpy = np.radians(rpy['VectorXd'])
-        grasp_xyz = grasp_xyz['VectorXd']
-        grasp_rpy = np.radians(grasp_rpy['VectorXd'])
+        rpy = np.radians(rpy)
+        grasp_rpy = np.radians(grasp_rpy)
 
-        jointPath = self.tp.getJointPath(self.toolLink(armID))
+        jointPath = self.tp.getJointPath(self.getToolLinkName(armID))
         print(xyz, rpy, tm, grasp_xyz, grasp_rpy)
         f = (xyz, t.quaternion_from_euler(*rpy, axes='rxyz'))
         fg = (grasp_xyz, t.quaternion_from_euler(*grasp_rpy, axes='rxyz'))
@@ -49,8 +47,7 @@ class BasicCommandController(ControllerBase):
             return True
 
     def setTaskFrame(self, xyz, rpy, isReal):
-        xyz = xyz['VectorXd']
-        rpy = np.radians(rpy['VectorXd'])
+        rpy = np.radians(rpy)
         self.task_frame = (xyz, t.quaternion_from_euler(*rpy, axes='rxyz'))
         print('task frame: ', self.task_frame)
 

@@ -13,8 +13,8 @@ controller = UR3dualController(use_ros=False)
 # と呼出されるようにすれば以下の大域関数定義は不要になる
 #
 
-def toolLinkMap():
-    return controller.toolLinkMap()
+def getToolLinkName(num):
+    return controller.getToolLinkName(num)
 
 def robotItemName():
     return controller.robotItemName()
