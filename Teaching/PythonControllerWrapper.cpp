@@ -200,7 +200,7 @@ bool PythonControllerWrapper::executeCommand(const std::string& commandName, std
   writer.putNode(archive);
   DDEBUG_V("Convert Yaml %s", ss.str().c_str());
 
-  if (executor.eval("executeCommand \"\"\"" + ss.str() + "\"\"\")") == false) {
+  if (executor.eval("executeCommand( \"\"\"" + ss.str() + "\"\"\")") == false) {
     DDEBUG("PythonControllerWrapper::executeCommand Error");
     return false;
   }
@@ -214,7 +214,7 @@ void PythonControllerWrapper::initialize() {
 
 cnoid::Link* PythonControllerWrapper::getToolLink(int toolNumber) {
   PythonExecutor executor;
-  if (executor.eval("getToolLinkName " + QString::number(toolNumber).toStdString()) == false) {
+  if (executor.eval("getToolLinkName( " + QString::number(toolNumber).toStdString() + ")") == false) {
     QMessageBox::warning(0, "PythonController", _("Python command (getToolLinkName) execution failed."));
     return 0;
   }
