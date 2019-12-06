@@ -740,6 +740,7 @@ void TeachingEventHandler::updateComViews(TaskModelParamPtr targetTask, bool isF
 	mdv_->setTaskParam(targetTask);
 	stv_->setTaskParam(targetTask);
 	prv_->setTaskParam(targetTask, isFlowView);
+	trv_->setTaskParam(targetTask);
 
 	//即更新を行うとエラーになってしまうため
 	if (isUpdateTree) {

@@ -952,6 +952,165 @@ private:
 };
 typedef std::shared_ptr<ImageDataParam> ImageDataParamPtr;
 /////
+class ViaPointParam : public DatabaseParam {
+public:
+  ViaPointParam(int id, int seq, double posX, double posY, double posZ, double rotRx, double rotRy, double rotRz, double time);
+  ViaPointParam(const ViaPointParam* source)
+    : seq_(source->seq_), time_(source->time_), DatabaseParam(source) {
+    posture_ = std::make_shared<PostureParam>(source->posture_.get());
+  };
+
+  inline int getSeq() const { return this->seq_; }
+  inline void setSeq(int value) {
+    if (this->seq_ != value) {
+      this->seq_ = value;
+      setUpdate();
+    }
+  }
+  inline double getPosX() const { return posture_->getPosX(); }
+  inline void setPosX(double value) {
+    if (dbl_eq(posture_->getPosX(), value) == false) {
+      posture_->setPosX(value);
+      setUpdate();
+    }
+  }
+  inline double getPosY() const { return posture_->getPosY(); }
+  inline void setPosY(double value) {
+    if (dbl_eq(posture_->getPosY(), value) == false) {
+      posture_->setPosY(value);
+      setUpdate();
+    }
+  }
+  inline double getPosZ() const { return posture_->getPosZ(); }
+  inline void setPosZ(double value) {
+    if (dbl_eq(posture_->getPosZ(), value) == false) {
+      posture_->setPosZ(value);
+      setUpdate();
+    }
+  }
+  inline double getRotRx() const { return posture_->getRotRx(); }
+  inline void setRotRx(double value) {
+    if (dbl_eq(posture_->getRotRx(), value) == false) {
+      posture_->setRotRx(value);
+      setUpdate();
+    }
+  }
+  inline double getRotRy() const { return posture_->getRotRy(); }
+  inline void setRotRy(double value) {
+    if (dbl_eq(posture_->getRotRy(), value) == false) {
+      posture_->setRotRy(value);
+      setUpdate();
+    }
+  }
+  inline double getRotRz() const { return posture_->getRotRz(); }
+  inline void setRotRz(double value) {
+    if (dbl_eq(posture_->getRotRz(), value) == false) {
+      posture_->setRotRz(value);
+      setUpdate();
+    }
+  }
+  inline double getTime() const { return time_; }
+  inline void setTime(double value) {
+    if (dbl_eq(time_, value) == false) {
+      time_ = value;
+      setUpdate();
+    }
+  }
+
+  inline std::vector<double> getTransMat() const { return this->transMat_; }
+  inline void addTransMat(double target){ this->transMat_.push_back(target); }
+  inline void clearTransMat(){ this->transMat_.clear(); }
+
+private:
+  double time_;
+  int seq_;
+  PostureParamPtr posture_;
+  std::vector<double> transMat_;
+};
+typedef std::shared_ptr<ViaPointParam> ViaPointParamPtr;
+/////
+class TaskTrajectoryParam : public DatabaseParam {
+public:
+  TaskTrajectoryParam(int id, QString name)
+    : name_(name), DatabaseParam(id),
+      baseObjItem_(0), targetObjItem_(0), baseObjLink_(0), targetObjLink_(0){};
+  TaskTrajectoryParam(const TaskTrajectoryParam* source);
+  ~TaskTrajectoryParam() {};
+
+  inline QString getName() const { return this->name_; }
+  inline void setName(QString value) {
+    if (this->name_ != value) {
+      this->name_ = value;
+      setUpdate();
+    }
+  }
+
+  inline QString getBaseObject() const { return this->baseObj_; }
+  inline void setBaseObject(QString value) {
+    if (this->baseObj_ != value) {
+      this->baseObj_ = value;
+      setUpdate();
+    }
+  }
+
+  inline QString getBaseLink() const { return this->baseLink_; }
+  inline void setBaseLink(QString value) {
+    if (this->baseLink_ != value) {
+      this->baseLink_ = value;
+      setUpdate();
+    }
+  }
+
+  inline QString getTargetObject() const { return this->targetObj_; }
+  inline void setTargetObject(QString value) {
+    if (this->targetObj_ != value) {
+      this->targetObj_ = value;
+      setUpdate();
+    }
+  }
+
+  inline QString getTargetLink() const { return this->targetLink_; }
+  inline void setTargetLink(QString value) {
+    if (this->targetLink_ != value) {
+      this->targetLink_ = value;
+      setUpdate();
+    }
+  }
+
+  inline cnoid::BodyItem* getBaseObjItem() const { return this->baseObjItem_; }
+  inline void setBaseObjItem(cnoid::BodyItem* value) { this->baseObjItem_ = value; }
+
+  inline cnoid::Link* getBaseObjLink() const { return this->baseObjLink_; }
+  inline void setBaseObjLink(cnoid::Link* value) { this->baseObjLink_ = value; }
+
+  inline cnoid::BodyItem* getTargetObjItem() const { return this->targetObjItem_; }
+  inline void setTargetObjItem(cnoid::BodyItem* value) { this->targetObjItem_ = value; }
+
+  inline cnoid::Link* getTargetObjLink() const { return this->targetObjLink_; }
+  inline void setTargetObjLink(cnoid::Link* value) { this->targetObjLink_ = value; }
+
+  std::vector<ViaPointParamPtr> getActiveViaList();
+  inline void addViaPoint(ViaPointParamPtr target){ this->viaPointList_.push_back(target); }
+  int getMaxViaPointId();
+  int getMaxViaPointSeq();
+
+private:
+  QString name_;
+  QString baseObj_;
+  QString baseLink_;
+  QString targetObj_;
+  QString targetLink_;
+
+  cnoid::BodyItem* baseObjItem_;
+  cnoid::BodyItem* targetObjItem_;
+  cnoid::Link* baseObjLink_;
+  cnoid::Link* targetObjLink_;
+
+  std::vector<ViaPointParamPtr> viaPointList_;
+
+};
+typedef std::shared_ptr<TaskTrajectoryParam> TaskTrajectoryParamPtr;
+/////
 class FlowModelParam : public DatabaseParam {
 public:
   FlowModelParam(int id, int masterId, QString name)
@@ -1186,6 +1345,11 @@ public:
 	std::vector<ImageDataParamPtr> getActiveImageList();
 	ImageDataParamPtr getImageById(int id);
 
+  inline std::vector<TaskTrajectoryParamPtr> getTrajectoryList() const { return this->trajectoryList_; }
+  inline void addTrajectory(TaskTrajectoryParamPtr target){ this->trajectoryList_.push_back(target); }
+	std::vector<TaskTrajectoryParamPtr> getActiveTrajectoryList();
+  int getMaxTrajectoryId();
+
   inline TaskModelParamPtr getNextTask() const { return this->nextTask_; }
   inline void setNextTask(TaskModelParamPtr value) { this->nextTask_ = value; }
   inline TaskModelParamPtr getTrueTask() const { return this->trueTask_; }
@@ -1222,6 +1386,7 @@ private:
   std::vector<ModelParamPtr> modelList_;
   std::vector<FileDataParamPtr> fileList_;
   std::vector<ImageDataParamPtr> imageList_;
+  std::vector<TaskTrajectoryParamPtr> trajectoryList_;
 
 	TaskModelParamPtr nextTask_;
   TaskModelParamPtr trueTask_;

@@ -523,6 +523,12 @@ void TaskModelParam::setAllNewData() {
     (*itImage)->setNewForce();
     ++itImage;
   }
+  //
+  std::vector<TaskTrajectoryParamPtr>::iterator itTraj = trajectoryList_.begin();
+  while (itTraj != trajectoryList_.end()) {
+    (*itTraj)->setNewForce();
+    ++itTraj;
+  }
 }
 
 TaskModelParam::TaskModelParam(int id, QString name, QString comment, QString execEnv, int flow_id, QString created_date, QString last_updated_date)
@@ -556,6 +562,12 @@ TaskModelParam::TaskModelParam(const TaskModelParam* source)
     param->setNewForce();
     this->imageList_.push_back(param);
   }
+
+  for (unsigned int index = 0; index < source->trajectoryList_.size(); index++) {
+		TaskTrajectoryParamPtr param = std::make_shared<TaskTrajectoryParam>(source->trajectoryList_[index].get());
+    param->setNewForce();
+    this->trajectoryList_.push_back(param);
+  }
 }
 
 TaskModelParam::~TaskModelParam() {
@@ -570,6 +582,7 @@ void TaskModelParam::clearDetailParams() {
 	parameterList_.clear();
 	fileList_.clear();
 	imageList_.clear();
+  trajectoryList_.clear();
 }
 
 void TaskModelParam::clearParameterList() {
@@ -656,6 +669,27 @@ ImageDataParamPtr TaskModelParam::getImageById(int id) {
 	}
 	return 0;
 }
+
+vector<TaskTrajectoryParamPtr> TaskModelParam::getActiveTrajectoryList() {
+	std::vector<TaskTrajectoryParamPtr> result;
+	for (int index = 0; index < trajectoryList_.size(); index++) {
+		TaskTrajectoryParamPtr param = trajectoryList_[index];
+		if (param->getMode() == DB_MODE_DELETE || param->getMode() == DB_MODE_IGNORE) continue;
+		result.push_back(param);
+	}
+	return result;
+}
+
+int TaskModelParam::getMaxTrajectoryId() {
+  int result = 0;
+  for (TaskTrajectoryParamPtr target : trajectoryList_) {
+    if (result < target->getId()) {
+      result = target->getId();
+    }
+  }
+  result++;
+  return result;
+}
 //////////
 void ImageDataParam::loadData() {
 	if (this->isLoaded_) return;
@@ -674,6 +708,57 @@ QImage ImageDataParam::db2Image(const QString& name, const QByteArray& source) {
 	QImage result = QImage::fromData(source, strType.c_str());
 
 	return result;
+}
+//////////
+ViaPointParam::ViaPointParam(int id, int seq, double posX, double posY, double posZ, double rotRx, double rotRy, double rotRz, double time)
+  : seq_(seq), time_(time), DatabaseParam(id) {
+    posture_ = std::make_shared<PostureParam>(posX, posY, posZ, rotRx, rotRy, rotRz);
+}
+//////////
+TaskTrajectoryParam::TaskTrajectoryParam(const TaskTrajectoryParam* source)
+  : name_(source->name_),
+    baseObj_(source->baseObj_), baseLink_(source->baseLink_),
+    targetObj_(source->targetObj_), targetLink_(source->targetLink_),
+    baseObjItem_(source->baseObjItem_), baseObjLink_(source->baseObjLink_),
+    targetObjItem_(source->targetObjItem_), targetObjLink_(source->targetObjLink_),
+    DatabaseParam(source){
+	for (unsigned int index = 0; index < source->viaPointList_.size(); index++) {
+		ViaPointParamPtr param = std::make_shared<ViaPointParam>(source->viaPointList_[index].get());
+		param->setNewForce();
+		this->viaPointList_.push_back(param);
+	}
+}
+
+vector<ViaPointParamPtr> TaskTrajectoryParam::getActiveViaList() {
+	std::vector<ViaPointParamPtr> result;
+	for (int index = 0; index < viaPointList_.size(); index++) {
+		ViaPointParamPtr param = viaPointList_[index];
+		if (param->getMode() == DB_MODE_DELETE || param->getMode() == DB_MODE_IGNORE) continue;
+		result.push_back(param);
+	}
+	return result;
+}
+
+int TaskTrajectoryParam::getMaxViaPointId() {
+  int result = 0;
+  for (ViaPointParamPtr target : viaPointList_) {
+    if (result < target->getId()) {
+      result = target->getId();
+    }
+  }
+  result++;
+  return result;
+}
+
+int TaskTrajectoryParam::getMaxViaPointSeq() {
+  int result = 0;
+  for (ViaPointParamPtr target : viaPointList_) {
+    if (result < target->getSeq()) {
+      result = target->getSeq();
+    }
+  }
+  result++;
+  return result;
 }
 //////////
 FlowParam::FlowParam(const FlowParam* source) : ActivityParam(source) {

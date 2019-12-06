@@ -12,8 +12,24 @@ using namespace cnoid;
 
 namespace teaching {
 
-typedef boost::variant<double, int, std::string, cnoid::Vector2, cnoid::Vector3, cnoid::VectorXd, cnoid::Matrix3> CompositeParamType;
-//typedef boost::variant<double, int, std::string, cnoid::VectorXd> CompositeParamType;
+class TrajectoryPoint {
+public:
+  double time_from_start;
+  std::vector<double> joint_positions;
+  cnoid::SE3 link_position;
+};
+
+class RelativeTrajectory {
+public:
+  std::vector<std::string> joint_names;
+  std::string base_object_name;
+  std::string base_link_name;
+  std::string target_object_name;
+  std::string target_link_name;
+  std::vector<TrajectoryPoint> points;
+};
+
+typedef boost::variant<double, int, std::string, cnoid::Vector2, cnoid::Vector3, cnoid::VectorXd, cnoid::Matrix3, RelativeTrajectory> CompositeParamType;
 
 class CommandParseErrorException {
 public:
