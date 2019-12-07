@@ -276,6 +276,13 @@ void DatabaseManager::getDetailParams(TaskModelParamPtr target) {
     target->addFile(*itFile);
     ++itFile;
   }
+  //
+  vector<TaskTrajectoryParamPtr> trajList = getTrajectoryParams(target->getId());
+  std::vector<TaskTrajectoryParamPtr>::iterator itTraj = trajList.begin();
+  while (itTraj != trajList.end()) {
+    target->addTrajectory(*itTraj);
+    ++itTraj;
+  }
 }
 
 TaskModelParamPtr DatabaseManager::getTaskModel(int index) {
@@ -463,6 +470,16 @@ bool DatabaseManager::saveDetailData(TaskModelParamPtr source) {
 		db_.rollback();
 		return false;
 	}
+  //
+  vector<TaskTrajectoryParamPtr> trajList = source->getTrajectoryList();
+  vector<TaskTrajectoryParamPtr>::iterator itTraj = trajList.begin();
+  while (itTraj != trajList.end()) {
+    if (saveTrajectoryData(source->getId(), *itTraj) == false) {
+      db_.rollback();
+      return false;
+    }
+    ++itTraj;
+  }
 
   return true;
 }

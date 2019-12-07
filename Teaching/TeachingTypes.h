@@ -1089,6 +1089,7 @@ public:
   inline cnoid::Link* getTargetObjLink() const { return this->targetObjLink_; }
   inline void setTargetObjLink(cnoid::Link* value) { this->targetObjLink_ = value; }
 
+  std::vector<ViaPointParamPtr> getViaList() { return this->viaPointList_;  };
   std::vector<ViaPointParamPtr> getActiveViaList();
   inline void addViaPoint(ViaPointParamPtr target){ this->viaPointList_.push_back(target); }
   int getMaxViaPointId();

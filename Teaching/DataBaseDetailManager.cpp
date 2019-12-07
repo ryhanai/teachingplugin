@@ -920,6 +920,243 @@ bool DatabaseManager::saveFileData(int parentId, FileDataParamPtr source) {
   }
   return true;
 }
+/////T_TRAJECTORY/////
+vector<TaskTrajectoryParamPtr> DatabaseManager::getTrajectoryParams(int instId) {
+	vector<TaskTrajectoryParamPtr> result;
+
+  string strQuery = "SELECT ";
+  strQuery += "trajectory_id, name, ";
+  strQuery += "base_object, base_link, target_object, target_link ";
+  strQuery += "FROM T_TRAJECTORY WHERE task_inst_id = " + toStr(instId) + " " + "ORDER BY trajectory_id";
+
+  QSqlQuery query(db_);
+  if (query.exec(strQuery.c_str()) == false) {
+    DDEBUG_V("error: %s", query.lastError().databaseText().toUtf8().constData());
+  }
+  while (query.next()) {
+    int id = query.value(0).toInt();
+		QString name = query.value(1).toString();
+		QString baseObj = query.value(2).toString();
+		QString baseLink = query.value(3).toString();
+		QString targetObj = query.value(4).toString();
+		QString targetLink = query.value(5).toString();
+		//
+		TaskTrajectoryParamPtr param = std::make_shared<TaskTrajectoryParam>(id, name);
+    param->setBaseObject(baseObj);
+    param->setBaseLink(baseLink);
+    param->setTargetObject(targetObj);
+    param->setTargetLink(targetLink);
+    param->setNormal();
+    result.push_back(param);
+    //
+    vector<ViaPointParamPtr> viaList = getViaPointParams(instId, id);
+    std::vector<ViaPointParamPtr>::iterator itVia = viaList.begin();
+    while (itVia != viaList.end()) {
+      param->addViaPoint(*itVia);
+      ++itVia;
+    }
+  }
+  return result;
+}
+
+bool DatabaseManager::saveTrajectoryData(int parentId, TaskTrajectoryParamPtr source) {
+  DDEBUG_V("saveTrajectoryData : taskId=%d, traId=%d", parentId, source->getId());
+  if (source->getMode() == DB_MODE_INSERT) {
+    string strQuery = "INSERT INTO T_TRAJECTORY ";
+    strQuery += "(task_inst_id, trajectory_id, name, base_object, base_link, target_object, target_link) ";
+    strQuery += "VALUES ( ?, ?, ?, ?, ?, ?, ? )";
+
+    QSqlQuery query(QString::fromStdString(strQuery));
+		query.addBindValue(parentId);
+		query.addBindValue(source->getId());
+    query.addBindValue(source->getName());
+    query.addBindValue(source->getBaseObject());
+    query.addBindValue(source->getBaseLink());
+    query.addBindValue(source->getTargetObject());
+    query.addBindValue(source->getTargetLink());
+    if (!query.exec()) {
+      errorStr_ = "INSERT(T_TRAJECTORY) error:" + query.lastError().databaseText();
+      return false;
+    }
+    source->setNormal();
+
+  } else if (source->getMode() == DB_MODE_UPDATE) {
+    string strQuery = "UPDATE T_TRAJECTORY ";
+    strQuery += "SET name = ?, base_object = ?, base_link = ?, target_object = ?, target_link = ? ";
+    strQuery += "WHERE task_inst_id = ? AND trajectory_id = ? ";
+
+    QSqlQuery query(QString::fromStdString(strQuery));
+    query.addBindValue(source->getName());
+    query.addBindValue(source->getBaseObject());
+    query.addBindValue(source->getBaseLink());
+    query.addBindValue(source->getTargetObject());
+    query.addBindValue(source->getTargetLink());
+    query.addBindValue(parentId);
+		query.addBindValue(source->getId());
+
+    if (!query.exec()) {
+      errorStr_ = "UPDATE(T_TRAJECTORY) error:" + query.lastError().databaseText() + "-" + QString::fromStdString(strQuery);
+      return false;
+    }
+    source->setNormal();
+
+  } else if (source->getMode() == DB_MODE_DELETE) {
+    string strQuery = "DELETE FROM T_TRAJECTORY ";
+    strQuery += "WHERE task_inst_id = ? AND trajectory_id = ? ";
+
+    QSqlQuery query(QString::fromStdString(strQuery));
+    query.addBindValue(parentId);
+		query.addBindValue(source->getId());
+
+    if (!query.exec()) {
+      errorStr_ = "DELETE(T_TRAJECTORY) error:" + query.lastError().databaseText() + "-" + QString::fromStdString(strQuery);
+      return false;
+    }
+    source->setIgnore();
+    //
+    vector<ViaPointParamPtr> pointList = source->getViaList();
+    vector<ViaPointParamPtr>::iterator itPoint = pointList.begin();
+    while (itPoint != pointList.end()) {
+      (*itPoint)->setDelete();
+      ++itPoint;
+    }
+  }
+  //
+  vector<ViaPointParamPtr> pointList = source->getViaList();
+  vector<ViaPointParamPtr>::iterator itPoint = pointList.begin();
+  while (itPoint != pointList.end()) {
+    if (saveViaPointData(parentId, source->getId(), *itPoint) == false) {
+      db_.rollback();
+      return false;
+    }
+    ++itPoint;
+  }
+  //
+  return true;
+}
+/////T_VIA_POINT/////
+vector<ViaPointParamPtr> DatabaseManager::getViaPointParams(int taskId, int trajId) {
+	vector<ViaPointParamPtr> result;
+
+  string strQuery = "SELECT ";
+  strQuery += "via_id, seq, ";
+  strQuery += "pos_x, pos_y, pos_z, rot_x, rot_y, rot_z, trans, start_time ";
+  strQuery += "FROM T_VIA_POINT ";
+  strQuery += "WHERE task_inst_id = " + toStr(taskId) + " ";
+  strQuery += "AND trajectory_id = " + toStr(trajId) + " ";
+  strQuery += "ORDER BY seq";
+
+  QSqlQuery query(db_);
+  if (query.exec(strQuery.c_str()) == false) {
+    DDEBUG_V("error: %s", query.lastError().databaseText().toUtf8().constData());
+  }
+  while (query.next()) {
+    int id = query.value(0).toInt();
+    int seq = query.value(1).toInt();
+    double posX = query.value(2).toDouble();
+    double posY = query.value(3).toDouble();
+    double posZ = query.value(4).toDouble();
+    double rotX = query.value(5).toDouble();
+    double rotY = query.value(6).toDouble();
+    double rotZ = query.value(7).toDouble();
+    QString transStr = query.value(8).toString();
+    double startTime = query.value(9).toDouble();
+		//
+		ViaPointParamPtr param = std::make_shared<ViaPointParam>(id, seq, posX, posY, posZ, rotX, rotY, rotZ, startTime);
+    QStringList tansElems = transStr.split(',');
+    for ( int index=0; index < tansElems.size(); ++index ) {
+      param->addTransMat(tansElems.at(index).toDouble());
+    }
+    result.push_back(param);
+  }
+  return result;
+}
+
+bool DatabaseManager::saveViaPointData(int taskId, int trajId, ViaPointParamPtr source) {
+  DDEBUG_V("saveViaPointData : taskId=%d, traId=%d, via_id=%d", taskId, trajId, source->getId());
+  vector<double> transMat = source->getTransMat();
+  QString transStr = "";
+  for(double each : transMat) {
+    transStr.append(QString::number(each, 'f', 6)).append(',');
+  }
+
+  if (source->getMode() == DB_MODE_INSERT) {
+    string strMaxQuery = "SELECT max(via_id) FROM T_VIA_POINT WHERE task_inst_id = " + toStr(taskId) + " AND trajectory_id = " + toStr(trajId);
+    QSqlQuery maxQuery(db_);
+    maxQuery.exec(strMaxQuery.c_str());
+    int maxId = -1;
+    if (maxQuery.next()) {
+      maxId = maxQuery.value(0).toInt();
+      maxId++;
+    }
+    source->setId(maxId);
+    //
+    string strQuery = "INSERT INTO T_VIA_POINT ";
+    strQuery += "(task_inst_id, trajectory_id, via_id, seq, pos_x, pos_y, pos_z, rot_x, rot_y, rot_z, trans, start_time) ";
+    strQuery += "VALUES ( ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ? )";
+
+    QSqlQuery query(QString::fromStdString(strQuery));
+		query.addBindValue(taskId);
+		query.addBindValue(trajId);
+		query.addBindValue(source->getId());
+    query.addBindValue(source->getSeq());
+    query.addBindValue(source->getPosX());
+    query.addBindValue(source->getPosY());
+    query.addBindValue(source->getPosZ());
+    query.addBindValue(source->getRotRx());
+    query.addBindValue(source->getRotRy());
+    query.addBindValue(source->getRotRz());
+    query.addBindValue(transStr);
+    query.addBindValue(source->getTime());
+    if (!query.exec()) {
+      errorStr_ = "INSERT(T_VIA_POINT) error:" + query.lastError().databaseText();
+      return false;
+    }
+    source->setNormal();
+
+  } else if (source->getMode() == DB_MODE_UPDATE) {
+    string strQuery = "UPDATE T_VIA_POINT ";
+    strQuery += "SET seq = ?, pos_x = ?, pos_y = ?, pos_z = ?, ";
+    strQuery += "rot_x = ?, rot_y = ?, rot_z = ?, trans = ?, start_time = ? ";
+    strQuery += "WHERE task_inst_id = ? AND trajectory_id = ? AND via_id = ? ";
+
+    QSqlQuery query(QString::fromStdString(strQuery));
+    query.addBindValue(source->getSeq());
+    query.addBindValue(source->getPosX());
+    query.addBindValue(source->getPosY());
+    query.addBindValue(source->getPosZ());
+    query.addBindValue(source->getRotRx());
+    query.addBindValue(source->getRotRy());
+    query.addBindValue(source->getRotRz());
+    query.addBindValue(transStr);
+    query.addBindValue(source->getTime());
+    query.addBindValue(taskId);
+		query.addBindValue(trajId);
+		query.addBindValue(source->getId());
+
+    if (!query.exec()) {
+      errorStr_ = "UPDATE(T_VIA_POINT) error:" + query.lastError().databaseText() + "-" + QString::fromStdString(strQuery);
+      return false;
+    }
+    source->setNormal();
+
+  } else if (source->getMode() == DB_MODE_DELETE) {
+    string strQuery = "DELETE FROM T_VIA_POINT ";
+		strQuery += "WHERE task_inst_id = ? AND trajectory_id = ? AND via_id = ? ";
+
+    QSqlQuery query(QString::fromStdString(strQuery));
+    query.addBindValue(taskId);
+		query.addBindValue(trajId);
+		query.addBindValue(source->getId());
+
+    if (!query.exec()) {
+      errorStr_ = "DELETE(T_VIA_POINT) error:" + query.lastError().databaseText() + "-" + QString::fromStdString(strQuery);
+      return false;
+    }
+    source->setIgnore();
+  }
+  return true;
+}
 //////////////////
 bool DatabaseManager::checkFlowState(int taskId) {
   string strQuery = "SELECT flow_id ";

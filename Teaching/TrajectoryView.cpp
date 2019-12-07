@@ -6,6 +6,7 @@
 
 #include "TeachingEventHandler.h"
 #include "TeachingUtil.h"
+#include "ChoreonoidUtil.h"
 //
 #include "gettext.h"
 #include "LoggerUtil.h"
@@ -165,6 +166,11 @@ void TrajectoryViewImpl::showTrajectoryGrid() {
   isSkip_ = true;
 	vector<TaskTrajectoryParamPtr> traList =  targetTask_->getActiveTrajectoryList();
 	lstTrajectory->setRowCount(0);
+  leSubObj->setText("");
+  leSubLink->setText("");
+  leMainObj->setText("");
+  leMainLink->setText("");
+	lstViaPoint->setRowCount(0);
 
   for (TaskTrajectoryParamPtr param : traList) {
 		int row = lstTrajectory->rowCount();
@@ -220,6 +226,9 @@ void TrajectoryViewImpl::deleteTrajClicked() {
 
   int currentIndex = lstTrajectory->currentRow();
   targetTrajectory_->setDelete();
+  for(ViaPointParamPtr point : targetTrajectory_->getViaList()) {
+    point->setDelete();
+  }
   showTrajectoryGrid();
   if ( 0<lstTrajectory->rowCount() ) {
     lstTrajectory->setCurrentCell(currentIndex - 1, 0);
@@ -239,12 +248,24 @@ void TrajectoryViewImpl::trajectorySelectionChanged() {
   	std::vector<TaskTrajectoryParamPtr>::iterator traItr = std::find_if(traList.begin(), traList.end(), TrajectryComparator(selectedId));
     if (traItr == traList.end()) return;
     targetTrajectory_ = *traItr;
+    //
+    cnoid::BodyItem* baseBody = ChoreonoidUtil::searchParentModel(targetTrajectory_->getBaseObject().toStdString());
+    targetTrajectory_->setBaseObjItem(baseBody);
+    cnoid::Link* baseLinkObj = baseBody->body()->link(targetTrajectory_->getBaseLink().toStdString());
+    targetTrajectory_->setBaseObjLink(baseLinkObj);
+    //
+    cnoid::BodyItem* targetBody =ChoreonoidUtil::searchParentModel(targetTrajectory_->getTargetObject().toStdString());
+    targetTrajectory_->setTargetObjItem(targetBody);
+    cnoid::Link* targetLinkObj = targetBody->body()->link(targetTrajectory_->getTargetLink().toStdString());
+    targetTrajectory_->setTargetObjLink(targetLinkObj);
+    //
     showPostureGrid();
   }
 }
 
 void TrajectoryViewImpl::trajectoryItemEdited(QTableWidgetItem *item) {
   if (isSkip_) return;
+  if (!btnAddTraj->isEnabled()) return;
   int currentIndex = lstTrajectory->currentRow();
   QString traName = lstTrajectory->item(currentIndex, 0)->text();
 
@@ -334,6 +355,7 @@ void TrajectoryViewImpl::addClicked() {
   for (int index = 0; index < 12; index++) {
     newPos->addTransMat(relPos.data()[index]);
   }
+  newPos->setNewForce();
 
   targetTrajectory_->addViaPoint(newPos);
 
@@ -514,6 +536,7 @@ void TrajectoryViewImpl::postureSelectionChanged() {
 void TrajectoryViewImpl::itemEdited(QTableWidgetItem *item) {
   if (isSkip_) return;
   if (!targetTask_ || !targetTrajectory_) return;
+  if (!btnAdd->isEnabled()) return;
 
   int selectedId = NULL_ID;
   selectedId = item->data(Qt::UserRole).toInt();
