@@ -174,7 +174,6 @@ CREATE TABLE T_VIA_POINT (
 	rot_x			real not null,
 	rot_y			real not null,
 	rot_z			real not null,
-	trans			text not null,
 	start_time		real not null,
 	primary key(task_inst_id, trajectory_id, via_id)
 );

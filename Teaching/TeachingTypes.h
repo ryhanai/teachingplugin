@@ -1017,15 +1017,10 @@ public:
     }
   }
 
-  inline std::vector<double> getTransMat() const { return this->transMat_; }
-  inline void addTransMat(double target){ this->transMat_.push_back(target); }
-  inline void clearTransMat(){ this->transMat_.clear(); }
-
 private:
   double time_;
   int seq_;
   PostureParamPtr posture_;
-  std::vector<double> transMat_;
 };
 typedef std::shared_ptr<ViaPointParam> ViaPointParamPtr;
 /////

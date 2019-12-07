@@ -1040,7 +1040,7 @@ vector<ViaPointParamPtr> DatabaseManager::getViaPointParams(int taskId, int traj
 
   string strQuery = "SELECT ";
   strQuery += "via_id, seq, ";
-  strQuery += "pos_x, pos_y, pos_z, rot_x, rot_y, rot_z, trans, start_time ";
+  strQuery += "pos_x, pos_y, pos_z, rot_x, rot_y, rot_z, start_time ";
   strQuery += "FROM T_VIA_POINT ";
   strQuery += "WHERE task_inst_id = " + toStr(taskId) + " ";
   strQuery += "AND trajectory_id = " + toStr(trajId) + " ";
@@ -1059,14 +1059,9 @@ vector<ViaPointParamPtr> DatabaseManager::getViaPointParams(int taskId, int traj
     double rotX = query.value(5).toDouble();
     double rotY = query.value(6).toDouble();
     double rotZ = query.value(7).toDouble();
-    QString transStr = query.value(8).toString();
-    double startTime = query.value(9).toDouble();
+    double startTime = query.value(8).toDouble();
 		//
 		ViaPointParamPtr param = std::make_shared<ViaPointParam>(id, seq, posX, posY, posZ, rotX, rotY, rotZ, startTime);
-    QStringList tansElems = transStr.split(',');
-    for ( int index=0; index < tansElems.size(); ++index ) {
-      param->addTransMat(tansElems.at(index).toDouble());
-    }
     result.push_back(param);
   }
   return result;
@@ -1074,12 +1069,6 @@ vector<ViaPointParamPtr> DatabaseManager::getViaPointParams(int taskId, int traj
 
 bool DatabaseManager::saveViaPointData(int taskId, int trajId, ViaPointParamPtr source) {
   DDEBUG_V("saveViaPointData : taskId=%d, traId=%d, via_id=%d", taskId, trajId, source->getId());
-  vector<double> transMat = source->getTransMat();
-  QString transStr = "";
-  for(double each : transMat) {
-    transStr.append(QString::number(each, 'f', 6)).append(',');
-  }
-
   if (source->getMode() == DB_MODE_INSERT) {
     string strMaxQuery = "SELECT max(via_id) FROM T_VIA_POINT WHERE task_inst_id = " + toStr(taskId) + " AND trajectory_id = " + toStr(trajId);
     QSqlQuery maxQuery(db_);
@@ -1092,8 +1081,8 @@ bool DatabaseManager::saveViaPointData(int taskId, int trajId, ViaPointParamPtr 
     source->setId(maxId);
     //
     string strQuery = "INSERT INTO T_VIA_POINT ";
-    strQuery += "(task_inst_id, trajectory_id, via_id, seq, pos_x, pos_y, pos_z, rot_x, rot_y, rot_z, trans, start_time) ";
-    strQuery += "VALUES ( ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ? )";
+    strQuery += "(task_inst_id, trajectory_id, via_id, seq, pos_x, pos_y, pos_z, rot_x, rot_y, rot_z, start_time) ";
+    strQuery += "VALUES ( ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ? )";
 
     QSqlQuery query(QString::fromStdString(strQuery));
 		query.addBindValue(taskId);
@@ -1106,7 +1095,6 @@ bool DatabaseManager::saveViaPointData(int taskId, int trajId, ViaPointParamPtr 
     query.addBindValue(source->getRotRx());
     query.addBindValue(source->getRotRy());
     query.addBindValue(source->getRotRz());
-    query.addBindValue(transStr);
     query.addBindValue(source->getTime());
     if (!query.exec()) {
       errorStr_ = "INSERT(T_VIA_POINT) error:" + query.lastError().databaseText();
@@ -1117,7 +1105,7 @@ bool DatabaseManager::saveViaPointData(int taskId, int trajId, ViaPointParamPtr 
   } else if (source->getMode() == DB_MODE_UPDATE) {
     string strQuery = "UPDATE T_VIA_POINT ";
     strQuery += "SET seq = ?, pos_x = ?, pos_y = ?, pos_z = ?, ";
-    strQuery += "rot_x = ?, rot_y = ?, rot_z = ?, trans = ?, start_time = ? ";
+    strQuery += "rot_x = ?, rot_y = ?, rot_z = ?, start_time = ? ";
     strQuery += "WHERE task_inst_id = ? AND trajectory_id = ? AND via_id = ? ";
 
     QSqlQuery query(QString::fromStdString(strQuery));
@@ -1128,7 +1116,6 @@ bool DatabaseManager::saveViaPointData(int taskId, int trajId, ViaPointParamPtr 
     query.addBindValue(source->getRotRx());
     query.addBindValue(source->getRotRy());
     query.addBindValue(source->getRotRz());
-    query.addBindValue(transStr);
     query.addBindValue(source->getTime());
     query.addBindValue(taskId);
 		query.addBindValue(trajId);

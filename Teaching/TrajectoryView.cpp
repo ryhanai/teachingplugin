@@ -352,9 +352,6 @@ void TrajectoryViewImpl::addClicked() {
   int id = targetTrajectory_->getMaxViaPointId();
   int seq = targetTrajectory_->getMaxViaPointSeq();
   ViaPointParamPtr newPos = std::make_shared<ViaPointParam>(id, seq, posX, posY, posZ, rotR, rotP, rotY, 0.0);
-  for (int index = 0; index < 12; index++) {
-    newPos->addTransMat(relPos.data()[index]);
-  }
   newPos->setNewForce();
 
   targetTrajectory_->addViaPoint(newPos);
@@ -433,11 +430,6 @@ void TrajectoryViewImpl::updateClicked() {
   targetPos->setRotRx(rotR);
   targetPos->setRotRy(rotP);
   targetPos->setRotRz(rotY);
-
-  targetPos->clearTransMat();
-  for (int index = 0; index < 12; index++) {
-    targetPos->addTransMat(relPos.data()[index]);
-  }
 
   int currentIndex = lstViaPoint->currentRow();
   showPostureGrid();
@@ -519,9 +511,15 @@ void TrajectoryViewImpl::postureSelectionChanged() {
 
   ViaPointParamPtr targetPos = *viaItr;
   Position objTrans;
-  for (int index = 0; index < 12; index++) {
-    objTrans.data()[index] = targetPos->getTransMat()[index];
-  }
+  objTrans.translation()[0] = targetPos->getPosX();
+  objTrans.translation()[1] = targetPos->getPosY();
+  objTrans.translation()[2] = targetPos->getPosZ();
+  Vector3 rpy;
+  rpy[0] = radian(targetPos->getRotRx());
+  rpy[1] = radian(targetPos->getRotRy());
+  rpy[2] = radian(targetPos->getRotRz());
+  Matrix3 R = rotFromRpy(rpy);
+  objTrans.linear() = R;
 
   Link* subObjLink = targetTrajectory_->getBaseObjLink();
   BodyItem* mainObjItem = targetTrajectory_->getTargetObjItem();
@@ -566,11 +564,6 @@ void TrajectoryViewImpl::itemEdited(QTableWidgetItem *item) {
   Position T;
   T.linear() = rotFromRpy(radian(rotR), radian(rotP), radian(rotY));
   T.translation() << posX, posY, posZ;
-
-  targetPos->clearTransMat();
-  for (int index = 0; index < 12; index++) {
-    targetPos->addTransMat(T.data()[index]);
-  }
   /////
   showPostureGrid();
   lstViaPoint->setCurrentCell(currentIndex, 0);
