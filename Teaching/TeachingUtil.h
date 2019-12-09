@@ -43,6 +43,7 @@ private:
   static bool importTaskState(Mapping* taskMap, TaskModelParamPtr taskParam, QString taskNameErr, QString& errMessage);
   static bool importTaskFile(Mapping* taskMap, TaskModelParamPtr taskParam, QString& path, QString taskNameErr, QString& errMessage);
   static bool importTaskImage(Mapping* taskMap, TaskModelParamPtr taskParam, QString& path, QString taskNameErr, QString& errMessage);
+  static bool importTaskTrajectory(Mapping* taskMap, TaskModelParamPtr taskParam, QString taskNameErr, QString& errMessage);
 
   static bool importMasterModel(Mapping* targetMap, vector<ModelMasterParamPtr>& modelMasterList, QString& path, QString& errMessage);
 

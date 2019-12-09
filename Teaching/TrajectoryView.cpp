@@ -250,14 +250,22 @@ void TrajectoryViewImpl::trajectorySelectionChanged() {
     targetTrajectory_ = *traItr;
     //
     cnoid::BodyItem* baseBody = ChoreonoidUtil::searchParentModel(targetTrajectory_->getBaseObject().toStdString());
-    targetTrajectory_->setBaseObjItem(baseBody);
-    cnoid::Link* baseLinkObj = baseBody->body()->link(targetTrajectory_->getBaseLink().toStdString());
-    targetTrajectory_->setBaseObjLink(baseLinkObj);
+    if (baseBody) {
+      targetTrajectory_->setBaseObjItem(baseBody);
+      cnoid::Link* baseLinkObj = baseBody->body()->link(targetTrajectory_->getBaseLink().toStdString());
+      if (baseLinkObj) {
+        targetTrajectory_->setBaseObjLink(baseLinkObj);
+      }
+    }
     //
     cnoid::BodyItem* targetBody =ChoreonoidUtil::searchParentModel(targetTrajectory_->getTargetObject().toStdString());
-    targetTrajectory_->setTargetObjItem(targetBody);
-    cnoid::Link* targetLinkObj = targetBody->body()->link(targetTrajectory_->getTargetLink().toStdString());
-    targetTrajectory_->setTargetObjLink(targetLinkObj);
+    if (targetBody) {
+      targetTrajectory_->setTargetObjItem(targetBody);
+      cnoid::Link* targetLinkObj = targetBody->body()->link(targetTrajectory_->getTargetLink().toStdString());
+      if (targetLinkObj) {
+        targetTrajectory_->setTargetObjLink(targetLinkObj);
+      }
+    }
     //
     showPostureGrid();
   }
@@ -522,8 +530,11 @@ void TrajectoryViewImpl::postureSelectionChanged() {
   objTrans.linear() = R;
 
   Link* subObjLink = targetTrajectory_->getBaseObjLink();
+  if (!subObjLink) return;
   BodyItem* mainObjItem = targetTrajectory_->getTargetObjItem();
+  if (!mainObjItem) return;
   Link* mainObjLink = targetTrajectory_->getTargetObjLink();
+  if (!mainObjLink) return;
 
   mainObjLink->R() = subObjLink->R() * objTrans.linear();
   mainObjLink->p() = subObjLink->p() + subObjLink->R() * objTrans.translation();

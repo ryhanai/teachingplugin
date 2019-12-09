@@ -498,6 +498,8 @@ bool DatabaseManager::deleteTaskModel(int task_inst_id) {
 	if (deleteDataById("T_ARGUMENT", "task_inst_id", task_inst_id) == false) return false;
 	if (deleteDataById("T_TRANSITION", "task_inst_id", task_inst_id) == false) return false;
 	if (deleteDataById("T_MODEL_INFO", "task_inst_id", task_inst_id) == false) return false;
+	if (deleteDataById("T_TRAJECTORY", "task_inst_id", task_inst_id) == false) return false;
+	if (deleteDataById("T_VIA_POINT", "task_inst_id", task_inst_id) == false) return false;
 
 	db_.commit();
 	return true;

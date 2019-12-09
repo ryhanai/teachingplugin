@@ -962,6 +962,16 @@ vector<TaskTrajectoryParamPtr> DatabaseManager::getTrajectoryParams(int instId) 
 bool DatabaseManager::saveTrajectoryData(int parentId, TaskTrajectoryParamPtr source) {
   DDEBUG_V("saveTrajectoryData : taskId=%d, traId=%d", parentId, source->getId());
   if (source->getMode() == DB_MODE_INSERT) {
+    string strMaxQuery = "SELECT max(trajectory_id) FROM T_TRAJECTORY WHERE task_inst_id = " + toStr(parentId);
+    QSqlQuery maxQuery(db_);
+    maxQuery.exec(strMaxQuery.c_str());
+    int maxId = -1;
+    if (maxQuery.next()) {
+      maxId = maxQuery.value(0).toInt();
+      maxId++;
+    }
+    source->setId(maxId);
+    //
     string strQuery = "INSERT INTO T_TRAJECTORY ";
     strQuery += "(task_inst_id, trajectory_id, name, base_object, base_link, target_object, target_link) ";
     strQuery += "VALUES ( ?, ?, ?, ?, ?, ?, ? )";

@@ -61,8 +61,12 @@ bool TeachingUtil::importTask(QString& strFName, std::vector<TaskModelParamPtr>&
       if (importTaskModel(taskMap, taskParam, taskNameErr, errMessage) == false) return false;
       if (importTaskParameter(taskMap, taskParam, taskNameErr, errMessage) == false) return false;
       if (importTaskState(taskMap, taskParam, taskNameErr, errMessage) == false) return false;
+
       if (importTaskFile(taskMap, taskParam, path, taskNameErr, errMessage) == false) return false;
       if (importTaskImage(taskMap, taskParam, path, taskNameErr, errMessage) == false) return false;
+
+      if (importTaskTrajectory(taskMap, taskParam, taskNameErr, errMessage) == false) return false;
+
       if (importMasterModel(taskMap, modelMasterList, path, errMessage) == false) return false;
       //
       taskInstList.push_back(taskParam);
@@ -522,6 +526,145 @@ bool TeachingUtil::importTaskImage(Mapping* taskMap, TaskModelParamPtr taskParam
   return true;
 }
 
+bool TeachingUtil::importTaskTrajectory(Mapping* taskMap, TaskModelParamPtr taskParam, QString taskNameErr, QString& errMessage) {
+  Listing* trajList = taskMap->findListing("trajectories");
+  if (trajList) {
+    for (int idxTraj = 0; idxTraj < trajList->size(); idxTraj++) {
+      Mapping* trajMap = trajList->at(idxTraj)->toMapping();
+      QString name = "";
+      QString baseObject = "";
+      QString baseLink = "";
+      QString targetObject = "";
+      QString targetLink = "";
+
+      try {
+        name = QString::fromStdString(trajMap->get("name").toString());
+      } catch (...) {
+        errMessage = _("Failed to read the 'name' of the trajectory.") + taskNameErr;
+        DDEBUG(errMessage.toStdString().c_str());
+        return false;
+      }
+      if (name.isEmpty()) {
+        errMessage = _("name of the trajectory is EMPTY.") + taskNameErr;
+        DDEBUG(errMessage.toStdString().c_str());
+        return false;
+      }
+
+      try {
+        baseObject = QString::fromStdString(trajMap->get("baseObject").toString());
+      } catch (...) {
+        errMessage = _("Failed to read the 'baseObject' of the trajectory.") + taskNameErr;
+        DDEBUG(errMessage.toStdString().c_str());
+        return false;
+      }
+      if (baseObject.isEmpty()) {
+        errMessage = _("baseObject of the trajectory is EMPTY.") + taskNameErr;
+        DDEBUG(errMessage.toStdString().c_str());
+        return false;
+      }
+
+      try {
+        baseLink = QString::fromStdString(trajMap->get("baseLink").toString());
+      } catch (...) {
+        errMessage = _("Failed to read the 'baseLink' of the trajectory.") + taskNameErr;
+        DDEBUG(errMessage.toStdString().c_str());
+        return false;
+      }
+      if (baseLink.isEmpty()) {
+        errMessage = _("baseLink of the trajectory is EMPTY.") + taskNameErr;
+        DDEBUG(errMessage.toStdString().c_str());
+        return false;
+      }
+
+      try {
+        targetObject = QString::fromStdString(trajMap->get("targetObject").toString());
+      } catch (...) {
+        errMessage = _("Failed to read the 'targetObject' of the trajectory.") + taskNameErr;
+        DDEBUG(errMessage.toStdString().c_str());
+        return false;
+      }
+      if (targetObject.isEmpty()) {
+        errMessage = _("targetObject of the trajectory is EMPTY.") + taskNameErr;
+        DDEBUG(errMessage.toStdString().c_str());
+        return false;
+      }
+
+      try {
+        targetLink = QString::fromStdString(trajMap->get("targetLink").toString());
+      } catch (...) {
+        errMessage = _("Failed to read the 'targetLink' of the trajectory.") + taskNameErr;
+        DDEBUG(errMessage.toStdString().c_str());
+        return false;
+      }
+      if (targetLink.isEmpty()) {
+        errMessage = _("targetLink of the trajectory is EMPTY.") + taskNameErr;
+        DDEBUG(errMessage.toStdString().c_str());
+        return false;
+      }
+
+      TaskTrajectoryParamPtr trajParam = std::make_shared<TaskTrajectoryParam>(NULL_ID, name);
+      trajParam->setBaseObject(baseObject);
+      trajParam->setBaseLink(baseLink);
+      trajParam->setTargetObject(targetObject);
+      trajParam->setTargetLink(targetLink);
+      trajParam->setNewForce();
+      taskParam->addTrajectory(trajParam);
+      //
+      Listing* viaList = trajMap->findListing("via_points");
+      if(viaList) {
+        for (int idxVia = 0; idxVia < viaList->size(); idxVia++) {
+          Mapping* viaMap = viaList->at(idxVia)->toMapping();
+          int seq = 0;
+          double time = 0.0;
+          double posX = 0.0; double posY = 0.0; double posZ = 0.0;
+          double rotX = 0.0; double rotY = 0.0; double rotZ = 0.0;
+
+          try {
+            seq = viaMap->get("seq").toInt();
+          } catch (...) {
+            errMessage = _("Failed to read the seq of the via point.") + taskNameErr;
+            DDEBUG(errMessage.toStdString().c_str());
+            return false;
+          }
+
+          try {
+            time = viaMap->get("time").toDouble();
+          } catch (...) {
+            errMessage = _("Failed to read the time of the via point.") + taskNameErr;
+            DDEBUG(errMessage.toStdString().c_str());
+            return false;
+          }
+
+          try {
+            Listing* pos = viaMap->get("pos").toListing();
+            if(pos->size() !=6 ) {
+              errMessage = _("Position(pos) of via point is invalid.") + taskNameErr;
+              DDEBUG(errMessage.toStdString().c_str());
+              return false;
+            }
+            posX = pos->at(0)->toDouble();
+            posY = pos->at(1)->toDouble();
+            posZ = pos->at(2)->toDouble();
+            rotX = pos->at(3)->toDouble();
+            rotY = pos->at(4)->toDouble();
+            rotZ = pos->at(5)->toDouble();
+            DDEBUG_V("pos: %d, %f, %f, %f, %f, %f, %f", pos->size(),
+              pos->at(0)->toDouble(), pos->at(1)->toDouble(), pos->at(2)->toDouble(), pos->at(3)->toDouble(), pos->at(4)->toDouble(), pos->at(5)->toDouble());
+          } catch (...) {
+            errMessage = _("Failed to read the position of the via point.") + taskNameErr;
+            DDEBUG(errMessage.toStdString().c_str());
+            return false;
+          }
+
+          ViaPointParamPtr viaParam = std::make_shared<ViaPointParam>(NULL_ID, seq, posX, posY, posZ, rotX, rotY, rotZ, time);
+          viaParam->setNewForce();
+          trajParam->addViaPoint(viaParam);
+        }
+      }
+    }
+  }
+}
+
 bool TeachingUtil::loadModelDetail(QString& strFName, ModelMasterParamPtr targetModel) {
   DDEBUG_V("TeachingUtil::loadModelDetail:%s", strFName.toStdString().c_str());
   QString strPath = QFileInfo(strFName).absolutePath();
@@ -787,6 +930,36 @@ bool TeachingUtil::exportTask(QString& strFName, TaskModelParamPtr targetTask) {
       if (0 < param->getName().length()) {
         QImage data = param->getData();
         data.save(path + QString("/") + param->getName());
+      }
+    }
+  }
+  //
+  vector<TaskTrajectoryParamPtr> trajList = targetTask->getActiveTrajectoryList();
+  if(0<trajList.size()) {
+    Listing* trajsNode = taskNode->createListing("trajectories");
+    for (TaskTrajectoryParamPtr param : trajList) {
+      MappingPtr trajNode = trajsNode->newMapping();
+      trajNode->write("name", param->getName().toUtf8(), DOUBLE_QUOTED);
+      trajNode->write("baseObject", param->getBaseObject().toUtf8(), DOUBLE_QUOTED);
+      trajNode->write("baseLink", param->getBaseLink().toUtf8(), DOUBLE_QUOTED);
+      trajNode->write("targetObject", param->getTargetObject().toUtf8(), DOUBLE_QUOTED);
+      trajNode->write("targetLink", param->getTargetLink().toUtf8(), DOUBLE_QUOTED);
+
+      vector<ViaPointParamPtr> viaList = param->getActiveViaList();
+      if( 0<viaList.size()) {
+        Listing* viasNode = trajNode->createListing("via_points");
+        for (ViaPointParamPtr viaParam : viaList) {
+          MappingPtr viaNode = viasNode->newMapping();
+          viaNode->write("seq", viaParam->getSeq());
+          viaNode->write("time", viaParam->getTime());
+          Listing* posList = viaNode->createFlowStyleListing("pos");
+          posList->append(viaParam->getPosX());
+          posList->append(viaParam->getPosY());
+          posList->append(viaParam->getPosZ());
+          posList->append(viaParam->getRotRx());
+          posList->append(viaParam->getRotRy());
+          posList->append(viaParam->getRotRz());
+        }
       }
     }
   }
