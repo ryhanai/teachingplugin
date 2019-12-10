@@ -663,6 +663,7 @@ bool TeachingUtil::importTaskTrajectory(Mapping* taskMap, TaskModelParamPtr task
       }
     }
   }
+  return true;
 }
 
 bool TeachingUtil::loadModelDetail(QString& strFName, ModelMasterParamPtr targetModel) {

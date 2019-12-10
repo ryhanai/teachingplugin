@@ -62,8 +62,7 @@ enum ElementType {
   ELEMENT_DECISION,
   ELEMENT_FORK,
   ELEMENT_COMMAND,
-  ELEMENT_MERGE,
-  ELEMENT_MOVEC
+  ELEMENT_MERGE
 };
 
 enum ParameterKind {

@@ -39,7 +39,6 @@ public:
 	void createFinalNodeTarget();
 	void createDecisionNodeTarget();
   void createMergeNodeTarget();
-  void createMoveCNodeTarget();
 
 protected:
 	void mousePressEvent(QMouseEvent* event);

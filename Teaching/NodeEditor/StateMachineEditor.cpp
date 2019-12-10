@@ -241,8 +241,6 @@ void StateMachineEditor::dropEvent(QDropEvent* event) {
   } else if (strDispName == "Merge") {
     typeName = "Merge";
     typeId = ELEMENT_MERGE;
-  } else if (strDispName == "MoveC") {
-    typeId = ELEMENT_MOVEC;
   }
 	auto type = _scene->registry().create(typeName);
 
