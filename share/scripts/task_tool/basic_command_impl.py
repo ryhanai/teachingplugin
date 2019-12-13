@@ -6,7 +6,6 @@ import numpy as np
 import cnoid.TeachingPlugin
 import transforms3d._gohlketransforms as tf
 
-from rspt_dev.util import *
 from tp_chore import robot
 
 class BasicCommandController(ControllerBase):
