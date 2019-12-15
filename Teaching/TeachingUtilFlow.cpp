@@ -176,7 +176,7 @@ bool TeachingUtil::exportFlow(QString& strFName, FlowParamPtr targetFlow) {
       QString targetFile = baseDir.absolutePath() + QString("/") + targetIdStr + QString("/") + targetIdStr + ".yaml";
       DDEBUG_V("targetFile %s", targetFile.toStdString().c_str());
       //
-      TeachingUtil::loadTaskDetailData(targetTask);
+      targetTask->loadTaskDetailData();
       exportTask(targetFile, targetTask);
     }
   }

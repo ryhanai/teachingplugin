@@ -64,7 +64,7 @@ bool TaskExecuteManager::runFlow(FlowParamPtr targetFlow) {
       ChoreonoidUtil::unLoadTaskModelItem(currentTask);
     }
 
-    TeachingUtil::loadTaskDetailData(currentTask);
+    currentTask->loadTaskDetailData();
     DDEBUG("TaskParam checkAndOrderStateMachine");
     if (currentTask->checkAndOrderStateMachine()) {
       if (EVENT_HANDLER(checkTest())) {

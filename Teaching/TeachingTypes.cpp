@@ -700,6 +700,25 @@ bool TaskModelParam::checkTrajectoryParam() {
   }
   return true;
 }
+
+void TaskModelParam::loadTaskDetailData() {
+  if (this->isLoaded_) return;
+  DDEBUG("loadTaskDetailData");
+
+  for (ModelParamPtr model : getActiveModelList()) {
+    ModelMasterParamPtr master = model->getModelMaster();
+    if (master) {
+      if (ChoreonoidUtil::makeModelItem(master) == false) {
+        master->setModelItem(0);
+      }
+    }
+  }
+  for (ImageDataParamPtr param : getActiveImageList()) {
+    param->loadData();
+  }
+
+  this->setLoaded(true);
+}
 //////////
 void ImageDataParam::loadData() {
 	if (this->isLoaded_) return;

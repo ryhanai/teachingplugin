@@ -24,7 +24,6 @@ public:
   static bool importTask(QString& strFName, std::vector<TaskModelParamPtr>& taskInstList, vector<ModelMasterParamPtr>& modelMasterList, QString& errMessage);
   static bool exportTask(QString& strFName, TaskModelParamPtr targetTask);
   static bool loadModelDetail(QString& strFName, ModelMasterParamPtr targetModel);
-  static void loadTaskDetailData(TaskModelParamPtr target);
 
   static bool exportFlow(QString& strFName, FlowParamPtr targetFlow);
   static bool importFlow(QString& strFName, std::vector<FlowParamPtr>& flowModelList, vector<ModelMasterParamPtr>& modelMasterList, QString& errMessage);

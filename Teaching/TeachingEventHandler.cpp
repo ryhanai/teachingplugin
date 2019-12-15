@@ -739,7 +739,7 @@ void TeachingEventHandler::unloadTaskModelItems() {
 void TeachingEventHandler::updateComViews(TaskModelParamPtr targetTask, bool isFlowView) {
 	DDEBUG("TeachingEventHandler::updateComViews()");
 
-	TeachingUtil::loadTaskDetailData(targetTask);
+	targetTask->loadTaskDetailData();
 	bool isUpdateTree = ChoreonoidUtil::loadTaskModelItem(targetTask);
 
 	mdv_->setTaskParam(targetTask);

@@ -723,25 +723,6 @@ bool TeachingUtil::loadModelDetail(QString& strFName, ModelMasterParamPtr target
 	return true;
 }
 
-void TeachingUtil::loadTaskDetailData(TaskModelParamPtr target) {
-  if (target->IsLoaded()) return;
-  DDEBUG("loadTaskDetailData");
-
-  for (ModelParamPtr model : target->getActiveModelList()) {
-    ModelMasterParamPtr master = model->getModelMaster();
-    if (master) {
-      if (ChoreonoidUtil::makeModelItem(master) == false) {
-        master->setModelItem(0);
-      }
-    }
-  }
-  for (ImageDataParamPtr param : target->getActiveImageList()) {
-    param->loadData();
-  }
-
-  target->setLoaded(true);
-}
-
 bool TeachingUtil::exportTask(QString& strFName, TaskModelParamPtr targetTask) {
   DDEBUG("TeachingUtil::exportTask");
 	vector<ModelMasterParamPtr> masterList;

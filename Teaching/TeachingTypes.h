@@ -1371,6 +1371,8 @@ public:
   inline bool IsKeepMaster() const { return this->keepMaster_; }
   inline void setKeepMaster(bool value) { this->keepMaster_ = value; }
 
+  void loadTaskDetailData();
+
 private:
   int flow_id_;
   QString exec_env_;

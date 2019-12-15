@@ -739,7 +739,7 @@ void TeachingEventHandler::flv_AllModelDisp(bool checked) {
       if(state->getType()!=ELEMENT_COMMAND) continue;
       DDEBUG_V("State : %s", state->getCmdDspName().toStdString().c_str());
   		TaskModelParamPtr task = state->getTaskParam();
-	    TeachingUtil::loadTaskDetailData(task);
+	    task->loadTaskDetailData();
 	    ChoreonoidUtil::loadTaskModelItem(task);
     }
 		ChoreonoidUtil::showAllModelItem();

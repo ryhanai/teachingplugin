@@ -118,7 +118,7 @@ bool TeachingDataHolder::saveImportedTaskModel(vector<TaskModelParamPtr>& source
 	for (int index = 0; index < source.size(); index++) {
 		TaskModelParamPtr task = source[index];
 		TaskModelParamPtr newTask = DatabaseManager::getInstance().getTaskModelById(task->getId());
-		TeachingUtil::loadTaskDetailData(newTask);
+		newTask->loadTaskDetailData();
 		if (newTask) {
 			addTaskData(newTask);
 		}
