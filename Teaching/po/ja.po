@@ -1270,3 +1270,7 @@ msgstr "経由点の位置・姿勢(pos)が不正です"
 msgid "Failed to read the position of the via point."
 msgstr "経由点の位置・姿勢(pos)の読み込みに失敗しました"
 
+#: TeachingEventHandler.cpp:288
+msgid "Duplicate trajectory names."
+msgstr "軌道の名称が重複しています"
+

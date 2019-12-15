@@ -538,6 +538,31 @@ bool Calculator::buildArguments(TaskModelParamPtr taskParam, ElementStmParamPtr 
       DDEBUG_V("strVal:%s",strVal.toStdString().c_str());
       if (argDef->getType() == "int") {
         parameterList.push_back(strVal.toInt());
+      } else if(argDef->getType() == "RelativeTrajectory") {
+        vector<TaskTrajectoryParamPtr> paramList = taskParam->getActiveTrajectoryList();
+        vector<TaskTrajectoryParamPtr>::iterator targetParam = find_if(paramList.begin(), paramList.end(), TrajectryComparatorByName(strVal));
+        if (targetParam == paramList.end()) return false;
+        RelativeTrajectory traParam;
+        traParam.base_object_name = (*targetParam)->getBaseObject().toStdString();
+        traParam.base_link_name = (*targetParam)->getBaseLink().toStdString();
+        traParam.target_object_name = (*targetParam)->getTargetObject().toStdString();
+        traParam.target_link_name = (*targetParam)->getTargetLink().toStdString();
+        for(ViaPointParamPtr viaParam : (*targetParam)->getActiveViaList()) {
+          TrajectoryPoint tpParam;
+          tpParam.time_from_start = viaParam->getTime();
+          tpParam.link_position.translation().x() = viaParam->getPosX();
+          tpParam.link_position.translation().y() = viaParam->getPosY();
+          tpParam.link_position.translation().z() = viaParam->getPosZ();
+          Vector3 rpy;
+          rpy[0] = radian(viaParam->getRotRx());
+          rpy[1] = radian(viaParam->getRotRy());
+          rpy[2] = radian(viaParam->getRotRz());
+          Matrix3 m = rotFromRpy(rpy);
+          Eigen::Quaterniond quat(m);
+          tpParam.link_position.rotation() = quat;
+          traParam.points.push_back(tpParam);
+        }
+        parameterList.push_back(traParam);
       } else {
         parameterList.push_back(strVal.toStdString());
       }

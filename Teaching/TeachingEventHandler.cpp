@@ -283,6 +283,11 @@ bool TeachingEventHandler::tiv_RegistTaskClicked(int selectedId, QString strTask
       _("Characters that can not be used in names are included."));
     return false;
   }
+  if(tiv_CurrentTask_->checkTrajectoryParam()==false) {
+		QMessageBox::information(tiv_, _("Save Task"),
+      _("Duplicate trajectory names."));
+    return false;
+  }
 	//
 	if (tiv_CurrentTask_->getName() != strTask) {
 		tiv_CurrentTask_->setName(strTask);

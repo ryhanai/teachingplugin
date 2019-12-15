@@ -1344,6 +1344,7 @@ public:
   inline void addTrajectory(TaskTrajectoryParamPtr target){ this->trajectoryList_.push_back(target); }
 	std::vector<TaskTrajectoryParamPtr> getActiveTrajectoryList();
   int getMaxTrajectoryId();
+  bool checkTrajectoryParam();
 
   inline TaskModelParamPtr getNextTask() const { return this->nextTask_; }
   inline void setNextTask(TaskModelParamPtr value) { this->nextTask_ = value; }

@@ -176,5 +176,15 @@ struct FlowParameterParamByNameComparator {
   }
 };
 
+struct TrajectryComparatorByName {
+	QString name_;
+	TrajectryComparatorByName(QString value) {
+		name_ = value;
+	}
+	bool operator()(const TaskTrajectoryParamPtr elem) const {
+		return elem->getName() == name_;
+	}
+};
+
 }
 #endif

@@ -690,6 +690,16 @@ int TaskModelParam::getMaxTrajectoryId() {
   result++;
   return result;
 }
+
+bool TaskModelParam::checkTrajectoryParam() {
+  QStringList checked;
+  for(TaskTrajectoryParamPtr param : trajectoryList_) {
+    QString paramName = param->getName();
+    if (checked.contains(paramName)) return false;
+    checked.append(paramName);
+  }
+  return true;
+}
 //////////
 void ImageDataParam::loadData() {
 	if (this->isLoaded_) return;
