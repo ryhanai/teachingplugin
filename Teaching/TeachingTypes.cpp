@@ -830,7 +830,7 @@ void TaskModelParam::loadTaskDetailData() {
     param->loadData();
   }
 
-  this->setLoaded(true);
+  this->isLoaded_ = true;
 }
 
 bool TaskModelParam::loadTaskModelItem() {
