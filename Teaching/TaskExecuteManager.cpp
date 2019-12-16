@@ -40,7 +40,7 @@ bool TaskExecuteManager::runFlow(FlowParamPtr targetFlow) {
   currentFlow_ = targetFlow;
   if (currentTask_) {
     if (TeachingEventHandler::instance()->isAllModelDisp() == false) {
-      ChoreonoidUtil::unLoadTaskModelItem(currentTask_);
+      currentTask_->unLoadTaskModelItem();
     }
   }
 
@@ -61,7 +61,7 @@ bool TaskExecuteManager::runFlow(FlowParamPtr targetFlow) {
     //
     currentTask = targetState->getTaskParam();
     if (TeachingEventHandler::instance()->isAllModelDisp() == false) {
-      ChoreonoidUtil::unLoadTaskModelItem(currentTask);
+      currentTask->unLoadTaskModelItem();
     }
 
     currentTask->loadTaskDetailData();
@@ -598,7 +598,7 @@ void TaskExecuteManager::prepareTask(bool isFlow) {
 
 	if (prevTask_) {
     if (TeachingEventHandler::instance()->isAllModelDisp() == false) {
-      ChoreonoidUtil::unLoadTaskModelItem(prevTask_);
+      prevTask_->unLoadTaskModelItem();
     }
     DDEBUG("prevTask State Deactive")
     if (prevTask_->getStateParam()) prevTask_->getStateParam()->updateActive(false);
@@ -608,7 +608,7 @@ void TaskExecuteManager::prepareTask(bool isFlow) {
   }
   bool isUpdateTree = false;
   if (TeachingEventHandler::instance()->isAllModelDisp() == false) {
-    isUpdateTree = ChoreonoidUtil::loadTaskModelItem(currentTask_);
+    isUpdateTree = currentTask_->loadTaskModelItem();
   }
 
 	this->metadataView->setTaskParam(currentTask_);

@@ -943,7 +943,7 @@ void FlowEditor::modelParamUpdated(int flowModelId, ModelMasterParamPtr masterPa
       //Model Port
       ModelParamPtr model = taskParam->getModelParamById(id);
 
-      ChoreonoidUtil::replaceMaster(model, masterParam);
+      model->replaceMaster(masterParam);
     }
   }
 

@@ -188,7 +188,7 @@ bool TeachingEventHandler::mdd_AddModelClicked() {
 	if (!mdd_CurrentModelMaster_) return false;
 
 	ModelParamPtr param = TeachingDataHolder::instance()->addModel(com_CurrentTask_, mdd_CurrentModelMaster_);
-	ChoreonoidUtil::loadModelItem(param);
+  if(param) param->loadModelItem();
 	ChoreonoidUtil::showAllModelItem();
 
 	vector<ModelParamPtr> modelList = com_CurrentTask_->getActiveModelList();
@@ -200,7 +200,7 @@ bool TeachingEventHandler::mdd_AddModelClicked() {
 bool TeachingEventHandler::mdd_DeleteModelClicked() {
 	if (!mdd_CurrentModel_) return false;
 
-	ChoreonoidUtil::unLoadModelMasterItem(mdd_CurrentModel_->getModelMaster());
+	mdd_CurrentModel_->getModelMaster()->unLoadModelMasterItem();
 	mdd_connectionToKinematicStateChanged.disconnect();
 	ChoreonoidUtil::showAllModelItem();
 
@@ -320,7 +320,7 @@ void TeachingEventHandler::prd_AddFPClicked(QString name) {
   prd_CurrentParam_->setModelId(model->getId());
 
   QString dispName = com_CurrentTask_->getName() + "|" + model->getRName();
-	ChoreonoidUtil::loadModelItem(model, dispName);
+	if(model) model->loadModelItem(dispName);
 	ChoreonoidUtil::showAllModelItem();
 	vector<ModelParamPtr> modelList = com_CurrentTask_->getActiveModelList();
 	prd_->showModelInfo(modelList);

@@ -1,6 +1,7 @@
 #include "TeachingTypes.h"
 #include "ChoreonoidUtil.h"
 #include "TeachingUtil.h"
+#include <cnoid/ItemTreeView>
 #include <boost/bind.hpp>
 //
 #include "NodeEditor/models.hpp"
@@ -351,6 +352,57 @@ ModelParameterParamPtr ModelMasterParam::getModelParameterByName(QString target)
   }
   return 0;
 }
+
+bool ModelMasterParam::makeModelItem() {
+	DDEBUG("ModelMasterParam::makeModelItem");
+	if (this->item_ != 0) return true;
+	/////
+  QString fileName = this->fileName_;
+  if (fileName.length() == 0) return false;
+  //
+  QStringList saved;
+  QString strPath = QFileInfo(".").absolutePath();
+  QDir dir = QDir(strPath + QString("/work"));
+  if (dir.exists() == false) dir.mkdir(strPath + QString("/work"));
+  QString strModel = strPath + QString("/work/") + fileName;
+  QFile file(strModel);
+  file.open(QIODevice::WriteOnly);
+  file.write(this->data_);
+  file.close();
+  saved.append(strModel);
+  //
+  for (ModelDetailParamPtr detail : modelDetailList_) {
+    QString strDetail = strPath + QString("/work/") + detail->getFileName();
+    QFile fileDetail(strDetail);
+    fileDetail.open(QIODevice::WriteOnly);
+    fileDetail.write(detail->getData());
+    fileDetail.close();
+    saved.append(strDetail);
+  }
+  //
+  //onSigOptionsParsed
+  BodyItemPtr item = new BodyItem();
+  if (item->load(strModel.toStdString())) {
+    if (item->name().empty()) {
+      item->setName(item->body()->modelName());
+    }
+    this->item_ = item;
+  }
+  //
+  for (int index = 0; index < saved.size(); index++) {
+    QFile::remove(saved[index]);
+  }
+  dir.rmdir(strPath + QString("/work"));
+	//
+	this->item_  = item;
+
+  return true;
+}
+void ModelMasterParam::unLoadModelMasterItem() {
+	if (this->item_) {
+		this->item_->detachFromParentItem();
+	}
+}
 /////
 ModelParam::ModelParam(int id, int master_id, int type, QString rname, double posX, double posY, double posZ, double rotRx, double rotRy, double rotRz, bool hide, bool isNew)
     : master_id_(master_id), type_(type), rname_(rname),
@@ -417,7 +469,7 @@ void ModelParam::replaceModelMaster(ModelMasterParamPtr value) {
   //
   this->master_ = value;
   this->master_id_ = value->getId();
-  ChoreonoidUtil::makeModelItem(value);
+  value->makeModelItem();
   currentBodyItem_ = value->getModelItem();
 
   DDEBUG_V("ModelParam::updateModelMaster org : %d, new : %d", master_org_->getId(), master_->getId());
@@ -470,6 +522,67 @@ void ModelParam::initializeItem() {
 	}
   currentBodyItem_ = 0;
  }
+
+bool ModelParam::loadModelItem(QString dispName) {
+	DDEBUG("ModelParam::loadModelItem");
+	if (this->master_ == NULL)  return false;
+  if (this->isLoaded_)  return true;
+
+  if (!this->master_->getModelItem()) {
+    this->master_->makeModelItem();
+  }
+  DDEBUG("ModelParam::loadModelItem Loading");
+
+  BodyItemPtr item = this->master_->getModelItem();
+  BodyItemPtr newItem = new BodyItem(*item);
+  this->item_  = newItem;
+  if (0 < dispName.length()) {
+    newItem->setName(dispName.toStdString());
+  }
+  ChoreonoidUtil::updateModelItemPosition(newItem,
+    posture->getPosX(), posture->getPosY(), posture->getPosZ(),
+    posture->getRotRx(), posture->getRotRy(), posture->getRotRz());
+
+  if (this->type_ == MODEL_EE) {
+    string robotModel = SettingManager::getInstance().getRobotModelName();
+    BodyItem* parentModel = ChoreonoidUtil::searchParentModel(robotModel);
+    if (parentModel) {
+      parentModel->addChildItem(newItem);
+    }
+  } else {
+    RootItem::mainInstance()->addChildItem(newItem);
+  }
+  this->initializeItem();
+  this->isLoaded_ = true;
+
+  return true;
+}
+
+bool ModelParam::unLoadModelItem() {
+	DDEBUG("ModelParam::unLoadModelItem");
+  if (this->isLoaded_==false)  return true;
+
+  if (this->item_) {
+    this->item_->detachFromParentItem();
+  }
+
+  this->finalizeItem();
+  this->isLoaded_ = false;
+
+  return true;
+}
+
+void ModelParam::replaceMaster(ModelMasterParamPtr target) {
+  DDEBUG("ModelParam::replaceMaster");
+  bool isLoaded = this->isLoaded_;
+  this->unLoadModelItem();
+  this->replaceModelMaster(target);
+  if (isLoaded) {
+    this->loadModelItem();
+    ChoreonoidUtil::showAllModelItem();
+  }
+  DDEBUG("ModelParam::replaceMaster End");
+}
 
 void ModelParam::setPosture(PostureParamPtr value) {
   DDEBUG("ModelParam::setPosture");
@@ -708,7 +821,7 @@ void TaskModelParam::loadTaskDetailData() {
   for (ModelParamPtr model : getActiveModelList()) {
     ModelMasterParamPtr master = model->getModelMaster();
     if (master) {
-      if (ChoreonoidUtil::makeModelItem(master) == false) {
+      if (master->makeModelItem() == false) {
         master->setModelItem(0);
       }
     }
@@ -718,6 +831,27 @@ void TaskModelParam::loadTaskDetailData() {
   }
 
   this->setLoaded(true);
+}
+
+bool TaskModelParam::loadTaskModelItem() {
+  for (ModelParamPtr model : getActiveModelList()) {
+    QString dispName = name_ + "|" + model->getRName();
+    if (model) {
+      if (model->loadModelItem(dispName) == false) return false;
+    }
+  }
+  ItemTreeView::mainInstance()->update();
+  setModelLoaded(true);
+  return true;
+}
+
+bool TaskModelParam::unLoadTaskModelItem() {
+	if (this->isModelLoaded_ == false) return true;
+  for (ModelParamPtr model : getActiveModelList()) {
+    if (model->unLoadModelItem() == false) return false;
+  }
+  this->isModelLoaded_ = false;
+  return true;
 }
 //////////
 void ImageDataParam::loadData() {

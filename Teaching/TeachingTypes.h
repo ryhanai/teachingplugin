@@ -260,6 +260,9 @@ public:
   void deleteModelDetails();
   ModelParameterParamPtr getModelParameterByName(QString target);
 
+  bool makeModelItem();
+  void unLoadModelMasterItem();
+
 private:
 	int orgId_;
 	QString name_;
@@ -412,6 +415,10 @@ public:
   void restoreModelMaster();
   void initializeItem();
   void finalizeItem();
+
+  bool loadModelItem(QString dispName = "");
+  bool unLoadModelItem();
+  void replaceMaster(ModelMasterParamPtr target);
 
 	inline void setModelItem(cnoid::BodyItemPtr value) { this->item_ = value; }
 	inline cnoid::BodyItemPtr getModelItem() const { return this->item_; }
@@ -1372,6 +1379,9 @@ public:
   inline void setKeepMaster(bool value) { this->keepMaster_ = value; }
 
   void loadTaskDetailData();
+  bool loadTaskModelItem();
+  bool unLoadTaskModelItem();
+
 
 private:
   int flow_id_;

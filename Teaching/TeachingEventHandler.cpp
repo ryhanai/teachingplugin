@@ -728,10 +728,10 @@ void TeachingEventHandler::unloadTaskModelItems() {
 	ChoreonoidUtil::deselectTreeItem();
 
 	if (com_CurrentTask_) {
-		ChoreonoidUtil::unLoadTaskModelItem(com_CurrentTask_);
+		com_CurrentTask_->unLoadTaskModelItem();
 	}
 	if (tiv_CurrentTask_) {
-		ChoreonoidUtil::unLoadTaskModelItem(tiv_CurrentTask_);
+		tiv_CurrentTask_->unLoadTaskModelItem();
 	}
 
 }
@@ -740,7 +740,7 @@ void TeachingEventHandler::updateComViews(TaskModelParamPtr targetTask, bool isF
 	DDEBUG("TeachingEventHandler::updateComViews()");
 
 	targetTask->loadTaskDetailData();
-	bool isUpdateTree = ChoreonoidUtil::loadTaskModelItem(targetTask);
+	bool isUpdateTree = targetTask->loadTaskModelItem();
 
 	mdv_->setTaskParam(targetTask);
 	stv_->setTaskParam(targetTask);

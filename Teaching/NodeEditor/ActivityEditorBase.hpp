@@ -54,8 +54,6 @@ protected:
 	QPointF _clickPos;
 	FlowScene * _scene;
 
-	FlowScene * scene();
-
 	ActivityParamPtr targetParam_;
 
 #ifdef MODE_TABLET

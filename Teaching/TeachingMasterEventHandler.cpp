@@ -170,7 +170,7 @@ bool TeachingMasterEventHandler::mmd_DeleteModelClicked() {
 	model->deleteModelDetails();
 
 	if (mmd_CurrentModel_ && mmd_CurrentModel_->getModelItem()) {
-	  ChoreonoidUtil::unLoadModelMasterItem(mmd_CurrentModel_);
+	  mmd_CurrentModel_->unLoadModelMasterItem();
 	}
   return true;
 }
@@ -248,7 +248,7 @@ bool TeachingMasterEventHandler::mmd_Check() {
 
 void TeachingMasterEventHandler::mmd_Close() {
 	if (mmd_CurrentModel_) {
-		ChoreonoidUtil::unLoadModelMasterItem(mmd_CurrentModel_);
+		mmd_CurrentModel_->unLoadModelMasterItem();
 	}
 }
 

@@ -136,8 +136,6 @@ void ActivityEditorBase::mouseMoveEvent(QMouseEvent *event) {
 			setSceneRect(sceneRect().translated(difference.x(), difference.y()));
 		}
 	}
-	//
-	//_scene().loca->locateNode
 }
 
 void ActivityEditorBase::drawBackground(QPainter* painter, const QRectF& r) {
@@ -190,10 +188,6 @@ void ActivityEditorBase::showEvent(QShowEvent *event) {
 	QGraphicsView::showEvent(event);
 }
 
-FlowScene* ActivityEditorBase::scene() {
-	return _scene;
-}
-//////////
 void ActivityEditorBase::removeAll() {
   _scene->clearScene();
 }

@@ -487,14 +487,13 @@ void TeachingEventHandler::flv_ModelParamChanged(int flowModelId, ModelMasterPar
   DDEBUG_V("TeachingEventHandler::flv_ModelParamChanged : %d, %d", flowModelId, masterParam->getId());
   unloadTaskModelItems();
   if (masterParam->getModelItem() == 0) {
-    if (ChoreonoidUtil::makeModelItem(masterParam) == 0) {
+    if (masterParam->makeModelItem() == 0) {
       masterParam->setModelItem(0);
     }
   }
   flv_->modelParamUpdated(flowModelId, masterParam);
   if (com_CurrentTask_) {
-    bool isUpdateTree = ChoreonoidUtil::loadTaskModelItem(com_CurrentTask_);
-    if (isUpdateTree) {
+    if (com_CurrentTask_->loadTaskModelItem()) {
       ChoreonoidUtil::showAllModelItem();
     }
   }
@@ -542,7 +541,7 @@ bool TeachingEventHandler::flv_Connected(QtNodes::Connection& target) {
       vector<ModelMasterParamPtr> modelMasterList = TeachingDataHolder::instance()->getModelMasterList();
       vector<ModelMasterParamPtr>::iterator masterParamItr = find_if(modelMasterList.begin(), modelMasterList.end(), ModelMasterComparator(masterId));
       if (masterParamItr != modelMasterList.end()) {
-        ChoreonoidUtil::replaceMaster(model, *masterParamItr);
+        model->replaceMaster(*masterParamItr);
       }
       ///////////////
       DDEBUG("Connect Origin");
@@ -661,10 +660,10 @@ void TeachingEventHandler::flv_Disconnected(QtNodes::Connection& target) {
         if (!model) return;
         DDEBUG_V("Model Name : %s", model->getRName().toStdString().c_str());
         bool isLoaded = model->isLoaded();
-        ChoreonoidUtil::unLoadModelItem(model);
+        model->unLoadModelItem();
         model->restoreModelMaster();
         if (isLoaded) {
-          ChoreonoidUtil::loadModelItem(model);
+          if(model) model->loadModelItem();
           ChoreonoidUtil::showAllModelItem();
         }
       }
@@ -740,7 +739,7 @@ void TeachingEventHandler::flv_AllModelDisp(bool checked) {
       DDEBUG_V("State : %s", state->getCmdDspName().toStdString().c_str());
   		TaskModelParamPtr task = state->getTaskParam();
 	    task->loadTaskDetailData();
-	    ChoreonoidUtil::loadTaskModelItem(task);
+	    task->loadTaskModelItem();
     }
 		ChoreonoidUtil::showAllModelItem();
 
@@ -756,8 +755,7 @@ void TeachingEventHandler::flv_HideAllModels() {
   ChoreonoidUtil::deselectTreeItem();
   for(ElementStmParamPtr state : flv_CurrentFlow_->getActiveStateList()) {
     if(state->getType()!=ELEMENT_COMMAND) continue;
-  	TaskModelParamPtr task = state->getTaskParam();
-	  ChoreonoidUtil::unLoadTaskModelItem(task);
+	  state->getTaskParam()->unLoadTaskModelItem();
   }
   flv_->cancelAllModel();
 }
