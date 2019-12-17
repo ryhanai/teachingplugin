@@ -399,16 +399,15 @@ public:
     }
   }
 
-  inline void setLoaded(bool value) { this->isLoaded_ = value; }
   inline bool isLoaded() const { return this->isLoaded_; }
 
   inline void setModelMaster(ModelMasterParamPtr value) { this->master_ = value; }
 	inline ModelMasterParamPtr getModelMaster() const { return this->master_; }
 
   inline PostureParamPtr getPosture() const { return posture; }
-
   void setPosture(PostureParamPtr value);
   void clearPosture();
+
   void setInitialPos();
   bool isChangedPosition();
   void replaceModelMaster(ModelMasterParamPtr value);
@@ -441,7 +440,6 @@ private:
 
   cnoid::BodyItemPtr currentBodyItem_;
   cnoid::Connection connectionToKinematicStateChanged;
-  //cnoid::ScopedConnection connectionToKinematicStateChanged;
   cnoid::LazyCaller updateKinematicStateLater;
 
   void updateKinematicState(bool blockSignals);
@@ -1369,7 +1367,6 @@ public:
   void clearParameterList();
   void clearDetailParams();
 
-  inline bool IsLoaded() const { return this->isLoaded_; }
   inline void setLoaded(bool value) { this->isLoaded_ = value; }
 
   inline bool IsModelLoaded() const { return this->isModelLoaded_; }
