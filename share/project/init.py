@@ -5,6 +5,7 @@ sys.path.append('../../share/scripts')
 
 from ur3dual_controller import *
 from task_tool.task_sample191115 import *
+from task_tool.calc_primitives import *
 
 controller = UR3dualController(use_ros=False)
 

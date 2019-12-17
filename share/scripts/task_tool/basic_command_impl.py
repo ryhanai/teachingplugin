@@ -4,9 +4,16 @@ from controller_base import ControllerBase
 
 import numpy as np
 import cnoid.TeachingPlugin
-import transforms3d._gohlketransforms as tf
+import transforms3d._gohlketransforms as t
 
 from tp_chore import robot
+
+def pose2mat(p):
+    """
+    convert a pair of a vector and a quaternion into a transformation matrix of 4x4
+    """
+    position,orientation = p
+    return np.dot(t.translation_matrix(position), t.quaternion_matrix(orientation))
 
 class BasicCommandController(ControllerBase):
     def __init__(self, robotItemName, toolLinkMap):

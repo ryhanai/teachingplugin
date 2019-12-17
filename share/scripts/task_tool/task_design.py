@@ -12,15 +12,33 @@ from enum import Enum
 
 
 foldr = lambda func, acc, xs: functools.reduce(lambda x, y: func(y, x), xs[::-1], acc)
-def transform_exp(tfchain, xyz=None):
+def transform_exp(tfchain, xyz=None, code_type='python'):
+    def emit_matmul(x, y):
+        if code_type == 'python':
+            return 'dot(rotFromRpy(rpy(%s)), %s)'%(x,y)
+        else:
+            return 'rotFromRpy(rpy(%s)) * %s'%(x,y)
+
     if xyz != None:
-        XYZ = foldr(lambda x,y: '(xyz(%s) + rotFromRpy(rpy(%s)) * %s)'%(x,x,y),
+        XYZ = foldr(lambda x,y: '(xyz(%s) + %s)'%(x, emit_matmul(x,y)),
                         xyz, tfchain)
     else:
-        XYZ = foldr(lambda x,y: '(xyz(%s) + rotFromRpy(rpy(%s)) * %s)'%(x,x,y),
+        XYZ = foldr(lambda x,y: '(xyz(%s) + %s)'%(x, emit_matmul(x,y)),
                         'xyz(%s)'%tfchain[-1], tfchain[:-1])
-    RPY = 'rpyFromRot(%s)'%foldr(lambda x,y: 'rotFromRpy(rpy(%s)) * %s'%(x,y),
-                                     'rotFromRpy(rpy(%s))'%tfchain[-1], tfchain[:-1])
+    if len(tfchain) > 1:
+        RPY = 'rpyFromRot(%s)'%foldr(emit_matmul,
+                                        'rotFromRpy(rpy(%s))'%tfchain[-1], tfchain[:-1])
+    else:
+        RPY = 'rpy(%s)'%(tfchain[-1])
+
+    # if xyz != None:
+    #     XYZ = foldr(lambda x,y: '(xyz(%s) + rotFromRpy(rpy(%s)) * %s)'%(x,x,y),
+    #                     xyz, tfchain)
+    # else:
+    #     XYZ = foldr(lambda x,y: '(xyz(%s) + rotFromRpy(rpy(%s)) * %s)'%(x,x,y),
+    #                     'xyz(%s)'%tfchain[-1], tfchain[:-1])
+    # RPY = 'rpyFromRot(%s)'%foldr(lambda x,y: 'rotFromRpy(rpy(%s)) * %s'%(x,y),
+    #                                  'rotFromRpy(rpy(%s))'%tfchain[-1], tfchain[:-1])
     return XYZ, RPY
 
 class quoted(str):
