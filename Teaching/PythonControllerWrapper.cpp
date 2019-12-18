@@ -191,6 +191,34 @@ bool PythonControllerWrapper::executeCommand(const std::string& commandName, std
           valNode->append(val(idxCol,idxRow));
         }
       }
+
+    } else if (param.type() == typeid(RelativeTrajectory)) {
+      RelativeTrajectory val = boost::get<RelativeTrajectory>(param);
+
+      Listing* valNode = eachNode->createListing("value");
+
+      MappingPtr trajNode = valNode->newMapping();
+      trajNode->write("baseObject", val.base_object_name, DOUBLE_QUOTED);
+      trajNode->write("baseLink", val.base_link_name, DOUBLE_QUOTED);
+      trajNode->write("targetObject", val.target_object_name, DOUBLE_QUOTED);
+      trajNode->write("targetLink", val.target_link_name, DOUBLE_QUOTED);
+
+      vector<TrajectoryPoint> viaList = val.points;
+      if( 0<viaList.size()) {
+        Listing* viasNode = trajNode->createListing("via_points");
+        for (TrajectoryPoint viaParam : viaList) {
+          MappingPtr viaNode = viasNode->newMapping();
+          viaNode->write("time", viaParam.time_from_start);
+          Listing* posList = viaNode->createFlowStyleListing("pos");
+          posList->append(viaParam.link_position.translation().x());
+          posList->append(viaParam.link_position.translation().y());
+          posList->append(viaParam.link_position.translation().z());
+          posList->append(viaParam.link_position.rotation().x());
+          posList->append(viaParam.link_position.rotation().y());
+          posList->append(viaParam.link_position.rotation().z());
+          posList->append(viaParam.link_position.rotation().w());
+        }
+      }
     }
   }
 
