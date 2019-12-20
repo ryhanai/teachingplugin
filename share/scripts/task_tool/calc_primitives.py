@@ -7,7 +7,12 @@ class CalculatorMatrix:
     def __add__(self, x):
         return self.__class__(self._arr + x._arr)
     def __mul__(self, x):
-        return self.__class__(np.array(np.matrix(self._arr) * np.matrix(x._arr)))
+        if isinstance(x, CalculatorMatrix):
+            y = np.matrix(x._arr)
+            return self.__class__(np.array(np.matrix(self._arr) * y))
+        if isinstance(x, list) or isinstance(x, np.ndarray):
+            y = np.matrix(x).T
+            return np.array((np.matrix(self._arr) * y).T)[0]
     def __repr__(self):
         return self._arr.__repr__()
 
