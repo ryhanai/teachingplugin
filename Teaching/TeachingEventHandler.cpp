@@ -478,8 +478,6 @@ void TeachingEventHandler::stv_Loaded(StateMachineViewImpl* view) {
 void TeachingEventHandler::stv_EditClicked(ElementStmParamPtr target) {
 	DDEBUG("TeachingEventHandler::stv_EditClicked()");
 	if (target == 0) {
-	//	ExecEnvDialog dialog(com_CurrentTask_, stv_);
-	//	dialog.exec();
 		QMessageBox::warning(stv_, _("Command"), _("Please select Command or Decision Node. : "));
 		return;
 	}

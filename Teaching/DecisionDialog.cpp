@@ -120,7 +120,7 @@ void DesisionDialog::oKClicked() {
   //
   QString strCond = txtCondition->toPlainText();
   string strError;
-  if (handler->checkSyntax(0, targetTask_, strCond, strError) == false) {
+  if (handler->checkSyntax(0, targetTask_, 0, strCond, strError) == false) {
     QMessageBox::warning(this, _("Decision condition setting"), QString::fromStdString(strError));
     EstimatorFactory::getInstance().deleteArgEstimator(handler);
     return;
@@ -210,7 +210,7 @@ void FlowDesisionDialog::oKClicked() {
   //
   QString strCond = txtCondition->toPlainText();
   string strError;
-  if (handler->checkSyntax(targetFlow_, 0, strCond, strError) == false) {
+  if (handler->checkSyntax(targetFlow_, 0, 0, strCond, strError) == false) {
     QMessageBox::warning(this, _("Decision condition setting"), _("Decision node condition is INVALID."));
     EstimatorFactory::getInstance().deleteArgEstimator(handler);
     return;

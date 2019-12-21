@@ -638,7 +638,7 @@ bool FlowEditor::updateTargetFlowParam(QString& errMessage) {
       return false;
     }
     string errmsg;
-    if (handler->checkSyntax(flowParam, 0, cond, errmsg) == false) {
+    if (handler->checkSyntax(flowParam, 0, 0, cond, errmsg) == false) {
       errMessage = _("Decision node condition is INVALID.") + QString::fromStdString(errmsg);
       delete handler;
       return false;

@@ -124,7 +124,6 @@ public:
   ~Calculator();
 
   void initialize(TaskModelParamPtr targetParam = NULL);
-  void finalize();
 
   inline void setFlowParam(FlowParamPtr targetFlow) {
     this->targetFlow_ = targetFlow;
@@ -136,7 +135,7 @@ public:
   }
 
   bool buildArguments(TaskModelParamPtr taskParam, ElementStmParamPtr targetParam, std::vector<CompositeParamType>& parameterList);
-  bool checkSyntax(FlowParamPtr flowParam, TaskModelParamPtr taskParam, QString script, string& errStr);
+  bool checkSyntax(FlowParamPtr flowParam, TaskModelParamPtr taskParam, ArgumentDefParam* argDef, QString script, string& errStr);
   bool checkCondition(bool cmdRet, string script);
   bool checkFlowCondition(FlowParamPtr flowParam, string script, bool lastRet);
 

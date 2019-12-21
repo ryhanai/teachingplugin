@@ -466,10 +466,6 @@ Calculator::~Calculator() {
 void Calculator::initialize(TaskModelParamPtr targetParam) {
 }
 
-void Calculator::finalize() {
-  DDEBUG(" Calculator::finalize");
-}
-
 bool Calculator::buildArguments(TaskModelParamPtr taskParam, ElementStmParamPtr targetParam, std::vector<CompositeParamType>& parameterList) {
   DDEBUG("Calculator::buildArguments");
   parameterList.clear();
@@ -572,7 +568,7 @@ bool Calculator::buildArguments(TaskModelParamPtr taskParam, ElementStmParamPtr 
   return true;
 }
 
-bool Calculator::checkSyntax(FlowParamPtr flowParam, TaskModelParamPtr taskParam, QString script, string& errStr) {
+bool Calculator::checkSyntax(FlowParamPtr flowParam, TaskModelParamPtr taskParam, ArgumentDefParam* argDef, QString script, string& errStr) {
   if(flowParam) {
     this->setFlowParam(flowParam);
   } else {

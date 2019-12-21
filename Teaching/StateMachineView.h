@@ -16,21 +16,6 @@ using namespace std;
 using namespace QtNodes;
 
 namespace teaching {
-class ExecEnvDialog : public QDialog {
-  Q_OBJECT
-public:
-  ExecEnvDialog(TaskModelParamPtr param, QWidget* parent = 0);
-
-private Q_SLOTS:
-  void oKClicked();
-  void cancelClicked();
-
-private:
-  QTextEdit* txtEnv;
-
-	TaskModelParamPtr targetTask_;
-};
-
 class ItemList : public QListWidget {
 public:
 	ItemList(QString elemType, QWidget* parent = 0);

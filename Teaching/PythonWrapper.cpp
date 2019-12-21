@@ -1,93 +1,21 @@
 #include "PythonWrapper.h"
 
 #include <cnoid/PluginManager>
+#include <pybind11/stl.h>
 
 #include "LoggerUtil.h"
-
-#define	RETURN_OK         0
-#define	ERROR_NO_FUNC     1
-#define	ERROR_FUNC_CALL   2
-#define	ERROR_SYNTAX      3
-#define	ERROR_INVALID_ARG 4
 
 using namespace cnoid;
 
 namespace teaching {
 
-vector<string> split(const string &s, char delim) {
-  vector<string> elems;
-  stringstream ss(s);
-  string item;
-  while (getline(ss, item, delim)) {
-    if (!item.empty()) {
-      elems.push_back(item);
-    }
-  }
-  return elems;
-}
-
-string trim(const string& str) {
-  const char* trimCharacterList = " \t\v\r\n";
-  size_t first = str.find_first_not_of(trimCharacterList);
-  if (string::npos == first) {
-    return "";
-  }
-  size_t last = str.find_last_not_of(trimCharacterList);
-  return str.substr(first, (last - first + 1));
-}
-
 void PythonWrapper::initialize(TaskModelParamPtr targetParam) {
-  Plugin* target = PluginManager::instance()->findPlugin("Python");
-  if (target == NULL) {
-    usePython_ = false;
-  } else {
-    usePython_ = true;
-  }
-
-  if (Py_IsInitialized() == 0) {
-    Py_Initialize();
-  }
-  if (PyEval_ThreadsInitialized() == 0) {
-    PyEval_InitThreads();
-  }
-  if (usePython_) {
-    PyEval_AcquireLock();
-  }
-  subState_ = Py_NewInterpreter();
-  PyThreadState_Swap(subState_);
-  //
-  global_ = PyImport_AddModule("__main__");
-  /////
-  if (targetParam != NULL) {
-    setImport(targetParam->getExecEnv().toStdString());
-    //
-    //タスクパラメータの設定
-    for (ParameterParamPtr param : targetParam->getActiveParameterList()) {
-      QString paramName = param->getRName();
-      int paramNum = 1;
-      if(param->getParamType()== PARAM_TYPE_FRAME) paramNum = 6;
-      DDEBUG_V("name : %s, %d", paramName.toStdString().c_str(), paramNum);
-      vector<double> paramList;
-      for (int idxElem = 0; idxElem < paramNum; idxElem++) {
-        QString each = QString::fromStdString(param->getValues(idxElem));
-        paramList.push_back(each.toDouble());
-      }
-      setGlobalParam(paramName.toStdString(), paramList);
-    }
-  }
-}
-
-void PythonWrapper::finalize() {
-  PyThreadState_Swap(NULL);
-
-  PyThreadState_Clear(subState_);
-  PyThreadState_Delete(subState_);
-  if (usePython_) {
-    PyEval_ReleaseLock();
-  }
+  //タスクパラメータの設定
+  setGlobalParam(targetParam);
 }
 
 bool PythonWrapper::buildArguments(TaskModelParamPtr taskParam, ElementStmParamPtr targetParam, std::vector<CompositeParamType>& parameterList) {
+  DDEBUG("PythonWrapper::buildArguments");
   parameterList.clear();
 
   //引数の組み立て
@@ -118,16 +46,15 @@ bool PythonWrapper::buildArguments(TaskModelParamPtr taskParam, ElementStmParamP
       continue;
     }
 
+    DDEBUG_V("argDef : %s %d", argDef->getType().c_str(), argDef->getLength());
     if (argDef->getType() == "double") {
       vector<double> argVal;
-      int ret = this->execFunction(valueDesc.toStdString(), argVal);
-      DDEBUG_V("ret : %d", ret);
-      if (ret != 0) return false;
-
-      if (argVal.size() == 1) {
+      if (argDef->getLength() == 1) {
+        if (this->execFunction(valueDesc.toStdString(), argVal) == false) return false;
         DDEBUG_V("name : %s, %f", arg->getName().toStdString().c_str(), argVal[0]);
         parameterList.push_back(argVal[0]);
       } else {
+        if (this->execFunctionArray(valueDesc.toStdString(), argVal) == false) return false;
         DDEBUG_V("name : %s, [%f, %f, %f] %d", arg->getName().toStdString().c_str(), argVal[0], argVal[1], argVal[2], argVal.size());
         VectorXd argVec(argVal.size());
         for (unsigned int index = 0; index < argVal.size(); index++) {
@@ -138,20 +65,16 @@ bool PythonWrapper::buildArguments(TaskModelParamPtr taskParam, ElementStmParamP
 
     } else if (argDef->getType() == "int") {
       vector<int> argVal;
-      int ret = this->execFunction(valueDesc.toStdString(), argVal);
-      DDEBUG_V("ret : %d", ret);
-      if (ret != 0) return false;
-      if (argVal.size() == 1) {
+      if (argDef->getLength() == 1) {
+        if (this->execFunction(valueDesc.toStdString(), argVal) == false) return false;
         DDEBUG_V("name : %s, %d", arg->getName().toStdString().c_str(), argVal[0]);
         parameterList.push_back(argVal[0]);
       }
 
     } else if (argDef->getType() == "string") {
       vector<string> argVal;
-      int ret = this->execFunction(valueDesc.toStdString(), argVal);
-      DDEBUG_V("ret : %d", ret);
-      if (ret != 0) return false;
       if (argVal.size() == 1) {
+        if (this->execFunction(valueDesc.toStdString(), argVal) == false) return false;
         DDEBUG_V("name : %s, %s", arg->getName().toStdString().c_str(), argVal[0].c_str());
         parameterList.push_back(argVal[0]);
       }
@@ -160,28 +83,53 @@ bool PythonWrapper::buildArguments(TaskModelParamPtr taskParam, ElementStmParamP
   return true;
 }
 
-bool PythonWrapper::checkSyntax(FlowParamPtr flowParam, TaskModelParamPtr taskParam, QString script, string& errStr) {
-  std::stringstream strNum;
-  strNum << funcNum_;
+bool PythonWrapper::checkSyntax(FlowParamPtr flowParam, TaskModelParamPtr taskParam, ArgumentDefParam* argDef, QString script, string& errStr) {
+  if(taskParam) setGlobalParam(taskParam);
+  if(flowParam) setGlobalParam(taskParam);
+  errMsg_ = "";
 
-  std::stringstream contents;
-  contents << "def userFunc" << strNum.str() << "():" << std::endl;
+  if(argDef) {
+    if (argDef->getType() == "double") {
+      vector<double> argVal;
+      if (argDef->getLength() == 1) {
+        if (this->execFunction(script.toStdString(), argVal) == false) {
+          errStr = errMsg_;
+          return false;
+        }
+      } else {
+        if (this->execFunctionArray(script.toStdString(), argVal) == false) {
+          errStr = errMsg_;
+          return false;
+        }
+      }
 
-  vector<string> eachLine = split(script.toStdString(), '\n');
-  for (unsigned int index = 0; index < eachLine.size(); index++) {
-    contents << "  " << eachLine.at(index) << std::endl;
+    } else if (argDef->getType() == "int") {
+      vector<int> argVal;
+      if (argDef->getLength() == 1) {
+        if (this->execFunction(script.toStdString(), argVal) == false) {
+          errStr = errMsg_;
+          return false;
+        }
+      } else {
+        return false;
+      }
+    } else if (argDef->getType() == "string") {
+      vector<string> argVal;
+      if (this->execFunction(script.toStdString(), argVal) == false) {
+        errStr = errMsg_;
+        return false;
+      } else {
+        return false;
+      }
+    }
+  } else {
+      //argDefが設定されていないのは，条件分岐の場合
+      vector<int> argVal;
+      if (this->execFunction(script.toStdString(), argVal) == false) {
+        errStr = errMsg_;
+        return false;
+      }
   }
-
-  PyObject* pCodeObj = Py_CompileString(contents.str().c_str(), "", Py_file_input);
-  if (PyErr_Occurred()) {
-    PyObject* excType, *excValue, *excTraceback;
-    PyErr_Fetch(&excType, &excValue, &excTraceback);
-    PyObject *pystr = PyObject_Str(excValue);
-    //TODO
-    //errStr = PyString_AsString(pystr);
-    return false;
-  }
-  Py_DECREF(pCodeObj);
   return true;
 }
 
@@ -193,7 +141,7 @@ bool PythonWrapper::checkCondition(bool cmdRet, string script) {
   /////
   vector<int> calcResult;
   int ret = execFunction(script, calcResult);
-  if (ret != RETURN_OK) return false;
+  if (ret == false) return false;
 
   return calcResult.at(0) == 1 ? true : false;
 }
@@ -204,259 +152,102 @@ bool PythonWrapper::checkFlowCondition(FlowParamPtr flowParam, string script, bo
   //TODO
 }
 
-int PythonWrapper::execFunction(string script, vector<double>& result) {
-  int ret = doFunction(script);
-  if (ret != RETURN_OK) return ret;
-  /////
+bool PythonWrapper::execFunction(string script, vector<double>& result) {
+  DDEBUG("PythonWrapper::execFunction double");
+
+  if (executor_.eval(script) == false) {
+    errMsg_ = executor_.exceptionText();
+    return false;
+  }
+  double returnValue = executor_.returnValue().cast<double>();
   result.clear();
-  int retSize = PyList_Size(ans_);
-  //
-  if (0 <= retSize) {
-    for (unsigned int index = 0; index < retSize; index++) {
-      PyObject *each = PyList_GetItem(ans_, index);
-      result.push_back(PyFloat_AsDouble(each));
-      Py_DECREF(each);
-    }
-  } else {
-    PyErr_Clear();
-    double val = PyFloat_AsDouble(ans_);
-    if (PyErr_Occurred()) {
-      Py_DECREF(ans_);
-      return ERROR_FUNC_CALL;
-    }
-    result.push_back(val);
-  }
-  Py_DECREF(ans_);
+  result.push_back(returnValue);
 
-  return RETURN_OK;
+  return true;
 }
 
-int PythonWrapper::execFunction(string script, vector<int>& result) {
-  int ret = doFunction(script);
-  if (ret != RETURN_OK) return ret;
-  /////
+bool PythonWrapper::execFunctionArray(string script, vector<double>& result) {
+  DDEBUG("PythonWrapper::execFunctionArray double");
+  
+  if (executor_.eval(script + ".tolist()") == false) {
+    if (executor_.eval(script) == false) {
+      DDEBUG("PythonWrapper::execFunctionArray eval Error");
+      errMsg_ = executor_.exceptionText();
+      return false;
+    }
+  }
+  result = executor_.returnValue().cast<vector<double>>();
+
+  return true;
+}
+
+bool PythonWrapper::execFunction(string script, vector<int>& result) {
+  DDEBUG("PythonWrapper::execFunction int");
+
+  if (executor_.eval(script) == false) {
+    errMsg_ = executor_.exceptionText();
+    return false;
+  }
+  int returnValue = executor_.returnValue().cast<int>();
   result.clear();
-  int retSize = PyList_Size(ans_);
-  //
-  if (0 <= retSize) {
-    for (unsigned int index = 0; index < retSize; index++) {
-      PyObject *each = PyList_GetItem(ans_, index);
-      result.push_back(PyLong_AsLong(each));
-      Py_DECREF(each);
-    }
-  } else {
-    PyErr_Clear();
-    long val = PyLong_AsLong(ans_);
-    if (PyErr_Occurred()) {
-      Py_DECREF(ans_);
-      return ERROR_FUNC_CALL;
-    }
-    result.push_back(val);
-  }
-  Py_DECREF(ans_);
+  result.push_back(returnValue);
 
-  return RETURN_OK;
+  return true;
 }
 
-int PythonWrapper::execFunction(string script, vector<string>& result) {
-  int ret = doFunction(script);
-  if (ret != RETURN_OK) return ret;
-  /////
+bool PythonWrapper::execFunction(string script, vector<string>& result) {
+  DDEBUG("PythonWrapper::execFunction string");
+
+  if (executor_.eval(script) == false) {
+    errMsg_ = executor_.exceptionText();
+    return false;
+  }
+  string returnValue = executor_.returnValue().cast<string>();
   result.clear();
-  int retSize = PyList_Size(ans_);
-  //
-  if (0 <= retSize) {
-    for (unsigned int index = 0; index < retSize; index++) {
-      PyObject *each = PyList_GetItem(ans_, index);
-      //TODO
-      //result.push_back(PyString_AsString(each));
-      Py_DECREF(each);
-    }
-  } else {
-    PyErr_Clear();
-    //TODO 
-    //string val = PyString_AsString(ans_);
-    //if (PyErr_Occurred()) {
-    //  Py_DECREF(ans_);
-    //  return ERROR_FUNC_CALL;
-    //}
-    //result.push_back(val);
-  }
-  Py_DECREF(ans_);
+  result.push_back(returnValue);
 
-  return RETURN_OK;
+  return true;
 }
 
-int PythonWrapper::setImport(string target) {
-  std::stringstream contents;
-  vector<string> eachLine = split(target, '\n');
-  for (unsigned int index = 0; index < eachLine.size(); index++) {
-    contents << eachLine.at(index) << std::endl;
-  }
-  string strCon = contents.str();
-  PyRun_SimpleString(contents.str().c_str());
-
-  return RETURN_OK;
-}
-
-int PythonWrapper::setGlobalParam(string paramName, vector<double> value) {
-  if (value.size() == 0) return ERROR_INVALID_ARG;
+void PythonWrapper::setGlobalParam(TaskModelParamPtr targetParam) {
+  if (targetParam == NULL) return;
+  DDEBUG("PythonWrapper::setGlobalParam");
 
   std::stringstream script;
-  script << "def set" << paramName << "():" << std::endl;
-  script << "  global " << paramName << std::endl;
-  if (value.size() == 1) {
-    script << "  " << paramName << " = " << value.at(0);
-  } else {
-    script << "  " << paramName << " = [";
-    for (unsigned int index = 0; index < value.size(); index++) {
-      script << value.at(index) << ",";
+  script << "def setGlobalParam():" << std::endl;
+
+  for (ParameterParamPtr param : targetParam->getActiveParameterList()) {
+    QString paramName = param->getRName();
+    int paramNum = 1;
+    if(param->getParamType()== PARAM_TYPE_FRAME) paramNum = 6;
+    DDEBUG_V("name : %s, %d", paramName.toStdString().c_str(), paramNum);
+    vector<double> paramList;
+    for (int idxElem = 0; idxElem < paramNum; idxElem++) {
+      QString each = QString::fromStdString(param->getValues(idxElem));
+      paramList.push_back(each.toDouble());
     }
-    script << "]" << std::endl;
-  }
-  string strCon = script.str();
-  PyRun_SimpleString(script.str().c_str());
 
-  string funcName = "set" + paramName;
-  PyObject *func = PyObject_GetAttrString(global_, funcName.c_str());
-  if (func == NULL) return ERROR_NO_FUNC;
+    if (paramList.size() == 0) continue;
 
-  PyObject *obj = PyObject_CallObject(func, NULL);
-  Py_DECREF(obj);
-  Py_DECREF(func);
-
-  return RETURN_OK;
-}
-
-int PythonWrapper::getGlobalParam(string paramName, vector<double>& result) {
-  int ret = getGlobalParamList(paramName, result);
-  if (ret != RETURN_OK) {
-    ret = getGlobalParamScalar(paramName, result);
-  }
-  return ret;
-}
-
-string PythonWrapper::checkError() {
-  string result;
-  if (PyErr_Occurred()) {
-    PyObject* excType, *excValue, *excTraceback;
-    PyErr_Fetch(&excType, &excValue, &excTraceback);
-    PyObject *pystr = PyObject_Str(excValue);
-    //TODO
-    //result = PyString_AsString(pystr);
-  }
-  return result;
-}
-
-int PythonWrapper::doFunction(string script) {
-  std::stringstream strNum;
-  strNum << funcNum_;
-
-  std::stringstream contents;
-  contents << "def userFunc" << strNum.str() << "():" << std::endl;
-  vector<string> eachLine = split(script, '\n');
-  //空白行の除去
-  vector<string> contLines;
-  for (unsigned int index = 0; index < eachLine.size(); index++) {
-    if (0 < trim(eachLine.at(index)).length()) {
-      contLines.push_back(eachLine.at(index));
-    }
-  }
-  //関数本体の組み立て
-  for (unsigned int index = 0; index < contLines.size(); index++) {
-    if (index == contLines.size() - 1) {
-      contents << "  return " << contLines.at(index) << std::endl;
+    script << "  global " << paramName.toStdString() << std::endl;
+    if (paramList.size() == 1) {
+      script << "  " << paramName.toStdString() << " = " << paramList.at(0) << std::endl;
     } else {
-      contents << "  " << contLines.at(index) << std::endl;
+      script << "  " << paramName.toStdString() << " = [";
+      for (unsigned int index = 0; index < paramList.size(); index++) {
+        script << paramList.at(index) << ",";
+      }
+      script << "]" << std::endl;
     }
   }
-  string strCon = contents.str();
-  int ret = PyRun_SimpleString(contents.str().c_str());
-  //
-  string funcName = "userFunc" + strNum.str();
-  PyObject *func = PyObject_GetAttrString(global_, funcName.c_str());
-  if (func == NULL) return ERROR_NO_FUNC;
-  funcNum_++;
+  script << "setGlobalParam()";
 
-  ans_ = PyObject_CallObject(func, NULL);
-  if (ans_ == NULL) {
-    Py_DECREF(func);
-    return ERROR_FUNC_CALL;
-  }
-  Py_DECREF(func);
-
-  return RETURN_OK;
-}
-
-int PythonWrapper::getGlobalParamScalar(string paramName, vector<double>& result) {
-  std::stringstream script;
-  script << "def get" << paramName << "Scalar():" << std::endl;
-  script << "  global " << paramName << std::endl;
-  script << "  return " << paramName << "" << std::endl;
   string strCon = script.str();
-  PyRun_SimpleString(script.str().c_str());
-
-  string funcName = "get" + paramName + "Scalar";
-  PyObject *func = PyObject_GetAttrString(global_, funcName.c_str());
-  if (func == NULL) return ERROR_NO_FUNC;
-
-  PyObject *ans = PyObject_CallObject(func, NULL);
-  if (ans == NULL) {
-    Py_DECREF(func);
-    return ERROR_FUNC_CALL;
+  DDEBUG_V("%s", strCon.c_str());
+  if (executor_.execCode(strCon)==false) {
+    DDEBUG("PythonWrapper::setGlobalParam Error");
+    return;
   }
-
-  result.clear();
-  double val = PyFloat_AsDouble(ans);
-  if (PyErr_Occurred()) {
-    Py_DECREF(ans);
-    return ERROR_FUNC_CALL;
-  }
-  result.push_back(val);
-
-  Py_DECREF(ans);
-  Py_DECREF(func);
-
-  return RETURN_OK;
-}
-
-int PythonWrapper::getGlobalParamList(string paramName, vector<double>& result) {
-  std::stringstream script;
-  script << "def get" << paramName << "List():" << std::endl;
-  script << "  global " << paramName << std::endl;
-  script << "  return list(" << paramName << ")" << std::endl;
-  string strCon = script.str();
-  PyRun_SimpleString(script.str().c_str());
-
-  string funcName = "get" + paramName + "List";
-  PyObject *func = PyObject_GetAttrString(global_, funcName.c_str());
-  if (func == NULL) return ERROR_NO_FUNC;
-
-  PyObject *ans = PyObject_CallObject(func, NULL);
-  if (ans == NULL) {
-    PyErr_Clear();
-    Py_DECREF(func);
-    return ERROR_FUNC_CALL;
-  }
-
-  result.clear();
-  int retSize = PyList_Size(ans);
-  //
-  if (0 <= retSize) {
-    for (unsigned int index = 0; index < retSize; index++) {
-      PyObject *each = PyList_GetItem(ans, index);
-      result.push_back(PyFloat_AsDouble(each));
-      Py_DECREF(each);
-    }
-  } else {
-    PyErr_Clear();
-    return ERROR_FUNC_CALL;
-  }
-
-  Py_DECREF(ans);
-  Py_DECREF(func);
-
-  return RETURN_OK;
 }
 
 }
