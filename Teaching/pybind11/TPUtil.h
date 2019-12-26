@@ -196,6 +196,8 @@ namespace teaching
     bool followTrajectory(const JointTrajectory& traj);
     cnoid::VectorXd getCurrentJointAngles();
     cnoid::VectorXd getStandardPose();
+    
+    void commandListUpdate();
 
   private:
     TPInterface ();

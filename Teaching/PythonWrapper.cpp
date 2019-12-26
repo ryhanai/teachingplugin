@@ -49,7 +49,7 @@ bool PythonWrapper::buildArguments(TaskModelParamPtr taskParam, ElementStmParamP
     DDEBUG_V("argDef : %s %d", argDef->getType().c_str(), argDef->getLength());
     if (argDef->getType() == "double") {
       vector<double> argVal;
-      if (argDef->getLength() == 1) {
+      if (argDef->getLength() <= 1) {
         if (this->execFunction(valueDesc.toStdString(), argVal) == false) return false;
         DDEBUG_V("name : %s, %f", arg->getName().toStdString().c_str(), argVal[0]);
         parameterList.push_back(argVal[0]);
@@ -65,7 +65,7 @@ bool PythonWrapper::buildArguments(TaskModelParamPtr taskParam, ElementStmParamP
 
     } else if (argDef->getType() == "int") {
       vector<int> argVal;
-      if (argDef->getLength() == 1) {
+      if (argDef->getLength() <= 1) {
         if (this->execFunction(valueDesc.toStdString(), argVal) == false) return false;
         DDEBUG_V("name : %s, %d", arg->getName().toStdString().c_str(), argVal[0]);
         parameterList.push_back(argVal[0]);
@@ -73,7 +73,7 @@ bool PythonWrapper::buildArguments(TaskModelParamPtr taskParam, ElementStmParamP
 
     } else if (argDef->getType() == "string") {
       vector<string> argVal;
-      if (argVal.size() == 1) {
+      if (argVal.size() <= 1) {
         if (this->execFunction(valueDesc.toStdString(), argVal) == false) return false;
         DDEBUG_V("name : %s, %s", arg->getName().toStdString().c_str(), argVal[0].c_str());
         parameterList.push_back(argVal[0]);
@@ -91,7 +91,7 @@ bool PythonWrapper::checkSyntax(FlowParamPtr flowParam, TaskModelParamPtr taskPa
   if(argDef) {
     if (argDef->getType() == "double") {
       vector<double> argVal;
-      if (argDef->getLength() == 1) {
+      if (argDef->getLength() <= 1) {
         if (this->execFunction(script.toStdString(), argVal) == false) {
           errStr = errMsg_;
           return false;
@@ -105,7 +105,7 @@ bool PythonWrapper::checkSyntax(FlowParamPtr flowParam, TaskModelParamPtr taskPa
 
     } else if (argDef->getType() == "int") {
       vector<int> argVal;
-      if (argDef->getLength() == 1) {
+      if (argDef->getLength() <= 1) {
         if (this->execFunction(script.toStdString(), argVal) == false) {
           errStr = errMsg_;
           return false;
@@ -115,9 +115,11 @@ bool PythonWrapper::checkSyntax(FlowParamPtr flowParam, TaskModelParamPtr taskPa
       }
     } else if (argDef->getType() == "string") {
       vector<string> argVal;
-      if (this->execFunction(script.toStdString(), argVal) == false) {
-        errStr = errMsg_;
-        return false;
+      if (argDef->getLength() <= 1) {
+        if (this->execFunction(script.toStdString(), argVal) == false) {
+          errStr = errMsg_;
+          return false;
+        }
       } else {
         return false;
       }

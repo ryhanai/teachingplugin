@@ -20,6 +20,7 @@
 #include <cnoid/ValueTree> // for Listing
 
 #include "TPUtil.h"
+#include "../TeachingEventHandler.h"
 
 namespace teaching
 {
@@ -174,7 +175,7 @@ namespace teaching
 
   BodyItem* TPInterface::findItemByName (const std::string& name)
   {
-    ItemList<BodyItem> bodyItems;
+    cnoid::ItemList<BodyItem> bodyItems;
     bodyItems.extractChildItems(RootItem::instance());
     for (size_t i = 0; i < bodyItems.size(); i++) {
       BodyItem* item = bodyItems.get(i);
@@ -399,5 +400,9 @@ namespace teaching
     return q;
   }
 
+  void TPInterface::commandListUpdate()
+  {
+    TeachingEventHandler::instance()->tiv_CtrlUpdated();
+  }
 
 }

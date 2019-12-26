@@ -489,7 +489,7 @@ bool Calculator::buildArguments(TaskModelParamPtr taskParam, ElementStmParamPtr 
     DDEBUG_V("type:%s", argDef->getType().c_str());
     if (argDef->getDirection() == 1) {
       if (argDef->getType() == "double") {
-        if (argDef->getLength() == 1) {
+        if (argDef->getLength() <= 1) {
           double argRet;
           parameterList.push_back(argRet);
         } else {
