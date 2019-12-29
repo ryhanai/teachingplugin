@@ -26,6 +26,7 @@ private:
   string errMsg_;
 
   void setGlobalParam(TaskModelParamPtr targetParam);
+  void setGlobalParamFlow(FlowParamPtr targetParam);
 
   bool execFunction(string script, vector<double>& result);
   bool execFunctionArray(string script, vector<double>& result);

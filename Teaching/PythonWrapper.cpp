@@ -85,7 +85,7 @@ bool PythonWrapper::buildArguments(TaskModelParamPtr taskParam, ElementStmParamP
 
 bool PythonWrapper::checkSyntax(FlowParamPtr flowParam, TaskModelParamPtr taskParam, ArgumentDefParam* argDef, QString script, string& errStr) {
   if(taskParam) setGlobalParam(taskParam);
-  if(flowParam) setGlobalParam(taskParam);
+  if(flowParam) setGlobalParamFlow(flowParam);
   errMsg_ = "";
 
   if(argDef) {
@@ -149,9 +149,12 @@ bool PythonWrapper::checkCondition(bool cmdRet, string script) {
 }
 
 bool PythonWrapper::checkFlowCondition(FlowParamPtr flowParam, string script, bool lastRet) {
-  //TODO
-  return true;
-  //TODO
+  setGlobalParamFlow(flowParam);
+  vector<int> calcResult;
+  int ret = execFunction(script, calcResult);
+  if (ret == false) return false;
+
+  return calcResult.at(0) == 1 ? true : false;
 }
 
 bool PythonWrapper::execFunction(string script, vector<double>& result) {
@@ -229,6 +232,44 @@ void PythonWrapper::setGlobalParam(TaskModelParamPtr targetParam) {
       paramList.push_back(each.toDouble());
     }
 
+    if (paramList.size() == 0) continue;
+
+    script << "  global " << paramName.toStdString() << std::endl;
+    if (paramList.size() == 1) {
+      script << "  " << paramName.toStdString() << " = " << paramList.at(0) << std::endl;
+    } else {
+      script << "  " << paramName.toStdString() << " = [";
+      for (unsigned int index = 0; index < paramList.size(); index++) {
+        script << paramList.at(index) << ",";
+      }
+      script << "]" << std::endl;
+    }
+  }
+  script << "setGlobalParam()";
+
+  string strCon = script.str();
+  DDEBUG_V("%s", strCon.c_str());
+  if (executor_.execCode(strCon)==false) {
+    DDEBUG("PythonWrapper::setGlobalParam Error");
+    return;
+  }
+}
+
+void PythonWrapper::setGlobalParamFlow(FlowParamPtr targetParam) {
+  if (targetParam == NULL) return;
+  DDEBUG("PythonWrapper::setGlobalParam");
+
+  std::stringstream script;
+  script << "def setGlobalParam():" << std::endl;
+
+  for (FlowParameterParamPtr param : targetParam->getActiveFlowParamList()) {
+    QString paramName = param->getName();
+    QString strValue = param->getValue();
+    QStringList valList = strValue.split(",");
+    vector<double> paramList;
+    for (QString each : valList) {
+      paramList.push_back(each.toDouble());
+    }
     if (paramList.size() == 0) continue;
 
     script << "  global " << paramName.toStdString() << std::endl;
