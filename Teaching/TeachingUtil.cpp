@@ -217,13 +217,11 @@ ArgumentEstimator* EstimatorFactory::createArgEstimator(TaskModelParamPtr target
   //CalculatorとPythonWrapperの切替
   //ArgumentEstimator* handler = new Calculator();
   ArgumentEstimator* handler = new PythonWrapper();
-  handler->initialize(targetParam);
   return handler;
 }
 
 ArgumentEstimator* EstimatorFactory::createArgEstimator(FlowParamPtr targetParam) {
   //ArgumentEstimator* handler = new Calculator();
-  //handler->initialize(targetParam);
   ArgumentEstimator* handler = new PythonWrapper();
   return handler;
 }

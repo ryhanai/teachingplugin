@@ -3,18 +3,15 @@
 #include <cnoid/PluginManager>
 #include <pybind11/stl.h>
 
+#include "TeachingUtil.h"
 #include "LoggerUtil.h"
 
 using namespace cnoid;
 
 namespace teaching {
 
-void PythonWrapper::initialize(TaskModelParamPtr targetParam) {
-  //タスクパラメータの設定
-  setGlobalParam(targetParam);
-}
-
 bool PythonWrapper::buildArguments(TaskModelParamPtr taskParam, ElementStmParamPtr targetParam, std::vector<CompositeParamType>& parameterList) {
+  setGlobalParam(taskParam);
   DDEBUG("PythonWrapper::buildArguments");
   parameterList.clear();
 
@@ -135,12 +132,13 @@ bool PythonWrapper::checkSyntax(FlowParamPtr flowParam, TaskModelParamPtr taskPa
   return true;
 }
 
-bool PythonWrapper::checkCondition(bool cmdRet, string script) {
+bool PythonWrapper::checkCondition(TaskModelParamPtr targetParam, string script, bool lastRet) {
   //条件判断用のスクリプトが設定されていない場合は，前コマンドの実行結果をそのまま使用
   if (script.length() == 0) {
-    return cmdRet;
+    return lastRet;
   }
   /////
+  setGlobalParam(targetParam);
   vector<int> calcResult;
   int ret = execFunction(script, calcResult);
   if (ret == false) return false;
@@ -223,27 +221,65 @@ void PythonWrapper::setGlobalParam(TaskModelParamPtr targetParam) {
 
   for (ParameterParamPtr param : targetParam->getActiveParameterList()) {
     QString paramName = param->getRName();
-    int paramNum = 1;
-    if(param->getParamType()== PARAM_TYPE_FRAME) paramNum = 6;
-    DDEBUG_V("name : %s, %d", paramName.toStdString().c_str(), paramNum);
-    vector<double> paramList;
-    for (int idxElem = 0; idxElem < paramNum; idxElem++) {
-      QString each = QString::fromStdString(param->getValues(idxElem));
-      paramList.push_back(each.toDouble());
-    }
+    std::stringstream scriptParam;
 
-    if (paramList.size() == 0) continue;
+    if (param->getParamType() == PARAM_TYPE_FRAME) {
+      vector<double> paramList;
+      if(param->getType() == PARAM_KIND_MODEL) {
+        int modelId = param->getModelId();
+        vector<ModelParamPtr> modelList = targetParam->getActiveModelList();
+        std::vector<ModelParamPtr>::iterator model = std::find_if(modelList.begin(), modelList.end(), ModelParamComparator(modelId));
+        if (model == modelList.end()) continue;
 
-    script << "  global " << paramName.toStdString() << std::endl;
-    if (paramList.size() == 1) {
-      script << "  " << paramName.toStdString() << " = " << paramList.at(0) << std::endl;
-    } else {
-      script << "  " << paramName.toStdString() << " = [";
-      for (unsigned int index = 0; index < paramList.size(); index++) {
-        script << paramList.at(index) << ",";
+        std::stringstream scriptModel;
+        scriptModel << "[";
+        scriptModel << (*model)->getPosX() << ",";
+        scriptModel << (*model)->getPosY() << ",";
+        scriptModel << (*model)->getPosZ() << ",";
+        scriptModel << (*model)->getRotRx() << ",";
+        scriptModel << (*model)->getRotRy() << ",";
+        scriptModel << (*model)->getRotRz();
+        scriptModel << "]";
+
+
+        int feature_id = param->getModelParamId();
+        if (feature_id != NULL_ID) {
+          ModelMasterParamPtr master = (*model)->getModelMaster();
+          if (!master) continue;
+          vector<ModelParameterParamPtr> masterParamList = master->getModelParameterList();
+          vector<ModelParameterParamPtr>::iterator masterParamItr = find_if(masterParamList.begin(), masterParamList.end(), ModelMasterParamComparator(feature_id));
+          if (masterParamItr == masterParamList.end()) continue;
+          QString desc = (*masterParamItr)->getValueDesc();
+          //desc = desc.replace("origin", QString::fromStdString(scriptModel.str()));
+          scriptParam << "  " << paramName.toStdString() << " = ";
+          scriptParam << "list(map(sum, zip(" << desc.toStdString() << ", " << scriptModel.str() << ")))" << std::endl;
+
+        } else {
+          scriptParam << "  " << paramName.toStdString() << " = ";
+          scriptParam << scriptModel.str() << std::endl;
+        }
+
+      } else {
+        scriptParam << "  " << paramName.toStdString() << " = [";
+        for (int idxElem = 0; idxElem < 6; idxElem++) {
+          QString each = QString::fromStdString(param->getValues(idxElem));
+          scriptParam << each.toDouble() << ",";
+        }
+        scriptParam << "]" << std::endl;
+
+        for (unsigned int index = 0; index < paramList.size(); index++) {
+          scriptParam << paramList.at(index) << ",";
+        }
       }
-      script << "]" << std::endl;
+
+    } else {
+      QString paramStr = QString::fromStdString(param->getValues(0));
+      scriptParam << "  " << paramName.toStdString() << " = " << paramStr.toDouble() << std::endl;
     }
+    DDEBUG_V("name : %s, %s", paramName.toStdString().c_str(), scriptParam.str().c_str());
+    /////
+    script << "  global " << paramName.toStdString() << std::endl;
+    script << scriptParam.str();
   }
   script << "setGlobalParam()";
 

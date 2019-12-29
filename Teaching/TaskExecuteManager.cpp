@@ -342,7 +342,7 @@ ExecResult TaskExecuteManager::doTaskOperation(bool updateCurrentTask) {
       if (0<strCond.length()) {
         strTarget = strCond.toStdString();
       }
-      bool checkCond = argHandler_->checkCondition(lastResult_, strTarget);
+      bool checkCond = argHandler_->checkCondition(currentTask_, strTarget, lastResult_);
       if (checkCond) {
         nextParam = currParam_->getTrueElem();
       } else {
@@ -465,7 +465,7 @@ ExecResult TaskExecuteManager::doTaskOperationStep() {
       if (0<strCond.length()) {
         strTarget = strCond.toStdString();
       }
-      bool checkCond = argHandler_->checkCondition(lastResult_, strCond.toStdString());
+      bool checkCond = argHandler_->checkCondition(currentTask_, strCond.toStdString(), lastResult_);
       if (checkCond) {
         nextParam = currParam_->getTrueElem();
       } else {

@@ -294,14 +294,14 @@ bool MemberParam::parseVariable(bool isSub, bool lastRet) {
               vector<ModelParameterParamPtr> masterParamList = master->getModelParameterList();
               vector<ModelParameterParamPtr>::iterator masterParamItr = find_if(masterParamList.begin(), masterParamList.end(), ModelMasterParamComparator(feature_id));
               if (masterParamItr == masterParamList.end()) return false;
-              QString desc = (*masterParamItr)->getValueDesc();
-              DDEBUG_V("MemberParam::parseVariable : Model Param=%s", desc.toStdString().c_str());
-              desc = desc.replace("origin", (*model)->getRName());
-              DDEBUG_V("MemberParam::parseVariable : Model Param Rep=%s", desc.toStdString().c_str());
+              //QString desc = (*masterParamItr)->getValueDesc();
+              //DDEBUG_V("MemberParam::parseVariable : Model Param=%s", desc.toStdString().c_str());
+              //desc = desc.replace("origin", (*model)->getRName());              
+              //DDEBUG_V("MemberParam::parseVariable : Model Param Rep=%s", desc.toStdString().c_str());
+              QString desc = (*model)->getRName() + QString::fromStdString("+") + (*masterParamItr)->getValueDesc();
 
               Calculator* calc = new Calculator(targetTask_);
-              //再計算しないようにisSubをTrueに設定
-              //calc->setTaskModelParam(targetTask_);
+              //Set isSub to True to avoid recalculation
               if (calc->calculate(desc, true) == false) {
                   DDEBUG("MemberParam::parseVariable : Calc Error");
                   return false;
@@ -463,9 +463,6 @@ Calculator::~Calculator() {
   memberList_.clear();
 }
 
-void Calculator::initialize(TaskModelParamPtr targetParam) {
-}
-
 bool Calculator::buildArguments(TaskModelParamPtr taskParam, ElementStmParamPtr targetParam, std::vector<CompositeParamType>& parameterList) {
   DDEBUG("Calculator::buildArguments");
   parameterList.clear();
@@ -577,8 +574,9 @@ bool Calculator::checkSyntax(FlowParamPtr flowParam, TaskModelParamPtr taskParam
   return calculate(script);
 }
 
-bool Calculator::checkCondition(bool cmdRet, string script) {
-  return cmdRet;
+bool Calculator::checkCondition(TaskModelParamPtr targetParam, string script, bool lastRet) {
+  if (calculate(QString::fromStdString(script)) == false) return false;
+  return this->getResultScalar();
 }
 
 bool Calculator::checkFlowCondition(FlowParamPtr flowParam, string script, bool lastRet) {
