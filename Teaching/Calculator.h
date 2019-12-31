@@ -107,12 +107,14 @@ private:
   bool calcBinOpe(MemberParam* lhs, MemberParam* rhs);
 	bool parseVector3d(MemberParam* elem01, MemberParam* elem02, MemberParam* elem03);
 	bool parseVector6d(MemberParam* elem01, MemberParam* elem02, MemberParam* elem03, MemberParam* elem04, MemberParam* elem05, MemberParam* elem06);
-  bool parseVariable(bool isSub, bool lastRet);
+  bool parseVariable(bool lastRet);
   bool calcFunc(MemberParam* args);
   bool calcTranslation(VectorXd& arg);
   bool calcRotation(VectorXd& arg);
   bool calcRpy2mat(const Vector3d& rot);
   bool calcMat2rpy(const Matrix3d& matrix);
+
+  Position makePosition(double posX, double posY, double posZ, double rotX, double rotY, double rotZ);
 
   friend class Calculator;
 };
@@ -156,7 +158,7 @@ private:
 
   inline ValueMode getValMode() const { return this->valMode_; }
 
-  bool calculate(QString source, bool isSub = false);
+  bool calculate(QString source);
 
   int extractNodeInfo(const Node& source);
 

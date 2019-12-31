@@ -211,7 +211,7 @@ bool MemberParam::parseVector6d(MemberParam* elem01, MemberParam* elem02, Member
 	return true;
 }
 
-bool MemberParam::parseVariable(bool isSub, bool lastRet) {
+bool MemberParam::parseVariable(bool lastRet) {
 	DDEBUG_V("MemberParam::parseVariable source:%s", source_.c_str());
 	QString paramName = QString::fromStdString(source_);
   if (this->targetFlow_) {
@@ -294,20 +294,35 @@ bool MemberParam::parseVariable(bool isSub, bool lastRet) {
               vector<ModelParameterParamPtr> masterParamList = master->getModelParameterList();
               vector<ModelParameterParamPtr>::iterator masterParamItr = find_if(masterParamList.begin(), masterParamList.end(), ModelMasterParamComparator(feature_id));
               if (masterParamItr == masterParamList.end()) return false;
-              //QString desc = (*masterParamItr)->getValueDesc();
-              //DDEBUG_V("MemberParam::parseVariable : Model Param=%s", desc.toStdString().c_str());
-              //desc = desc.replace("origin", (*model)->getRName());              
-              //DDEBUG_V("MemberParam::parseVariable : Model Param Rep=%s", desc.toStdString().c_str());
-              QString desc = (*model)->getRName() + QString::fromStdString("+") + (*masterParamItr)->getValueDesc();
 
-              Calculator* calc = new Calculator(targetTask_);
-              //Set isSub to True to avoid recalculation
-              if (calc->calculate(desc, true) == false) {
-                  DDEBUG("MemberParam::parseVariable : Calc Error");
-                  return false;
-              }
-              valueVector6d_ = calc->getResultVector6d();
-              delete calc;
+              DDEBUG_V("model: %f, %f, %f, %f, %f, %f",
+                (*model)->getPosX(), (*model)->getPosY(), (*model)->getPosZ(),
+                (*model)->getRotRx(), (*model)->getRotRy(), (*model)->getRotRz());
+              Position modelTrans = makePosition((*model)->getPosX(), (*model)->getPosY(), (*model)->getPosZ(),
+                                                  (*model)->getRotRx(), (*model)->getRotRy(), (*model)->getRotRz());
+              //
+              QString descFeat = (*masterParamItr)->getValueDesc();
+              descFeat = descFeat.replace("[", "");
+              descFeat = descFeat.replace("]", "");
+              QStringList eachElems = descFeat.split(","); 
+              DDEBUG_V("feature: %f, %f, %f, %f, %f, %f",
+                eachElems[0].trimmed().toDouble(), eachElems[1].trimmed().toDouble(), eachElems[2].trimmed().toDouble(),
+                eachElems[3].trimmed().toDouble(), eachElems[4].trimmed().toDouble(), eachElems[5].trimmed().toDouble());
+              Position featTrans = makePosition(eachElems[0].trimmed().toDouble(), eachElems[1].trimmed().toDouble(), eachElems[2].trimmed().toDouble(),
+                                                eachElems[3].trimmed().toDouble(), eachElems[4].trimmed().toDouble(), eachElems[5].trimmed().toDouble());
+              //
+              Position resultPos = modelTrans * featTrans;
+              valueVector6d_[0] = resultPos.translation()[0];
+              valueVector6d_[1] = resultPos.translation()[1];
+              valueVector6d_[2] = resultPos.translation()[2];
+              const Matrix3 resultR = resultPos.rotation();
+              const Vector3 resultRpy = rpyFromRot(resultR);
+              valueVector6d_[3] = degree(resultRpy[0]);
+              valueVector6d_[4] = degree(resultRpy[1]);
+              valueVector6d_[5] = degree(resultRpy[2]);
+              DDEBUG_V("result: %f, %f, %f, %f, %f, %f",
+                valueVector6d_[0], valueVector6d_[1], valueVector6d_[2],
+                valueVector6d_[3], valueVector6d_[4], valueVector6d_[5]);
               DDEBUG_V("MemberParam::parseVariable : Calc End %f, %f, %f, %f, %f, %f", valueVector6d_[0], valueVector6d_[1], valueVector6d_[2], valueVector6d_[3], valueVector6d_[4], valueVector6d_[5]);
           }
       }
@@ -442,6 +457,22 @@ bool MemberParam::calcMat2rpy(const Matrix3d& matrix) {
   valueVector3d_[2] = Roll * 180.0 / PI;
 
   return true;
+}
+
+Position MemberParam::makePosition(double posX, double posY, double posZ, double rotX, double rotY, double rotZ) {
+  Position result;
+
+  result.translation()[0] = posX;
+  result.translation()[1] = posY;
+  result.translation()[2] = posZ;
+  Vector3 rpy;
+  rpy[0] = radian(rotX);
+  rpy[1] = radian(rotY);
+  rpy[2] = radian(rotZ);
+  Matrix3 R = rotFromRpy(rpy);
+  result.linear() = R;
+
+  return result;
 }
 /////
 Calculator::Calculator()
@@ -735,7 +766,7 @@ int Calculator::extractNodeInfo(const Node& source) {
   return ret;
 }
 
-bool Calculator::calculate(QString source, bool isSub) {
+bool Calculator::calculate(QString source) {
 	DDEBUG_V("Calculator::calculate: %s", source.toStdString().c_str());
   CalcMode mode = CALC_NOTHING;
   valMode_ = VAL_SCALAR;
@@ -820,7 +851,7 @@ bool Calculator::calculate(QString source, bool isSub) {
 
       case TYPE_VARIABLE:
       {
-        if (member->parseVariable(isSub, lastRet_) == false) {
+        if (member->parseVariable(lastRet_) == false) {
           DDEBUG("Calculator::calculate ERROR TYPE_VARIABLE");
           return false;
         }

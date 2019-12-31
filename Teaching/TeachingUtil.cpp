@@ -215,14 +215,14 @@ std::vector<std::string> SettingManager::getExtList() {
 /////
 ArgumentEstimator* EstimatorFactory::createArgEstimator(TaskModelParamPtr targetParam) {
   //CalculatorとPythonWrapperの切替
-  //ArgumentEstimator* handler = new Calculator();
-  ArgumentEstimator* handler = new PythonWrapper();
+  ArgumentEstimator* handler = new Calculator();
+  //ArgumentEstimator* handler = new PythonWrapper();
   return handler;
 }
 
 ArgumentEstimator* EstimatorFactory::createArgEstimator(FlowParamPtr targetParam) {
-  //ArgumentEstimator* handler = new Calculator();
-  ArgumentEstimator* handler = new PythonWrapper();
+  ArgumentEstimator* handler = new Calculator();
+  //ArgumentEstimator* handler = new PythonWrapper();
   return handler;
 }
 
