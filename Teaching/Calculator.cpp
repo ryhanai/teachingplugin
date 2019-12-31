@@ -304,7 +304,8 @@ bool MemberParam::parseVariable(bool lastRet) {
               QString descFeat = (*masterParamItr)->getValueDesc();
               descFeat = descFeat.replace("[", "");
               descFeat = descFeat.replace("]", "");
-              QStringList eachElems = descFeat.split(","); 
+              QStringList eachElems = descFeat.split(",");
+              if (eachElems.length() != 6) return false;
               DDEBUG_V("feature: %f, %f, %f, %f, %f, %f",
                 eachElems[0].trimmed().toDouble(), eachElems[1].trimmed().toDouble(), eachElems[2].trimmed().toDouble(),
                 eachElems[3].trimmed().toDouble(), eachElems[4].trimmed().toDouble(), eachElems[5].trimmed().toDouble());
