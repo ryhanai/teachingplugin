@@ -162,9 +162,14 @@ bool PythonWrapper::execFunction(string script, vector<double>& result) {
     errMsg_ = executor_.exceptionText();
     return false;
   }
-  double returnValue = executor_.returnValue().cast<double>();
-  result.clear();
-  result.push_back(returnValue);
+  try {
+    double returnValue = executor_.returnValue().cast<double>();
+    result.clear();
+    result.push_back(returnValue);
+  } catch(pybind11::cast_error) {
+    DDEBUG_V("cast_error(double) %s", script.c_str());
+    return false;
+  }
 
   return true;
 }
@@ -179,7 +184,12 @@ bool PythonWrapper::execFunctionArray(string script, vector<double>& result) {
       return false;
     }
   }
-  result = executor_.returnValue().cast<vector<double>>();
+  try {
+    result = executor_.returnValue().cast<vector<double>>();
+  } catch(pybind11::cast_error) {
+    DDEBUG_V("cast_error(vector<double>) %s", script.c_str());
+    return false;
+  }
 
   return true;
 }
@@ -191,9 +201,14 @@ bool PythonWrapper::execFunction(string script, vector<int>& result) {
     errMsg_ = executor_.exceptionText();
     return false;
   }
-  int returnValue = executor_.returnValue().cast<int>();
-  result.clear();
-  result.push_back(returnValue);
+  try {
+    int returnValue = executor_.returnValue().cast<int>();
+    result.clear();
+    result.push_back(returnValue);
+  } catch(pybind11::cast_error) {
+    DDEBUG_V("cast_error(int) %s", script.c_str());
+    return false;
+  }
 
   return true;
 }
@@ -205,9 +220,14 @@ bool PythonWrapper::execFunction(string script, vector<string>& result) {
     errMsg_ = executor_.exceptionText();
     return false;
   }
-  string returnValue = executor_.returnValue().cast<string>();
-  result.clear();
-  result.push_back(returnValue);
+  try {
+    string returnValue = executor_.returnValue().cast<string>();
+    result.clear();
+    result.push_back(returnValue);
+  } catch(pybind11::cast_error) {
+    DDEBUG_V("cast_error(string) %s", script.c_str());
+    return false;
+  }
 
   return true;
 }
