@@ -16,8 +16,11 @@ bool PythonWrapper::buildArguments(TaskModelParamPtr taskParam, ElementStmParamP
   parameterList.clear();
 
   //à¯êîÇÃëgÇ›óßÇƒ
-  for (int idxArg = 0; idxArg < targetParam->getArgList().size(); idxArg++) {
-		ArgumentParamPtr arg = targetParam->getArgList()[idxArg];
+  vector<ArgumentParamPtr> argList = targetParam->getArgList();
+  for (int idxArg = 0; idxArg < argList.size(); idxArg++) {
+    DDEBUG_V("index : %d, %d", idxArg, argList.size());
+
+		ArgumentParamPtr arg = argList[idxArg];
     QString valueDesc = arg->getValueDesc();
     DDEBUG_V("valueDesc : %s", valueDesc.toStdString().c_str());
     //
@@ -77,6 +80,7 @@ bool PythonWrapper::buildArguments(TaskModelParamPtr taskParam, ElementStmParamP
       }
     }
   }
+  DDEBUG("PythonWrapper::buildArguments End");
   return true;
 }
 
@@ -160,6 +164,7 @@ bool PythonWrapper::execFunction(string script, vector<double>& result) {
 
   if (executor_.eval(script) == false) {
     errMsg_ = executor_.exceptionText();
+    DDEBUG_V("PythonWrapper::execFunction(double) eval Error: %s", errMsg_.c_str());
     return false;
   }
   try {
@@ -178,11 +183,9 @@ bool PythonWrapper::execFunctionArray(string script, vector<double>& result) {
   DDEBUG("PythonWrapper::execFunctionArray double");
   
   if (executor_.eval(script + ".tolist()") == false) {
-    if (executor_.eval(script) == false) {
-      DDEBUG("PythonWrapper::execFunctionArray eval Error");
-      errMsg_ = executor_.exceptionText();
-      return false;
-    }
+    errMsg_ = executor_.exceptionText();
+    DDEBUG_V("PythonWrapper::execFunctionArray eval Error: %s", errMsg_.c_str());
+    return false;
   }
   try {
     result = executor_.returnValue().cast<vector<double>>();
@@ -199,6 +202,7 @@ bool PythonWrapper::execFunction(string script, vector<int>& result) {
 
   if (executor_.eval(script) == false) {
     errMsg_ = executor_.exceptionText();
+    DDEBUG_V("PythonWrapper::execFunction(int) eval Error: %s", errMsg_.c_str());
     return false;
   }
   try {
@@ -210,6 +214,7 @@ bool PythonWrapper::execFunction(string script, vector<int>& result) {
     return false;
   }
 
+  DDEBUG("PythonWrapper::execFunction int End");
   return true;
 }
 
@@ -218,6 +223,7 @@ bool PythonWrapper::execFunction(string script, vector<string>& result) {
 
   if (executor_.eval(script) == false) {
     errMsg_ = executor_.exceptionText();
+    DDEBUG_V("PythonWrapper::execFunction(string) eval Error: %s", errMsg_.c_str());
     return false;
   }
   try {
