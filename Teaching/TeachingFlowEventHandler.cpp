@@ -570,13 +570,12 @@ bool TeachingEventHandler::flv_Connected(QtNodes::Connection& target) {
       }
       DDEBUG_V("Model Name : %s", model->getRName().toStdString().c_str());
 
-      if(portName=="origin") {
-        if( targetModel->getPosture()==0) {
-          targetModel->setPosture(model->getPosture());
-        } else {
-          model->setPosture(targetModel->getPosture());
-        }
+      if( targetModel->getPosture()==0) {
+        targetModel->setPosture(model->getPosture());
       } else {
+        model->setPosture(targetModel->getPosture());
+      }
+      if(portName!="origin") {
         ModelMasterParamPtr master = model->getModelMaster();
         ModelParameterParamPtr feature = master->getModelParameterByName(portName);
         if(feature) {

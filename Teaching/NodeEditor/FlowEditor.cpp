@@ -447,13 +447,12 @@ void FlowEditor::createStateMachine(FlowParamPtr target, bool paramFixed) {
           ParameterParamPtr paramTask = taskParam->getParameterById(id);
           if (paramTask) {
             ModelParamPtr model = taskParam->getModelParamById(paramTask->getModelId());
-            if (portName == "origin") {
-              if (sourceModelElem->getPosture() == 0) {
-                sourceModelElem->setPosture(model->getPosture());
-              } else {
-                model->setPosture(sourceModelElem->getPosture());
-              }
+            if (sourceModelElem->getPosture() == 0) {
+              sourceModelElem->setPosture(model->getPosture());
             } else {
+              model->setPosture(sourceModelElem->getPosture());
+            }
+            if (portName != "origin") {
               int masterId = model->getMasterId();
               ModelMasterParamPtr master = TeachingDataHolder::instance()->getModelMasterById(masterId);
               ModelParameterParamPtr feature = master->getModelParameterByName(portName);
