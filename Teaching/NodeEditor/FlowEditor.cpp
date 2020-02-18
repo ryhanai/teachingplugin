@@ -425,7 +425,7 @@ void FlowEditor::createStateMachine(FlowParamPtr target, bool paramFixed) {
       NodeDataType dataType = sourceNode->nodeDataModel()->dataType(PortType::Out, targetCon->getSourceIndex());
       DDEBUG_V("dataType %s", dataType.id.toStdString().c_str());
       if (dataType.id == "modelshape") {
-        //モデルの差し替え
+        //Replace model
         int targetId = targetNode->getParamId();
         int id = targetNode->nodeDataModel()->portNames[targetCon->getTargetIndex() - 1].id_;
 
@@ -437,7 +437,14 @@ void FlowEditor::createStateMachine(FlowParamPtr target, bool paramFixed) {
           if (masterParamItr != modelMasterList.end()) {
             model->replaceModelMaster(*masterParamItr);
           }
+          //Set model position sharing
+          if (sourceModelElem->getPosture() == 0) {
+            sourceModelElem->setPosture(model->getPosture());
+          } else {
+            model->setPosture(sourceModelElem->getPosture());
+          }
         }
+
       } else if (dataType.id == "modeldata") {
         QString portName = sourceNode->nodeDataModel()->portNames[targetCon->getSourceIndex()].name_;
         DDEBUG_V("portName : %s", portName.toStdString().c_str());
@@ -447,11 +454,6 @@ void FlowEditor::createStateMachine(FlowParamPtr target, bool paramFixed) {
           ParameterParamPtr paramTask = taskParam->getParameterById(id);
           if (paramTask) {
             ModelParamPtr model = taskParam->getModelParamById(paramTask->getModelId());
-            if (sourceModelElem->getPosture() == 0) {
-              sourceModelElem->setPosture(model->getPosture());
-            } else {
-              model->setPosture(sourceModelElem->getPosture());
-            }
             if (portName != "origin") {
               int masterId = model->getMasterId();
               ModelMasterParamPtr master = TeachingDataHolder::instance()->getModelMasterById(masterId);

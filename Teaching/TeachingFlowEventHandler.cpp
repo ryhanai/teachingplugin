@@ -543,6 +543,12 @@ bool TeachingEventHandler::flv_Connected(QtNodes::Connection& target) {
       if (masterParamItr != modelMasterList.end()) {
         model->replaceMaster(*masterParamItr);
       }
+      //Set model position sharing
+      if( targetModel->getPosture()==0) {
+        targetModel->setPosture(model->getPosture());
+      } else {
+        model->setPosture(targetModel->getPosture());
+      }
       ///////////////
       DDEBUG("Connect Origin");
       QString sourcePort = "origin";
@@ -570,11 +576,6 @@ bool TeachingEventHandler::flv_Connected(QtNodes::Connection& target) {
       }
       DDEBUG_V("Model Name : %s", model->getRName().toStdString().c_str());
 
-      if( targetModel->getPosture()==0) {
-        targetModel->setPosture(model->getPosture());
-      } else {
-        model->setPosture(targetModel->getPosture());
-      }
       if(portName!="origin") {
         ModelMasterParamPtr master = model->getModelMaster();
         ModelParameterParamPtr feature = master->getModelParameterByName(portName);
@@ -665,6 +666,24 @@ void TeachingEventHandler::flv_Disconnected(QtNodes::Connection& target) {
           if(model) model->loadModelItem();
           ChoreonoidUtil::showAllModelItem();
         }
+
+        //Unset model position sharing
+        model->clearPosture();
+        //FlowParam側の処理
+        if( flv_->checkOutConnection(sourceId, sourcePortIndex)==false) {
+          DDEBUG("Clear FlowParam");
+          FlowModelParamPtr targetModel = flv_CurrentFlow_->getTargetModelParam(sourceId);
+          if (!targetModel) return;
+          targetModel->setPosture(0);
+        }
+        DDEBUG("Disconnect ModelData Port");
+	      for (ParameterParamPtr targetParam : taskParam->getActiveParameterList()) {
+		      if (targetParam->getType() != PARAM_KIND_MODEL) continue;
+          if (targetParam->getModelId() != model->getId()) continue;
+
+          QString targetPort = targetParam->getName() + ":Mdl";
+          flv_->deleteConnection(taskNode, targetPort);
+	      }
       }
     } else if (dataType.id == "modeldata") {
       //データポートの場合
@@ -673,20 +692,7 @@ void TeachingEventHandler::flv_Disconnected(QtNodes::Connection& target) {
       ParameterParamPtr paramTask = taskParam->getParameterById(id);
       if (!paramTask) return;
 
-      if(portName=="origin") {
-        ModelParamPtr model = taskParam->getModelParamById(paramTask->getModelId());
-        if (!model) return;
-        model->clearPosture();
-        //
-        //FlowParam側の処理
-        if( flv_->checkOutConnection(sourceId, sourcePortIndex)==false) {
-          DDEBUG("Clear FlowParam");
-          FlowModelParamPtr targetModel = flv_CurrentFlow_->getTargetModelParam(sourceId);
-          if (!targetModel) return;
-          targetModel->setPosture(0);
-        }
-
-      } else {
+      if(portName!="origin") {
         paramTask->restoreModelParamId();
       }
     }
