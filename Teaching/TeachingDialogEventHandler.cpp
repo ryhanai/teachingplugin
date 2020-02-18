@@ -188,7 +188,10 @@ bool TeachingEventHandler::mdd_AddModelClicked() {
 	if (!mdd_CurrentModelMaster_) return false;
 
 	ModelParamPtr param = TeachingDataHolder::instance()->addModel(com_CurrentTask_, mdd_CurrentModelMaster_);
-  if(param) param->loadModelItem();
+  if (param) {
+    QString dispName = com_CurrentTask_->getName() + "|" + param->getRName();
+    param->loadModelItem(dispName);
+  }
 	ChoreonoidUtil::showAllModelItem();
 
 	vector<ModelParamPtr> modelList = com_CurrentTask_->getActiveModelList();
@@ -200,6 +203,7 @@ bool TeachingEventHandler::mdd_AddModelClicked() {
 bool TeachingEventHandler::mdd_DeleteModelClicked() {
 	if (!mdd_CurrentModel_) return false;
 
+  mdd_CurrentModel_->unLoadModelItem();
 	mdd_CurrentModel_->getModelMaster()->unLoadModelMasterItem();
 	mdd_connectionToKinematicStateChanged.disconnect();
 	ChoreonoidUtil::showAllModelItem();
@@ -213,7 +217,7 @@ bool TeachingEventHandler::mdd_DeleteModelClicked() {
 }
 
 bool TeachingEventHandler::mdd_CheckModel(QString target) {
-  for (ModelParamPtr model : com_CurrentTask_->getModelList()) {
+  for (ModelParamPtr model : com_CurrentTask_->getActiveModelList()) {
     if (model->getId() == mdd_CurrentModel_->getId()) continue;
     if (model->getRName() == target) return false;
   }
@@ -231,6 +235,8 @@ void TeachingEventHandler::mdd_OkClicked(QString rname, int type, double posX, d
     mdd_CurrentModel_->setRotRy(rotY);
     mdd_CurrentModel_->setRotRz(rotZ);
     mdd_CurrentModel_->setHide(hide);
+    QString dispName = com_CurrentTask_->getName() + "|" + rname;
+    mdd_CurrentModel_->getModelItem()->setName(dispName.toStdString());
   }
 	mdd_connectionToKinematicStateChanged.disconnect();
 	mdd_currentBodyItemChangeConnection.disconnect();
