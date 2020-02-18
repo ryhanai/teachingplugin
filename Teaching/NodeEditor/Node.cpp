@@ -160,7 +160,6 @@ void Node::setBreak(bool isBreak) {
 }
 
 void Node::updateDisp() {
-	//DDEBUG("Node::updateDisp");
   if (!_nodeDataModel) return;
 	NodeStyle style = _nodeDataModel->nodeStyle();
   bool isUpdate = false;
@@ -208,8 +207,6 @@ void Node::updateDisp() {
 
   if (isUpdate) {
     _nodeDataModel->setNodeStyle(style);
-    //DDEBUG("Node::updateDisp update");
     _nodeGraphicsObject->update();
   }
-	//DDEBUG("Node::updateDisp End");
 }

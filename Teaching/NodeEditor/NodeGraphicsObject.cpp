@@ -180,7 +180,7 @@ void NodeGraphicsObject::mousePressEvent(QGraphicsSceneMouseEvent * event) {
           nodeState.connections(portToCheck, portIndex);
 
         // start dragging existing connection
-        if (!connections.empty() && portToCheck == PortType::In)
+        if (!connections.empty())
         {
           auto con = connections.begin()->second;
 
@@ -196,6 +196,8 @@ void NodeGraphicsObject::mousePressEvent(QGraphicsSceneMouseEvent * event) {
               outPolicy == NodeDataModel::ConnectionPolicy::One)
           {
             _scene.deleteConnection( *connections.begin()->second );
+            //_connections = connections;
+            //_isMove = true;
           }
 
           // todo add to FlowScene
