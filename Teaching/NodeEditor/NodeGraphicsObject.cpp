@@ -180,7 +180,7 @@ void NodeGraphicsObject::mousePressEvent(QGraphicsSceneMouseEvent * event) {
           nodeState.connections(portToCheck, portIndex);
 
         // start dragging existing connection
-        if (!connections.empty())
+        if (!connections.empty() && portToCheck == PortType::In)
         {
           auto con = connections.begin()->second;
 
