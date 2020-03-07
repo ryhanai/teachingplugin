@@ -190,16 +190,6 @@ void NodeGraphicsObject::mousePressEvent(QGraphicsSceneMouseEvent * event) {
         }
         else // initialize new Connection
         {
-          const auto outPolicy = _node.nodeDataModel()->portOutConnectionPolicy(portIndex);
-          if (!connections.empty() &&
-              portToCheck == PortType::Out &&
-              outPolicy == NodeDataModel::ConnectionPolicy::One)
-          {
-            _scene.deleteConnection( *connections.begin()->second );
-            //_connections = connections;
-            //_isMove = true;
-          }
-
           // todo add to FlowScene
           auto connection = _scene.createConnection(portToCheck,
                                                     _node,
