@@ -3,6 +3,7 @@
 
 #include "TeachingTypes.h"
 #include "ControllerBase.h"
+#include "ArgumentEstimator.h"
 
 namespace teaching {
 
@@ -30,6 +31,7 @@ public:
 
   void setRootName(std::string value);
   bool executeCommand(const std::string& commandName, std::vector<CompositeParamType>& params);
+  bool executeCommand(const std::string& commandName, TaskModelParamPtr taskParam, ElementStmParamPtr targetParam);
   bool attachModelItem(cnoid::BodyItemPtr parent, cnoid::BodyItemPtr child, int target);
   bool detachModelItem(cnoid::BodyItemPtr parent, cnoid::BodyItemPtr child, int target);
   bool detachAllModelItem();

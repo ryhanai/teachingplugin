@@ -7,6 +7,7 @@
 #include <boost/variant.hpp>
 
 #include "CommandDefTypes.h"
+#include "TeachingTypes.h"
 
 using namespace cnoid;
 
@@ -47,6 +48,7 @@ public:
   inline void setRootName(std::string value) { this->rootName = value; }
 
   virtual bool executeCommand(const std::string& commandName, std::vector<CompositeParamType>& params, bool isReal=false) = 0;
+  virtual bool executeCommand(const std::string& commandName, TaskModelParamPtr taskParam, ElementStmParamPtr targetParam, bool isReal=false) = 0;
 
   virtual void initialize() = 0; // R.Hanai
   virtual cnoid::Link* getToolLink(int toolNumber) = 0;

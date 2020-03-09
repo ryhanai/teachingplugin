@@ -47,8 +47,9 @@ public:
     executor->setStateMachineView(statemachineView);
     executor->setMetadataView(metadataView);
 
-		TeachingEventHandler::instance()->setTaskExecutor(executor);
+    TeachingEventHandler::instance()->setTaskExecutor(executor);
     ControllerManager::instance()->registController("PythonController", PythonControllerWrapper::instance());
+    ControllerManager::instance()->registController("PurePythonController", PythonControllerWrapper::instance());
 
     metadataView->bringToFront();
 

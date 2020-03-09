@@ -206,7 +206,7 @@ namespace teaching
     // controller-dependent
     std::string robotName_;
     std::map<int, std::string> toolLinks_;
-    double dt_ = 0.05;
+    double dt_ = 0.01;
 
   };
 

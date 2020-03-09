@@ -286,12 +286,12 @@ void PythonWrapper::setGlobalParam(TaskModelParamPtr targetParam) {
         }
 
       } else {
-        scriptParam << "  " << paramName.toStdString() << " = [";
+        scriptParam << "  " << paramName.toStdString() << " = Frame(xyzRPY=[";
         for (int idxElem = 0; idxElem < 6; idxElem++) {
           QString each = QString::fromStdString(param->getValues(idxElem));
           scriptParam << each.toDouble() << ",";
         }
-        scriptParam << "]" << std::endl;
+        scriptParam << "])" << std::endl;
 
         for (unsigned int index = 0; index < paramList.size(); index++) {
           scriptParam << paramList.at(index) << ",";
@@ -319,7 +319,7 @@ void PythonWrapper::setGlobalParam(TaskModelParamPtr targetParam) {
 
 void PythonWrapper::setGlobalParamFlow(FlowParamPtr targetParam) {
   if (targetParam == NULL) return;
-  DDEBUG("PythonWrapper::setGlobalParam");
+  DDEBUG("PythonWrapper::setGlobalParamFlow");
 
   std::stringstream script;
   script << "def setGlobalParam():" << std::endl;
@@ -338,11 +338,11 @@ void PythonWrapper::setGlobalParamFlow(FlowParamPtr targetParam) {
     if (paramList.size() == 1) {
       script << "  " << paramName.toStdString() << " = " << paramList.at(0) << std::endl;
     } else {
-      script << "  " << paramName.toStdString() << " = [";
+      script << "  " << paramName.toStdString() << " = Frame(xyzRPY=[";
       for (unsigned int index = 0; index < paramList.size(); index++) {
         script << paramList.at(index) << ",";
       }
-      script << "]" << std::endl;
+      script << "])" << std::endl;
     }
   }
   script << "setGlobalParam()";
@@ -350,7 +350,7 @@ void PythonWrapper::setGlobalParamFlow(FlowParamPtr targetParam) {
   string strCon = script.str();
   DDEBUG_V("%s", strCon.c_str());
   if (executor_.execCode(strCon)==false) {
-    DDEBUG("PythonWrapper::setGlobalParam Error");
+    DDEBUG("PythonWrapper::setGlobalParamFlow Error");
     return;
   }
 }

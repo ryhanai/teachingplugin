@@ -69,6 +69,16 @@ bool TaskExecutor::executeCommand(const std::string& commandName, std::vector<Co
   }
 }
 
+bool TaskExecutor::executeCommand(const std::string& commandName, TaskModelParamPtr taskParam, ElementStmParamPtr targetParam) {
+  try {
+    return handler_->executeCommand(commandName, taskParam, targetParam, SettingManager::getInstance().getIsReal());
+  }
+  catch (...) {
+    detachAllModelItem();
+    return false;
+  }
+}
+
 bool TaskExecutor::attachModelItem(cnoid::BodyItemPtr parent, cnoid::BodyItemPtr child, int target) {
   DDEBUG("TaskExecutor::attachModelItem");
   BodyItem* parentItem;

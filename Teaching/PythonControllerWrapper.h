@@ -2,6 +2,7 @@
 #define TEACHING_PYTHON_CONTOROLLER_WAPPER_H_INCLUDED
 
 #include "ControllerBase.h"
+#include "ArgumentEstimator.h"
 
 using namespace std;
 
@@ -16,11 +17,13 @@ public:
 
   std::vector<CommandDefParam*> getCommandDefList();
   bool executeCommand(const std::string& commandName, std::vector<CompositeParamType>& params, bool isReal = false);
+  bool executeCommand(const std::string& commandName, TaskModelParamPtr taskParam, ElementStmParamPtr targetParam, bool isReal = false);
+
   void initialize();
   cnoid::Link* getToolLink(int toolNumber);
 
 private:
-
+  void setGlobalParam(TaskModelParamPtr targetParam);
 
 };
 

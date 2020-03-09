@@ -116,6 +116,7 @@ TaskModelParamPtr TaskExecuteManager::getNextTask(ElementStmParamPtr target) {
 bool TaskExecuteManager::runSingleCommand() {
 	DDEBUG("TaskExecuteManager::runSingleCommand");
 
+#if 0
   //引数計算モジュールの初期化
   createArgEstimator(currentTask_);
   //コントローラが変更されている場合があるため，再設定
@@ -141,8 +142,22 @@ bool TaskExecuteManager::runSingleCommand() {
 
   deleteArgEstimator();
   InfoBar::instance()->showMessage(_("Finished Command :") + currParam_->getCmdName(), MESSAGE_PERIOD);
-
   return cmdRet;
+#else
+  CommandDefParam* def = TaskExecutor::instance()->getCommandDef(currParam_->getCmdName().toStdString());
+  if (def) {
+    currParam_->setCommadDefParam(def);
+  } else {
+    DDEBUG("TaskExecuteManager::doTaskOperation CommandDef NOT Exist");
+    return ExecResult::EXEC_ERROR;
+  }
+  isAbort_ = false;
+  InfoBar::instance()->showMessage(_("Running Command :") + currParam_->getCmdName());
+  TaskExecutor::instance()->setRootName(SettingManager::getInstance().getRobotModelName());
+  bool cmdRet = TaskExecutor::instance()->executeCommand(currParam_->getCmdName().toStdString(), currentTask_, currParam_);
+  InfoBar::instance()->showMessage(_("Finished Command :") + currParam_->getCmdName(), MESSAGE_PERIOD);
+  return cmdRet;
+#endif
 }
 
 void TaskExecuteManager::runSingleTask() {
@@ -271,19 +286,19 @@ ExecResult TaskExecuteManager::doFlowOperationCont() {
 }
 
 ExecResult TaskExecuteManager::doTaskOperation(bool updateCurrentTask) {
-	DDEBUG("");
-	DDEBUG("TaskExecuteManager::doTaskOperation");
+  DDEBUG("");
+  DDEBUG("TaskExecuteManager::doTaskOperation");
 
   //モデル情報の設定
   parseModelInfo();
 
-	ElementStmParamPtr nextParam;
+  ElementStmParamPtr nextParam;
   lastResult_ = false;
 
   //引数計算モジュールの初期化
   createArgEstimator(currentTask_);
 
-	DDEBUG("Start Execution");
+  DDEBUG("Start Execution");
   std::vector<CompositeParamType> parameterList;
   while (true) {
     if (currParam_->getType() == ELEMENT_COMMAND) {
@@ -291,47 +306,51 @@ ExecResult TaskExecuteManager::doTaskOperation(bool updateCurrentTask) {
       if (isAbort_) {
         detachAllModelItem();
         deleteArgEstimator();
-				DDEBUG("TaskExecuteManager::doTaskOperation EXEC_FINISHED(Abort)");
-				return ExecResult::EXEC_FINISHED;
+        DDEBUG("TaskExecuteManager::doTaskOperation EXEC_FINISHED(Abort)");
+        return ExecResult::EXEC_FINISHED;
       }
       //コントローラが変更されている場合があるため，再設定
       CommandDefParam* def = TaskExecutor::instance()->getCommandDef(currParam_->getCmdName().toStdString());
       if (def) {
         currParam_->setCommadDefParam(def);
       } else {
-    	  DDEBUG("TaskExecuteManager::doTaskOperation CommandDef NOT Exist");
-				return ExecResult::EXEC_ERROR;
+        DDEBUG("TaskExecuteManager::doTaskOperation CommandDef NOT Exist");
+        return ExecResult::EXEC_ERROR;
       }
+#if 0
       //引数の組み立て
       if (argHandler_->buildArguments(currentTask_, currParam_, parameterList) == false) {
         detachAllModelItem();
         deleteArgEstimator();
-				DDEBUG("TaskExecuteManager::doTaskOperation EXEC_ERROR(Arg)");
-				return ExecResult::EXEC_ERROR;
+        DDEBUG("TaskExecuteManager::doTaskOperation EXEC_ERROR(Arg)");
+        return ExecResult::EXEC_ERROR;
       }
       //コマンド実行
       lastResult_ = TaskExecutor::instance()->executeCommand(currParam_->getCmdName().toStdString(), parameterList);
       //out引数の設定
       setOutArgument(parameterList);
+#else
+      lastResult_ = TaskExecutor::instance()->executeCommand(currParam_->getCmdName().toStdString(), currentTask_, currParam_);
+#endif
 
       //モデルアクション実行
       if (doModelAction() == false) {
         detachAllModelItem();
         deleteArgEstimator();
-				DDEBUG("TaskExecuteManager::doTaskOperation EXEC_ERROR(Model Action)");
-				return ExecResult::EXEC_ERROR;
+        DDEBUG("TaskExecuteManager::doTaskOperation EXEC_ERROR(Model Action)");
+        return ExecResult::EXEC_ERROR;
       }
       DDEBUG("Check Decision");
       //コマンドの実行結果がFalseで次の要素がデシジョンではない場合は終了
       if (lastResult_ == false) {
-				ElementStmParamPtr checkNext = currParam_->getNextElem();
+        ElementStmParamPtr checkNext = currParam_->getNextElem();
         if (checkNext == 0 || checkNext->getType() != ELEMENT_DECISION) {
           InfoBar::instance()->showMessage("");
           DDEBUG("NextParam is NOT Decision.");
           detachAllModelItem();
           deleteArgEstimator();
-					DDEBUG("TaskExecuteManager::doTaskOperation EXEC_ERROR(Dec)");
-					return ExecResult::EXEC_ERROR;
+          DDEBUG("TaskExecuteManager::doTaskOperation EXEC_ERROR(Dec)");
+          return ExecResult::EXEC_ERROR;
         }
       }
     }

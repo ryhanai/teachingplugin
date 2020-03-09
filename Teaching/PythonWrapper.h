@@ -13,7 +13,7 @@ class PythonWrapper : public ArgumentEstimator {
 public:
   PythonWrapper() {};
   ~PythonWrapper() {};
-
+  
   bool buildArguments(TaskModelParamPtr taskParam, ElementStmParamPtr targetParam, std::vector<CompositeParamType>& parameterList);
   bool checkSyntax(FlowParamPtr flowParam, TaskModelParamPtr taskParam, ArgumentDefParam* argDef, QString script, string& errStr);
   bool checkCondition(TaskModelParamPtr targetParam, string script, bool lastRet);
