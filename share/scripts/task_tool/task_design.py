@@ -318,6 +318,8 @@ class Cmd(State):
                       ParamType.DBL: 'double',
                       ParamType.INT: 'int',
                       ParamType.BOOL: 'boolean',
+                      ParamType.FRM: 'Frame',
+                      ParamType.TF: 'Transform',
                       }
         return output[t]
 

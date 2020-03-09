@@ -1,17 +1,22 @@
-from task_tool.basic_commands191115 import *
-from task_tool.basic_command_impl import *
+# -*- coding: utf-8 -*-
 
+import sys
+sys.path.append('../../share/scripts')
+
+from task_tool.basic_commands200303 import *
+from task_tool.basic_command_impl200303 import *
 
 class UR3dualController(BasicCommandController):
     def __init__(self, use_ros=False):
         super(UR3dualController, self).__init__(robotItemName='main_withHands',
-                                                    toolLinkMap={0:'larm_wrist_3_joint', 1:'rarm_wrist_3_joint'})
+                                                    toolLinkMap={0:'larm_wrist_3_joint',
+                                                                     1:'rarm_wrist_3_joint'})
         if use_ros:
             from screw_insertion import SkillServer
             self.server = SkillServer()
 
     def commands(self):
-        return [MoveLCmd, GripperCmd, SetTaskFrameCmd, InsertionRandomCmd]
+        return [MoveLCmd, GripperCmd]
 
     #
     # Implementation of extended commands
@@ -21,6 +26,19 @@ class UR3dualController(BasicCommandController):
             return self.server.insertion()
         else:
             return True
+
+controller = UR3dualController(use_ros=False)
+
+# 2020.03.09
+# The following functions are to be removed,
+# after teachingPlugin is changed to call controller APIs with 'controller.' prefix.
+
+def getToolLinkName(num):
+    return controller.getToolLinkName(num)
+
+def getCommandDefList():
+    return controller.getCommandDefList()
+
 
 
 class RobotState:

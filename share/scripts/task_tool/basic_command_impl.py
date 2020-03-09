@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from controller_base import ControllerBase
+from task_tool.controller_base import ControllerBase
 
 import numpy as np
 import cnoid.TeachingPlugin
