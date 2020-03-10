@@ -35,6 +35,8 @@ public:
 
   static bool checkNameStr(QString target);
 
+  static void setGlobalParam(TaskModelParamPtr targetParam);
+
 private:
   static int getModelType(QString& source);
   static bool importTaskModel(Mapping* taskMap, TaskModelParamPtr taskParam, QString taskNameErr, QString& errMessage);
@@ -45,7 +47,6 @@ private:
   static bool importTaskTrajectory(Mapping* taskMap, TaskModelParamPtr taskParam, QString taskNameErr, QString& errMessage);
 
   static bool importMasterModel(Mapping* targetMap, vector<ModelMasterParamPtr>& modelMasterList, QString& path, QString& errMessage);
-
 };
 /////
 class UIUtil {

@@ -116,10 +116,7 @@ TaskModelParamPtr TaskExecuteManager::getNextTask(ElementStmParamPtr target) {
 bool TaskExecuteManager::runSingleCommand() {
 	DDEBUG("TaskExecuteManager::runSingleCommand");
 
-#if 0
-  //ˆø”ŒvZƒ‚ƒWƒ…[ƒ‹‚Ì‰Šú‰»
-  createArgEstimator(currentTask_);
-  //ƒRƒ“ƒgƒ[ƒ‰‚ª•ÏX‚³‚ê‚Ä‚¢‚éê‡‚ª‚ ‚é‚½‚ßCÄİ’è
+  //ã‚³ãƒ³ãƒˆãƒ­ãƒ¼ãƒ©ãŒå¤‰æ›´ã•ã‚Œã¦ã„ã‚‹å ´åˆãŒã‚ã‚‹ãŸã‚ï¼Œå†è¨­å®š
   CommandDefParam* def = TaskExecutor::instance()->getCommandDef(currParam_->getCmdName().toStdString());
   if (def) {
     currParam_->setCommadDefParam(def);
@@ -127,37 +124,33 @@ bool TaskExecuteManager::runSingleCommand() {
     DDEBUG("TaskExecuteManager::doTaskOperation CommandDef NOT Exist");
 		return ExecResult::EXEC_ERROR;
   }
-  //ˆø”‚Ì‘g‚İ—§‚Ä
-  std::vector<CompositeParamType> parameterList;
-  if (argHandler_->buildArguments(currentTask_, currParam_, parameterList) == false) {
-    deleteArgEstimator();
-    return false;
-  }
-  isAbort_ = false;
-  InfoBar::instance()->showMessage(_("Running Command :") + currParam_->getCmdName());
-  TaskExecutor::instance()->setRootName(SettingManager::getInstance().getRobotModelName());
-  bool cmdRet = TaskExecutor::instance()->executeCommand(currParam_->getCmdName().toStdString(), parameterList);
-  //outˆø”‚Ìİ’è
-  setOutArgument(parameterList);
 
-  deleteArgEstimator();
-  InfoBar::instance()->showMessage(_("Finished Command :") + currParam_->getCmdName(), MESSAGE_PERIOD);
-  return cmdRet;
-#else
-  CommandDefParam* def = TaskExecutor::instance()->getCommandDef(currParam_->getCmdName().toStdString());
-  if (def) {
-    currParam_->setCommadDefParam(def);
-  } else {
-    DDEBUG("TaskExecuteManager::doTaskOperation CommandDef NOT Exist");
-    return ExecResult::EXEC_ERROR;
-  }
   isAbort_ = false;
   InfoBar::instance()->showMessage(_("Running Command :") + currParam_->getCmdName());
   TaskExecutor::instance()->setRootName(SettingManager::getInstance().getRobotModelName());
-  bool cmdRet = TaskExecutor::instance()->executeCommand(currParam_->getCmdName().toStdString(), currentTask_, currParam_);
+  bool cmdRet = false;
+
+  if (SettingManager::getInstance().getController() == "PythonController") {
+    cmdRet = TaskExecutor::instance()->executeCommand(currParam_->getCmdName().toStdString(), currentTask_, currParam_);
+
+  } else {
+    //å¼•æ•°è¨ˆç®—ãƒ¢ã‚¸ãƒ¥ãƒ¼ãƒ«ã®åˆæœŸåŒ–
+    createArgEstimator(currentTask_);
+    //å¼•æ•°ã®çµ„ã¿ç«‹ã¦
+    std::vector<CompositeParamType> parameterList;
+    if (argHandler_->buildArguments(currentTask_, currParam_, parameterList) == false) {
+      deleteArgEstimator();
+      return false;
+    }
+    //outå¼•æ•°ã®è¨­å®š
+    setOutArgument(parameterList);
+    deleteArgEstimator();
+
+    cmdRet = TaskExecutor::instance()->executeCommand(currParam_->getCmdName().toStdString(), parameterList);
+  }
+
   InfoBar::instance()->showMessage(_("Finished Command :") + currParam_->getCmdName(), MESSAGE_PERIOD);
   return cmdRet;
-#endif
 }
 
 void TaskExecuteManager::runSingleTask() {
@@ -289,13 +282,13 @@ ExecResult TaskExecuteManager::doTaskOperation(bool updateCurrentTask) {
   DDEBUG("");
   DDEBUG("TaskExecuteManager::doTaskOperation");
 
-  //ƒ‚ƒfƒ‹î•ñ‚Ìİ’è
+  //ãƒ¢ãƒ‡ãƒ«æƒ…å ±ã®è¨­å®š
   parseModelInfo();
 
   ElementStmParamPtr nextParam;
   lastResult_ = false;
 
-  //ˆø”ŒvZƒ‚ƒWƒ…[ƒ‹‚Ì‰Šú‰»
+  //å¼•æ•°è¨ˆç®—ãƒ¢ã‚¸ãƒ¥ãƒ¼ãƒ«ã®åˆæœŸåŒ–
   createArgEstimator(currentTask_);
 
   DDEBUG("Start Execution");
@@ -309,7 +302,7 @@ ExecResult TaskExecuteManager::doTaskOperation(bool updateCurrentTask) {
         DDEBUG("TaskExecuteManager::doTaskOperation EXEC_FINISHED(Abort)");
         return ExecResult::EXEC_FINISHED;
       }
-      //ƒRƒ“ƒgƒ[ƒ‰‚ª•ÏX‚³‚ê‚Ä‚¢‚éê‡‚ª‚ ‚é‚½‚ßCÄİ’è
+      //ã‚³ãƒ³ãƒˆãƒ­ãƒ¼ãƒ©ãŒå¤‰æ›´ã•ã‚Œã¦ã„ã‚‹å ´åˆãŒã‚ã‚‹ãŸã‚ï¼Œå†è¨­å®š
       CommandDefParam* def = TaskExecutor::instance()->getCommandDef(currParam_->getCmdName().toStdString());
       if (def) {
         currParam_->setCommadDefParam(def);
@@ -317,23 +310,25 @@ ExecResult TaskExecuteManager::doTaskOperation(bool updateCurrentTask) {
         DDEBUG("TaskExecuteManager::doTaskOperation CommandDef NOT Exist");
         return ExecResult::EXEC_ERROR;
       }
-#if 0
-      //ˆø”‚Ì‘g‚İ—§‚Ä
-      if (argHandler_->buildArguments(currentTask_, currParam_, parameterList) == false) {
-        detachAllModelItem();
-        deleteArgEstimator();
-        DDEBUG("TaskExecuteManager::doTaskOperation EXEC_ERROR(Arg)");
-        return ExecResult::EXEC_ERROR;
-      }
-      //ƒRƒ}ƒ“ƒhÀs
-      lastResult_ = TaskExecutor::instance()->executeCommand(currParam_->getCmdName().toStdString(), parameterList);
-      //outˆø”‚Ìİ’è
-      setOutArgument(parameterList);
-#else
-      lastResult_ = TaskExecutor::instance()->executeCommand(currParam_->getCmdName().toStdString(), currentTask_, currParam_);
-#endif
+      if (SettingManager::getInstance().getController() == "PythonController") {
+        lastResult_ = TaskExecutor::instance()->executeCommand(currParam_->getCmdName().toStdString(), currentTask_, currParam_);
+        //TODO outå¼•æ•°ã®è¨­å®š
 
-      //ƒ‚ƒfƒ‹ƒAƒNƒVƒ‡ƒ“Às
+      } else {
+        //å¼•æ•°ã®çµ„ã¿ç«‹ã¦
+        if (argHandler_->buildArguments(currentTask_, currParam_, parameterList) == false) {
+          detachAllModelItem();
+          deleteArgEstimator();
+          DDEBUG("TaskExecuteManager::doTaskOperation EXEC_ERROR(Arg)");
+          return ExecResult::EXEC_ERROR;
+        }
+        //ã‚³ãƒãƒ³ãƒ‰å®Ÿè¡Œ
+        lastResult_ = TaskExecutor::instance()->executeCommand(currParam_->getCmdName().toStdString(), parameterList);
+        //outå¼•æ•°ã®è¨­å®š
+        setOutArgument(parameterList);
+      }
+
+      //ãƒ¢ãƒ‡ãƒ«ã‚¢ã‚¯ã‚·ãƒ§ãƒ³å®Ÿè¡Œ
       if (doModelAction() == false) {
         detachAllModelItem();
         deleteArgEstimator();
@@ -341,7 +336,7 @@ ExecResult TaskExecuteManager::doTaskOperation(bool updateCurrentTask) {
         return ExecResult::EXEC_ERROR;
       }
       DDEBUG("Check Decision");
-      //ƒRƒ}ƒ“ƒh‚ÌÀsŒ‹‰Ê‚ªFalse‚ÅŸ‚Ì—v‘f‚ªƒfƒVƒWƒ‡ƒ“‚Å‚Í‚È‚¢ê‡‚ÍI—¹
+      //ã‚³ãƒãƒ³ãƒ‰ã®å®Ÿè¡ŒçµæœãŒFalseã§æ¬¡ã®è¦ç´ ãŒãƒ‡ã‚·ã‚¸ãƒ§ãƒ³ã§ã¯ãªã„å ´åˆã¯çµ‚äº†
       if (lastResult_ == false) {
         ElementStmParamPtr checkNext = currParam_->getNextElem();
         if (checkNext == 0 || checkNext->getType() != ELEMENT_DECISION) {
@@ -437,13 +432,13 @@ ExecResult TaskExecuteManager::doTaskOperationStep() {
   }
 	TeachingEventHandler::instance()->prv_SetInputValues();
 
-  //ƒ‚ƒfƒ‹î•ñ‚Ìİ’è
+  //ãƒ¢ãƒ‡ãƒ«æƒ…å ±ã®è¨­å®š
   parseModelInfo();
 
   lastResult_ = false;
   std::vector<CompositeParamType> parameterList;
 
-  //ƒRƒ“ƒgƒ[ƒ‰‚ª•ÏX‚³‚ê‚Ä‚¢‚éê‡‚ª‚ ‚é‚½‚ßCÄİ’è
+  //ã‚³ãƒ³ãƒˆãƒ­ãƒ¼ãƒ©ãŒå¤‰æ›´ã•ã‚Œã¦ã„ã‚‹å ´åˆãŒã‚ã‚‹ãŸã‚ï¼Œå†è¨­å®š
   CommandDefParam* def = TaskExecutor::instance()->getCommandDef(currParam_->getCmdName().toStdString());
   if (def) {
     currParam_->setCommadDefParam(def);
@@ -451,21 +446,21 @@ ExecResult TaskExecuteManager::doTaskOperationStep() {
     DDEBUG("TaskExecuteManager::doTaskOperation CommandDef NOT Exist");
 		return ExecResult::EXEC_ERROR;
   }
-  //ˆø”‚Ì‘g‚İ—§‚Ä
+  //å¼•æ•°ã®çµ„ã¿ç«‹ã¦
   if (argHandler_->buildArguments(currentTask_, currParam_, parameterList) == false) {
     detachAllModelItem();
     return ExecResult::EXEC_ERROR;
   }
-  //ƒRƒ}ƒ“ƒhÀs
+  //ã‚³ãƒãƒ³ãƒ‰å®Ÿè¡Œ
   lastResult_ = TaskExecutor::instance()->executeCommand(currParam_->getCmdName().toStdString(), parameterList);
-  //outˆø”‚Ìİ’è
+  //outå¼•æ•°ã®è¨­å®š
   setOutArgument(parameterList);
-  //ƒ‚ƒfƒ‹ƒAƒNƒVƒ‡ƒ“Às
+  //ãƒ¢ãƒ‡ãƒ«ã‚¢ã‚¯ã‚·ãƒ§ãƒ³å®Ÿè¡Œ
   if (doModelAction() == false) {
     detachAllModelItem();
     return ExecResult::EXEC_ERROR;
   }
-  //ƒRƒ}ƒ“ƒh‚ÌÀsŒ‹‰Ê‚ªFalse‚ÅŸ‚Ì—v‘f‚ªƒfƒVƒWƒ‡ƒ“‚Å‚Í‚È‚¢ê‡‚ÍI—¹
+  //ã‚³ãƒãƒ³ãƒ‰ã®å®Ÿè¡ŒçµæœãŒFalseã§æ¬¡ã®è¦ç´ ãŒãƒ‡ã‚·ã‚¸ãƒ§ãƒ³ã§ã¯ãªã„å ´åˆã¯çµ‚äº†
   if (lastResult_ == false) {
 		ElementStmParamPtr checkNext = currParam_->getNextElem();
     if (checkNext == 0 || checkNext->getType() != ELEMENT_DECISION) {

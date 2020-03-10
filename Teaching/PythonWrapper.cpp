@@ -11,7 +11,7 @@ using namespace cnoid;
 namespace teaching {
 
 bool PythonWrapper::buildArguments(TaskModelParamPtr taskParam, ElementStmParamPtr targetParam, std::vector<CompositeParamType>& parameterList) {
-  setGlobalParam(taskParam);
+  TeachingUtil::setGlobalParam(taskParam);
   DDEBUG("PythonWrapper::buildArguments");
   parameterList.clear();
 
@@ -85,7 +85,7 @@ bool PythonWrapper::buildArguments(TaskModelParamPtr taskParam, ElementStmParamP
 }
 
 bool PythonWrapper::checkSyntax(FlowParamPtr flowParam, TaskModelParamPtr taskParam, ArgumentDefParam* argDef, QString script, string& errStr) {
-  if(taskParam) setGlobalParam(taskParam);
+  if(taskParam) TeachingUtil::setGlobalParam(taskParam);
   if(flowParam) setGlobalParamFlow(flowParam);
   errMsg_ = "";
 
@@ -142,7 +142,7 @@ bool PythonWrapper::checkCondition(TaskModelParamPtr targetParam, string script,
     return lastRet;
   }
   /////
-  setGlobalParam(targetParam);
+  TeachingUtil::setGlobalParam(targetParam);
   vector<int> calcResult;
   int ret = execFunction(script, calcResult);
   if (ret == false) return false;
@@ -236,85 +236,6 @@ bool PythonWrapper::execFunction(string script, vector<string>& result) {
   }
 
   return true;
-}
-
-void PythonWrapper::setGlobalParam(TaskModelParamPtr targetParam) {
-  if (targetParam == NULL) return;
-  DDEBUG("PythonWrapper::setGlobalParam");
-
-  std::stringstream script;
-  script << "def setGlobalParam():" << std::endl;
-
-  for (ParameterParamPtr param : targetParam->getActiveParameterList()) {
-    QString paramName = param->getRName();
-    std::stringstream scriptParam;
-
-    if (param->getParamType() == PARAM_TYPE_FRAME) {
-      vector<double> paramList;
-      if(param->getType() == PARAM_KIND_MODEL) {
-        int modelId = param->getModelId();
-        vector<ModelParamPtr> modelList = targetParam->getActiveModelList();
-        std::vector<ModelParamPtr>::iterator model = std::find_if(modelList.begin(), modelList.end(), ModelParamComparator(modelId));
-        if (model == modelList.end()) continue;
-
-        std::stringstream scriptModel;
-        scriptModel << "[";
-        scriptModel << (*model)->getPosX() << ",";
-        scriptModel << (*model)->getPosY() << ",";
-        scriptModel << (*model)->getPosZ() << ",";
-        scriptModel << (*model)->getRotRx() << ",";
-        scriptModel << (*model)->getRotRy() << ",";
-        scriptModel << (*model)->getRotRz();
-        scriptModel << "]";
-
-
-        int feature_id = param->getModelParamId();
-        if (feature_id != NULL_ID) {
-          ModelMasterParamPtr master = (*model)->getModelMaster();
-          if (!master) continue;
-          vector<ModelParameterParamPtr> masterParamList = master->getModelParameterList();
-          vector<ModelParameterParamPtr>::iterator masterParamItr = find_if(masterParamList.begin(), masterParamList.end(), ModelMasterParamComparator(feature_id));
-          if (masterParamItr == masterParamList.end()) continue;
-          QString desc = (*masterParamItr)->getValueDesc();
-          //desc = desc.replace("origin", QString::fromStdString(scriptModel.str()));
-          scriptParam << "  " << paramName.toStdString() << " = ";
-          scriptParam << "list(map(sum, zip(" << desc.toStdString() << ", " << scriptModel.str() << ")))" << std::endl;
-
-        } else {
-          scriptParam << "  " << paramName.toStdString() << " = ";
-          scriptParam << scriptModel.str() << std::endl;
-        }
-
-      } else {
-        scriptParam << "  " << paramName.toStdString() << " = Frame(xyzRPY=[";
-        for (int idxElem = 0; idxElem < 6; idxElem++) {
-          QString each = QString::fromStdString(param->getValues(idxElem));
-          scriptParam << each.toDouble() << ",";
-        }
-        scriptParam << "])" << std::endl;
-
-        for (unsigned int index = 0; index < paramList.size(); index++) {
-          scriptParam << paramList.at(index) << ",";
-        }
-      }
-
-    } else {
-      QString paramStr = QString::fromStdString(param->getValues(0));
-      scriptParam << "  " << paramName.toStdString() << " = " << paramStr.toDouble() << std::endl;
-    }
-    DDEBUG_V("name : %s, %s", paramName.toStdString().c_str(), scriptParam.str().c_str());
-    /////
-    script << "  global " << paramName.toStdString() << std::endl;
-    script << scriptParam.str();
-  }
-  script << "setGlobalParam()";
-
-  string strCon = script.str();
-  DDEBUG_V("%s", strCon.c_str());
-  if (executor_.execCode(strCon)==false) {
-    DDEBUG("PythonWrapper::setGlobalParam Error");
-    return;
-  }
 }
 
 void PythonWrapper::setGlobalParamFlow(FlowParamPtr targetParam) {
