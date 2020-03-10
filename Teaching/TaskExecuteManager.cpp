@@ -1,4 +1,4 @@
-#include <cnoid/InfoBar>
+﻿#include <cnoid/InfoBar>
 
 #include "TaskExecuteManager.h"
 #include "StateMachineView.h"
@@ -446,15 +446,22 @@ ExecResult TaskExecuteManager::doTaskOperationStep() {
     DDEBUG("TaskExecuteManager::doTaskOperation CommandDef NOT Exist");
 		return ExecResult::EXEC_ERROR;
   }
-  //引数の組み立て
-  if (argHandler_->buildArguments(currentTask_, currParam_, parameterList) == false) {
-    detachAllModelItem();
-    return ExecResult::EXEC_ERROR;
+  if (SettingManager::getInstance().getController() == "PythonController") {
+    lastResult_ = TaskExecutor::instance()->executeCommand(currParam_->getCmdName().toStdString(), currentTask_, currParam_);
+    //TODO out引数の設定
+
+  } else {
+    //引数の組み立て
+    if (argHandler_->buildArguments(currentTask_, currParam_, parameterList) == false) {
+      detachAllModelItem();
+      return ExecResult::EXEC_ERROR;
+    }
+    //コマンド実行
+    lastResult_ = TaskExecutor::instance()->executeCommand(currParam_->getCmdName().toStdString(), parameterList);
+    //out引数の設定
+    setOutArgument(parameterList);
   }
-  //コマンド実行
-  lastResult_ = TaskExecutor::instance()->executeCommand(currParam_->getCmdName().toStdString(), parameterList);
-  //out引数の設定
-  setOutArgument(parameterList);
+
   //モデルアクション実行
   if (doModelAction() == false) {
     detachAllModelItem();
