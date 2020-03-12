@@ -7,10 +7,10 @@ class MoveLCmd(Cmd):
     """ """
     _cmd_name = 'moveArm'
     _disp_name = 'Arm'
-    _signature = [('goal', ParamType.FRM),
-                      ('grasp', ParamType.FRM),
-                      ('tm', ParamType.DBL),
-                      ('armID', ParamType.INT)]
+    _signature = [('goal', ParamType.FRM, ParamDir.In),
+                      ('grasp', ParamType.FRM, ParamDir.In),
+                      ('tm', ParamType.DBL, ParamDir.In),
+                      ('armID', ParamType.INT, ParamDir.In)]
 
     def __init__(self, goal):
         super(MoveLCmd, self).__init__()
@@ -25,9 +25,9 @@ class GripperCmd(Cmd):
     """ """
     _cmd_name = 'moveGripper'
     _disp_name = 'Gripper'
-    _signature = [('width', ParamType.DBL),
-                      ('tm', ParamType.DBL),
-                      ('gripperID', ParamType.INT)]
+    _signature = [('width', ParamType.DBL, ParamDir.In),
+                      ('tm', ParamType.DBL, ParamDir.In),
+                      ('gripperID', ParamType.INT, ParamDir.In)]
 
     def __init__(self, width, gripper, tm=Double(0.2), model_actions=[]):
         super(GripperCmd, self).__init__()
@@ -54,3 +54,4 @@ class ReleaseCmd(GripperCmd):
     def __init__(self, width, gripper, target):
         width = EPlus(width, Double(0.03))
         super(ReleaseCmd, self).__init__(width, gripper, model_actions=[('detach', target, gripper)])
+

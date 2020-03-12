@@ -173,6 +173,12 @@ class ParamType(Enum):
         output = {ParamType.FRM:3, ParamType.TF:3, ParamType.DBL:2, ParamType.INT:1}
         return output[param_type]
 
+class ParamDir(Enum):
+    In=0,
+    Out=1,
+    InOut=2,
+
+
 class Param(object):
     """ """
     last_number = 0
@@ -299,29 +305,38 @@ class Cmd(State):
                             ('dispName', quoted(cls._disp_name)),
                             ('retType', quoted(Cmd.compile_type(ParamType.BOOL)))])
         args = []
-        for v,t in cls.signature():
+        for v,t,d in cls.signature():
             t2 = Cmd.compile_type(t)
+            d2 = Cmd.compile_io_qualifier(d)
             if type(t2) == tuple:
                 t3,l = t2
                 args.append(OrderedDict([('name', quoted(v)),
                                              ('type', quoted(t3)),
-                                             ('length', l)]))
+                                             ('length', l),
+                                             ('direction', quoted(d2))]))
             else:
                 args.append(OrderedDict([('name', quoted(v)),
-                                             ('type', quoted(t2))]))
+                                             ('type', quoted(t2)),
+                                             ('direction', quoted(d2))]))
         code['args'] = args
         return code
 
     @staticmethod
     def compile_type(t):
-        output = {ParamType.VECTOR3: ('double',3),
-                      ParamType.DBL: 'double',
-                      ParamType.INT: 'int',
-                      ParamType.BOOL: 'boolean',
-                      ParamType.FRM: 'Frame',
-                      ParamType.TF: 'Transform',
-                      }
-        return output[t]
+        type_string = {ParamType.VECTOR3: ('double',3),
+                           ParamType.DBL: 'double',
+                           ParamType.INT: 'int',
+                           ParamType.BOOL: 'boolean',
+                           ParamType.FRM: 'Frame',
+                           ParamType.TF: 'Transform'}
+        return type_string[t]
+
+    @staticmethod
+    def compile_io_qualifier(q):
+        dir_string = {ParamDir.In: 'in',
+                          ParamDir.Out: 'out',
+                          ParamDir.InOut: 'inout'}
+        return dir_string[q]
 
     def compile(self):
         code = super(Cmd, self).compile()
