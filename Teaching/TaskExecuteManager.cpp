@@ -7,6 +7,7 @@
 #include "ChoreonoidUtil.h"
 #include "TaskExecutor.h"
 #include "TeachingEventHandler.h"
+#include "PythonWrapper.h"
 
 #include "gettext.h"
 #include "LoggerUtil.h"
@@ -312,7 +313,10 @@ ExecResult TaskExecuteManager::doTaskOperation(bool updateCurrentTask) {
       }
       if (SettingManager::getInstance().getController() == "PythonController") {
         lastResult_ = TaskExecutor::instance()->executeCommand(currParam_->getCmdName().toStdString(), currentTask_, currParam_);
-        //TODO out引数の設定
+        //out引数の設定
+        PythonWrapper* handler = new PythonWrapper();
+        handler->setOutArguments(currentTask_, currParam_);
+        delete handler;
 
       } else {
         //引数の組み立て
@@ -448,7 +452,10 @@ ExecResult TaskExecuteManager::doTaskOperationStep() {
   }
   if (SettingManager::getInstance().getController() == "PythonController") {
     lastResult_ = TaskExecutor::instance()->executeCommand(currParam_->getCmdName().toStdString(), currentTask_, currParam_);
-    //TODO out引数の設定
+    //out引数の設定
+    PythonWrapper* handler = new PythonWrapper();
+    handler->setOutArguments(currentTask_, currParam_);
+    delete handler;
 
   } else {
     //引数の組み立て
@@ -650,7 +657,7 @@ void TaskExecuteManager::setOutArgument(std::vector<CompositeParamType>& paramet
   DDEBUG("TaskExecuteManager::setOutArgument");
   for (int idxArg = 0; idxArg < currParam_->getArgList().size(); idxArg++) {
     ArgumentDefParam* argDef = currParam_->getCommadDefParam()->getArgList()[idxArg];
-    if (argDef->getDirection() != 1) continue;
+    if (argDef->getDirection() == 0) continue;
 
     QString targetStr = currParam_->getArgList()[idxArg]->getValueDesc();
     DDEBUG_V("targetStr : %s", targetStr.toStdString().c_str());

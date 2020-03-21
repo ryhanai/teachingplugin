@@ -407,7 +407,9 @@ void TeachingUtil::setGlobalParam(TaskModelParamPtr targetParam) {
 
     } else {
       QString paramStr = QString::fromStdString(param->getValues(0));
-      scriptParam << "  " << paramName.toStdString() << " = " << paramStr.toDouble() << std::endl;
+      scriptParam << "  ";
+      scriptParam << paramName.toStdString();
+      scriptParam << " = " << paramStr.toDouble() << std::endl;
     }
     DDEBUG_V("name : %s, %s", paramName.toStdString().c_str(), scriptParam.str().c_str());
     /////

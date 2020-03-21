@@ -21,7 +21,7 @@ PythonControllerWrapper* PythonControllerWrapper::instance () {
 }
 
 std::vector<CommandDefParam*> PythonControllerWrapper::getCommandDefList() {
-  DDEBUG("PythonControllerWrapper::getCommandDefList");
+  //DDEBUG("PythonControllerWrapper::getCommandDefList");
   std::vector<CommandDefParam*> result;
 
   PythonExecutor executor;
@@ -94,7 +94,7 @@ std::vector<CommandDefParam*> PythonControllerWrapper::getCommandDefList() {
         bool existInvalidKeyArg = false;
         for(auto it = argMap->begin(); it != argMap->end(); ++it){
             string key = it->first;
-            if (key == "name" || key == "type" || key == "length") continue;
+            if (key == "name" || key == "type" || key == "length" || key == "direction") continue;
             errMessage.append(_("The YAML key in the argument definition is invalid. key=") + QString::fromStdString(key)).append(" (").append(cmdName).append("-").append(argName).append(")").append("\n");
             existInvalidKeyArg = true;
         }
@@ -114,7 +114,16 @@ std::vector<CommandDefParam*> PythonControllerWrapper::getCommandDefList() {
           aLength = argLength.toInt();
         } catch (...) {
         }
-        ArgumentDefParam* arg = new ArgumentDefParam(argName.toStdString(), argType.toStdString(), aLength);
+
+        int direction = 0;
+        try {
+          QString strDir = QString::fromStdString(argMap->get("direction").toString());
+          if (strDir == "out") direction = 1;
+          else if (strDir == "inout") direction = 2;
+        } catch (...) {
+        }
+
+        ArgumentDefParam* arg = new ArgumentDefParam(argName.toStdString(), argType.toStdString(), aLength, direction);
         cmdDef->addArgument(arg);
       }
     }
@@ -126,7 +135,6 @@ std::vector<CommandDefParam*> PythonControllerWrapper::getCommandDefList() {
     return result;
   }
 
-  DDEBUG("PythonControllerWrapper::getCommandDefList End");
   return result;
 }
 
@@ -237,34 +245,53 @@ bool PythonControllerWrapper::executeCommand(const std::string& commandName, std
   return true;
 }
 
-  bool PythonControllerWrapper::executeCommand(const std::string& commandName,
-                                               TaskModelParamPtr taskParam,
-                                               ElementStmParamPtr targetParam,
-                                               bool isReal) {
-    DDEBUG("PythonControllerWrapper::executeCommand");
-    TeachingUtil::setGlobalParam(taskParam);
+bool PythonControllerWrapper::executeCommand(const std::string& commandName,
+                                              TaskModelParamPtr taskParam,
+                                              ElementStmParamPtr targetParam,
+                                              bool isReal) {
+  DDEBUG("PythonControllerWrapper::executeCommand");
 
-    std::stringstream pythonScriptStream;
-    pythonScriptStream << "controller." << commandName << "(";
-    vector<ArgumentParamPtr> argList = targetParam->getArgList();
-    for (int idxArg = 0; idxArg < argList.size(); idxArg++) {
-      DDEBUG_V("index : %d, %d", idxArg, argList.size());
+  CommandDefParam* def = TaskExecutor::instance()->getCommandDef(commandName);
+  std::vector<ArgumentDefParam*> argDefList = def->getArgList();
+  vector<ArgumentParamPtr> argList = targetParam->getArgList();
+  if (argDefList.size() != argList.size()) return false;
 
-      ArgumentParamPtr arg = argList[idxArg];
-      QString valueDesc = arg->getValueDesc();
-      DDEBUG_V("valueDesc : %s", valueDesc.toStdString().c_str());
-      if (idxArg > 0) {
-        pythonScriptStream << ", ";
-      }
+  TeachingUtil::setGlobalParam(taskParam);
+
+  std::stringstream pythonScriptStream;
+  std::stringstream varScriptStream;
+  std::stringstream outScriptStream;
+
+  pythonScriptStream << "controller." << commandName << "(";
+  for (int idxArg = 0; idxArg < argList.size(); idxArg++) {
+    DDEBUG_V("index : %d, %d", idxArg, argList.size());
+
+    ArgumentParamPtr arg = argList[idxArg];
+    ArgumentDefParam* argDef = argDefList[idxArg];
+    QString valueDesc = arg->getValueDesc();
+    DDEBUG_V("valueDesc : %s", valueDesc.toStdString().c_str());
+    if (idxArg > 0) {
+      pythonScriptStream << ", ";
+    }
+    if (argDef->getDirection() != 0 
+          && (argDef->getType() == "int" || argDef->getType() == "double")) {
+      varScriptStream << "    global " << valueDesc.toStdString() << std::endl;
+      varScriptStream << "    _" << valueDesc.toStdString() << " = TPValue(" << valueDesc.toStdString() << ")" << std::endl;
+      outScriptStream << "    " << valueDesc.toStdString() << " = _" << valueDesc.toStdString() << ".to_tp()" << std::endl;
+
+      pythonScriptStream << "(_" << valueDesc.toStdString() << ")";
+    } else {
       pythonScriptStream << valueDesc.toStdString();
     }
-    if(isReal) {
-      pythonScriptStream << ", True";
-    } else {
-      pythonScriptStream << ", False";
-    }
-    pythonScriptStream << ")";
+  }
+  if(isReal) {
+    pythonScriptStream << ", True";
+  } else {
+    pythonScriptStream << ", False";
+  }
+  pythonScriptStream << ")";
 
+  if (outScriptStream.str().length() == 0) {
     DDEBUG_V("python script : %s", pythonScriptStream.str().c_str());
     PythonExecutor executor;
     if (executor.eval(pythonScriptStream.str()) == false) {
@@ -272,9 +299,26 @@ bool PythonControllerWrapper::executeCommand(const std::string& commandName, std
       return false;
     }
 
-    DDEBUG("PythonControllerWrapper::executeCommand End");
-    return true;
+  } else {
+    std::stringstream scriptStream;
+    scriptStream << "def stub():" << std::endl;
+    scriptStream << varScriptStream.str();
+    scriptStream << "    ret = " << pythonScriptStream.str() << std::endl;
+    scriptStream << outScriptStream.str();
+    scriptStream << "    return ret" << std::endl;
+    scriptStream << "stub()";
+
+    DDEBUG_V("python script(Out) : %s", scriptStream.str().c_str());
+    PythonExecutor executor;
+    if (executor.execCode(scriptStream.str()) == false) {
+      DDEBUG("PythonControllerWrapper::executeCommand(Out) Error");
+      return false;
+    }
   }
+
+  DDEBUG("PythonControllerWrapper::executeCommand End");
+  return true;
+}
 
 void PythonControllerWrapper::initialize() {
 }

@@ -256,6 +256,7 @@ void ArgumentDialog::showArgInfo(const ElementStmParamPtr target, const vector<A
 		int dir = target->getCommadDefParam()->getArgList()[index]->getDirection();
 		QString strDir = "in";
 		if (dir == 1) strDir = "out";
+		else if (dir == 2) strDir = "inout";
 		UIUtil::makeTableItemWithData(lstArg, row, 1, strDir, param->getId());
 		UIUtil::makeTableItemWithData(lstArg, row, 2, param->getValueDesc(), param->getId());
 		//

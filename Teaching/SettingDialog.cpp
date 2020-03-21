@@ -263,6 +263,7 @@ void SettingDialog::oKClicked() {
 
   SettingManager::getInstance().saveSetting();
   if (updatedLog) {
+    DDEBUG("SettingDialog::updatedLog");
     LoggerUtil::startLog((LogLevel)SettingManager::getInstance().getLogLevel(), SettingManager::getInstance().getLogDir());
   }
 

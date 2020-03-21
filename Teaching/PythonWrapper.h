@@ -19,6 +19,8 @@ public:
   bool checkCondition(TaskModelParamPtr targetParam, string script, bool lastRet);
   bool checkFlowCondition(FlowParamPtr flowParam, string script, bool lastRet);
 
+  bool setOutArguments(TaskModelParamPtr taskParam, ElementStmParamPtr targetParam);
+
 private:
   PythonExecutor executor_;
   string errMsg_;

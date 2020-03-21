@@ -27,7 +27,7 @@ bool PythonWrapper::buildArguments(TaskModelParamPtr taskParam, ElementStmParamP
     if (targetParam->getCommadDefParam() == 0) return false;
 
     ArgumentDefParam* argDef = targetParam->getCommadDefParam()->getArgList()[idxArg];
-    if (argDef->getDirection() == 1) {
+    if (argDef->getDirection() == 1 || argDef->getDirection() == 2) {
       if (argDef->getType() == "double") {
         if (argDef->getLength() == 1) {
           double argRet;
@@ -82,6 +82,56 @@ bool PythonWrapper::buildArguments(TaskModelParamPtr taskParam, ElementStmParamP
   }
   DDEBUG("PythonWrapper::buildArguments End");
   return true;
+}
+
+bool PythonWrapper::setOutArguments(TaskModelParamPtr taskParam, ElementStmParamPtr targetParam) {
+  DDEBUG("PythonWrapper::setOutArguments");
+  for (int idxArg = 0; idxArg < targetParam->getArgList().size(); idxArg++) {
+    ArgumentDefParam* argDef = targetParam->getCommadDefParam()->getArgList()[idxArg];
+    if (argDef->getDirection() == 0) continue;
+
+		ArgumentParamPtr arg = targetParam->getArgList()[idxArg];
+    QString valueDesc = arg->getValueDesc();
+    DDEBUG_V("targetStr : %s", valueDesc.toStdString().c_str());
+    ParameterParamPtr targetParam = NULL;
+    for( ParameterParamPtr parmParm : taskParam->getActiveParameterList()) {
+      if (parmParm->getRName() == valueDesc) {
+        targetParam = parmParm;
+        break;
+      }
+    }
+    /////
+    if (argDef->getType() == "double") {
+      vector<double> argVal;
+      if (argDef->getLength() <= 1) {
+        if (this->execFunction(valueDesc.toStdString(), argVal) == false) return false;
+        DDEBUG_V("name : %s, %f", arg->getName().toStdString().c_str(), argVal[0]);
+        targetParam->setOutValues(0, QString::number(argVal[0]));
+      } else {
+        if (this->execFunctionArray(valueDesc.toStdString(), argVal) == false) return false;
+        DDEBUG_V("name : %s, [%f, %f, %f] %d", arg->getName().toStdString().c_str(), argVal[0], argVal[1], argVal[2], argVal.size());
+        for (unsigned int index = 0; index < argVal.size(); index++) {
+          targetParam->setOutValues(index, QString::number(argVal[index]));
+        }
+      }
+
+    } else if (argDef->getType() == "int") {
+      vector<int> argVal;
+      if (argDef->getLength() <= 1) {
+        if (this->execFunction(valueDesc.toStdString(), argVal) == false) return false;
+        DDEBUG_V("name : %s, %d", arg->getName().toStdString().c_str(), argVal[0]);
+        targetParam->setOutValues(0, QString::number(argVal[0]));
+      }
+    } else if (argDef->getType() == "string") {
+      vector<string> argVal;
+      if (argVal.size() <= 1) {
+        if (this->execFunction(valueDesc.toStdString(), argVal) == false) return false;
+        DDEBUG_V("name : %s, %s", arg->getName().toStdString().c_str(), argVal[0].c_str());
+        targetParam->setOutValues(0, QString::fromStdString(argVal[0]));
+      }
+    }
+    targetParam->updateOutValues();
+  }
 }
 
 bool PythonWrapper::checkSyntax(FlowParamPtr flowParam, TaskModelParamPtr taskParam, ArgumentDefParam* argDef, QString script, string& errStr) {

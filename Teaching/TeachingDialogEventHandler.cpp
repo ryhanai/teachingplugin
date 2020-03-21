@@ -592,7 +592,7 @@ bool TeachingEventHandler::agd_OKClicked(QString strName, QString strAct, QStrin
 	for (int index = 0; index < agd_Current_Stm_->getActiveArgumentList().size(); index++) {
 		ArgumentParamPtr param = agd_Current_Stm_->getArgList()[index];
 		ArgumentDefParam* argDef = agd_Current_Stm_->getCommadDefParam()->getArgList()[index];
-		if (argDef->getDirection() == 1) {
+		if (argDef->getDirection() == 1 || argDef->getDirection() == 2) {
 			QString targetStr = agd_Current_Stm_->getArgList()[index]->getValueDesc();
 			ParameterParamPtr targetParam = NULL;
 			for (ParameterParamPtr parmParm : com_CurrentTask_->getParameterList()) {
