@@ -268,6 +268,24 @@ bool PythonWrapper::execFunction(string script, vector<int>& result) {
   return true;
 }
 
+bool PythonWrapper::execFunctionArray(string script, vector<int>& result) {
+  DDEBUG("PythonWrapper::execFunctionArray int");
+  
+  if (executor_.eval(script) == false) {
+    errMsg_ = executor_.exceptionText();
+    DDEBUG_V("PythonWrapper::execFunctionArray(int) eval Error: %s", errMsg_.c_str());
+    return false;
+  }
+  try {
+    result = executor_.returnValue().cast<vector<int>>();
+  } catch(pybind11::cast_error) {
+    DDEBUG_V("cast_error(vector<int>) %s", script.c_str());
+    return false;
+  }
+
+  return true;
+}
+
 bool PythonWrapper::execFunction(string script, vector<string>& result) {
   DDEBUG("PythonWrapper::execFunction string");
 

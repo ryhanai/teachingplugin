@@ -39,7 +39,7 @@ class HiroNXController(BasicCommandController):
         result.xyzRPY = np.array([0.5, 0, 0.8, 0, 0, 0])
         return True
 
-    def testOutArg(self, outInt, outDouble):
+    def test(self, outDouble, outInt, isReal=False):
         print('outInt={}, outDouble={}'.format(outInt, outDouble))
         outInt.py_value = 1234
         outDouble.py_value = 3.14

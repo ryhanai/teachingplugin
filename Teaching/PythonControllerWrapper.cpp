@@ -279,7 +279,7 @@ bool PythonControllerWrapper::executeCommand(const std::string& commandName,
       varScriptStream << "    _" << valueDesc.toStdString() << " = TPValue(" << valueDesc.toStdString() << ")" << std::endl;
       outScriptStream << "    " << valueDesc.toStdString() << " = _" << valueDesc.toStdString() << ".to_tp()" << std::endl;
 
-      pythonScriptStream << "(_" << valueDesc.toStdString() << ")";
+      pythonScriptStream << "_" << valueDesc.toStdString();
     } else {
       pythonScriptStream << valueDesc.toStdString();
     }
