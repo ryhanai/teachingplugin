@@ -101,6 +101,7 @@ bool PythonWrapper::setOutArguments(TaskModelParamPtr taskParam, ElementStmParam
       }
     }
     /////
+    DDEBUG_V("argType : %s, length : %d", argDef->getType().c_str(), argDef->getLength());
     if (argDef->getType() == "double") {
       vector<double> argVal;
       if (argDef->getLength() <= 1) {
@@ -122,12 +123,24 @@ bool PythonWrapper::setOutArguments(TaskModelParamPtr taskParam, ElementStmParam
         DDEBUG_V("name : %s, %d", arg->getName().toStdString().c_str(), argVal[0]);
         targetParam->setOutValues(0, QString::number(argVal[0]));
       }
+
     } else if (argDef->getType() == "string") {
       vector<string> argVal;
       if (argVal.size() <= 1) {
         if (this->execFunction(valueDesc.toStdString(), argVal) == false) return false;
         DDEBUG_V("name : %s, %s", arg->getName().toStdString().c_str(), argVal[0].c_str());
         targetParam->setOutValues(0, QString::fromStdString(argVal[0]));
+      }
+
+    } else if (argDef->getType() == "Frame") {
+      vector<double> argVal;
+      if (this->execFunctionFrame(valueDesc.toStdString(), argVal) == false) return false;
+      DDEBUG_V("name : %s, [%f, %f, %f, %f, %f, %f] %d", 
+                  arg->getName().toStdString().c_str(),
+                  argVal[0], argVal[1], argVal[2], argVal[3], argVal[4], argVal[5], 
+                  argVal.size());
+      for (unsigned int index = 0; index < argVal.size(); index++) {
+        targetParam->setOutValues(index, QString::number(argVal[index]));
       }
     }
     targetParam->updateOutValues();
@@ -172,6 +185,13 @@ bool PythonWrapper::checkSyntax(FlowParamPtr flowParam, TaskModelParamPtr taskPa
           return false;
         }
       } else {
+        return false;
+      }
+
+    } else if (argDef->getType() == "Frame") {
+      vector<double> argVal;
+      if (this->execFunctionFrame(script.toStdString(), argVal) == false) {
+          errStr = errMsg_;
         return false;
       }
     }
@@ -235,6 +255,24 @@ bool PythonWrapper::execFunctionArray(string script, vector<double>& result) {
   if (executor_.eval(script + ".tolist()") == false) {
     errMsg_ = executor_.exceptionText();
     DDEBUG_V("PythonWrapper::execFunctionArray eval Error: %s", errMsg_.c_str());
+    return false;
+  }
+  try {
+    result = executor_.returnValue().cast<vector<double>>();
+  } catch(pybind11::cast_error) {
+    DDEBUG_V("cast_error(vector<double>) %s", script.c_str());
+    return false;
+  }
+
+  return true;
+}
+
+bool PythonWrapper::execFunctionFrame(string script, vector<double>& result) {
+  DDEBUG("PythonWrapper::execFunctionFrame");
+  
+  if (executor_.eval(script + ".to_tp().tolist()") == false) {
+    errMsg_ = executor_.exceptionText();
+    DDEBUG_V("PythonWrapper::execFunctionFrame eval Error: %s", errMsg_.c_str());
     return false;
   }
   try {

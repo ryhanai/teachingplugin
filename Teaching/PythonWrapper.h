@@ -29,6 +29,7 @@ private:
 
   bool execFunction(string script, vector<double>& result);
   bool execFunctionArray(string script, vector<double>& result);
+  bool execFunctionFrame(string script, vector<double>& result);
   bool execFunction(string script, vector<int>& result);
   bool execFunctionArray(string script, vector<int>& result);
   bool execFunction(string script, vector<string>& result);
