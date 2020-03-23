@@ -138,113 +138,6 @@ std::vector<CommandDefParam*> PythonControllerWrapper::getCommandDefList() {
   return result;
 }
 
-bool PythonControllerWrapper::executeCommand(const std::string& commandName, std::vector<CompositeParamType>& params, bool isReal) {
-  DDEBUG("PythonControllerWrapper::executeCommand");
-  PythonExecutor executor;
-
-	Listing* archive = new Listing();
-  archive->setDoubleFormat("%.9g");
-  MappingPtr argsNode = archive->newMapping();
-
-  argsNode->write("commandName", commandName, DOUBLE_QUOTED);
-  argsNode->write("isReal", isReal);
-  Listing* paramNode = argsNode->createListing("args");
-
-  CommandDefParam* def = TaskExecutor::instance()->getCommandDef(commandName);
-  if (def->getArgList().size() != params.size()) return false;
-  std::vector<ArgumentDefParam*> argList = def->getArgList();
-
-  for (int index = 0; index < params.size(); index++) {
-    CompositeParamType param = params[index];
-    MappingPtr eachNode = paramNode->newMapping();
-    eachNode->write("name", argList[index]->getName(), DOUBLE_QUOTED);
-
-    if(param.type() == typeid(double)) {
-      eachNode->write("value", boost::get<double>(param));
-
-    } else if (param.type() == typeid(int)) {
-      eachNode->write("value", boost::get<int>(param));
-
-    } else if (param.type() == typeid(std::string)) {
-      eachNode->write("value", boost::get<string>(param), DOUBLE_QUOTED);
-
-    } else if (param.type() == typeid(cnoid::Vector2)) {
-      cnoid::Vector2 val = boost::get<cnoid::Vector2>(param);
-      Listing* valNode = eachNode->createListing("value");
-      valNode->append(val[0]);
-      valNode->append(val[1]);
-
-    } else if (param.type() == typeid(cnoid::Vector3)) {
-      cnoid::Vector3 val = boost::get<cnoid::Vector3>(param);
-
-      Listing* valNode = eachNode->createListing("value");
-      valNode->append(val[0]);
-      valNode->append(val[1]);
-      valNode->append(val[2]);
-
-    } else if (param.type() == typeid(cnoid::VectorXd)) {
-      cnoid::VectorXd val = boost::get<cnoid::VectorXd>(param);
-
-      Listing* valNode = eachNode->createListing("value");
-      for (int index = 0; index < val.size(); index++) {
-        valNode->append(val[index]);
-      }
-
-    } else if (param.type() == typeid(cnoid::Matrix3)) {
-      cnoid::Matrix3 val = boost::get<cnoid::Matrix3>(param);
-
-      Listing* valNode = eachNode->createListing("value");
-      for (int idxRow = 0; idxRow < 3; idxRow++) {
-        for (int idxCol = 0; idxCol < 3; idxCol++) {
-          valNode->append(val(idxCol,idxRow));
-        }
-      }
-
-    } else if (param.type() == typeid(RelativeTrajectory)) {
-      RelativeTrajectory val = boost::get<RelativeTrajectory>(param);
-
-      Listing* valNode = eachNode->createListing("value");
-
-      MappingPtr trajNode = valNode->newMapping();
-      trajNode->write("baseObject", val.base_object_name, DOUBLE_QUOTED);
-      trajNode->write("baseLink", val.base_link_name, DOUBLE_QUOTED);
-      trajNode->write("targetObject", val.target_object_name, DOUBLE_QUOTED);
-      trajNode->write("targetLink", val.target_link_name, DOUBLE_QUOTED);
-
-      vector<TrajectoryPoint> viaList = val.points;
-      if( 0<viaList.size()) {
-        Listing* viasNode = trajNode->createListing("via_points");
-        for (TrajectoryPoint viaParam : viaList) {
-          MappingPtr viaNode = viasNode->newMapping();
-          viaNode->write("time", viaParam.time_from_start);
-          Listing* posList = viaNode->createFlowStyleListing("pos");
-          posList->append(viaParam.link_position.translation().x());
-          posList->append(viaParam.link_position.translation().y());
-          posList->append(viaParam.link_position.translation().z());
-          posList->append(viaParam.link_position.rotation().x());
-          posList->append(viaParam.link_position.rotation().y());
-          posList->append(viaParam.link_position.rotation().z());
-          posList->append(viaParam.link_position.rotation().w());
-        }
-      }
-    }
-  }
-
-  std::stringstream ss;
-  YAMLWriter writer(ss);
-  writer.setKeyOrderPreservationMode(true);
-  writer.putNode(archive);
-  DDEBUG_V("Convert Yaml %s", ss.str().c_str());
-
-  if (executor.eval("executeCommand( \"\"\"" + ss.str() + "\"\"\")") == false) {
-    DDEBUG("PythonControllerWrapper::executeCommand Error");
-    return false;
-  }
-  DDEBUG("PythonControllerWrapper::executeCommand End");
-
-  return true;
-}
-
 bool PythonControllerWrapper::executeCommand(const std::string& commandName,
                                               TaskModelParamPtr taskParam,
                                               ElementStmParamPtr targetParam,
@@ -269,10 +162,11 @@ bool PythonControllerWrapper::executeCommand(const std::string& commandName,
     ArgumentParamPtr arg = argList[idxArg];
     ArgumentDefParam* argDef = argDefList[idxArg];
     QString valueDesc = arg->getValueDesc();
-    DDEBUG_V("valueDesc : %s", valueDesc.toStdString().c_str());
+    DDEBUG_V("valueDesc : %s, Direction : %d", valueDesc.toStdString().c_str(), argDef->getDirection());
     if (idxArg > 0) {
       pythonScriptStream << ", ";
     }
+
     if (argDef->getDirection() != 0 
           && (argDef->getType() == "int" || argDef->getType() == "double")) {
       varScriptStream << "    global " << valueDesc.toStdString() << std::endl;

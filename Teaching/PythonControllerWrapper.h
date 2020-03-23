@@ -16,7 +16,6 @@ public:
   ~PythonControllerWrapper() {};
 
   std::vector<CommandDefParam*> getCommandDefList();
-  bool executeCommand(const std::string& commandName, std::vector<CompositeParamType>& params, bool isReal = false);
   bool executeCommand(const std::string& commandName, TaskModelParamPtr taskParam, ElementStmParamPtr targetParam, bool isReal = false) override;
 
   void initialize();
