@@ -35,7 +35,7 @@ class HiroNXController(BasicCommandController):
     def commands(self):
         return [MoveLCmd, GripperCmd, RecognizeCmd, TestCmd]
 
-    def recognize(self, result):
+    def recognize(self, result, isReal=False):
         result.xyzRPY = np.array([0.5, 0, 0.8, 0, 0, 0])
         return True
 
