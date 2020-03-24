@@ -1,5 +1,4 @@
 #include "DecisionDialog.h"
-#include "PythonWrapper.h"
 #include "TeachingUtil.h"
 
 #include "TeachingDataHolder.h"

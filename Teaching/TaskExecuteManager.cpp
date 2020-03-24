@@ -7,7 +7,10 @@
 #include "ChoreonoidUtil.h"
 #include "TaskExecutor.h"
 #include "TeachingEventHandler.h"
+
+#ifndef USE_CPP_CONROLLER
 #include "PythonWrapper.h"
+#endif
 
 #include "gettext.h"
 #include "LoggerUtil.h"
@@ -131,10 +134,7 @@ bool TaskExecuteManager::runSingleCommand() {
   TaskExecutor::instance()->setRootName(SettingManager::getInstance().getRobotModelName());
   bool cmdRet = false;
 
-  if (SettingManager::getInstance().getController() == "PythonController") {
-    cmdRet = TaskExecutor::instance()->executeCommand(currParam_->getCmdName().toStdString(), currentTask_, currParam_);
-
-  } else {
+#ifdef USE_CPP_CONROLLER
     //引数計算モジュールの初期化
     createArgEstimator(currentTask_);
     //引数の組み立て
@@ -148,7 +148,9 @@ bool TaskExecuteManager::runSingleCommand() {
     deleteArgEstimator();
 
     cmdRet = TaskExecutor::instance()->executeCommand(currParam_->getCmdName().toStdString(), parameterList);
-  }
+#else
+    cmdRet = TaskExecutor::instance()->executeCommand(currParam_->getCmdName().toStdString(), currentTask_, currParam_);
+#endif
 
   InfoBar::instance()->showMessage(_("Finished Command :") + currParam_->getCmdName(), MESSAGE_PERIOD);
   return cmdRet;
@@ -311,26 +313,25 @@ ExecResult TaskExecuteManager::doTaskOperation(bool updateCurrentTask) {
         DDEBUG("TaskExecuteManager::doTaskOperation CommandDef NOT Exist");
         return ExecResult::EXEC_ERROR;
       }
-      if (SettingManager::getInstance().getController() == "PythonController") {
-        lastResult_ = TaskExecutor::instance()->executeCommand(currParam_->getCmdName().toStdString(), currentTask_, currParam_);
-        //out引数の設定
-        PythonWrapper* handler = new PythonWrapper();
-        handler->setOutArguments(currentTask_, currParam_);
-        delete handler;
-
-      } else {
-        //引数の組み立て
-        if (argHandler_->buildArguments(currentTask_, currParam_, parameterList) == false) {
-          detachAllModelItem();
-          deleteArgEstimator();
-          DDEBUG("TaskExecuteManager::doTaskOperation EXEC_ERROR(Arg)");
-          return ExecResult::EXEC_ERROR;
-        }
-        //コマンド実行
-        lastResult_ = TaskExecutor::instance()->executeCommand(currParam_->getCmdName().toStdString(), parameterList);
-        //out引数の設定
-        setOutArgument(parameterList);
+#ifdef USE_CPP_CONROLLER
+      //引数の組み立て
+      if (argHandler_->buildArguments(currentTask_, currParam_, parameterList) == false) {
+        detachAllModelItem();
+        deleteArgEstimator();
+        DDEBUG("TaskExecuteManager::doTaskOperation EXEC_ERROR(Arg)");
+        return ExecResult::EXEC_ERROR;
       }
+      //コマンド実行
+      lastResult_ = TaskExecutor::instance()->executeCommand(currParam_->getCmdName().toStdString(), parameterList);
+      //out引数の設定
+      setOutArgument(parameterList);
+#else
+      lastResult_ = TaskExecutor::instance()->executeCommand(currParam_->getCmdName().toStdString(), currentTask_, currParam_);
+      //out引数の設定
+      PythonWrapper* handler = new PythonWrapper();
+      handler->setOutArguments(currentTask_, currParam_);
+      delete handler;
+#endif
 
       //モデルアクション実行
       if (doModelAction() == false) {
@@ -450,24 +451,23 @@ ExecResult TaskExecuteManager::doTaskOperationStep() {
     DDEBUG("TaskExecuteManager::doTaskOperation CommandDef NOT Exist");
 		return ExecResult::EXEC_ERROR;
   }
-  if (SettingManager::getInstance().getController() == "PythonController") {
-    lastResult_ = TaskExecutor::instance()->executeCommand(currParam_->getCmdName().toStdString(), currentTask_, currParam_);
-    //out引数の設定
-    PythonWrapper* handler = new PythonWrapper();
-    handler->setOutArguments(currentTask_, currParam_);
-    delete handler;
-
-  } else {
-    //引数の組み立て
-    if (argHandler_->buildArguments(currentTask_, currParam_, parameterList) == false) {
-      detachAllModelItem();
-      return ExecResult::EXEC_ERROR;
-    }
-    //コマンド実行
-    lastResult_ = TaskExecutor::instance()->executeCommand(currParam_->getCmdName().toStdString(), parameterList);
-    //out引数の設定
-    setOutArgument(parameterList);
+#ifdef USE_CPP_CONROLLER
+  //引数の組み立て
+  if (argHandler_->buildArguments(currentTask_, currParam_, parameterList) == false) {
+    detachAllModelItem();
+    return ExecResult::EXEC_ERROR;
   }
+  //コマンド実行
+  lastResult_ = TaskExecutor::instance()->executeCommand(currParam_->getCmdName().toStdString(), parameterList);
+  //out引数の設定
+  setOutArgument(parameterList);
+#else
+  lastResult_ = TaskExecutor::instance()->executeCommand(currParam_->getCmdName().toStdString(), currentTask_, currParam_);
+  //out引数の設定
+  PythonWrapper* handler = new PythonWrapper();
+  handler->setOutArguments(currentTask_, currParam_);
+  delete handler;
+#endif
 
   //モデルアクション実行
   if (doModelAction() == false) {

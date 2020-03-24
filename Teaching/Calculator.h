@@ -134,7 +134,7 @@ public:
     this->targetTask_ = targetModel;
   }
 
-  bool buildArguments(TaskModelParamPtr taskParam, ElementStmParamPtr targetParam, std::vector<CompositeParamType>& parameterList);
+  bool buildArguments(TaskModelParamPtr taskParam, ElementStmParamPtr targetParam, std::vector<CompositeParamType>& parameterList) override;
   bool checkSyntax(FlowParamPtr flowParam, TaskModelParamPtr taskParam, ArgumentDefParam* argDef, QString script, string& errStr);
   bool checkCondition(TaskModelParamPtr targetParam, string script, bool lastRet);
   bool checkFlowCondition(FlowParamPtr flowParam, string script, bool lastRet);

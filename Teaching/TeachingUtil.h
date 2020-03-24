@@ -35,7 +35,9 @@ public:
 
   static bool checkNameStr(QString target);
 
+#ifndef USE_CPP_CONROLLER
   static void setGlobalParam(TaskModelParamPtr targetParam);
+#endif
 
 private:
   static int getModelType(QString& source);

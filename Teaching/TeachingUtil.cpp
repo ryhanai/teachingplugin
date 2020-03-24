@@ -5,8 +5,11 @@
 #include <cnoid/YAMLReader>
 #include <cnoid/YAMLWriter>
 
-#include "PythonWrapper.h"
+#ifdef USE_CPP_CONROLLER
 #include "Calculator.h"
+#else
+#include "PythonWrapper.h"
+#endif
 
 #include "LoggerUtil.h"
 #include "gettext.h"
@@ -214,15 +217,20 @@ std::vector<std::string> SettingManager::getExtList() {
 }
 /////
 ArgumentEstimator* EstimatorFactory::createArgEstimator(TaskModelParamPtr targetParam) {
-  //CalculatorとPythonWrapperの切替
-  //ArgumentEstimator* handler = new Calculator();
+#ifdef USE_CPP_CONROLLER
+  ArgumentEstimator* handler = new Calculator();
+#else
   ArgumentEstimator* handler = new PythonWrapper();
+#endif
   return handler;
 }
 
 ArgumentEstimator* EstimatorFactory::createArgEstimator(FlowParamPtr targetParam) {
-  //ArgumentEstimator* handler = new Calculator();
+#ifdef USE_CPP_CONROLLER
+  ArgumentEstimator* handler = new Calculator();
+#else
   ArgumentEstimator* handler = new PythonWrapper();
+#endif
   return handler;
 }
 
@@ -345,6 +353,7 @@ bool TeachingUtil::importMasterModel(Mapping* targetMap, vector<ModelMasterParam
   return true;
 }
 /////////
+#ifndef USE_CPP_CONROLLER
 void TeachingUtil::setGlobalParam(TaskModelParamPtr targetParam) {
   if (targetParam == NULL) return;
   DDEBUG("TeachingUtil::setGlobalParam");
@@ -426,6 +435,7 @@ void TeachingUtil::setGlobalParam(TaskModelParamPtr targetParam) {
     return;
   }
 }
+#endif
 
 bool TeachingUtil::checkNameStr(QString target) {
   if (target.contains("|")) return false;

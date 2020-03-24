@@ -1,4 +1,5 @@
 option(BUILD_TEACHING_PLUGIN "Building Teaching plugin" ON)
+option(USE_CPP_CONROLLER "Use C ++ version controller" OFF)
 
 if(NOT BUILD_TEACHING_PLUGIN)
   return()
@@ -6,6 +7,10 @@ else()
   if(NOT BUILD_PYTHON_PLUGIN)
     message(FATAL_ERROR "The Teaching plugin requires the Python plugin")
   endif()
+endif()
+
+if(USE_CPP_CONROLLER)
+  add_definitions(-DUSE_CPP_CONROLLER)
 endif()
 
 set(libname CnoidTeachingPlugin)
@@ -16,7 +21,6 @@ endif()
 
 set(sources
   ArgumentDialog.cpp
-  Calculator.cpp
   ChoreonoidUtil.cpp
   ControllerManager.cpp
   DataBaseManager.cpp
@@ -31,8 +35,6 @@ set(sources
   ModelMasterDialog.cpp
   ParameterDialog.cpp
   ParameterView.cpp
-  PythonControllerWrapper.cpp
-  PythonWrapper.cpp
   SettingDialog.cpp
   StateMachineView.cpp
   TaskExecuteManager.cpp
@@ -81,7 +83,6 @@ set(sources
 
 set(headers
   ArgumentDialog.h
-  Calculator.h
   Parser.h
   ChoreonoidUtil.h
   ControllerBase.h
@@ -96,8 +97,6 @@ set(headers
   ModelMasterDialog.h
   ParameterDialog.h
   ParameterView.h
-  PythonControllerWrapper.h
-  PythonWrapper.h
   SettingDialog.h
   StateMachineView.h
   TaskExecuteManager.h
@@ -170,6 +169,24 @@ set(qtheaders
   NodeEditor/Connection.hpp
   NodeEditor/ParamWidget.hpp
   )
+
+if(USE_CPP_CONROLLER)
+  set(sources ${sources}
+	Calculator.cpp
+  )
+  set(headers ${headers}
+    Calculator.h
+  )
+else()
+  set(sources ${sources}
+    PythonControllerWrapper.cpp
+    PythonWrapper.cpp
+  )
+  set(headers ${headers}
+    PythonControllerWrapper.h
+    PythonWrapper.h
+  )
+endif()
 
 if(NOT QT5)
   QT4_ADD_RESOURCES(RC_SRCS TeachingPlugin.qrc)

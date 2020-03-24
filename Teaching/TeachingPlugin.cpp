@@ -10,8 +10,10 @@
 #include "TaskExecuteManager.h"
 
 #include "TeachingEventHandler.h"
-#include "PythonControllerWrapper.h"
 #include "ControllerManager.h"
+#ifndef USE_CPP_CONROLLER
+#include "PythonControllerWrapper.h"
+#endif
 
 #include <cnoid/MessageView>
 
@@ -48,7 +50,9 @@ public:
     executor->setMetadataView(metadataView);
 
     TeachingEventHandler::instance()->setTaskExecutor(executor);
+#ifndef USE_CPP_CONROLLER
     ControllerManager::instance()->registController("PythonController", PythonControllerWrapper::instance());
+#endif
 
     metadataView->bringToFront();
 
